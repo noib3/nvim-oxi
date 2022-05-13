@@ -1,1 +1,1 @@
-# nvim-oxi
+# :link: nvim-oxi
