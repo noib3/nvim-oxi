@@ -1,4 +1,9 @@
+// use std::ffi::CString;
 use std::fmt;
+
+extern "C" {
+    // fn nvim_buf_get_name(handle: BufHandle) -> CString;
+}
 
 pub(crate) type BufHandle = std::os::raw::c_int;
 
@@ -11,14 +16,15 @@ impl fmt::Display for Buffer {
     }
 }
 
-impl From<BufHandle> for Buffer {
-    fn from(handle: BufHandle) -> Self {
-        Buffer(handle)
+impl<T: Into<BufHandle>> From<T> for Buffer {
+    fn from(handle: T) -> Self {
+        Buffer(handle.into())
     }
 }
 
-impl From<Buffer> for BufHandle {
-    fn from(buf: Buffer) -> Self {
-        buf.0
-    }
+impl Buffer {
+    // /// Binding to `vim.api.nvim_buf_get_name`.
+    // pub fn get_name(&self) -> String {
+    //     unsafe { nvim_buf_get_name(self.0) }.into_string().unwrap()
+    // }
 }
