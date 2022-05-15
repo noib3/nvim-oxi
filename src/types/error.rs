@@ -19,9 +19,9 @@ impl TryFrom<NvimError> for Error {
     fn try_from(err: NvimError) -> Result<Self, Self::Error> {
         use ErrorType::*;
         match err.r#type {
+            kErrorTypeNone => Err("not an error!"),
             kErrorTypeException => Ok(Self::Exception(err.to_string())),
             kErrorTypeValidation => Ok(Self::Validation(err.to_string())),
-            kErrorTypeNone => Err("not an error!"),
         }
     }
 }
@@ -34,7 +34,7 @@ pub(crate) struct NvimError {
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
-#[allow(non_camel_case_types)]
+#[allow(dead_code, non_camel_case_types)]
 #[repr(C)]
 enum ErrorType {
     kErrorTypeNone = -1,
