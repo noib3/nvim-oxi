@@ -1,8 +1,9 @@
-use libc::{c_char, size_t};
 use std::borrow::Cow;
 use std::ffi::{CStr, CString, NulError};
 use std::mem;
 use std::ptr;
+
+use libc::{c_char, size_t};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 #[repr(C)]

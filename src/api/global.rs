@@ -1,7 +1,8 @@
+use std::ffi::{CString, NulError};
+
 use super::buffer::Buffer;
 use crate::types::{BufHandle, NvimError, NvimString};
 use crate::Result;
-use std::ffi::{CString, NulError};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1057
