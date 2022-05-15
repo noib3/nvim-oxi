@@ -1,10 +1,10 @@
 use std::fmt;
 
-use crate::types::{BufHandle, Error, String as NvString};
+use crate::types::{BufHandle, NvimError, NvimString};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
-    fn nvim_buf_get_name(buf: BufHandle, err: *mut Error) -> NvString;
+    fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -16,18 +16,33 @@ impl fmt::Display for Buffer {
     }
 }
 
-impl<T: Into<BufHandle>> From<T> for Buffer {
-    fn from(handle: T) -> Self {
-        Buffer(handle.into())
-    }
-}
+// TODO: find a way to check if a buffer handle has a buffer. Maybe
+// `find_buffer_by_handle`?
+//impl<T: Into<BufHandle>> TryFrom<T> for Buffer {
+//    type Error = ();
+//
+//    fn try_from(handle: T) -> Result<Self, Self::Error> {
+//        Ok(Buffer(handle.into()))
+//    }
+//}
 
 impl Buffer {
+    pub(crate) fn from(handle: BufHandle) -> Self {
+        Buffer(handle)
+    }
+
     /// Binding to `vim.api.nvim_buf_get_name`.
+    ///
+    /// Returns the full filepath of the buffer, replacing all invalid UTF-8
+    /// byte sequences in the path with
+    /// [`U+FFFD REPLACEMENT CHARACTER`](https://doc.rust-lang.org/nightly/core/char/constant.REPLACEMENT_CHARACTER.html).
     pub fn get_name(&self) -> String {
-        let mut err = Error::default();
-        let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
-        // TODO: check value of `err`.
-        name.to_string_lossy().into_owned()
+        unsafe { nvim_buf_get_name(self.0, &mut NvimError::default()) }
+            .to_string_lossy()
+            .into_owned()
+    }
+
+    pub const fn handle(&self) -> BufHandle {
+        self.0
     }
 }

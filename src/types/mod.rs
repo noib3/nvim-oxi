@@ -2,6 +2,7 @@ mod error;
 mod handles;
 mod string;
 
-pub(crate) use error::Error;
-pub(crate) use handles::BufHandle;
-pub use string::String;
+pub use error::Error;
+pub(crate) use error::NvimError;
+pub use handles::BufHandle;
+pub(crate) use string::NvimString;

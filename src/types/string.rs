@@ -4,14 +4,12 @@ use std::ffi::CStr;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 #[repr(C)]
-pub struct String {
+pub(crate) struct NvimString {
     data: *mut c_char,
-    // Using `usize` here instead of `std::os::raw::c_size_t` until
-    // https://github.com/rust-lang/rust/issues/88345 gets stabilized.
     size: size_t,
 }
 
-impl String {
+impl NvimString {
     #[inline]
     pub fn as_c_str(&self) -> &CStr {
         unsafe { CStr::from_ptr(self.data) }
