@@ -5,7 +5,7 @@ use thiserror::Error;
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub enum ErrorType {
+pub(crate) enum ErrorType {
     kErrorTypeNone = -1,
     kErrorTypeException,
     kErrorTypeValidation,
@@ -14,7 +14,7 @@ pub enum ErrorType {
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
 #[derive(Copy, Clone, PartialEq)]
 #[repr(C)]
-pub struct Error {
+pub(crate) struct Error {
     r#type: ErrorType,
     msg: *mut c_char,
 }
