@@ -1,7 +1,8 @@
 use std::ffi::{CString, NulError};
 
+use nvim_types::{BufHandle, Error as NvimError, String as NvimString};
+
 use super::buffer::Buffer;
-use crate::types::{BufHandle, NvimError, NvimString};
 use crate::Result;
 
 extern "C" {
@@ -28,7 +29,21 @@ extern "C" {
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = NvimError::default();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
-    err.into_err_or(|| Buffer::from(handle))
+    err.into_err_or_else(|| Buffer::from(handle))
+}
+
+/// Binding to `vim.api.nvim_echo`.
+pub fn echo<Text, HlGroup, Chunks>(
+    chunks: Chunks,
+    add_to_history: bool,
+) -> Result<()>
+where
+    Text: std::fmt::Display,
+    HlGroup: AsRef<str>,
+    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
+{
+    let chunks = chunks.into_iter().map(|(text, hlgroup)| todo!());
+    todo!()
 }
 
 /// Binding to `vim.api.nvim_get_current_buf`.

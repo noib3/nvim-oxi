@@ -7,16 +7,16 @@ use libc::{c_char, size_t};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 #[repr(C)]
-pub(crate) struct NvimString {
+pub struct String {
     data: *mut c_char,
     size: size_t,
 }
 
-impl NvimString {
+impl String {
     #[inline]
     pub fn from_c_string(c_string: CString) -> Self {
         let mut bytes = c_string.into_bytes();
-        let mut uninit = std::mem::MaybeUninit::<NvimString>::uninit();
+        let mut uninit = std::mem::MaybeUninit::<String>::uninit();
 
         let ptr = uninit.as_mut_ptr();
 

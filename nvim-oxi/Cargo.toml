@@ -1,0 +1,11 @@
+[package]
+name = "nvim-oxi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+nvim-types = { path = "../nvim-types" }
+thiserror = "1.0"

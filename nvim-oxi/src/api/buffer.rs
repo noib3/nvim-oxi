@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::types::{BufHandle, NvimError, NvimString};
+use nvim_types::{BufHandle, Error as NvimError, String as NvimString};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
@@ -27,6 +27,11 @@ impl fmt::Display for Buffer {
 //}
 
 impl Buffer {
+    /// Creates a `Buffer` from a `BufHandle`. It's only available inside the
+    /// crate to disallow creating `Buffer`s explicitely. This way a lot of the
+    /// following methods don't have to return a `Result`, since most of the
+    /// `nvim_buf_*` Neovim functions only fail when passing invalid
+    /// `BufHandle`s.
     pub(crate) fn from(handle: BufHandle) -> Self {
         Buffer(handle)
     }
@@ -34,15 +39,10 @@ impl Buffer {
     /// Binding to `vim.api.nvim_buf_get_name`.
     ///
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
-    /// byte sequences in the path with
-    /// [`U+FFFD REPLACEMENT CHARACTER`](https://doc.rust-lang.org/nightly/core/char/constant.REPLACEMENT_CHARACTER.html).
+    /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
     pub fn get_name(&self) -> String {
         unsafe { nvim_buf_get_name(self.0, &mut NvimError::default()) }
             .to_string_lossy()
             .into_owned()
-    }
-
-    pub const fn handle(&self) -> BufHandle {
-        self.0
     }
 }

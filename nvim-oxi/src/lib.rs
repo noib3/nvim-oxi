@@ -1,13 +1,12 @@
 pub mod api;
-mod types;
+mod error;
 
 pub use api::Buffer;
-pub use types::{BufHandle, Error};
-
+pub use error::Error;
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[no_mangle]
-pub extern "C" fn test() -> *mut libc::c_char {
+pub extern "C" fn test() -> *mut std::os::raw::c_char {
     // api::create_buf(true, true).to_string().len().try_into().unwrap()
 
     // std::ffi::CString::new(api::get_current_buf().get_name())
