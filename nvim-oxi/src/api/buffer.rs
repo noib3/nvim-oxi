@@ -3,8 +3,20 @@ use std::fmt;
 use nvim_types::{BufHandle, Error as NvimError, String as NvimString};
 
 extern "C" {
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L411
+    fn find_buffer_by_handle(
+        buf: BufHandle,
+        err: *mut NvimError,
+    ) -> *const buf_T;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
     fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
+}
+
+#[allow(non_camel_case_types)]
+#[repr(C)]
+struct buf_T {
+    _inner: [u8; 0],
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -16,15 +28,18 @@ impl fmt::Display for Buffer {
     }
 }
 
-// TODO: find a way to check if a buffer handle has a buffer. Maybe
-// `find_buffer_by_handle`?
-//impl<T: Into<BufHandle>> TryFrom<T> for Buffer {
-//    type Error = ();
-//
-//    fn try_from(handle: T) -> Result<Self, Self::Error> {
-//        Ok(Buffer(handle.into()))
-//    }
-//}
+// I'd really like to write this as
+// `impl<T: Into<BufHandle>> TryFrom<T> for Buffer {..}`
+// but can't because of https://github.com/rust-lang/rust/issues/50133, aaargh.
+impl TryFrom<BufHandle> for Buffer {
+    type Error = crate::error::Error;
+
+    fn try_from(handle: BufHandle) -> Result<Self, Self::Error> {
+        let mut err = NvimError::default();
+        let _ = unsafe { find_buffer_by_handle(handle, &mut err) };
+        err.into_err_or_else(|| Buffer(handle))
+    }
+}
 
 impl Buffer {
     /// Creates a `Buffer` from a `BufHandle`. It's only available inside the
