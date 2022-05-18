@@ -1,3 +1,4 @@
+use std::fmt;
 use std::mem::ManuallyDrop;
 
 use super::array::Array;
@@ -6,15 +7,16 @@ use super::string::String;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
 #[repr(C)]
-pub(crate) struct Object {
-    r#type: ObjectType,
-    data: ObjectData,
+pub struct Object {
+    pub(crate) r#type: ObjectType,
+    pub(crate) data: ObjectData,
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L100
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-enum ObjectType {
+pub enum ObjectType {
     kObjectTypeNil = 0,
     kObjectTypeBoolean,
     kObjectTypeInteger,
@@ -23,22 +25,40 @@ enum ObjectType {
     kObjectTypeArray,
     kObjectTypeDictionary,
     kObjectTypeLuaRef,
-    // EXT types, cannot be split or reordered, see #EXT_OBJECT_TYPE_SHIFT
-    kObjectTypeBuffer,
-    kObjectTypeWindow,
-    kObjectTypeTabpage,
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L117
 #[repr(C)]
 pub union ObjectData {
-    boolean: bool,
-    integer: i64,
-    float: f64,
-    string: ManuallyDrop<String>,
-    array: ManuallyDrop<Array>,
-    dictionary: ManuallyDrop<Dictionary>,
-    luaref: isize,
+    pub(crate) boolean: bool,
+    pub(crate) integer: i64,
+    pub(crate) float: f64,
+    pub(crate) string: ManuallyDrop<String>,
+    pub(crate) array: ManuallyDrop<Array>,
+    pub(crate) dictionary: ManuallyDrop<Dictionary>,
+    pub(crate) luaref: isize,
+}
+
+impl fmt::Debug for Object {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use ObjectType::*;
+
+        let data = match self.r#type {
+            kObjectTypeNil => "nil".to_string(),
+            kObjectTypeBoolean => unsafe { self.data.boolean }.to_string(),
+            kObjectTypeInteger => unsafe { self.data.integer }.to_string(),
+            kObjectTypeFloat => unsafe { self.data.float }.to_string(),
+            kObjectTypeString => unsafe { self.data.boolean }.to_string(),
+            kObjectTypeArray => unsafe { self.data.boolean }.to_string(),
+            kObjectTypeDictionary => unsafe { self.data.boolean }.to_string(),
+            kObjectTypeLuaRef => unsafe { self.data.boolean }.to_string(),
+        };
+
+        f.debug_struct("Object")
+            .field("type", &self.r#type)
+            .field("data", &data)
+            .finish()
+    }
 }
 
 impl Drop for Object {
@@ -58,6 +78,72 @@ impl Drop for Object {
             },
 
             _ => {},
+        }
+    }
+}
+
+macro_rules! impl_from_copy_type {
+    ($type:ident, $variant:ident, $data:ident) => {
+        impl From<$type> for Object {
+            fn from($data: $type) -> Self {
+                Self {
+                    r#type: ObjectType::$variant,
+                    data: ObjectData { $data },
+                }
+            }
+        }
+    };
+}
+
+macro_rules! impl_from_int {
+    ($type:ident) => {
+        impl From<$type> for Object {
+            fn from(i: $type) -> Self {
+                Self::from(i64::from(i))
+            }
+        }
+    };
+}
+
+impl_from_copy_type!(bool, kObjectTypeBoolean, boolean);
+
+impl_from_int!(i8);
+impl_from_int!(u8);
+impl_from_int!(i16);
+impl_from_int!(u16);
+impl_from_int!(i32);
+impl_from_int!(u32);
+impl_from_int!(i64);
+
+// impl From<bool> for Object {
+//     fn from(boolean: bool) -> Self {
+//         from_copy_type!(kObjectTypeBoolean, boolean)
+//     }
+// }
+
+impl From<std::string::String> for Object {
+    fn from(string: std::string::String) -> Self {
+        todo!()
+    }
+}
+
+impl<T: Into<Object>> From<Option<T>> for Object {
+    fn from(maybe: Option<T>) -> Self {
+        match maybe {
+            Some(obj) => obj.into(),
+            None => Self {
+                r#type: ObjectType::kObjectTypeNil,
+                data: ObjectData { integer: 0 },
+            },
+        }
+    }
+}
+
+impl<T: Into<Object>> From<Vec<T>> for Object {
+    fn from(vec: Vec<T>) -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeArray,
+            data: ObjectData { array: ManuallyDrop::new(Array::from(vec)) },
         }
     }
 }

@@ -1,4 +1,5 @@
 mod array;
+mod collection;
 mod dictionary;
 mod error;
 mod handles;
