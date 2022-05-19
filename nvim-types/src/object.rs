@@ -43,21 +43,44 @@ impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ObjectType::*;
 
-        let data = match self.r#type {
-            kObjectTypeNil => "nil".to_string(),
-            kObjectTypeBoolean => unsafe { self.data.boolean }.to_string(),
-            kObjectTypeInteger => unsafe { self.data.integer }.to_string(),
-            kObjectTypeFloat => unsafe { self.data.float }.to_string(),
-            kObjectTypeString => unsafe { self.data.boolean }.to_string(),
-            kObjectTypeArray => unsafe { self.data.boolean }.to_string(),
-            kObjectTypeDictionary => unsafe { self.data.boolean }.to_string(),
-            kObjectTypeLuaRef => unsafe { self.data.boolean }.to_string(),
+        let mut dbg = f.debug_struct("Object");
+        dbg.field("type", &self.r#type);
+
+        match self.r#type {
+            kObjectTypeNil => dbg.field("data", &"nil"),
+
+            kObjectTypeBoolean => {
+                dbg.field("data", &unsafe { self.data.boolean })
+            },
+
+            kObjectTypeInteger => {
+                dbg.field("data", &unsafe { self.data.integer })
+            },
+
+            kObjectTypeFloat => dbg.field("data", &unsafe { self.data.float }),
+
+            kObjectTypeString => {
+                // dbg.field("data", &unsafe { self.data.string })
+                dbg.field("data", &"todo")
+            },
+
+            kObjectTypeArray => {
+                // dbg.field("data", &unsafe { self.data.array })
+                dbg.field("data", &"todo")
+            },
+
+            kObjectTypeDictionary => {
+                // dbg.field("data", &unsafe { self.data.dictionary })
+                dbg.field("data", &"todo")
+            },
+
+            kObjectTypeLuaRef => {
+                // dbg.field("data", &unsafe { self.data.luaref })
+                dbg.field("data", &"todo")
+            },
         };
 
-        f.debug_struct("Object")
-            .field("type", &self.r#type)
-            .field("data", &data)
-            .finish()
+        dbg.finish()
     }
 }
 
@@ -106,6 +129,7 @@ macro_rules! impl_from_int {
 }
 
 impl_from_copy_type!(bool, kObjectTypeBoolean, boolean);
+impl_from_copy_type!(i64, kObjectTypeInteger, integer);
 
 impl_from_int!(i8);
 impl_from_int!(u8);
@@ -113,7 +137,6 @@ impl_from_int!(i16);
 impl_from_int!(u16);
 impl_from_int!(i32);
 impl_from_int!(u32);
-impl_from_int!(i64);
 
 // impl From<bool> for Object {
 //     fn from(boolean: bool) -> Self {
@@ -123,7 +146,16 @@ impl_from_int!(i64);
 
 impl From<std::string::String> for Object {
     fn from(string: std::string::String) -> Self {
-        todo!()
+        String::from_c_string(std::ffi::CString::new(string).unwrap()).into()
+    }
+}
+
+impl From<String> for Object {
+    fn from(string: String) -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeString,
+            data: ObjectData { string: ManuallyDrop::new(string) },
+        }
     }
 }
 

@@ -50,12 +50,23 @@ impl TryFrom<Object> for Array {
 
 impl<T: Into<Object>, Iter: IntoIterator<Item = T>> From<Iter> for Array {
     fn from(iter: Iter) -> Self {
-        iter.into_iter().map(|item| item.into()).collect()
+        let mut vec = ManuallyDrop::new(
+            iter.into_iter().map(|item| item.into()).collect::<Vec<Object>>(),
+        );
+
+        let size = vec.len();
+
+        Self {
+            items: unsafe { NonNull::new_unchecked(vec.as_mut_ptr()) },
+            size,
+            capacity: size,
+            _marker: PhantomData,
+        }
     }
 }
 
 impl<T: Into<Object>> FromIterator<T> for Array {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        todo!()
+        Self::from(iter)
     }
 }

@@ -5,6 +5,7 @@ use nvim_types::{
     BufHandle,
     Dictionary,
     Error as NvimError,
+    Object,
     String as NvimString,
 };
 
@@ -50,16 +51,15 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
     Text: std::fmt::Display,
-    HlGroup: Into<String>,
+    HlGroup: AsRef<str>,
     Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
 {
-    let chunks = chunks
+    let chunks: Array = chunks
         .into_iter()
-        // .map(|(text, hlgroup)| (text.to_string(), hlgroup.map(|hl| hl.into())))
         .map(|(text, hlgroup)| {
             let text = text.to_string();
             match hlgroup {
-                Some(group) => vec![text, group.into()],
+                Some(group) => vec![text, group.as_ref().to_owned()],
                 None => vec![text],
             }
         })
