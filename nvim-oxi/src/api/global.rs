@@ -1,12 +1,11 @@
-use std::ffi::{CString, NulError};
+use std::ffi::CString;
 
 use nvim_types::{
     Array,
     BufHandle,
     Dictionary,
     Error as NvimError,
-    Object,
-    String as NvimString,
+    NvimString,
 };
 
 use super::buffer::Buffer;
@@ -31,6 +30,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L963
     fn nvim_get_current_buf() -> BufHandle;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1578
+    fn nvim_get_mode() -> Dictionary;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L398
     fn nvim_replace_termcodes(
         str: NvimString,
@@ -54,16 +56,16 @@ where
     HlGroup: AsRef<str>,
     Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
 {
-    let chunks: Array = chunks
+    let chunks = chunks
         .into_iter()
-        .map(|(text, hlgroup)| {
+        .map(|(text, maybe_hlgroup)| {
             let text = text.to_string();
-            match hlgroup {
+            match maybe_hlgroup {
                 Some(group) => vec![text, group.as_ref().to_owned()],
                 None => vec![text],
             }
         })
-        .into();
+        .collect();
 
     let mut err = NvimError::default();
     unsafe { nvim_echo(chunks, history, Dictionary::new(), &mut err) };
@@ -75,18 +77,25 @@ pub fn get_current_buf() -> Buffer {
     Buffer::from(unsafe { nvim_get_current_buf() })
 }
 
+/// Binding to `vim.api.nvim_get_mode`.
+pub fn get_mode() -> Dictionary {
+    unsafe { nvim_get_mode() }
+    // (
+    //     dict.get("mode").expect("`mode` key is present"),
+    //     dict.get("blocking").expect("`blocking` key is present"),
+    // )
+}
+
 /// Binding to `vim.api.nvim_replace_termcodes`.
-///
-/// Fails when the provived `str` contains a null byte.
 pub fn replace_termcodes(
     str: &str,
     from_part: bool,
     do_lt: bool,
     special: bool,
-) -> std::result::Result<CString, NulError> {
-    let str = NvimString::new(str)?;
+) -> CString {
+    let str = NvimString::from(str);
 
-    Ok(unsafe { nvim_replace_termcodes(str, from_part, do_lt, special) }
+    unsafe { nvim_replace_termcodes(str, from_part, do_lt, special) }
         .as_c_str()
-        .to_owned())
+        .to_owned()
 }

@@ -2,16 +2,34 @@ use std::fmt;
 
 use super::collection::Collection;
 use super::object::Object;
-use super::string::String;
+use super::string::NvimString;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Dictionary = Collection<KeyValuePair>;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L128
+#[derive(Clone, PartialEq)]
 #[repr(C)]
 pub struct KeyValuePair {
-    key: String,
+    key: NvimString,
     value: Object,
+}
+
+impl Dictionary {
+    pub fn get<K, V>(&self, key: &K) -> Option<V>
+    where
+        K: ?Sized + PartialEq<NvimString>,
+        V: TryFrom<Object>,
+    {
+        // TODO: return reference if V is already of type Object, clone
+        // otherwise?
+        self.iter()
+            .find_map(|target| {
+                (key == &target.key).then(|| target.value.clone())
+            })?
+            .try_into()
+            .ok()
+    }
 }
 
 impl fmt::Debug for KeyValuePair {
@@ -23,26 +41,17 @@ impl fmt::Debug for KeyValuePair {
     }
 }
 
-impl<K: Into<String>, V: Into<Object>> From<(K, V)> for KeyValuePair {
+impl<K: Into<NvimString>, V: Into<Object>> From<(K, V)> for KeyValuePair {
     fn from((key, value): (K, V)) -> Self {
         Self { key: key.into(), value: value.into() }
     }
 }
 
-// impl<K, V, E> TryFrom<(K, V)> for KeyValuePair
-// where
-//     K: Into<String>,
-//     V: TryInto<Object, Error = E>,
-// {
-//     type Error = E;
-
-//     fn try_from((key, value): (K, V)) -> Result<Self, Self::Error> {
-//         Ok(Self { key: key.into(), value: value.try_into()? })
-//     }
-// }
-
 impl KeyValuePair {
-    pub fn new<K: Into<String>, V: Into<Object>>(key: K, value: V) -> Self {
+    pub fn new<K: Into<NvimString>, V: Into<Object>>(
+        key: K,
+        value: V,
+    ) -> Self {
         Self { key: key.into(), value: value.into() }
     }
 

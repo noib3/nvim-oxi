@@ -3,7 +3,7 @@ use std::mem::ManuallyDrop;
 
 use super::array::Array;
 use super::dictionary::Dictionary;
-use super::string::String;
+use super::string::NvimString;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
 #[repr(C)]
@@ -33,10 +33,20 @@ pub union ObjectData {
     pub(crate) boolean: bool,
     pub(crate) integer: i64,
     pub(crate) float: f64,
-    pub(crate) string: ManuallyDrop<String>,
+    pub(crate) string: ManuallyDrop<NvimString>,
     pub(crate) array: ManuallyDrop<Array>,
     pub(crate) dictionary: ManuallyDrop<Dictionary>,
     pub(crate) luaref: isize,
+}
+
+impl Object {
+    #[inline]
+    const fn nil() -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeNil,
+            data: ObjectData { integer: 0 },
+        }
+    }
 }
 
 impl fmt::Debug for Object {
@@ -60,8 +70,7 @@ impl fmt::Debug for Object {
             kObjectTypeFloat => dbg.field("data", &unsafe { self.data.float }),
 
             kObjectTypeString => {
-                // dbg.field("data", &unsafe { self.data.string })
-                dbg.field("data", &"todo")
+                dbg.field("data", unsafe { &self.data.string })
             },
 
             kObjectTypeArray => {
@@ -81,6 +90,74 @@ impl fmt::Debug for Object {
         };
 
         dbg.finish()
+    }
+}
+
+macro_rules! impl_clone_for_copy {
+    ($self:expr, $field:ident) => {{
+        Self {
+            r#type: $self.r#type,
+            data: ObjectData { $field: unsafe { $self.data.$field } },
+        }
+    }};
+}
+
+macro_rules! impl_clone_for_clone {
+    ($self:expr, $field:ident) => {{
+        Self {
+            r#type: $self.r#type,
+            data: ObjectData {
+                $field: ManuallyDrop::new(
+                    unsafe { &$self.data.$field }.clone(),
+                ),
+            },
+        }
+    }};
+}
+
+impl Clone for Object {
+    fn clone(&self) -> Self {
+        use ObjectType::*;
+        match self.r#type {
+            kObjectTypeNil => Self::nil(),
+            kObjectTypeBoolean => impl_clone_for_copy!(self, boolean),
+            kObjectTypeInteger => impl_clone_for_copy!(self, integer),
+            kObjectTypeFloat => impl_clone_for_copy!(self, float),
+            // kObjectTypeString => impl_clone_for_clone!(self, string),
+            // kObjectTypeArray => impl_clone_for_clone!(self, array),
+            // kObjectTypeDictionary => impl_clone_for_clone!(self, dictionary),
+            kObjectTypeString => {
+                let value: &NvimString = unsafe { &self.data.string };
+                Self {
+                    r#type: self.r#type,
+                    data: ObjectData {
+                        string: ManuallyDrop::new(value.clone()),
+                    },
+                }
+            },
+
+            kObjectTypeArray => {
+                let value: &Array = unsafe { &self.data.array };
+                Self {
+                    r#type: self.r#type,
+                    data: ObjectData {
+                        array: ManuallyDrop::new(value.clone()),
+                    },
+                }
+            },
+
+            kObjectTypeDictionary => {
+                let value: &Dictionary = unsafe { &self.data.dictionary };
+                Self {
+                    r#type: self.r#type,
+                    data: ObjectData {
+                        dictionary: ManuallyDrop::new(value.clone()),
+                    },
+                }
+            },
+
+            kObjectTypeLuaRef => impl_clone_for_copy!(self, luaref),
+        }
     }
 }
 
@@ -138,20 +215,35 @@ impl_from_int!(u16);
 impl_from_int!(i32);
 impl_from_int!(u32);
 
-// impl From<bool> for Object {
-//     fn from(boolean: bool) -> Self {
-//         from_copy_type!(kObjectTypeBoolean, boolean)
-//     }
-// }
-
-impl From<std::string::String> for Object {
-    fn from(string: std::string::String) -> Self {
-        String::from_c_string(std::ffi::CString::new(string).unwrap()).into()
+impl PartialEq for Object {
+    fn eq(&self, other: &Self) -> bool {
+        self.r#type == other.r#type
+            && unsafe {
+                let (sd, od) = (&self.data, &other.data);
+                use ObjectType::*;
+                match self.r#type {
+                    kObjectTypeNil => true,
+                    kObjectTypeBoolean => sd.boolean == od.boolean,
+                    kObjectTypeInteger => sd.integer == od.integer,
+                    kObjectTypeFloat => sd.float == od.float,
+                    kObjectTypeString => sd.string == od.string,
+                    kObjectTypeArray => sd.array == od.array,
+                    kObjectTypeDictionary => sd.dictionary == od.dictionary,
+                    kObjectTypeLuaref => sd.luaref == od.luaref,
+                }
+            }
     }
 }
 
-impl From<String> for Object {
-    fn from(string: String) -> Self {
+impl From<std::string::String> for Object {
+    fn from(string: std::string::String) -> Self {
+        NvimString::from_c_string(std::ffi::CString::new(string).unwrap())
+            .into()
+    }
+}
+
+impl From<NvimString> for Object {
+    fn from(string: NvimString) -> Self {
         Self {
             r#type: ObjectType::kObjectTypeString,
             data: ObjectData { string: ManuallyDrop::new(string) },
@@ -175,7 +267,29 @@ impl<T: Into<Object>> From<Vec<T>> for Object {
     fn from(vec: Vec<T>) -> Self {
         Self {
             r#type: ObjectType::kObjectTypeArray,
-            data: ObjectData { array: ManuallyDrop::new(Array::from(vec)) },
+            data: ObjectData {
+                array: ManuallyDrop::new(Array::from_iter(vec)),
+            },
         }
+    }
+}
+
+impl From<Array> for Object {
+    fn from(array: Array) -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeArray,
+            data: ObjectData { array: ManuallyDrop::new(array) },
+        }
+    }
+}
+
+impl TryFrom<Object> for bool {
+    type Error = ();
+
+    #[inline]
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
+        (matches!(obj.r#type, ObjectType::kObjectTypeBoolean))
+            .then(|| unsafe { obj.data.boolean })
+            .ok_or_else(|| ())
     }
 }

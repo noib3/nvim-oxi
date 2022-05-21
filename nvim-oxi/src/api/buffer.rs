@@ -1,6 +1,6 @@
 use std::fmt;
 
-use nvim_types::{BufHandle, Error as NvimError, String as NvimString};
+use nvim_types::{BufHandle, Error as NvimError, NvimString};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L411

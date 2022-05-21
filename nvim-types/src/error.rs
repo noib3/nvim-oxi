@@ -43,7 +43,7 @@ impl fmt::Display for Error {
 }
 
 impl Error {
-    /// Returns `Ok(f())` if it's not actually an error, or moves out into a
+    /// Returns `Ok(f())` if it's not actually an error, or moves into a
     /// generic `std::error::Error` if it is.
     pub fn into_err_or_else<Ok, F, Err, TryFromErr>(
         self,
