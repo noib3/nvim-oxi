@@ -28,6 +28,14 @@ extern "C" {
         name: NvimString,
         err: *mut NvimError,
     ) -> Object;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1013
+    fn nvim_buf_set_var(
+        buf: BufHandle,
+        name: NvimString,
+        value: Object,
+        err: *mut NvimError,
+    );
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -157,10 +165,10 @@ impl Buffer {
     /// Binding to `nvim_buf_get_offset`.
     ///
     /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
-    pub fn get_offset<Index: Into<Integer>>(
-        &self,
-        index: Index,
-    ) -> Result<Integer> {
+    pub fn get_offset<Index>(&self, index: Index) -> Result<Integer>
+    where
+        Index: Into<Integer>,
+    {
         let mut err = NvimError::default();
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
@@ -223,11 +231,15 @@ impl Buffer {
     // set_name
 
     /// Binding to `vim.api.nvim_buf_set_option`.
-    pub fn set_option<Name: Into<NvimString>, Value: Into<Object>>(
+    pub fn set_option<Name, Value>(
         &mut self,
         name: Name,
         value: Value,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Name: Into<NvimString>,
+        Value: Into<Object>,
+    {
         todo!()
     }
 
@@ -246,5 +258,22 @@ impl Buffer {
         todo!()
     }
 
-    // set_var
+    /// Binding to `nvim_buf_set_var`.
+    ///
+    /// Sets a buffer-scoped (b:) variable.
+    pub fn set_var<Name, Value>(
+        &mut self,
+        name: Name,
+        value: Value,
+    ) -> Result<()>
+    where
+        Name: Into<NvimString>,
+        Value: Into<Object>,
+    {
+        let mut err = NvimError::default();
+        let _ = unsafe {
+            nvim_buf_set_var(self.0, name.into(), value.into(), &mut err)
+        };
+        err.into_err_or_else(|| ())
+    }
 }
