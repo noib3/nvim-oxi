@@ -29,6 +29,13 @@ extern "C" {
         err: *mut NvimError,
     ) -> Object;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1104
+    fn nvim_buf_set_name(
+        buf: BufHandle,
+        name: NvimString,
+        err: *mut NvimError,
+    );
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1013
     fn nvim_buf_set_var(
         buf: BufHandle,
@@ -228,9 +235,19 @@ impl Buffer {
 
     // set_mark
 
-    // set_name
+    /// Binding to `nvim_buf_set_name`.
+    ///
+    /// Sets the full file name for a buffer.
+    pub fn set_name<Name>(&mut self, name: Name) -> Result<()>
+    where
+        Name: Into<NvimString>,
+    {
+        let mut err = NvimError::default();
+        let _ = unsafe { nvim_buf_set_name(self.0, name.into(), &mut err) };
+        err.into_err_or_else(|| ())
+    }
 
-    /// Binding to `vim.api.nvim_buf_set_option`.
+    /// Binding to `nvim_buf_set_option`.
     pub fn set_option<Name, Value>(
         &mut self,
         name: Name,
@@ -243,7 +260,7 @@ impl Buffer {
         todo!()
     }
 
-    /// Binding to `vim.api.nvim_buf_set_option`.
+    /// Binding to `nvim_buf_set_text`.
     pub fn set_text<
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
