@@ -12,6 +12,9 @@ extern "C" {
         err: *mut NvimError,
     ) -> *const buf_T;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1030
+    fn nvim_buf_del_var(buf: BufHandle, name: NvimString, err: *mut NvimError);
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L921
     fn nvim_buf_get_changedtick(
         buf: BufHandle,
@@ -168,11 +171,22 @@ impl Buffer {
 
     // del_user_command
 
-    // del_var
+    /// Binding to `nvim_buf_del_var`.
+    ///
+    /// Removes a buffer-scoped (b:) variable.
+    pub fn del_var<Name>(&mut self, name: Name) -> Result<()>
+    where
+        Name: Into<NvimString>,
+    {
+        let mut err = NvimError::default();
+        let _ = unsafe { nvim_buf_del_var(self.0, name.into(), &mut err) };
+        err.into_err_or_else(|| ())
+    }
 
-    // delete
-
-    // detach
+    // Binding to `nvim_buf_delete`.
+    pub fn delete(self, force: bool, unload: bool) -> Result<()> {
+        todo!()
+    }
 
     /// Binding to `nvim_buf_get_changedtick`.
     pub fn get_changedtick(&self) -> Result<usize> {
