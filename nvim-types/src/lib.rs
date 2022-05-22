@@ -14,3 +14,4 @@ pub use object::Object;
 pub use string::NvimString;
 
 pub type Integer = i64;
+pub type LuaRef = isize;

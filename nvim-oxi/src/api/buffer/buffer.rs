@@ -3,96 +3,9 @@ use std::fmt;
 use nvim_types::error::{ConversionError, Error as NvimError};
 use nvim_types::{BufHandle, Dictionary, Integer, NvimString, Object};
 
+use super::opts::*;
+use super::r#extern::*;
 use crate::Result;
-
-extern "C" {
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L411
-    fn find_buffer_by_handle(
-        buf: BufHandle,
-        err: *mut NvimError,
-    ) -> *const buf_T;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1216
-    fn nvim_buf_del_mark(
-        buf: BufHandle,
-        name: NvimString,
-        err: *mut NvimError,
-    ) -> bool;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1406
-    fn nvim_buf_del_user_command(
-        buf: BufHandle,
-        name: NvimString,
-        err: *mut NvimError,
-    );
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1030
-    fn nvim_buf_del_var(buf: BufHandle, name: NvimString, err: *mut NvimError);
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L921
-    fn nvim_buf_get_changedtick(
-        buf: BufHandle,
-        err: *mut NvimError,
-    ) -> Integer;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
-    fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L876
-    fn nvim_buf_get_offset(
-        buf: BufHandle,
-        index: Integer,
-        err: *mut NvimError,
-    ) -> Integer;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
-    fn nvim_buf_get_option(
-        buf: BufHandle,
-        name: NvimString,
-        err: *mut NvimError,
-    ) -> Object;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
-    fn nvim_buf_get_var(
-        buf: BufHandle,
-        name: NvimString,
-        err: *mut NvimError,
-    ) -> Object;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1135
-    fn nvim_buf_is_loaded(buf: BufHandle) -> bool;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1198
-    fn nvim_buf_is_valid(buf: BufHandle) -> bool;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
-    fn nvim_buf_line_count(buf: BufHandle, err: *mut NvimError) -> Integer;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1265
-    fn nvim_buf_set_mark(
-        buf: BufHandle,
-        name: NvimString,
-        line: Integer,
-        col: Integer,
-        opts: Dictionary,
-        err: *mut NvimError,
-    ) -> bool;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1104
-    fn nvim_buf_set_name(
-        buf: BufHandle,
-        name: NvimString,
-        err: *mut NvimError,
-    );
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1013
-    fn nvim_buf_set_var(
-        buf: BufHandle,
-        name: NvimString,
-        value: Object,
-        err: *mut NvimError,
-    );
-}
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Buffer(BufHandle);
@@ -103,66 +16,13 @@ impl fmt::Display for Buffer {
     }
 }
 
-#[allow(non_camel_case_types)]
-#[repr(C)]
-struct buf_T {
-    _inner: [u8; 0],
-}
-
-// I'd really like to write this as
-// `impl<T: Into<BufHandle>> TryFrom<T> for Buffer {..}`
-// but can't because of https://github.com/rust-lang/rust/issues/50133, aaargh.
-impl TryFrom<BufHandle> for Buffer {
-    type Error = crate::error::Error;
-
-    fn try_from(handle: BufHandle) -> std::result::Result<Self, Self::Error> {
-        let mut err = NvimError::default();
-        let _ = unsafe { find_buffer_by_handle(handle, &mut err) };
-        err.into_err_or_else(|| Buffer(handle))
+impl<H: Into<BufHandle>> From<H> for Buffer {
+    fn from(handle: H) -> Self {
+        Buffer(handle.into())
     }
-}
-
-#[derive(Default)]
-pub struct BufAttachOpts {
-    on_lines: Option<
-        Box<
-            dyn FnMut(
-                NvimString,
-                BufHandle,
-                u32,
-                u32,
-                u32,
-                u32,
-                u32,
-                u32,
-            ) -> Option<bool>,
-        >,
-    >,
-
-    on_bytes: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
-
-    on_changedtick:
-        Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
-
-    on_detach: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
-
-    on_reload: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
-
-    utf_sizes: bool,
-
-    utf_preview: bool,
 }
 
 impl Buffer {
-    /// Creates a `Buffer` from a `BufHandle`. It's only available inside the
-    /// crate to disallow creating `Buffer`s explicitely. This way a lot of the
-    /// following methods don't have to return a `Result`, since most of the
-    /// `nvim_buf_*` Neovim functions only fail when passing invalid
-    /// `BufHandle`s.
-    pub(crate) fn from(handle: BufHandle) -> Self {
-        Buffer(handle)
-    }
-
     /// Binding to `nvim_buf_attach`.
     pub fn attach(
         &self,
@@ -179,7 +39,16 @@ impl Buffer {
 
     // create_user_command
 
-    // del_keymap
+    /// Binding to `nvim_buf_del_keymap`.
+    ///
+    /// Unmaps a buffer-local mapping for the given mode.
+    pub fn del_keymap<Mode, Lhs>(&mut self, mode: Mode, lhs: Lhs) -> Result<()>
+    where
+        Mode: Into<NvimString>,
+        Lhs: Into<NvimString>,
+    {
+        todo!()
+    }
 
     /// Binding to `nvim_buf_del_mark`.
     ///
@@ -342,7 +211,7 @@ impl Buffer {
             .and_then(|_| obj.try_into().map_err(crate::Error::from))
     }
 
-    /// Binding to `nvim_buf_is_valid`.
+    /// Binding to `nvim_buf_is_loaded`.
     ///
     /// Checks if a buffer is valid and loaded.
     pub fn is_loaded(&self) -> bool {
