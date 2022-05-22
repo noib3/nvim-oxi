@@ -30,6 +30,19 @@ extern "C" {
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
+    fn nvim_buf_get_var(
+        buf: BufHandle,
+        name: NvimString,
+        err: *mut NvimError,
+    ) -> Object;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1135
+    fn nvim_buf_is_loaded(buf: BufHandle) -> bool;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1198
+    fn nvim_buf_is_valid(buf: BufHandle) -> bool;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
     fn nvim_buf_line_count(buf: BufHandle, err: *mut NvimError) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1265
@@ -197,7 +210,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_get_option`.
     ///
-    /// Returns a buffer option value. Fails if the returned object couldn't be
+    /// Gets a buffer option value. Fails if the returned object couldn't be
     /// converted into the specified type.
     pub fn get_option<Name, Value>(&self, name: Name) -> Result<Value>
     where
@@ -222,11 +235,43 @@ impl Buffer {
 
     // get_text
 
-    // get_var
+    /// Binding to `nvim_buf_get_var`.
+    ///
+    /// Gets a buffer-scoped (b:) variable. Fails in the returned object
+    /// couldn't be converted into the specified type.
+    pub fn get_var<Name, Value>(&self, name: Name) -> Result<Value>
+    where
+        Name: Into<NvimString>,
+        Value: TryFrom<Object, Error = ConversionError>,
+    {
+        let mut err = NvimError::default();
 
-    // is_loaded
+        let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
 
-    // is_valid
+        // TODO: rewrite this as
+        //
+        // err.into_err_or_else(|| obj.try_into().map_err(crate::Error::from))
+        //     .flatten()
+        //
+        // after https://github.com/rust-lang/rust/issues/70142 becomes stable.
+
+        err.into_err_or_else(|| ())
+            .and_then(|_| obj.try_into().map_err(crate::Error::from))
+    }
+
+    /// Binding to `nvim_buf_is_valid`.
+    ///
+    /// Checks if a buffer is valid and loaded.
+    pub fn is_loaded(&self) -> bool {
+        unsafe { nvim_buf_is_loaded(self.0) }
+    }
+
+    /// Binding to `nvim_buf_is_valid`.
+    ///
+    /// Checks if a buffer is valid.
+    pub fn is_valid(&self) -> bool {
+        unsafe { nvim_buf_is_valid(self.0) }
+    }
 
     /// Binding to `nvim_buf_line_count`.
     ///
