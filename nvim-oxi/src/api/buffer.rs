@@ -12,6 +12,13 @@ extern "C" {
         err: *mut NvimError,
     ) -> *const buf_T;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1406
+    fn nvim_buf_del_user_command(
+        buf: BufHandle,
+        name: NvimString,
+        err: *mut NvimError,
+    );
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1030
     fn nvim_buf_del_var(buf: BufHandle, name: NvimString, err: *mut NvimError);
 
@@ -169,7 +176,15 @@ impl Buffer {
 
     // del_mark
 
-    // del_user_command
+    /// Binding to `nvim_buf_del_user_command`.
+    pub fn nvim_buf_del_user_command<Name>(&mut self, name: Name) -> Result<()>
+    where
+        Name: Into<NvimString>,
+    {
+        let mut err = NvimError::default();
+        unsafe { nvim_buf_del_user_command(self.0, name.into(), &mut err) };
+        err.into_err_or_else(|| ())
+    }
 
     /// Binding to `nvim_buf_del_var`.
     ///
@@ -179,7 +194,7 @@ impl Buffer {
         Name: Into<NvimString>,
     {
         let mut err = NvimError::default();
-        let _ = unsafe { nvim_buf_del_var(self.0, name.into(), &mut err) };
+        unsafe { nvim_buf_del_var(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
 
@@ -388,7 +403,7 @@ impl Buffer {
         Name: Into<NvimString>,
     {
         let mut err = NvimError::default();
-        let _ = unsafe { nvim_buf_set_name(self.0, name.into(), &mut err) };
+        unsafe { nvim_buf_set_name(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
 
@@ -440,7 +455,7 @@ impl Buffer {
         Value: Into<Object>,
     {
         let mut err = NvimError::default();
-        let _ = unsafe {
+        unsafe {
             nvim_buf_set_var(self.0, name.into(), value.into(), &mut err)
         };
         err.into_err_or_else(|| ())
