@@ -12,6 +12,12 @@ extern "C" {
         err: *mut NvimError,
     ) -> *const buf_T;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L921
+    fn nvim_buf_get_changedtick(
+        buf: BufHandle,
+        err: *mut NvimError,
+    ) -> Integer;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
     fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
 
@@ -168,7 +174,12 @@ impl Buffer {
 
     // detach
 
-    // get_changedtick
+    /// Binding to `nvim_buf_get_changedtick`.
+    pub fn get_changedtick(&self) -> Result<usize> {
+        let mut err = NvimError::default();
+        let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
+        err.into_err_or_else(|| ct.try_into().expect("always positive"))
+    }
 
     // get_commands
 
@@ -183,7 +194,16 @@ impl Buffer {
         todo!()
     }
 
-    // get_mark
+    /// Binding to `nvim_buf_get_mark`.
+    ///
+    /// Returns a tuple `(row, col)` representing the position of the named
+    /// mark. Marks are (1,0)-indexed.
+    pub fn get_mark<Name>(&self, name: Name) -> Result<(usize, usize)>
+    where
+        Name: Into<NvimString>,
+    {
+        todo!()
+    }
 
     /// Binding to `vim.api.nvim_buf_get_name`.
     ///
@@ -233,7 +253,22 @@ impl Buffer {
             .and_then(|_| obj.try_into().map_err(crate::Error::from))
     }
 
-    // get_text
+    /// Bindint to `nvim_buf_get_text`.
+    ///
+    /// Gets a range from the buffer. Indexing is zero-based, with both row and
+    /// column indices being end-exclusive.
+    pub fn get_text<Int>(
+        &self,
+        start_row: Int,
+        start_col: Int,
+        end_row: Int,
+        end_col: Int,
+    ) -> Result<Vec<NvimString>>
+    where
+        Int: Into<Integer>,
+    {
+        todo!()
+    }
 
     /// Binding to `nvim_buf_get_var`.
     ///
