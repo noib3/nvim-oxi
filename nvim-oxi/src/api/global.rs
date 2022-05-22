@@ -183,17 +183,13 @@ pub fn get_mode() -> Dictionary {
 // put
 
 /// Binding to `vim.api.nvim_replace_termcodes`.
-pub fn replace_termcodes(
-    str: &str,
+pub fn replace_termcodes<Str: Into<NvimString>>(
+    str: Str,
     from_part: bool,
     do_lt: bool,
     special: bool,
-) -> CString {
-    let str = NvimString::from(str);
-
-    unsafe { nvim_replace_termcodes(str, from_part, do_lt, special) }
-        .as_c_str()
-        .to_owned()
+) -> NvimString {
+    unsafe { nvim_replace_termcodes(str.into(), from_part, do_lt, special) }
 }
 
 // select_popupmenu_item

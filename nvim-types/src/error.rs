@@ -71,7 +71,7 @@ impl Error {
 #[derive(Debug, thiserror::Error)]
 pub enum ConversionError {
     #[error(
-        "Object type expected to be \"{expected:?}\", but was \"{actual:?}\""
+        "Object type expected to be \"{expected:?}\", but was \"{got:?}\""
     )]
-    Primitive { expected: ObjectType, actual: ObjectType },
+    Primitive { expected: ObjectType, got: ObjectType },
 }

@@ -1,7 +1,7 @@
 use std::fmt;
 
 use nvim_types::error::{ConversionError, Error as NvimError};
-use nvim_types::{BufHandle, NvimString, Object};
+use nvim_types::{BufHandle, Integer, NvimString, Object};
 
 use crate::Result;
 
@@ -14,6 +14,13 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
     fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L876
+    fn nvim_buf_get_offset(
+        buf: BufHandle,
+        index: Integer,
+        err: *mut NvimError,
+    ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
     fn nvim_buf_get_option(
@@ -147,19 +154,28 @@ impl Buffer {
             .into_owned()
     }
 
-    // get_offset
+    /// Binding to `nvim_buf_get_offset`.
+    ///
+    /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
+    pub fn get_offset<Index: Into<Integer>>(
+        &self,
+        index: Index,
+    ) -> Result<Integer> {
+        let mut err = NvimError::default();
+        let offset =
+            unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
+        err.into_err_or_else(|| offset)
+    }
 
     /// Binding to `nvim_buf_get_option`.
     ///
     /// Returns a buffer option value. Fails if the returned object couldn't be
     /// converted into the specified type.
-    pub fn get_option<
+    pub fn get_option<Name, Value>(&self, name: Name) -> Result<Value>
+    where
         Name: Into<NvimString>,
         Value: TryFrom<Object, Error = ConversionError>,
-    >(
-        &self,
-        name: Name,
-    ) -> Result<Value> {
+    {
         let mut err = NvimError::default();
 
         let obj =

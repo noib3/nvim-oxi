@@ -12,3 +12,5 @@ pub use error::{Error, ErrorType};
 pub use handles::BufHandle;
 pub use object::Object;
 pub use string::NvimString;
+
+pub type Integer = i64;

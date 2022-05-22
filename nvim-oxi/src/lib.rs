@@ -7,7 +7,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[no_mangle]
 pub extern "C" fn test() -> *mut std::os::raw::c_char {
-    // pub extern "C" fn test() {
     // api::create_buf(true, true).to_string().len().try_into().unwrap()
 
     // std::ffi::CString::new(api::get_current_buf().get_name())
@@ -33,4 +32,11 @@ pub extern "C" fn test() -> *mut std::os::raw::c_char {
         .as_c_str()
         .to_owned()
         .into_raw()
+
+    // api::get_current_buf().get_option::<_, bool>("modified")
+}
+
+#[no_mangle]
+pub extern "C" fn is_modified() -> bool {
+    api::get_current_buf().get_option::<_, bool>("modified").unwrap()
 }

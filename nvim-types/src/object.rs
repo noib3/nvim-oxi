@@ -3,6 +3,7 @@ use std::mem::ManuallyDrop;
 
 use super::array::Array;
 use super::dictionary::Dictionary;
+use super::error::ConversionError;
 use super::string::NvimString;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
@@ -284,12 +285,15 @@ impl From<Array> for Object {
 }
 
 impl TryFrom<Object> for bool {
-    type Error = ();
+    type Error = super::error::ConversionError;
 
     #[inline]
     fn try_from(obj: Object) -> Result<Self, Self::Error> {
         (matches!(obj.r#type, ObjectType::kObjectTypeBoolean))
             .then(|| unsafe { obj.data.boolean })
-            .ok_or_else(|| ())
+            .ok_or_else(|| ConversionError::Primitive {
+                expected: ObjectType::kObjectTypeBoolean,
+                got: obj.r#type,
+            })
     }
 }
