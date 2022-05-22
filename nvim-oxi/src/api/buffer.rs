@@ -29,6 +29,9 @@ extern "C" {
         err: *mut NvimError,
     ) -> Object;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
+    fn nvim_buf_line_count(buf: BufHandle, err: *mut NvimError) -> Integer;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1265
     fn nvim_buf_set_mark(
         buf: BufHandle,
@@ -225,21 +228,33 @@ impl Buffer {
 
     // is_valid
 
-    // line_count
+    /// Binding to `nvim_buf_line_count`.
+    ///
+    /// Returns the number of lines in the given buffer.
+    pub fn line_count(&self) -> Result<usize> {
+        let mut err = NvimError::default();
+        let count = unsafe { nvim_buf_line_count(self.0, &mut err) };
+        err.into_err_or_else(|| count.try_into().expect("always positive"))
+    }
 
     // set_keymap
 
-    /// Binding to `vim.api.nvim_buf_set_lines`.
-    pub fn set_lines<
-        Line: Into<NvimString>,
-        Lines: IntoIterator<Item = Line>,
-    >(
+    /// Binding to `nvim_buf_set_lines`.
+    ///
+    /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
+    /// end-exclusive.
+    pub fn set_lines<Line, Lines, Int>(
         &mut self,
-        start: usize,
-        end: usize,
+        start: Int,
+        end: Int,
         strict_indexing: bool,
         replacement: Lines,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Line: Into<NvimString>,
+        Lines: IntoIterator<Item = Line>,
+        Int: Into<Integer>,
+    {
         todo!()
     }
 
@@ -284,6 +299,9 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_set_option`.
+    ///
+    /// Sets a buffer option value. Passing `None` as value deletes the option
+    /// (only works if there's a global fallback).
     pub fn set_option<Name, Value>(
         &mut self,
         name: Name,
@@ -297,17 +315,21 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_set_text`.
-    pub fn set_text<
-        Line: Into<NvimString>,
-        Lines: IntoIterator<Item = Line>,
-    >(
+    ///
+    /// Sets (replaces) a range in the buffer. Indexing is zero-based, with
+    /// both row and column indices being end-exclusive.
+    pub fn set_text<Line, Lines>(
         &mut self,
         start_row: usize,
         start_col: usize,
         end_row: usize,
         end_col: usize,
         replacement: Lines,
-    ) -> Result<()> {
+    ) -> Result<()>
+    where
+        Line: Into<NvimString>,
+        Lines: IntoIterator<Item = Line>,
+    {
         todo!()
     }
 
