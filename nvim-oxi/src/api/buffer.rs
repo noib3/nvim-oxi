@@ -12,6 +12,13 @@ extern "C" {
         err: *mut NvimError,
     ) -> *const buf_T;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1216
+    fn nvim_buf_del_mark(
+        buf: BufHandle,
+        name: NvimString,
+        err: *mut NvimError,
+    ) -> bool;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1406
     fn nvim_buf_del_user_command(
         buf: BufHandle,
@@ -174,7 +181,19 @@ impl Buffer {
 
     // del_keymap
 
-    // del_mark
+    /// Binding to `nvim_buf_del_mark`.
+    ///
+    /// Deletes a named mark in the buffer. If the mark is not set in the
+    /// buffer it will return false.
+    pub fn del_mark<Name>(&mut self, name: Name) -> Result<bool>
+    where
+        Name: Into<NvimString>,
+    {
+        let mut err = NvimError::default();
+        let mark_was_deleted =
+            unsafe { nvim_buf_del_mark(self.0, name.into(), &mut err) };
+        err.into_err_or_else(|| mark_was_deleted)
+    }
 
     /// Binding to `nvim_buf_del_user_command`.
     pub fn nvim_buf_del_user_command<Name>(&mut self, name: Name) -> Result<()>
