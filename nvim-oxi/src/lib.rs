@@ -48,3 +48,10 @@ pub extern "C" fn set_lines() {
         .set_lines(0, 0, false, ["ciaone"])
         .unwrap()
 }
+
+#[no_mangle]
+pub extern "C" fn set_option() -> bool {
+    let mut buf = api::create_buf(true, false).unwrap();
+    buf.set_option("modified", true).unwrap();
+    buf.get_option::<_, bool>("modified").unwrap()
+}

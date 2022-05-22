@@ -240,7 +240,7 @@ impl Buffer {
     ///
     /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
     /// end-exclusive.
-    pub fn set_lines<Line, Lines, Int>(
+    pub fn set_lines<Int, Line, Lines>(
         &mut self,
         start: Int,
         end: Int,
@@ -248,9 +248,9 @@ impl Buffer {
         replacement: Lines,
     ) -> Result<()>
     where
+        Int: Into<Integer>,
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
-        Int: Into<Integer>,
     {
         let mut err = NvimError::default();
         unsafe {
@@ -323,26 +323,47 @@ impl Buffer {
         Name: Into<NvimString>,
         Value: Into<Object>,
     {
-        todo!()
+        let mut err = NvimError::default();
+        unsafe {
+            nvim_buf_set_option(0, self.0, name.into(), value.into(), &mut err)
+        };
+        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_set_text`.
     ///
     /// Sets (replaces) a range in the buffer. Indexing is zero-based, with
     /// both row and column indices being end-exclusive.
-    pub fn set_text<Line, Lines>(
+    pub fn set_text<Int, Line, Lines>(
         &mut self,
-        start_row: usize,
-        start_col: usize,
-        end_row: usize,
-        end_col: usize,
+        start_row: Int,
+        start_col: Int,
+        end_row: Int,
+        end_col: Int,
         replacement: Lines,
     ) -> Result<()>
     where
+        Int: Into<Integer>,
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
-        todo!()
+        let mut err = NvimError::default();
+        unsafe {
+            nvim_buf_set_text(
+                0,
+                self.0,
+                start_row.into(),
+                start_col.into(),
+                end_row.into(),
+                end_col.into(),
+                replacement
+                    .into_iter()
+                    .map(|line| line.into())
+                    .collect::<Array>(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_set_var`.
