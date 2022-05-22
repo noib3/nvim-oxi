@@ -1,8 +1,8 @@
-use nvim_types::error::Error as NvimError;
 use nvim_types::{
     Array,
     BufHandle,
     Dictionary,
+    Error as NvimError,
     Integer,
     LuaRef,
     NvimString,
@@ -19,7 +19,7 @@ extern "C" {
         err: *mut NvimError,
     ) -> bool;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L145
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1358
     pub(super) fn nvim_buf_call(
         buf: BufHandle,
         fun: LuaRef,

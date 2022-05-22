@@ -44,7 +44,7 @@ extern "C" {
 
 // chan_send
 
-/// Binding to `vim.api.nvim_create_buf`.
+/// Binding to `nvim_create_buf`.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = NvimError::default();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
@@ -63,7 +63,7 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 
 // del_var
 
-/// Binding to `vim.api.nvim_echo`.
+/// Binding to `nvim_echo`.
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
     Text: std::fmt::Display,
@@ -108,7 +108,7 @@ where
 
 // get_context
 
-/// Binding to `vim.api.nvim_get_current_buf`.
+/// Binding to `nvim_get_current_buf`.
 pub fn get_current_buf() -> Buffer {
     Buffer::from(unsafe { nvim_get_current_buf() })
 }
@@ -129,7 +129,7 @@ pub fn get_current_buf() -> Buffer {
 
 // get_mark
 
-/// Binding to `vim.api.nvim_get_mode`.
+/// Binding to `nvim_get_mode`.
 pub fn get_mode() -> Dictionary {
     unsafe { nvim_get_mode() }
     // (
@@ -182,7 +182,7 @@ pub fn get_mode() -> Dictionary {
 
 // put
 
-/// Binding to `vim.api.nvim_replace_termcodes`.
+/// Binding to `nvim_replace_termcodes`.
 pub fn replace_termcodes<Str: Into<NvimString>>(
     str: Str,
     from_part: bool,

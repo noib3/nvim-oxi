@@ -1,13 +1,13 @@
 use std::fmt;
 
 use nvim_types::error::{ConversionError, Error as NvimError};
-use nvim_types::{BufHandle, Dictionary, Integer, NvimString, Object};
+use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
 use crate::Result;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Buffer(BufHandle);
 
 impl fmt::Display for Buffer {
@@ -32,7 +32,7 @@ impl Buffer {
         todo!()
     }
 
-    /// Binding to `vim.api.nvim_buf_call`.
+    /// Binding to `nvim_buf_call`.
     pub fn call<F: FnMut()>(&self, fun: F) -> Result<()> {
         todo!()
     }
@@ -102,7 +102,7 @@ impl Buffer {
 
     // get_keymap
 
-    /// Binding to `vim.api.nvim_buf_get_lines`.
+    /// Binding to `nvim_buf_get_lines`.
     pub fn get_lines(
         &self,
         start: usize,
@@ -122,7 +122,7 @@ impl Buffer {
         todo!()
     }
 
-    /// Binding to `vim.api.nvim_buf_get_name`.
+    /// Binding to `nvim_buf_get_name`.
     ///
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
     /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
@@ -252,7 +252,22 @@ impl Buffer {
         Lines: IntoIterator<Item = Line>,
         Int: Into<Integer>,
     {
-        todo!()
+        let mut err = NvimError::default();
+        unsafe {
+            nvim_buf_set_lines(
+                0,
+                self.0,
+                start.into(),
+                end.into(),
+                strict_indexing,
+                replacement
+                    .into_iter()
+                    .map(|line| line.into())
+                    .collect::<Array>(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_set_mark`.

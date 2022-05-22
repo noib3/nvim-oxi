@@ -40,3 +40,11 @@ pub extern "C" fn test() -> *mut std::os::raw::c_char {
 pub extern "C" fn is_modified() -> bool {
     api::get_current_buf().get_option::<_, bool>("modified").unwrap()
 }
+
+#[no_mangle]
+pub extern "C" fn set_lines() {
+    api::create_buf(true, false)
+        .unwrap()
+        .set_lines(0, 0, false, ["ciaone"])
+        .unwrap()
+}
