@@ -47,7 +47,11 @@ impl Buffer {
         Mode: Into<NvimString>,
         Lhs: Into<NvimString>,
     {
-        todo!()
+        let mut err = NvimError::default();
+        unsafe {
+            nvim_buf_del_keymap(0, self.0, mode.into(), lhs.into(), &mut err)
+        };
+        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_del_mark`.
