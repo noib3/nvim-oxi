@@ -1,7 +1,7 @@
 use std::fmt;
 
 use nvim_types::error::{ConversionError, Error as NvimError};
-use nvim_types::{BufHandle, Integer, NvimString, Object};
+use nvim_types::{BufHandle, Dictionary, Integer, NvimString, Object};
 
 use crate::Result;
 
@@ -28,6 +28,16 @@ extern "C" {
         name: NvimString,
         err: *mut NvimError,
     ) -> Object;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1265
+    fn nvim_buf_set_mark(
+        buf: BufHandle,
+        name: NvimString,
+        line: Integer,
+        col: Integer,
+        opts: Dictionary,
+        err: *mut NvimError,
+    ) -> bool;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1104
     fn nvim_buf_set_name(
@@ -233,7 +243,33 @@ impl Buffer {
         todo!()
     }
 
-    // set_mark
+    /// Binding to `nvim_buf_set_mark`.
+    ///
+    /// Sets a named mark in the buffer. Marks are (1,0)-indexed, and passing 0
+    /// as `line` deletes the mark.
+    pub fn set_mark<Name, Int>(
+        &mut self,
+        name: Name,
+        line: Int,
+        col: Int,
+    ) -> Result<bool>
+    where
+        Name: Into<NvimString>,
+        Int: Into<Integer>,
+    {
+        let mut err = NvimError::default();
+        let mark_was_set = unsafe {
+            nvim_buf_set_mark(
+                self.0,
+                name.into(),
+                line.into(),
+                col.into(),
+                Dictionary::new(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| mark_was_set)
+    }
 
     /// Binding to `nvim_buf_set_name`.
     ///
