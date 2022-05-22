@@ -3,7 +3,10 @@ use std::fmt;
 
 use libc::c_char;
 
+use crate::object::ObjectType;
+
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
+#[derive(Debug, thiserror::Error)]
 #[repr(C)]
 pub struct Error {
     pub r#type: ErrorType,
@@ -11,6 +14,7 @@ pub struct Error {
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
+#[derive(Debug)]
 #[allow(dead_code, non_camel_case_types)]
 #[repr(C)]
 pub enum ErrorType {
@@ -45,23 +49,29 @@ impl fmt::Display for Error {
 impl Error {
     /// Returns `Ok(f())` if it's not actually an error, or moves into a
     /// generic `std::error::Error` if it is.
-    pub fn into_err_or_else<Ok, F, Err, TryFromErr>(
+    pub fn into_err_or_else<F, Ok, Err>(
         self,
         f: F,
-    ) -> Result<Ok, Err>
+    ) -> std::result::Result<Ok, Err>
     where
         F: FnOnce() -> Ok,
-        Err: std::error::Error + TryFrom<self::Error, Error = TryFromErr>,
-        TryFromErr: std::fmt::Debug,
+        Err: std::error::Error + From<self::Error>,
     {
-        if self.is_err() {
-            Err(self.try_into().unwrap())
-        } else {
-            Ok(f())
-        }
+        (!self.is_err()).then(f).ok_or_else(|| self.into())
     }
 
-    const fn is_err(&self) -> bool {
+    #[inline]
+    pub const fn is_err(&self) -> bool {
         !matches!(self.r#type, ErrorType::kErrorTypeNone)
     }
+}
+
+/// Error that occurs when the conversion of an `Object` into another type
+/// fails.
+#[derive(Debug, thiserror::Error)]
+pub enum ConversionError {
+    #[error(
+        "Object type expected to be \"{expected:?}\", but was \"{actual:?}\""
+    )]
+    Primitive { expected: ObjectType, actual: ObjectType },
 }

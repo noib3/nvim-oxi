@@ -1,23 +1,24 @@
-use nvim_types::Error as NvimError;
+use nvim_types::error::{ConversionError, Error as NvimError};
+use thiserror::Error;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(Error, Debug)]
 pub enum Error {
-    #[error("{0}")]
-    Exception(String),
+    #[error(transparent)]
+    NvimError(#[from] NvimError),
 
-    #[error("{0}")]
-    Validation(String),
+    #[error(transparent)]
+    ConversionError(#[from] ConversionError),
 }
 
-impl TryFrom<NvimError> for Error {
-    type Error = &'static str;
+// impl TryFrom<NvimError> for Error {
+//     type Error = &'static str;
 
-    fn try_from(err: NvimError) -> Result<Self, Self::Error> {
-        use nvim_types::ErrorType::*;
-        match err.r#type {
-            kErrorTypeNone => Err("not an error!"),
-            kErrorTypeException => Ok(Self::Exception(err.to_string())),
-            kErrorTypeValidation => Ok(Self::Validation(err.to_string())),
-        }
-    }
-}
+//     fn try_from(err: NvimError) -> Result<Self, Self::Error> {
+//         use nvim_types::ErrorType::*;
+//         match err.r#type {
+//             kErrorTypeNone => Err("not an error!"),
+//             kErrorTypeException => Ok(Self::Exception(err.to_string())),
+//             kErrorTypeValidation => Ok(Self::Validation(err.to_string())),
+//         }
+//     }
+// }

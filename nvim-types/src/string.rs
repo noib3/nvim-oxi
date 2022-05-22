@@ -17,6 +17,7 @@ pub struct NvimString {
 }
 
 impl NvimString {
+    /// TODO: docs
     #[inline]
     pub fn from_bytes<Raw: Into<Vec<u8>>>(raw: Raw) -> Self {
         let mut bytes = raw.into();
@@ -59,27 +60,41 @@ impl NvimString {
         unsafe { CStr::from_ptr(self.data) }
     }
 
+    /// TODO: docs
     #[allow(dead_code)]
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// TODO: docs
     #[allow(dead_code)]
     #[inline]
     pub const fn len(&self) -> usize {
         self.size
     }
 
+    /// TODO: docs
     #[allow(dead_code)]
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         self.as_c_str().to_bytes()
     }
 
+    /// TODO: docs
     #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
         std::string::String::from_utf8_lossy(self.as_bytes())
+    }
+
+    /// Converts an `NvimString` into a byte vector, consuming the string.
+    #[inline]
+    pub fn into_bytes(self) -> Vec<u8> {
+        let bytes = unsafe {
+            Vec::from_raw_parts(self.data.cast::<u8>(), self.size, self.size)
+        };
+        mem::forget(self);
+        bytes
     }
 }
 
@@ -211,5 +226,12 @@ mod tests {
         let rhs = NvimString::from(foo);
 
         assert_eq!(lhs, rhs);
+    }
+
+    #[test]
+    fn to_bytes() {
+        let s = NvimString::from("hello");
+        let bytes = s.into_bytes();
+        assert_eq!(&[104, 101, 108, 108, 111][..], &bytes[..]);
     }
 }

@@ -1,6 +1,9 @@
 use std::fmt;
 
-use nvim_types::{BufHandle, Error as NvimError, NvimString};
+use nvim_types::error::{ConversionError, Error as NvimError};
+use nvim_types::{BufHandle, NvimString, Object};
+
+use crate::Result;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L411
@@ -11,12 +14,13 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
     fn nvim_buf_get_name(buf: BufHandle, err: *mut NvimError) -> NvimString;
-}
 
-#[allow(non_camel_case_types)]
-#[repr(C)]
-struct buf_T {
-    _inner: [u8; 0],
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
+    fn nvim_buf_get_option(
+        buf: BufHandle,
+        name: NvimString,
+        err: *mut NvimError,
+    ) -> Object;
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -28,17 +32,54 @@ impl fmt::Display for Buffer {
     }
 }
 
+#[allow(non_camel_case_types)]
+#[repr(C)]
+struct buf_T {
+    _inner: [u8; 0],
+}
+
 // I'd really like to write this as
 // `impl<T: Into<BufHandle>> TryFrom<T> for Buffer {..}`
 // but can't because of https://github.com/rust-lang/rust/issues/50133, aaargh.
 impl TryFrom<BufHandle> for Buffer {
     type Error = crate::error::Error;
 
-    fn try_from(handle: BufHandle) -> Result<Self, Self::Error> {
+    fn try_from(handle: BufHandle) -> std::result::Result<Self, Self::Error> {
         let mut err = NvimError::default();
         let _ = unsafe { find_buffer_by_handle(handle, &mut err) };
         err.into_err_or_else(|| Buffer(handle))
     }
+}
+
+#[derive(Default)]
+pub struct BufAttachOpts {
+    on_lines: Option<
+        Box<
+            dyn FnMut(
+                NvimString,
+                BufHandle,
+                u32,
+                u32,
+                u32,
+                u32,
+                u32,
+                u32,
+            ) -> Option<bool>,
+        >,
+    >,
+
+    on_bytes: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
+
+    on_changedtick:
+        Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
+
+    on_detach: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
+
+    on_reload: Option<Box<dyn FnMut(NvimString, BufHandle) -> Option<bool>>>,
+
+    utf_sizes: bool,
+
+    utf_preview: bool,
 }
 
 impl Buffer {
@@ -51,6 +92,51 @@ impl Buffer {
         Buffer(handle)
     }
 
+    /// Binding to `nvim_buf_attach`.
+    pub fn attach(
+        &self,
+        send_buffer: bool,
+        opts: BufAttachOpts,
+    ) -> Result<()> {
+        todo!()
+    }
+
+    /// Binding to `vim.api.nvim_buf_call`.
+    pub fn call<F: FnMut()>(&self, fun: F) -> Result<()> {
+        todo!()
+    }
+
+    // create_user_command
+
+    // del_keymap
+
+    // del_mark
+
+    // del_user_command
+
+    // del_var
+
+    // delete
+
+    // detach
+
+    // get_changedtick
+
+    // get_commands
+
+    // get_keymap
+
+    /// Binding to `vim.api.nvim_buf_get_lines`.
+    pub fn get_lines(
+        &self,
+        start: usize,
+        end: usize,
+    ) -> Result<Vec<NvimString>> {
+        todo!()
+    }
+
+    // get_mark
+
     /// Binding to `vim.api.nvim_buf_get_name`.
     ///
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
@@ -60,4 +146,89 @@ impl Buffer {
             .to_string_lossy()
             .into_owned()
     }
+
+    // get_offset
+
+    /// Binding to `nvim_buf_get_option`.
+    ///
+    /// Returns a buffer option value. Fails if the returned object couldn't be
+    /// converted into the specified type.
+    pub fn get_option<
+        Name: Into<NvimString>,
+        Value: TryFrom<Object, Error = ConversionError>,
+    >(
+        &self,
+        name: Name,
+    ) -> Result<Value> {
+        let mut err = NvimError::default();
+
+        let obj =
+            unsafe { nvim_buf_get_option(self.0, name.into(), &mut err) };
+
+        // TODO: rewrite this as
+        //
+        // err.into_err_or_else(|| obj.try_into().map_err(crate::Error::from))
+        //     .flatten()
+        //
+        // after https://github.com/rust-lang/rust/issues/70142 becomes stable.
+
+        err.into_err_or_else(|| ())
+            .and_then(|_| obj.try_into().map_err(crate::Error::from))
+    }
+
+    // get_text
+
+    // get_var
+
+    // is_loaded
+
+    // is_valid
+
+    // line_count
+
+    // set_keymap
+
+    /// Binding to `vim.api.nvim_buf_set_lines`.
+    pub fn set_lines<
+        Line: Into<NvimString>,
+        Lines: IntoIterator<Item = Line>,
+    >(
+        &mut self,
+        start: usize,
+        end: usize,
+        strict_indexing: bool,
+        replacement: Lines,
+    ) -> Result<()> {
+        todo!()
+    }
+
+    // set_mark
+
+    // set_name
+
+    /// Binding to `vim.api.nvim_buf_set_option`.
+    pub fn set_option<Name: Into<NvimString>, Value: Into<Object>>(
+        &mut self,
+        name: Name,
+        value: Value,
+    ) -> Result<()> {
+        todo!()
+    }
+
+    /// Binding to `vim.api.nvim_buf_set_option`.
+    pub fn set_text<
+        Line: Into<NvimString>,
+        Lines: IntoIterator<Item = Line>,
+    >(
+        &mut self,
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
+        replacement: Lines,
+    ) -> Result<()> {
+        todo!()
+    }
+
+    // set_var
 }

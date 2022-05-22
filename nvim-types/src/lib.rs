@@ -1,7 +1,7 @@
 mod array;
 mod collection;
 mod dictionary;
-mod error;
+pub mod error;
 mod handles;
 mod object;
 mod string;
