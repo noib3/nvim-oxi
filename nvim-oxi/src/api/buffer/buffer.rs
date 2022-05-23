@@ -42,11 +42,7 @@ impl Buffer {
     /// Binding to `nvim_buf_del_keymap`.
     ///
     /// Unmaps a buffer-local mapping for the given mode.
-    pub fn del_keymap<Mode, Lhs>(&mut self, mode: Mode, lhs: Lhs) -> Result<()>
-    where
-        Mode: Into<NvimString>,
-        Lhs: Into<NvimString>,
-    {
+    pub fn del_keymap(&mut self, mode: &str, lhs: &str) -> Result<()> {
         let mut err = NvimError::default();
         unsafe {
             nvim_buf_del_keymap(0, self.0, mode.into(), lhs.into(), &mut err)
@@ -58,10 +54,7 @@ impl Buffer {
     ///
     /// Deletes a named mark in the buffer. If the mark is not set in the
     /// buffer it will return false.
-    pub fn del_mark<Name>(&mut self, name: Name) -> Result<bool>
-    where
-        Name: Into<NvimString>,
-    {
+    pub fn del_mark(&mut self, name: &str) -> Result<bool> {
         let mut err = NvimError::default();
         let mark_was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.into(), &mut err) };
@@ -69,10 +62,7 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_del_user_command`.
-    pub fn nvim_buf_del_user_command<Name>(&mut self, name: Name) -> Result<()>
-    where
-        Name: Into<NvimString>,
-    {
+    pub fn nvim_buf_del_user_command(&mut self, name: &str) -> Result<()> {
         let mut err = NvimError::default();
         unsafe { nvim_buf_del_user_command(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
@@ -81,10 +71,7 @@ impl Buffer {
     /// Binding to `nvim_buf_del_var`.
     ///
     /// Removes a buffer-scoped (b:) variable.
-    pub fn del_var<Name>(&mut self, name: Name) -> Result<()>
-    where
-        Name: Into<NvimString>,
-    {
+    pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = NvimError::default();
         unsafe { nvim_buf_del_var(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
@@ -119,10 +106,7 @@ impl Buffer {
     ///
     /// Returns a tuple `(row, col)` representing the position of the named
     /// mark. Marks are (1,0)-indexed.
-    pub fn get_mark<Name>(&self, name: Name) -> Result<(usize, usize)>
-    where
-        Name: Into<NvimString>,
-    {
+    pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
         todo!()
     }
 
@@ -139,23 +123,22 @@ impl Buffer {
     /// Binding to `nvim_buf_get_offset`.
     ///
     /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
-    pub fn get_offset<Index>(&self, index: Index) -> Result<Integer>
+    pub fn get_offset<Index>(&self, index: Index) -> Result<usize>
     where
         Index: Into<Integer>,
     {
         let mut err = NvimError::default();
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
-        err.into_err_or_else(|| offset)
+        err.into_err_or_else(|| offset.try_into().expect("offset is positive"))
     }
 
     /// Binding to `nvim_buf_get_option`.
     ///
     /// Gets a buffer option value. Fails if the returned object couldn't be
     /// converted into the specified type.
-    pub fn get_option<Name, Value>(&self, name: Name) -> Result<Value>
+    pub fn get_option<Value>(&self, name: &str) -> Result<Value>
     where
-        Name: Into<NvimString>,
         Value: TryFrom<Object, Error = ConversionError>,
     {
         let mut err = NvimError::default();
@@ -195,9 +178,8 @@ impl Buffer {
     ///
     /// Gets a buffer-scoped (b:) variable. Fails in the returned object
     /// couldn't be converted into the specified type.
-    pub fn get_var<Name, Value>(&self, name: Name) -> Result<Value>
+    pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
-        Name: Into<NvimString>,
         Value: TryFrom<Object, Error = ConversionError>,
     {
         let mut err = NvimError::default();
@@ -278,14 +260,13 @@ impl Buffer {
     ///
     /// Sets a named mark in the buffer. Marks are (1,0)-indexed, and passing 0
     /// as `line` deletes the mark.
-    pub fn set_mark<Name, Int>(
+    pub fn set_mark<Int>(
         &mut self,
-        name: Name,
+        name: &str,
         line: Int,
         col: Int,
     ) -> Result<bool>
     where
-        Name: Into<NvimString>,
         Int: Into<Integer>,
     {
         let mut err = NvimError::default();
@@ -318,13 +299,8 @@ impl Buffer {
     ///
     /// Sets a buffer option value. Passing `None` as value deletes the option
     /// (only works if there's a global fallback).
-    pub fn set_option<Name, Value>(
-        &mut self,
-        name: Name,
-        value: Value,
-    ) -> Result<()>
+    pub fn set_option<Value>(&mut self, name: &str, value: Value) -> Result<()>
     where
-        Name: Into<NvimString>,
         Value: Into<Object>,
     {
         let mut err = NvimError::default();
@@ -373,13 +349,8 @@ impl Buffer {
     /// Binding to `nvim_buf_set_var`.
     ///
     /// Sets a buffer-scoped (b:) variable.
-    pub fn set_var<Name, Value>(
-        &mut self,
-        name: Name,
-        value: Value,
-    ) -> Result<()>
+    pub fn set_var<Value>(&mut self, name: &str, value: Value) -> Result<()>
     where
-        Name: Into<NvimString>,
         Value: Into<Object>,
     {
         let mut err = NvimError::default();

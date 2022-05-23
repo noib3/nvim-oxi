@@ -1,46 +1,8 @@
-use std::ffi::CString;
+use nvim_types::{Dictionary, Error as NvimError, NvimString};
 
-use nvim_types::{
-    Array,
-    BufHandle,
-    Dictionary,
-    Error as NvimError,
-    NvimString,
-};
-
-use super::buffer::Buffer;
-use crate::Result;
-
-extern "C" {
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1057
-    fn nvim_create_buf(
-        listed: bool,
-        scratch: bool,
-        err: *mut NvimError,
-    ) -> BufHandle;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L889
-    fn nvim_echo(
-        chunks: Array,
-        history: bool,
-        opts: Dictionary,
-        err: *mut NvimError,
-    );
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L963
-    fn nvim_get_current_buf() -> BufHandle;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1578
-    fn nvim_get_mode() -> Dictionary;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L398
-    fn nvim_replace_termcodes(
-        str: NvimString,
-        from_part: bool,
-        do_lt: bool,
-        special: bool,
-    ) -> NvimString;
-}
+use super::opts::*;
+use super::r#extern::*;
+use crate::{Buffer, Result};
 
 // chan_send
 

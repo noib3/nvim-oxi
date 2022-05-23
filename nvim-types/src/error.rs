@@ -6,7 +6,7 @@ use libc::c_char;
 use crate::object::ObjectType;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
-#[derive(Debug, thiserror::Error)]
+#[derive(thiserror::Error)]
 #[repr(C)]
 pub struct Error {
     pub r#type: ErrorType,
@@ -26,6 +26,12 @@ pub enum ErrorType {
 impl Default for Error {
     fn default() -> Self {
         Self { r#type: ErrorType::kErrorTypeNone, msg: std::ptr::null_mut() }
+    }
+}
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }
 

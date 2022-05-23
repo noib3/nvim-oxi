@@ -32,13 +32,11 @@ pub extern "C" fn test() -> *mut std::os::raw::c_char {
         .as_c_str()
         .to_owned()
         .into_raw()
-
-    // api::get_current_buf().get_option::<_, bool>("modified")
 }
 
 #[no_mangle]
 pub extern "C" fn is_modified() -> bool {
-    api::get_current_buf().get_option::<_, bool>("modified").unwrap()
+    api::get_current_buf().get_option::<bool>("modified").unwrap()
 }
 
 #[no_mangle]
@@ -51,7 +49,14 @@ pub extern "C" fn set_lines() {
 
 #[no_mangle]
 pub extern "C" fn set_option() -> bool {
-    let mut buf = api::create_buf(true, false).unwrap();
+    let mut buf = api::get_current_buf();
     buf.set_option("modified", true).unwrap();
-    buf.get_option::<_, bool>("modified").unwrap()
+    buf.get_option::<bool>("modified").unwrap()
+}
+
+#[no_mangle]
+pub extern "C" fn set_var() -> bool {
+    let mut buf = api::get_current_buf();
+    buf.set_var("foo", true).unwrap();
+    buf.get_var::<bool>("foo").unwrap()
 }
