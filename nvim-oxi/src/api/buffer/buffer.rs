@@ -37,22 +37,21 @@ impl Buffer {
     ///
     /// Calls a closure with the buffer as the temporary current buffer.
     pub fn call<F: FnMut() + 'static>(&self, mut _fun: F) -> Result<()> {
-        // How do I come up w/ this?
-        let index = 1000;
-
         unsafe extern "C" fn test(_: *mut lua_State) -> libc::c_int {
             println!("it works!");
             0
         }
 
-        LUA.with(|lua| unsafe {
+        let r#ref = LUA.with(|lua| unsafe {
             let lstate = *(lua.get().unwrap_unchecked());
             ffi::lua_pushcfunction(lstate, test);
-            ffi::lua_rawseti(lstate, ffi::LUA_REGISTRYINDEX, index);
+            ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
         });
 
         let mut err = NvimError::default();
-        let _ = unsafe { nvim_buf_call(self.0, index, &mut err) };
+        let _ = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
+        // TODO: remove the value from the registry w/ `luaL_unref`? Neovim's
+        // `nvim_buf_call` doesn't seem to do it though.
         err.into_err_or_else(|| ())
     }
 

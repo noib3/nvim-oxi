@@ -56,3 +56,8 @@ pub(crate) unsafe fn lua_pushcfunction(
 ) {
     lua_pushcclosure(L, r#fn, 0)
 }
+
+// Lua auxiliary library.
+extern "C" {
+    pub(crate) fn luaL_ref(L: *mut lua_State, t: c_int) -> c_int;
+}
