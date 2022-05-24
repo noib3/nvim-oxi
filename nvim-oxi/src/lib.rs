@@ -60,8 +60,20 @@ pub extern "C" fn buf_call() -> bool {
 }
 
 #[no_mangle]
-extern "C" fn luaopen_libnvim_oxi(state: *mut lua::lua_State) -> libc::c_int {
-    LUA.with(|lua| lua.set(state).expect("couldn't initialize Lua state"));
-    toplevel::print!("Hello {planet}!", planet = "Mars");
+extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
+    LUA.with(|lua| lua.set(lstate).expect("couldn't initialize Lua state"));
+
+    let buf = api::get_current_buf();
+
+    toplevel::print!(
+        "{:?}",
+        buf.call(|| {
+            let buf = api::get_current_buf();
+            toplevel::print!("This is \"{}\"", buf.get_name());
+        })
+    );
+
+    // toplevel::print!("Hello {planet}!", planet = "Mars");
+
     0
 }

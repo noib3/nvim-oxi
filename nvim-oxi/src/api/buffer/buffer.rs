@@ -5,6 +5,7 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
+use crate::lua::{ffi, lua_State, LUA};
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -33,22 +34,26 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_call`.
-    pub fn call<F: FnMut() + 'static>(&self, mut fun: F) -> Result<()> {
-        // let lua = mlua::Lua::new();
+    ///
+    /// Calls a closure with the buffer as the temporary current buffer.
+    pub fn call<F: FnMut() + 'static>(&self, mut _fun: F) -> Result<()> {
+        // How do I come up w/ this?
+        let index = 1000;
 
-        // let nvim_buf_call = lua
-        //     .globals()
-        //     .get::<_, mlua::Table>("vim")
-        //     .unwrap()
-        //     .get::<_, mlua::Table>("api")
-        //     .unwrap()
-        //     .get::<_, mlua::Function>("nvim_buf_call")
-        //     .unwrap();
+        unsafe extern "C" fn test(_: *mut lua_State) -> libc::c_int {
+            println!("it works!");
+            0
+        }
 
-        // let fun = lua.create_function_mut(move |_lua, ()| Ok(fun())).unwrap();
-        // nvim_buf_call.call::<_, ()>((self.0, fun)).unwrap();
+        LUA.with(|lua| unsafe {
+            let lstate = *(lua.get().unwrap_unchecked());
+            ffi::lua_pushcfunction(lstate, test);
+            ffi::lua_rawseti(lstate, ffi::LUA_REGISTRYINDEX, index);
+        });
 
-        Ok(())
+        let mut err = NvimError::default();
+        let _ = unsafe { nvim_buf_call(self.0, index, &mut err) };
+        err.into_err_or_else(|| ())
     }
 
     // create_user_command

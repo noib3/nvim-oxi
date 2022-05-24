@@ -5,6 +5,7 @@ use crate::Result;
 /// Rust's `format!` macro and redirects its output to the Neovim message area.
 ///
 /// # Examples
+///
 /// ```rust
 /// nvim_oxi::print!("Hello {planet}!", planet = "Mars");
 /// ```
@@ -24,10 +25,10 @@ pub fn print(text: impl Into<String>) -> Result<()> {
     let text = std::ffi::CString::new(text.into())?;
 
     LUA.with(move |lua| unsafe {
-        let state = *(lua.get().unwrap_unchecked());
-        ffi::lua_getglobal(state, cstr!("print"));
-        ffi::lua_pushstring(state, text.as_ptr());
-        ffi::lua_call(state, 1, 0);
+        let lstate = *(lua.get().unwrap_unchecked());
+        ffi::lua_getglobal(lstate, cstr!("print"));
+        ffi::lua_pushstring(lstate, text.as_ptr());
+        ffi::lua_call(lstate, 1, 0);
     });
 
     Ok(())
