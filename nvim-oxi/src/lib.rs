@@ -1,31 +1,18 @@
 pub mod api;
 mod error;
+mod lua;
+mod toplevel;
 
 pub use api::Buffer;
 pub use error::Error;
+pub use toplevel::*;
+
 pub type Result<T> = std::result::Result<T, Error>;
+
+use lua::LUA;
 
 #[no_mangle]
 pub extern "C" fn test() -> *mut std::os::raw::c_char {
-    // api::create_buf(true, true).to_string().len().try_into().unwrap()
-
-    // std::ffi::CString::new(api::get_current_buf().get_name())
-    //     .unwrap()
-    //     .into_raw()
-
-    // api::replace_termcodes("<Cmd>q<CR>", true, true, true).unwrap().into_raw()
-
-    // api::echo(
-    //     [
-    //         ("hey", Some("IncSearch")),
-    //         (", this is some", None),
-    //         ("Bullshiat", Some("DiffDelete")),
-    //         ("Bullshiat", Some("ciaone")),
-    //     ],
-    //     true,
-    // )
-    // .unwrap()
-
     api::get_mode()
         .get::<_, nvim_types::NvimString>("mode")
         .unwrap()
@@ -59,4 +46,22 @@ pub extern "C" fn set_var() -> bool {
     let mut buf = api::get_current_buf();
     buf.set_var("foo", true).unwrap();
     buf.get_var::<bool>("foo").unwrap()
+}
+
+#[no_mangle]
+pub extern "C" fn buf_call() -> bool {
+    let buf = api::get_current_buf();
+
+    buf.call(|| {
+        let buf = api::get_current_buf();
+        println!("{:?}", buf.get_option::<bool>("modifiable"))
+    })
+    .is_err()
+}
+
+#[no_mangle]
+extern "C" fn luaopen_libnvim_oxi(state: *mut lua::lua_State) -> libc::c_int {
+    LUA.with(|lua| lua.set(state).expect("couldn't initialize Lua state"));
+    toplevel::print!("Hello {planet}!", planet = "Mars");
+    0
 }

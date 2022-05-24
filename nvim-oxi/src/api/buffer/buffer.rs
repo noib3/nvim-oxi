@@ -33,8 +33,22 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_call`.
-    pub fn call<F: FnMut()>(&self, fun: F) -> Result<()> {
-        todo!()
+    pub fn call<F: FnMut() + 'static>(&self, mut fun: F) -> Result<()> {
+        // let lua = mlua::Lua::new();
+
+        // let nvim_buf_call = lua
+        //     .globals()
+        //     .get::<_, mlua::Table>("vim")
+        //     .unwrap()
+        //     .get::<_, mlua::Table>("api")
+        //     .unwrap()
+        //     .get::<_, mlua::Function>("nvim_buf_call")
+        //     .unwrap();
+
+        // let fun = lua.create_function_mut(move |_lua, ()| Ok(fun())).unwrap();
+        // nvim_buf_call.call::<_, ()>((self.0, fun)).unwrap();
+
+        Ok(())
     }
 
     // create_user_command

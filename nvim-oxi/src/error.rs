@@ -8,17 +8,7 @@ pub enum Error {
 
     #[error(transparent)]
     ConversionError(#[from] ConversionError),
+
+    #[error(transparent)]
+    NulByteStringError(#[from] std::ffi::NulError),
 }
-
-// impl TryFrom<NvimError> for Error {
-//     type Error = &'static str;
-
-//     fn try_from(err: NvimError) -> Result<Self, Self::Error> {
-//         use nvim_types::ErrorType::*;
-//         match err.r#type {
-//             kErrorTypeNone => Err("not an error!"),
-//             kErrorTypeException => Ok(Self::Exception(err.to_string())),
-//             kErrorTypeValidation => Ok(Self::Validation(err.to_string())),
-//         }
-//     }
-// }
