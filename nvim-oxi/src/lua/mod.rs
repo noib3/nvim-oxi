@@ -4,4 +4,4 @@ pub(crate) mod ffi;
 mod lua;
 pub(crate) mod macros;
 
-pub(crate) use lua::{lua_State, LUA};
+pub(crate) use lua::*;

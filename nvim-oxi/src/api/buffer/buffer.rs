@@ -5,7 +5,7 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
-use crate::lua::{ffi, lua_State, LUA};
+use crate::lua;
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -36,22 +36,13 @@ impl Buffer {
     /// Binding to `nvim_buf_call`.
     ///
     /// Calls a closure with the buffer as the temporary current buffer.
-    pub fn call<F: FnMut() + 'static>(&self, mut _fun: F) -> Result<()> {
-        unsafe extern "C" fn test(_: *mut lua_State) -> libc::c_int {
-            println!("it works!");
-            0
-        }
-
-        let r#ref = LUA.with(|lua| unsafe {
-            let lstate = *(lua.get().unwrap_unchecked());
-            ffi::lua_pushcfunction(lstate, test);
-            ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
-        });
-
+    pub fn call<F: FnMut() + 'static>(&self, mut fun: F) -> Result<()> {
+        // TODO: remove the value from the registry w/ `luaL_unref` after
+        // `nvim_buf_call`? Neovim's `nvim_buf_call` doesn't seem to do it
+        // though.
+        let luaref = lua::closure_to_luaref(fun, 0, 0)?;
         let mut err = NvimError::default();
-        let _ = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
-        // TODO: remove the value from the registry w/ `luaL_unref`? Neovim's
-        // `nvim_buf_call` doesn't seem to do it though.
+        unsafe { nvim_buf_call(self.0, luaref, &mut err) };
         err.into_err_or_else(|| ())
     }
 
@@ -141,10 +132,7 @@ impl Buffer {
     /// Binding to `nvim_buf_get_offset`.
     ///
     /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
-    pub fn get_offset<Index>(&self, index: Index) -> Result<usize>
-    where
-        Index: Into<Integer>,
-    {
+    pub fn get_offset(&self, index: impl Into<Integer>) -> Result<usize> {
         let mut err = NvimError::default();
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
@@ -304,10 +292,7 @@ impl Buffer {
     /// Binding to `nvim_buf_set_name`.
     ///
     /// Sets the full file name for a buffer.
-    pub fn set_name<Name>(&mut self, name: Name) -> Result<()>
-    where
-        Name: Into<NvimString>,
-    {
+    pub fn set_name(&mut self, name: impl Into<NvimString>) -> Result<()> {
         let mut err = NvimError::default();
         unsafe { nvim_buf_set_name(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())

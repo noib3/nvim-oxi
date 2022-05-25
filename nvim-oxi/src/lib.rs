@@ -9,8 +9,6 @@ pub use toplevel::*;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-use lua::LUA;
-
 #[no_mangle]
 pub extern "C" fn test() -> *mut std::os::raw::c_char {
     api::get_mode()
@@ -61,19 +59,38 @@ pub extern "C" fn buf_call() -> bool {
 
 #[no_mangle]
 extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
-    LUA.with(|lua| lua.set(lstate).expect("couldn't initialize Lua state"));
+    lua::init_state(lstate);
 
-    let buf = api::get_current_buf();
+    // let mut buf = api::create_buf(true, false).unwrap();
+    // buf.set_option("modified", true).unwrap();
 
-    toplevel::print!(
-        "{:?}",
-        buf.call(|| {
-            let buf = api::get_current_buf();
-            toplevel::print!("This is \"{}\"", buf.get_name());
-        })
-    );
+    // let is_modified = buf
+    //     .call(|| {
+    //         Buffer::from(0).get_option::<bool>("modified").unwrap()
+    //         // api::get_current_buf().get_option::<bool>("modifiad").unwrap()
+    //     })
+    //     .unwrap();
 
-    // toplevel::print!("Hello {planet}!", planet = "Mars");
+    // toplevel::print!("{buf:?} is modified? {is_modified}");
+
+    let _ = Buffer::from(0).call(|| {
+        let buf = api::get_current_buf();
+        toplevel::print!("This is \"{}\", yo!!", buf.get_name());
+    });
 
     0
 }
+
+// use nvim_oxi as nvim;
+
+// fn cool_shit() -> nvim::Result<()> {
+//     let mut i = 0;
+//     let timer = nvim::r#loop::new_timer();
+//     timer.start(0, 1000, move || {
+//         let msg =
+//             if i % 2 == 0 { "Try doing this with RPC" } else { "Good luck!" };
+//         nvim::print!("{msg}");
+//         i += 1;
+//         (i == 10).then(|| true)
+//     })
+// }

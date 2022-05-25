@@ -1,4 +1,4 @@
-use libc::{c_char, c_int};
+use libc::{c_char, c_int, c_void, size_t};
 
 use super::lua_State;
 
@@ -26,6 +26,12 @@ extern "C" {
         k: *const c_char,
     );
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_newuserdata
+    pub(crate) fn lua_newuserdata(
+        L: *mut lua_State,
+        size: size_t,
+    ) -> *mut c_void;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_pushcclosure
     pub(crate) fn lua_pushcclosure(
         L: *mut lua_State,
@@ -38,6 +44,12 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#lua_rawseti
     pub(crate) fn lua_rawseti(L: *mut lua_State, index: c_int, n: c_int);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_touserdata
+    pub(crate) fn lua_touserdata(
+        L: *mut lua_State,
+        index: c_int,
+    ) -> *mut c_void;
 }
 
 // https://www.lua.org/manual/5.1/manual.html#lua_getglobal

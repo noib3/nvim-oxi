@@ -1,4 +1,4 @@
-use crate::lua::{ffi, macros::*, LUA};
+use crate::lua::{self, ffi, macros::*};
 use crate::Result;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
@@ -24,8 +24,7 @@ pub use nprint as print;
 pub fn print(text: impl Into<String>) -> Result<()> {
     let text = std::ffi::CString::new(text.into())?;
 
-    LUA.with(move |lua| unsafe {
-        let lstate = *(lua.get().unwrap_unchecked());
+    lua::with_state(move |lstate| unsafe {
         ffi::lua_getglobal(lstate, cstr!("print"));
         ffi::lua_pushstring(lstate, text.as_ptr());
         ffi::lua_call(lstate, 1, 0);
