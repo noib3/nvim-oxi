@@ -46,36 +46,37 @@ pub extern "C" fn set_var() -> bool {
     buf.get_var::<bool>("foo").unwrap()
 }
 
-#[no_mangle]
-pub extern "C" fn buf_call() -> bool {
-    let buf = api::get_current_buf();
+// #[no_mangle]
+// pub extern "C" fn buf_call() -> bool {
+//     let buf = api::get_current_buf();
 
-    buf.call(|| {
-        let buf = api::get_current_buf();
-        println!("{:?}", buf.get_option::<bool>("modifiable"))
-    })
-    .is_err()
-}
+//     buf.call(|| {
+//         let buf = api::get_current_buf();
+//         println!("{:?}", buf.get_option::<bool>("modifiable"));
+//         Ok(())
+//     })
+//     .is_err()
+// }
 
 #[no_mangle]
-extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
+extern "C" fn luaopen_libnvim_oxi(
+    lstate: *mut lua::ffi::lua_State,
+) -> libc::c_int {
     lua::init_state(lstate);
 
-    // let mut buf = api::create_buf(true, false).unwrap();
-    // buf.set_option("modified", true).unwrap();
+    let mut buf = api::create_buf(true, false).unwrap();
+    buf.set_option("modified", true).unwrap();
 
-    // let is_modified = buf
-    //     .call(|| {
-    //         Buffer::from(0).get_option::<bool>("modified").unwrap()
-    //         // api::get_current_buf().get_option::<bool>("modifiad").unwrap()
-    //     })
-    //     .unwrap();
+    let ciao = String::from("nope");
+    let is_modified =
+        buf.call(move |_| Buffer::from(0).get_option::<bool>(&ciao));
 
-    // toplevel::print!("{buf:?} is modified? {is_modified}");
+    toplevel::print!("{buf:?} is modified? {is_modified:?} YEAAAAAAA");
 
-    let _ = Buffer::from(0).call(|| {
+    let _ = Buffer::from(0).call(|_| {
         let buf = api::get_current_buf();
-        toplevel::print!("This is \"{}\", yo!!", buf.get_name());
+        toplevel::print!("This is \"{}\", yo!!", buf.get_name().unwrap());
+        Ok(())
     });
 
     0

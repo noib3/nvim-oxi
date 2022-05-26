@@ -11,4 +11,7 @@ pub enum Error {
 
     #[error(transparent)]
     NulByteStringError(#[from] std::ffi::NulError),
+
+    #[error(transparent)]
+    IntError(#[from] std::num::TryFromIntError),
 }

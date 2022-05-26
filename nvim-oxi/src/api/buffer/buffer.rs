@@ -5,7 +5,7 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
-use crate::lua;
+use crate::lua::{self, CallbackMut, CallbackOnce};
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -36,14 +36,15 @@ impl Buffer {
     /// Binding to `nvim_buf_call`.
     ///
     /// Calls a closure with the buffer as the temporary current buffer.
-    pub fn call<F: FnMut() + 'static>(&self, mut fun: F) -> Result<()> {
-        // TODO: remove the value from the registry w/ `luaL_unref` after
-        // `nvim_buf_call`? Neovim's `nvim_buf_call` doesn't seem to do it
-        // though.
-        let luaref = lua::closure_to_luaref(fun, 0, 0)?;
+    pub fn call<F, R>(&self, fun: F) -> Result<R>
+    where
+        F: FnOnce(()) -> Result<R> + 'static,
+    {
+        let r#ref = lua::to_ref_once(Box::new(fun), 0)?;
         let mut err = NvimError::default();
-        unsafe { nvim_buf_call(self.0, luaref, &mut err) };
-        err.into_err_or_else(|| ())
+        let obj = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
+        let res = lua::to_result::<R>(obj)?;
+        err.into_err_or_else(|| res)
     }
 
     // create_user_command
@@ -123,10 +124,11 @@ impl Buffer {
     ///
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
     /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
-    pub fn get_name(&self) -> String {
-        unsafe { nvim_buf_get_name(self.0, &mut NvimError::default()) }
-            .to_string_lossy()
-            .into_owned()
+    // TODO: return a `Result<PathBuf>` instead.
+    pub fn get_name(&self) -> Result<String> {
+        let mut err = NvimError::default();
+        let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
+        err.into_err_or_else(|| name.to_string_lossy().into_owned())
     }
 
     /// Binding to `nvim_buf_get_offset`.

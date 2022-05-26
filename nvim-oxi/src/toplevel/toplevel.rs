@@ -12,7 +12,7 @@ use crate::Result;
 #[macro_export]
 macro_rules! nprint {
     ($($arg:tt)*) => {{
-        let _ = self::print(::std::fmt::format(format_args!($($arg)*)));
+        let _ = crate::print(::std::fmt::format(format_args!($($arg)*)));
     }}
 }
 
