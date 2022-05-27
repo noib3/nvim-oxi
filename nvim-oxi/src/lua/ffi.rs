@@ -93,11 +93,30 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_settop
     pub(crate) fn lua_settop(L: *mut lua_State, index: c_int);
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_tointeger
+    pub(crate) fn lua_tointeger(
+        L: *mut lua_State,
+        index: c_int,
+    ) -> lua_Integer;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_tolstring
+    pub(crate) fn lua_tolstring(
+        L: *mut lua_State,
+        index: c_int,
+        len: *mut size_t,
+    ) -> *const c_char;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_touserdata
     pub(crate) fn lua_touserdata(
         L: *mut lua_State,
         index: c_int,
     ) -> *mut c_void;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_type
+    pub(crate) fn lua_type(L: *mut lua_State, index: c_int) -> c_int;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_typename
+    pub(crate) fn lua_typename(L: *mut lua_State, tp: c_int) -> *const c_char;
 }
 
 // https://www.lua.org/manual/5.1/manual.html#lua_getglobal
@@ -128,4 +147,13 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#luaL_unref
     pub(crate) fn luaL_unref(L: *mut lua_State, t: c_int, r#ref: c_int);
+}
+
+// https://www.lua.org/manual/5.1/manual.html#luaL_typename
+#[inline(always)]
+pub(crate) unsafe fn luaL_typename(
+    L: *mut lua_State,
+    index: c_int,
+) -> *const c_char {
+    lua_typename(L, lua_type(L, index))
 }

@@ -8,6 +8,7 @@ use super::r#extern::*;
 use crate::api::global::UserCommandOpts;
 use crate::lua;
 use crate::Result;
+use crate::LUA_INTERNAL_CALL;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Buffer(BufHandle);
@@ -26,12 +27,29 @@ impl<H: Into<BufHandle>> From<H> for Buffer {
 
 impl Buffer {
     /// Binding to `nvim_buf_attach`.
-    pub fn attach(
+    pub fn attach<
+        OnBytes: FnMut(OnBytesArgs) -> Result<ShouldDetach> + 'static,
+    >(
         &self,
         send_buffer: bool,
-        opts: BufAttachOpts,
-    ) -> Result<()> {
-        todo!()
+        on_bytes: OnBytes,
+        // opts: BufAttachOpts,
+    ) -> Result<bool> {
+        let opts = BufAttachOpts {
+            on_bytes: Some(Box::new(on_bytes)),
+            ..Default::default()
+        };
+        let mut err = NvimError::default();
+        let has_attached = unsafe {
+            nvim_buf_attach(
+                LUA_INTERNAL_CALL,
+                self.0,
+                send_buffer,
+                opts.into(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| has_attached)
     }
 
     /// Binding to `nvim_buf_call`.
@@ -82,7 +100,13 @@ impl Buffer {
     pub fn del_keymap(&mut self, mode: &str, lhs: &str) -> Result<()> {
         let mut err = NvimError::default();
         unsafe {
-            nvim_buf_del_keymap(0, self.0, mode.into(), lhs.into(), &mut err)
+            nvim_buf_del_keymap(
+                LUA_INTERNAL_CALL,
+                self.0,
+                mode.into(),
+                lhs.into(),
+                &mut err,
+            )
         };
         err.into_err_or_else(|| ())
     }
@@ -276,7 +300,7 @@ impl Buffer {
         let mut err = NvimError::default();
         unsafe {
             nvim_buf_set_lines(
-                0,
+                LUA_INTERNAL_CALL,
                 self.0,
                 start.into(),
                 end.into(),
@@ -337,7 +361,13 @@ impl Buffer {
     {
         let mut err = NvimError::default();
         unsafe {
-            nvim_buf_set_option(0, self.0, name.into(), value.into(), &mut err)
+            nvim_buf_set_option(
+                LUA_INTERNAL_CALL,
+                self.0,
+                name.into(),
+                value.into(),
+                &mut err,
+            )
         };
         err.into_err_or_else(|| ())
     }
@@ -362,7 +392,7 @@ impl Buffer {
         let mut err = NvimError::default();
         unsafe {
             nvim_buf_set_text(
-                0,
+                LUA_INTERNAL_CALL,
                 self.0,
                 start_row.into(),
                 start_col.into(),

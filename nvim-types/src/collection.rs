@@ -2,6 +2,7 @@
 //! `Dictionary`s.
 
 use std::alloc::{self, Layout};
+use std::fmt;
 use std::marker::PhantomData;
 use std::mem::{self, ManuallyDrop, MaybeUninit};
 use std::ops::{Deref, Index};
@@ -49,7 +50,7 @@ impl<T> Collection<T> {
         unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
     }
 
-    fn from_vec<V: Into<Vec<T>>>(v: V) -> Self {
+    pub fn from_vec<V: Into<Vec<T>>>(v: V) -> Self {
         // let mut collect = MaybeUninit::<Self>::uninit();
         // let ptr = collect.as_mut_ptr();
 
@@ -68,6 +69,7 @@ impl<T> Collection<T> {
         // Why couldn't this work?
 
         let mut vec = v.into();
+        // let (ptr, size, capacity) = vec.into_raw_parts();
 
         let new = Self {
             items: unsafe { NonNull::new_unchecked(vec.as_mut_ptr()) },
@@ -130,6 +132,12 @@ impl<T> IntoIterator for Collection<T> {
             end,
             _marker: PhantomData,
         }
+    }
+}
+
+impl<T: fmt::Debug> fmt::Debug for Collection<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 

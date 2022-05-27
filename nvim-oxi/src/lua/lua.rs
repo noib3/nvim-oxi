@@ -1,7 +1,8 @@
+use std::string::String as StdString;
 use std::{mem, ptr};
 
 use libc::{c_char, c_int, c_void};
-use nvim_types::{Integer, LuaRef, Object};
+use nvim_types::{BufHandle, Integer, LuaRef, Object};
 use once_cell::unsync::OnceCell;
 
 use super::ffi::{self, lua_Integer, lua_State};
@@ -225,13 +226,89 @@ impl LuaPoppable for () {
     }
 }
 
-// let args = {
-//     let nargs = ffi::lua_gettop(lstate);
-//     self::pop_args(lstate, nargs)
-//         .into_iter()
-//         .rev()
-//         .collect::<Vec<Object>>()
-// };
+impl LuaPoppable for crate::api::OnLinesArgs {
+    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
+        todo!()
+    }
+}
+
+impl LuaPoppable for crate::api::OnBytesArgs {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        // TODO: Check that nargs is 12?
+        // let nargs = ffi::lua_gettop(lstate);
+
+        let n = usize::pop(lstate)?;
+        let m = usize::pop(lstate)?;
+        let l = usize::pop(lstate)?;
+        let i = usize::pop(lstate)?;
+        let h = usize::pop(lstate)?;
+        let g = usize::pop(lstate)?;
+        let f = usize::pop(lstate)?;
+        let e = usize::pop(lstate)?;
+        let d = usize::pop(lstate)?;
+        let c = u32::pop(lstate)?;
+        let b = BufHandle::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b, c, d, e, f, g, h, i, l, m, n))
+    }
+}
+
+impl LuaPoppable for crate::api::OnChangedtickArgs {
+    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
+        todo!()
+    }
+}
+
+impl LuaPoppable for crate::api::OnDetachArgs {
+    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
+        todo!()
+    }
+}
+
+impl LuaPoppable for StdString {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<StdString> {
+        // TODO: check type and return err.
+        let mut size = 0;
+        let ptr = ffi::lua_tolstring(lstate, -1, &mut size);
+        let mut buf = Vec::<u8>::with_capacity(size);
+        ptr::copy(ptr as *const u8, buf.as_mut_ptr(), size);
+        buf.set_len(size);
+        let str = StdString::from_utf8_unchecked(buf);
+        // TODO: why does `StdStrinh` not have a `set_len` method like `Vec`?
+        // let mut str = StdString::with_capacity(size);
+        // ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
+        // str.set_len(size);
+        ffi::lua_pop(lstate, 1);
+        Ok(str)
+    }
+}
+
+impl LuaPoppable for lua_Integer {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        let int = ffi::lua_tointeger(lstate, -1);
+        ffi::lua_pop(lstate, 1);
+        Ok(int)
+    }
+}
+
+impl LuaPoppable for u32 {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        Ok(lua_Integer::pop(lstate)?.try_into()?)
+    }
+}
+
+impl LuaPoppable for BufHandle {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        Ok(lua_Integer::pop(lstate)?.try_into()?)
+    }
+}
+
+impl LuaPoppable for usize {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        Ok(lua_Integer::pop(lstate)?.try_into()?)
+    }
+}
 
 impl<T: Into<Object>> LuaPushable for T {
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int> {

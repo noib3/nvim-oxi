@@ -60,3 +60,18 @@ impl KeyValuePair {
         self.value = v.into();
     }
 }
+
+impl<K, V> FromIterator<(K, V)> for Dictionary
+where
+    K: Into<NvimString>,
+    V: Into<Object>,
+{
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
+        let a = iter
+            .into_iter()
+            .map(|(k, v)| KeyValuePair::new(k, v))
+            .collect::<Vec<KeyValuePair>>();
+
+        Self::from_vec(a)
+    }
+}

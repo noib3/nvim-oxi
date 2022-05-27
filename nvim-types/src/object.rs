@@ -85,10 +85,10 @@ impl fmt::Debug for Object {
                 dbg.field("data", &"todo")
             },
 
-            kObjectTypeLuaRef => {
-                // dbg.field("data", &unsafe { self.data.luaref })
-                dbg.field("data", &"todo")
-            },
+            kObjectTypeLuaRef => dbg.field(
+                "data",
+                &format!("Function({})", unsafe { self.data.luaref }),
+            ),
         };
 
         dbg.finish()
@@ -214,7 +214,7 @@ impl_from_int!(i8);
 impl_from_int!(u8);
 impl_from_int!(i16);
 impl_from_int!(u16);
-impl_from_int!(i32);
+// impl_from_int!(i32);
 impl_from_int!(u32);
 
 impl PartialEq for Object {
@@ -243,6 +243,15 @@ impl From<()> for Object {
     }
 }
 
+impl From<LuaRef> for Object {
+    fn from(luaref: LuaRef) -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeLuaRef,
+            data: ObjectData { luaref },
+        }
+    }
+}
+
 impl From<std::string::String> for Object {
     fn from(string: std::string::String) -> Self {
         NvimString::from_c_string(std::ffi::CString::new(string).unwrap())
@@ -268,6 +277,12 @@ impl<T: Into<Object>> From<Option<T>> for Object {
                 data: ObjectData { integer: 0 },
             },
         }
+    }
+}
+
+impl<T: Into<Object>> From<Box<T>> for Object {
+    fn from(boxed: Box<T>) -> Self {
+        (*boxed).into()
     }
 }
 
