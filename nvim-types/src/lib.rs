@@ -10,7 +10,7 @@ pub use array::Array;
 pub use dictionary::Dictionary;
 pub use error::{Error, ErrorType};
 pub use handles::*;
-pub use object::Object;
+pub use object::{Object, ObjectType};
 pub use string::NvimString;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/types.h#L23

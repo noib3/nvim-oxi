@@ -1,6 +1,6 @@
 use std::{mem, ptr};
 
-use libc::{c_int, c_void};
+use libc::{c_char, c_int, c_void};
 use nvim_types::{Integer, LuaRef, Object};
 use once_cell::unsync::OnceCell;
 
@@ -10,9 +10,6 @@ use crate::Result;
 thread_local! {
     static LUA: OnceCell<*mut lua_State> = OnceCell::new();
 }
-
-pub(crate) type CallbackMut<A, R> = Box<dyn FnMut(A) -> Result<R> + 'static>;
-pub(crate) type CallbackOnce<A, R> = Box<dyn FnOnce(A) -> Result<R> + 'static>;
 
 /// TODO: docs
 #[inline(always)]
@@ -29,86 +26,251 @@ where
     LUA.with(move |lua| unsafe { fun(*(lua.get().unwrap_unchecked())) })
 }
 
-/// TODO: docs
-pub(crate) fn to_ref_mut<R>(
-    fun: CallbackMut<(), R>,
-    _nargs: c_int,
-) -> Result<c_int> {
-    unsafe extern "C" fn test<R>(lstate: *mut lua_State) -> c_int {
+// pub(crate) type CallbackMut<A, R> = Box<dyn FnMut(A) -> Result<R> + 'static>;
+// pub(crate) type LuaOnce<A, R> = Box<dyn FnOnce(A) -> Result<R> + 'static>;
+
+// /// TODO: docs
+// pub(crate) fn to_ref_mut<R>(
+//     fun: CallbackMut<(), R>,
+//     _nargs: c_int,
+// ) -> Result<c_int> {
+//     unsafe extern "C" fn test<R>(lstate: *mut lua_State) -> c_int {
+//         let fun = {
+//             let idx = ffi::lua_upvalueindex(1);
+//             let upvalue =
+//                 ffi::lua_touserdata(lstate, idx) as *mut CallbackMut<(), R>;
+//             &mut **upvalue
+//         };
+//         let result = Box::new(fun(()));
+//         ffi::lua_pushlightuserdata(
+//             lstate,
+//             Box::leak(result) as *mut Result<R> as *mut c_void,
+//         );
+//         let r#ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
+//         ffi::lua_pushinteger(lstate, r#ref as lua_Integer);
+//         1
+//     }
+
+//     let r#ref = self::with_state(move |lstate| unsafe {
+//         let ud =
+//             ffi::lua_newuserdata(lstate, mem::size_of::<CallbackMut<(), R>>())
+//                 as *mut CallbackMut<(), R>;
+//         ptr::write(ud, fun);
+//         ffi::lua_pushcclosure(lstate, test::<R>, 1);
+//         ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
+//     });
+
+//     Ok(r#ref)
+// }
+
+// /// TODO: docs
+// pub(crate) fn to_ref_once<R>(
+//     fun: LuaOnce<(), R>,
+//     _nargs: c_int,
+// ) -> Result<c_int> {
+//     unsafe extern "C" fn test<R>(lstate: *mut lua_State) -> c_int {
+//         let fun = {
+//             let idx = ffi::lua_upvalueindex(1);
+//             let upvalue =
+//                 ffi::lua_touserdata(lstate, idx) as *mut LuaOnce<(), R>;
+//             Box::from_raw(&mut **upvalue as *mut (dyn FnOnce(()) -> Result<R>))
+//         };
+//         let result = Box::new(fun(()));
+//         ffi::lua_pushlightuserdata(
+//             lstate,
+//             Box::leak(result) as *mut Result<R> as *mut c_void,
+//         );
+//         let r#ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
+//         ffi::lua_pushinteger(lstate, r#ref as lua_Integer);
+//         1
+//     }
+
+//     let r#ref = self::with_state(move |lstate| unsafe {
+//         let ud = ffi::lua_newuserdata(lstate, mem::size_of::<LuaOnce<(), R>>())
+//             as *mut LuaOnce<(), R>;
+//         ptr::write(ud, fun);
+//         ffi::lua_pushcclosure(lstate, test::<R>, 1);
+//         ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
+//     });
+
+//     Ok(r#ref)
+// }
+
+// pub(crate) fn to_result<R>(obj: Object) -> Result<R> {
+//     // `obj` is usually the result of calling a Neovim C function and should
+//     // contain a number which is the index in the Lua registry where the
+//     // pointer pointing to the results to retrieve is stored.
+//     let r#ref: LuaRef = Integer::try_from(obj)?.try_into()?;
+//     self::with_state(|lstate| unsafe {
+//         ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, r#ref);
+//         let ud = ffi::lua_touserdata(lstate, -1) as *mut Result<R>;
+//         ffi::lua_pop(lstate, 1);
+//         let results = (*Box::from_raw(ud))?;
+//         ffi::luaL_unref(lstate, ffi::LUA_REGISTRYINDEX, r#ref);
+//         Ok(results)
+//     })
+// }
+
+type LuaFnMut = Box<dyn FnMut(*mut lua_State) -> Result<c_int> + 'static>;
+type LuaFnOnce = Box<dyn FnOnce(*mut lua_State) -> Result<c_int> + 'static>;
+
+pub(crate) fn mut_to_luaref<A, R, F>(mut fun: F) -> LuaRef
+where
+    A: LuaPoppable,
+    R: LuaPushable,
+    F: FnMut(A) -> Result<R> + 'static,
+{
+    unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
         let fun = {
             let idx = ffi::lua_upvalueindex(1);
-            let upvalue =
-                ffi::lua_touserdata(lstate, idx) as *mut CallbackMut<(), R>;
-            &mut **upvalue
+            let upv = ffi::lua_touserdata(lstate, idx) as *mut LuaFnMut;
+            &mut **upv
         };
-        let result = Box::new(fun(()));
-        ffi::lua_pushlightuserdata(
-            lstate,
-            Box::leak(result) as *mut Result<R> as *mut c_void,
-        );
-        let r#ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
-        ffi::lua_pushinteger(lstate, r#ref as lua_Integer);
-        1
+
+        fun(lstate).unwrap_or_else(|_err| {
+            // TODO
+            panic!("what to do here?");
+        })
     }
 
-    let r#ref = self::with_state(move |lstate| unsafe {
-        let ud =
-            ffi::lua_newuserdata(lstate, mem::size_of::<CallbackMut<(), R>>())
-                as *mut CallbackMut<(), R>;
-        ptr::write(ud, fun);
-        ffi::lua_pushcclosure(lstate, test::<R>, 1);
+    self::with_state(move |lstate| unsafe {
+        let fun = Box::new(move |lstate| fun(A::pop(lstate)?)?.push(lstate));
+        let ud = ffi::lua_newuserdata(lstate, mem::size_of::<LuaFnMut>());
+        ptr::write(ud as *mut LuaFnMut, fun);
+        ffi::lua_pushcclosure(lstate, c_fun, 1);
         ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
-    });
-
-    Ok(r#ref)
-}
-
-/// TODO: docs
-pub(crate) fn to_ref_once<R>(
-    fun: CallbackOnce<(), R>,
-    _nargs: c_int,
-) -> Result<c_int> {
-    unsafe extern "C" fn test<R>(lstate: *mut lua_State) -> c_int {
-        let fun = {
-            let idx = ffi::lua_upvalueindex(1);
-            let upvalue =
-                ffi::lua_touserdata(lstate, idx) as *mut CallbackOnce<(), R>;
-            Box::from_raw(&mut **upvalue as *mut (dyn FnOnce(()) -> Result<R>))
-        };
-        let result = Box::new(fun(()));
-        ffi::lua_pushlightuserdata(
-            lstate,
-            Box::leak(result) as *mut Result<R> as *mut c_void,
-        );
-        let r#ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
-        ffi::lua_pushinteger(lstate, r#ref as lua_Integer);
-        1
-    }
-
-    let r#ref = self::with_state(move |lstate| unsafe {
-        let ud = ffi::lua_newuserdata(
-            lstate,
-            mem::size_of::<CallbackOnce<(), R>>(),
-        ) as *mut CallbackOnce<(), R>;
-        ptr::write(ud, fun);
-        ffi::lua_pushcclosure(lstate, test::<R>, 1);
-        ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
-    });
-
-    Ok(r#ref)
-}
-
-pub(crate) fn to_result<R>(obj: Object) -> Result<R> {
-    // `obj` is usually the result of calling a Neovim C function and should
-    // contain a number which is the index in the Lua registry where the
-    // pointer pointing to the results to retrieve is stored.
-    let r#ref: LuaRef = Integer::try_from(obj)?.try_into()?;
-    self::with_state(|lstate| unsafe {
-        ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, r#ref);
-        let ud = ffi::lua_touserdata(lstate, -1) as *mut Result<R>;
-        ffi::lua_pop(lstate, 1);
-        let results = (*Box::from_raw(ud))?;
-        ffi::luaL_unref(lstate, ffi::LUA_REGISTRYINDEX, r#ref);
-        Ok(results)
     })
+}
+
+pub(crate) fn once_to_luaref<A, R, F>(fun: F) -> LuaRef
+where
+    A: LuaPoppable,
+    R: LuaPushable,
+    F: FnOnce(A) -> Result<R> + 'static,
+{
+    unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
+        let fun = {
+            let idx = ffi::lua_upvalueindex(1);
+            let upv = ffi::lua_touserdata(lstate, idx) as *mut LuaFnOnce;
+            Box::from_raw(&mut **upv)
+        };
+
+        fun(lstate).unwrap_or_else(|_err| {
+            // TODO
+            panic!("what to do here?");
+        })
+    }
+
+    self::with_state(move |lstate| unsafe {
+        let fun = Box::new(move |lstate| fun(A::pop(lstate)?)?.push(lstate));
+        let ud = ffi::lua_newuserdata(lstate, mem::size_of::<LuaFnOnce>());
+        ptr::write(ud as *mut LuaFnOnce, fun);
+        ffi::lua_pushcclosure(lstate, c_fun, 1);
+        ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
+    })
+}
+
+// macro_rules! closure_to_luaref {
+//     ($name:ident, $closure:ident, $type:ident, $fun_from_upv:ident) => {
+//         pub(crate) fn $name<A, R, F>(fun: F) -> LuaRef
+//         where
+//             A: LuaPoppable,
+//             R: LuaPushable,
+//             F: $closure(A) -> Result<R> + 'static,
+//         {
+//             unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
+//                 let fun = {
+//                     let idx = ffi::lua_upvalueindex(1);
+//                     let upv = ffi::lua_touserdata(lstate, idx) as *mut $type;
+//                     $fun_from_upv
+//                 };
+
+//                 fun(lstate).expect("what to do here?")
+//             }
+
+//             self::with_state(move |lstate| unsafe {
+//                 let fun =
+//                     Box::new(move |lstate| fun(A::pop(lstate)?)?.push(lstate));
+//                 let ud = ffi::lua_newuserdata(lstate, mem::size_of::<$type>());
+//                 ptr::write(ud as *mut $type, fun);
+//                 ffi::lua_pushcclosure(lstate, c_fun, 1);
+//                 ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX)
+//             })
+//         }
+//     };
+// }
+
+// closure_to_luaref!(
+//     once_to_luaref,
+//     FnOnce,
+//     LuaFnOnce,
+//     Box::from_raw(&mut **upv)
+// );
+
+pub(crate) trait LuaPoppable: Sized {
+    /// Assembles itself by popping all the values on the stack. Fails if there
+    /// aren't enough values or if they are of the wrong type.
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self>;
+}
+
+pub(crate) trait LuaPushable {
+    /// Pushes all its values on the Lua stack, returning the number of values
+    /// that it pushed.
+    unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int>;
+}
+
+impl LuaPoppable for () {
+    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
+        Ok(())
+    }
+}
+
+// let args = {
+//     let nargs = ffi::lua_gettop(lstate);
+//     self::pop_args(lstate, nargs)
+//         .into_iter()
+//         .rev()
+//         .collect::<Vec<Object>>()
+// };
+
+impl<T: Into<Object>> LuaPushable for T {
+    unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int> {
+        let obj = self.into();
+
+        use nvim_types::ObjectType::*;
+        match obj.r#type {
+            kObjectTypeNil => ffi::lua_pushnil(lstate),
+
+            kObjectTypeBoolean => {
+                let n = if obj.data.boolean { 1 } else { 0 };
+                ffi::lua_pushboolean(lstate, n);
+            },
+
+            kObjectTypeInteger => {
+                let n = obj.data.integer.try_into().unwrap();
+                ffi::lua_pushinteger(lstate, n);
+            },
+
+            kObjectTypeFloat => {
+                ffi::lua_pushnumber(lstate, obj.data.float);
+            },
+
+            kObjectTypeString => {
+                let string = &obj.data.string;
+                ffi::lua_pushlstring(
+                    lstate,
+                    string.data as *const c_char,
+                    string.size,
+                );
+            },
+
+            kObjectTypeArray => todo!(),
+
+            kObjectTypeDictionary => todo!(),
+
+            kObjectTypeLuaRef => todo!(),
+        }
+
+        Ok(1)
+    }
 }

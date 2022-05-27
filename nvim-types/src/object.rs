@@ -10,8 +10,8 @@ use crate::LuaRef;
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
 #[repr(C)]
 pub struct Object {
-    pub(crate) r#type: ObjectType,
-    pub(crate) data: ObjectData,
+    pub r#type: ObjectType,
+    pub data: ObjectData,
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L100
@@ -32,13 +32,13 @@ pub enum ObjectType {
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L117
 #[repr(C)]
 pub union ObjectData {
-    pub(crate) boolean: bool,
-    pub(crate) integer: i64,
-    pub(crate) float: f64,
-    pub(crate) string: ManuallyDrop<NvimString>,
-    pub(crate) array: ManuallyDrop<Array>,
-    pub(crate) dictionary: ManuallyDrop<Dictionary>,
-    pub(crate) luaref: LuaRef,
+    pub boolean: bool,
+    pub integer: i64,
+    pub float: f64,
+    pub string: ManuallyDrop<NvimString>,
+    pub array: ManuallyDrop<Array>,
+    pub dictionary: ManuallyDrop<Dictionary>,
+    pub luaref: LuaRef,
 }
 
 impl Object {
@@ -237,6 +237,12 @@ impl PartialEq for Object {
     }
 }
 
+impl From<()> for Object {
+    fn from(_unit: ()) -> Self {
+        Self::nil()
+    }
+}
+
 impl From<std::string::String> for Object {
     fn from(string: std::string::String) -> Self {
         NvimString::from_c_string(std::ffi::CString::new(string).unwrap())
@@ -322,6 +328,20 @@ impl TryFrom<Object> for i64 {
             .then(|| unsafe { obj.data.integer })
             .ok_or_else(|| ConversionError::Primitive {
                 expected: ObjectType::kObjectTypeInteger,
+                got: obj.r#type,
+            })
+    }
+}
+
+impl TryFrom<Object> for () {
+    type Error = super::error::ConversionError;
+
+    #[inline]
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
+        (matches!(obj.r#type, ObjectType::kObjectTypeNil))
+            .then(|| ())
+            .ok_or_else(|| ConversionError::Primitive {
+                expected: ObjectType::kObjectTypeNil,
                 got: obj.r#type,
             })
     }

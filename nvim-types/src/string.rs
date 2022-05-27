@@ -12,8 +12,8 @@ use super::object::{Object, ObjectType};
 #[derive(Eq)]
 #[repr(C)]
 pub struct NvimString {
-    data: *mut c_char,
-    size: size_t,
+    pub data: *mut c_char,
+    pub size: size_t,
 }
 
 impl NvimString {

@@ -4,7 +4,7 @@
 
 use std::marker::{PhantomData, PhantomPinned};
 
-use libc::{c_char, c_int, c_void, size_t};
+use libc::{c_char, c_double, c_int, c_void, size_t};
 
 // Pseudo-indices.
 pub(crate) const LUA_REGISTRYINDEX: c_int = -10000;
@@ -26,8 +26,11 @@ pub(crate) struct lua_State {
 pub(crate) type lua_CFunction =
     unsafe extern "C" fn(L: *mut lua_State) -> c_int;
 
-// https://www.lua.org/manual/5.1/manual.html#lua_CFunction
+// https://www.lua.org/manual/5.1/manual.html#lua_Integer
 pub(crate) type lua_Integer = isize;
+
+// https://www.lua.org/manual/5.1/manual.html#lua_Number
+pub(crate) type lua_Number = c_double;
 
 extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
@@ -40,6 +43,9 @@ extern "C" {
         k: *const c_char,
     );
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_gettop
+    pub(crate) fn lua_gettop(L: *mut lua_State) -> c_int;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_rawgeti
     pub(crate) fn lua_rawgeti(L: *mut lua_State, index: c_int, n: c_int);
 
@@ -48,6 +54,9 @@ extern "C" {
         L: *mut lua_State,
         size: size_t,
     ) -> *mut c_void;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_pushinteger
+    pub(crate) fn lua_pushboolean(L: *mut lua_State, n: lua_Integer);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushcclosure
     pub(crate) fn lua_pushcclosure(
@@ -61,6 +70,19 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushlightuserdata
     pub(crate) fn lua_pushlightuserdata(L: *mut lua_State, p: *mut c_void);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_pushlstring
+    pub(crate) fn lua_pushlstring(
+        L: *mut lua_State,
+        s: *const c_char,
+        len: size_t,
+    );
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_pushnil
+    pub(crate) fn lua_pushnil(L: *mut lua_State);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_pushnumber
+    pub(crate) fn lua_pushnumber(L: *mut lua_State, n: lua_Number);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushstring
     pub(crate) fn lua_pushstring(L: *mut lua_State, s: *const c_char);

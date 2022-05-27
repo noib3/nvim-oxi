@@ -5,7 +5,8 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
-use crate::lua::{self, CallbackMut, CallbackOnce};
+use crate::api::global::UserCommandOpts;
+use crate::lua;
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -38,16 +39,42 @@ impl Buffer {
     /// Calls a closure with the buffer as the temporary current buffer.
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
+        R: Into<Object> + TryFrom<Object, Error = ConversionError>,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let r#ref = lua::to_ref_once(Box::new(fun), 0)?;
+        // let r#ref = lua::to_ref_once(Box::new(fun), 0)?;
+        let r#ref = lua::once_to_luaref(fun);
         let mut err = NvimError::default();
         let obj = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
-        let res = lua::to_result::<R>(obj)?;
-        err.into_err_or_else(|| res)
+        // let res = lua::to_result::<R>(obj)?;
+        // err.into_err_or_else(|| res)
+        err.into_err_or_else(|| ())
+            .and_then(|_| obj.try_into().map_err(crate::Error::from))
     }
 
-    // create_user_command
+    /// Binding to `nvim_buf_create_user_command`.
+    ///
+    /// Creates a new buffer-local user command.
+    pub fn create_user_command(
+        &self,
+        name: &str,
+        command: impl Into<Object>,
+        opts: &UserCommandOpts,
+    ) -> Result<()> {
+        // let opts: &Dictionary = opts.into();
+        let opts: &Dictionary = &Dictionary::new();
+        let mut err = NvimError::default();
+        unsafe {
+            nvim_buf_create_user_command(
+                self.0,
+                name.into(),
+                command.into(),
+                opts as *const Dictionary,
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| ())
+    }
 
     /// Binding to `nvim_buf_del_keymap`.
     ///
