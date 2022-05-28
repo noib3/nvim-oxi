@@ -176,6 +176,7 @@ impl Buffer {
             lines
                 .into_iter()
                 .map(|line| line.try_into().expect("always a string"))
+                // TODO: return iterator
                 .collect::<Vec<NvimString>>()
         })
     }
@@ -185,6 +186,8 @@ impl Buffer {
     /// Returns a tuple `(row, col)` representing the position of the named
     /// mark. Marks are (1,0)-indexed.
     pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
+        let mut err = NvimError::default();
+        let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
         todo!()
     }
 
@@ -227,19 +230,38 @@ impl Buffer {
 
     /// Bindint to `nvim_buf_get_text`.
     ///
-    /// Gets a range from the buffer. Indexing is zero-based, with both row and
-    /// column indices being end-exclusive.
-    pub fn get_text<Int>(
+    /// Gets a range from the buffer. This differs from `Buffer::get_lines` in
+    /// that it allows retrieving only portions of a line.
+    ///
+    /// Indexing is zero-based, with both row and column indices being
+    /// end-exclusive.
+    pub fn get_text(
         &self,
-        start_row: Int,
-        start_col: Int,
-        end_row: Int,
-        end_col: Int,
-    ) -> Result<Vec<NvimString>>
-    where
-        Int: Into<Integer>,
-    {
-        todo!()
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
+    ) -> Result<Vec<NvimString>> {
+        let mut err = NvimError::default();
+        let lines = unsafe {
+            nvim_buf_get_text(
+                LUA_INTERNAL_CALL,
+                self.0,
+                start_row.try_into()?,
+                start_col.try_into()?,
+                end_row.try_into()?,
+                end_col.try_into()?,
+                Dictionary::new(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| {
+            lines
+                .into_iter()
+                .map(|line| line.try_into().expect("always a string"))
+                // TODO: return iterator
+                .collect::<Vec<NvimString>>()
+        })
     }
 
     /// Binding to `nvim_buf_get_var`.
