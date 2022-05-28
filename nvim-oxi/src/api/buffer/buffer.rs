@@ -140,7 +140,11 @@ impl Buffer {
 
     // Binding to `nvim_buf_delete`.
     pub fn delete(self, force: bool, unload: bool) -> Result<()> {
-        todo!()
+        let opts =
+            Dictionary::from_iter([("force", force), ("unload", unload)]);
+        let mut err = NvimError::default();
+        unsafe { nvim_buf_delete(self.0, opts, &mut err) };
+        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_get_changedtick`.

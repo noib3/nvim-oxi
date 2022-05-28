@@ -75,9 +75,9 @@ where
 
 impl fmt::Debug for KeyValuePair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("KeyValuePair")
-            .field("key", &self.key.to_string_lossy())
-            .field("value", &self.value)
+        f.debug_tuple("KeyValuePair")
+            .field(&self.key.to_string_lossy())
+            .field(&self.value)
             .finish()
     }
 }
