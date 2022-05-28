@@ -110,12 +110,17 @@ extern "C" fn luaopen_libnvim_oxi(
     // let has_attached = Buffer::from(0).attach(false, opts);
     // crate::print!("{has_attached:?}");
 
-    let foo = String::from("foo");
+    // let foo = String::from("foo");
 
-    crate::schedule(move |()| {
-        crate::print!("{foo}");
-        Ok(())
-    });
+    // crate::schedule(move |_| {
+    //     crate::print!("{foo}");
+    //     Ok(())
+    // });
+
+    let lines = Buffer::from(0).get_lines(0, 5, false).unwrap();
+    for line in lines {
+        crate::print!("{}", line.to_string_lossy());
+    }
 
     0
 }

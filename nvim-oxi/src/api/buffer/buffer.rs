@@ -150,12 +150,34 @@ impl Buffer {
     // get_keymap
 
     /// Binding to `nvim_buf_get_lines`.
+    ///
+    /// Gets a line range from the buffer. Indexing is zero-based,
+    /// end-exclusive. Out of bounds indices are clamped to the nearest valid
+    /// value, unless `strict_indexing` is set, in which case passing an
+    /// invalid index will cause an error.
     pub fn get_lines(
         &self,
         start: usize,
         end: usize,
+        strict_indexing: bool,
     ) -> Result<Vec<NvimString>> {
-        todo!()
+        let mut err = NvimError::default();
+        let lines = unsafe {
+            nvim_buf_get_lines(
+                LUA_INTERNAL_CALL,
+                self.0,
+                start.try_into()?,
+                end.try_into()?,
+                strict_indexing,
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| {
+            lines
+                .into_iter()
+                .map(|line| line.try_into().expect("always a string"))
+                .collect::<Vec<NvimString>>()
+        })
     }
 
     /// Binding to `nvim_buf_get_mark`.
