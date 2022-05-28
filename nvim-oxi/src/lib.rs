@@ -117,10 +117,15 @@ extern "C" fn luaopen_libnvim_oxi(
     //     Ok(())
     // });
 
-    let lines = Buffer::from(0).get_lines(0, 5, false).unwrap();
-    for line in lines {
-        crate::print!("{}", line.to_string_lossy());
-    }
+    // let lines = Buffer::from(0).get_lines(0, 5, false).unwrap();
+    // for line in lines {
+    //     crate::print!("{}", line.to_string_lossy());
+    // }
+
+    let mut buf = api::get_current_buf();
+
+    buf.set_mark("f", 18, 154).unwrap();
+    crate::print!("{:?}", buf.get_mark("f"));
 
     0
 }

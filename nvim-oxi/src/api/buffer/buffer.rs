@@ -188,7 +188,28 @@ impl Buffer {
     pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
         let mut err = NvimError::default();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
-        todo!()
+
+        // TODO: implement `Index` for `Array`.
+        // err.into_err_or_else(|| {
+        //     (
+        //         mark[0].try_into().expect("always positive"),
+        //         mark[1].try_into().expect("always positive"),
+        //     )
+        // });
+
+        err.into_err_or_else(|| {
+            let vec = mark
+                .into_iter()
+                .map(|n| {
+                    i64::try_from(n)
+                        .unwrap()
+                        .try_into()
+                        .expect("always positive")
+                })
+                .collect::<Vec<usize>>();
+
+            (vec[0], vec[1])
+        })
     }
 
     /// Binding to `nvim_buf_get_name`.
@@ -342,22 +363,19 @@ impl Buffer {
     ///
     /// Sets a named mark in the buffer. Marks are (1,0)-indexed, and passing 0
     /// as `line` deletes the mark.
-    pub fn set_mark<Int>(
+    pub fn set_mark(
         &mut self,
         name: &str,
-        line: Int,
-        col: Int,
-    ) -> Result<bool>
-    where
-        Int: Into<Integer>,
-    {
+        line: usize,
+        col: usize,
+    ) -> Result<bool> {
         let mut err = NvimError::default();
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
                 name.into(),
-                line.into(),
-                col.into(),
+                line.try_into()?,
+                col.try_into()?,
                 Dictionary::new(),
                 &mut err,
             )
