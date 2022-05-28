@@ -89,26 +89,33 @@ extern "C" fn luaopen_libnvim_oxi(
     //     Ok(())
     // });
 
-    use crate::api::buffer::BufAttachOptsBuilder;
+    // use crate::api::buffer::opts::BufAttachOptsBuilder;
 
-    let on_bytes = move |args| {
-        crate::print!("on_bytes: {:?}", args);
-        Ok(false)
-    };
+    // let on_bytes = |args| {
+    //     crate::print!("on_bytes: {:?}", args);
+    //     Ok(false)
+    // };
 
-    let on_lines = |args| {
-        crate::print!("on_lines: {:?}", args);
-        Ok(false)
-    };
+    // let on_lines = |args| {
+    //     crate::print!("on_lines: {:?}", args);
+    //     Ok(false)
+    // };
 
-    let opts = BufAttachOptsBuilder::default()
-        .on_bytes(on_bytes)
-        .on_lines(on_lines)
-        .build()
-        .unwrap();
+    // let opts = BufAttachOptsBuilder::default()
+    //     .on_bytes(on_bytes)
+    //     .on_lines(on_lines)
+    //     .build()
+    //     .unwrap();
 
-    let has_attached = Buffer::from(0).attach(false, opts);
-    crate::print!("{has_attached:?}");
+    // let has_attached = Buffer::from(0).attach(false, opts);
+    // crate::print!("{has_attached:?}");
+
+    let foo = String::from("foo");
+
+    crate::schedule(move |()| {
+        crate::print!("{foo}");
+        Ok(())
+    });
 
     0
 }

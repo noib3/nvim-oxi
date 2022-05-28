@@ -1,6 +1,6 @@
 mod r#extern;
 mod global;
-mod opts;
+pub mod opts;
 
 pub use global::*;
-pub use opts::*;
+use opts::*;

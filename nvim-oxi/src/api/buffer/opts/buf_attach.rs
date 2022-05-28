@@ -77,9 +77,9 @@ pub struct BufAttachOpts {
     preview: bool,
 }
 
-macro_rules! custom_impl {
+macro_rules! luaref_setter {
     ($name:ident, $args:ident) => {
-        pub fn $name<F>(mut self, fun: F) -> Self
+        pub fn $name<F>(&mut self, fun: F) -> &mut Self
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
@@ -90,15 +90,15 @@ macro_rules! custom_impl {
 }
 
 impl BufAttachOptsBuilder {
-    custom_impl!(on_lines, OnLinesArgs);
+    luaref_setter!(on_lines, OnLinesArgs);
 
-    custom_impl!(on_bytes, OnBytesArgs);
+    luaref_setter!(on_bytes, OnBytesArgs);
 
-    custom_impl!(on_changedtick, OnChangedtickArgs);
+    luaref_setter!(on_changedtick, OnChangedtickArgs);
 
-    custom_impl!(on_detach, OnDetachArgs);
+    luaref_setter!(on_detach, OnDetachArgs);
 
-    custom_impl!(on_reload, OnReloadArgs);
+    luaref_setter!(on_reload, OnReloadArgs);
 }
 
 impl From<BufAttachOpts> for nvim_types::Dictionary {

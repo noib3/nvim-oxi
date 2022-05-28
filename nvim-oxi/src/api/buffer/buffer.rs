@@ -5,7 +5,7 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 
 use super::opts::*;
 use super::r#extern::*;
-use crate::api::global::UserCommandOpts;
+use crate::api::global::opts::UserCommandOpts;
 use crate::lua;
 use crate::Result;
 use crate::LUA_INTERNAL_CALL;
@@ -53,12 +53,10 @@ impl Buffer {
         R: Into<Object> + TryFrom<Object, Error = ConversionError>,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        // let r#ref = lua::to_ref_once(Box::new(fun), 0)?;
         let r#ref = lua::once_to_luaref(fun);
         let mut err = NvimError::default();
         let obj = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
-        // let res = lua::to_result::<R>(obj)?;
-        // err.into_err_or_else(|| res)
+        // TODO: unref ref
         err.into_err_or_else(|| ())
             .and_then(|_| obj.try_into().map_err(crate::Error::from))
     }

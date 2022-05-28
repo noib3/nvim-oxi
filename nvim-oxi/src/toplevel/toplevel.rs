@@ -19,7 +19,7 @@ macro_rules! nprint {
 pub use nprint as print;
 
 /// Prints a message to the Neovim message area. Fails if the provided string
-/// constains a null byte.
+/// contains a null byte.
 #[doc(hidden)]
 pub fn print(text: impl Into<String>) -> Result<()> {
     let text = std::ffi::CString::new(text.into())?;
@@ -31,4 +31,34 @@ pub fn print(text: impl Into<String>) -> Result<()> {
     });
 
     Ok(())
+}
+
+/// Binding to `vim.schedule`.
+///
+/// Schedules a callback to be invoked soon by the main event-loop. Useful to
+/// avoid textlock or other temporary restrictions.
+pub fn schedule<F>(fun: F)
+where
+    F: FnOnce(()) -> crate::Result<()> + 'static,
+{
+    // https://github.com/neovim/neovim/blob/master/src/nvim/lua/executor.c#L316
+    //
+    // Unfortunately the `nlua_schedule` C function is not exported (it's
+    // static), so we need to call the Lua function instead.
+    lua::with_state(move |lstate| unsafe {
+        // Put `vim.schedule` on the stack.
+        ffi::lua_getglobal(lstate, cstr!("vim"));
+        ffi::lua_getfield(lstate, -1, cstr!("schedule"));
+
+        // Store the function in the registry and put a reference to it on the
+        // stack.
+        let luaref = lua::once_to_luaref(fun);
+        ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, luaref);
+
+        ffi::lua_call(lstate, 1, 0);
+
+        // Pop `vim` off the stack and remove the reference from the registry.
+        ffi::lua_pop(lstate, 1);
+        ffi::luaL_unref(lstate, ffi::LUA_REGISTRYINDEX, luaref);
+    });
 }

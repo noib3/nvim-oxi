@@ -7,6 +7,7 @@ use nvim_types::{BufHandle, LuaRef, Object};
 use once_cell::unsync::OnceCell;
 
 use super::ffi::{self, lua_Integer, lua_State};
+use crate::api::buffer::opts as bufopts;
 use crate::Result;
 
 thread_local! {
@@ -227,8 +228,8 @@ where
 // );
 
 pub(crate) trait LuaPoppable: Sized {
-    /// Assembles itself by popping all the values on the stack. Fails if there
-    /// aren't enough values or if they are of the wrong type.
+    /// Assembles itself by popping values off the stack. Fails if there aren't
+    /// enough values or if they are of the wrong type.
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self>;
 }
 
@@ -297,7 +298,7 @@ impl<T: LuaPoppable> LuaPoppable for Option<T> {
     }
 }
 
-impl LuaPoppable for crate::api::buffer::OnLinesArgs {
+impl LuaPoppable for bufopts::OnLinesArgs {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         // self::debug_stack(lstate);
 
@@ -320,7 +321,7 @@ impl LuaPoppable for crate::api::buffer::OnLinesArgs {
     }
 }
 
-impl LuaPoppable for crate::api::buffer::OnBytesArgs {
+impl LuaPoppable for bufopts::OnBytesArgs {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         // TODO: Check that nargs is 12?
         // let nargs = ffi::lua_gettop(lstate);
@@ -342,7 +343,7 @@ impl LuaPoppable for crate::api::buffer::OnBytesArgs {
     }
 }
 
-impl LuaPoppable for crate::api::buffer::OnChangedtickArgs {
+impl LuaPoppable for bufopts::OnChangedtickArgs {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         let c = u32::pop(lstate)?;
         let b = BufHandle::pop(lstate)?;
@@ -352,7 +353,7 @@ impl LuaPoppable for crate::api::buffer::OnChangedtickArgs {
     }
 }
 
-impl LuaPoppable for crate::api::buffer::OnDetachArgs {
+impl LuaPoppable for bufopts::OnDetachArgs {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         let b = BufHandle::pop(lstate)?;
         let a = <StdString as LuaPoppable>::pop(lstate)?;
