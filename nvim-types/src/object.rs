@@ -49,15 +49,19 @@ impl Object {
             data: ObjectData { integer: 0 },
         }
     }
+
+    #[inline]
+    pub fn is_nil(&self) -> bool {
+        matches!(self.r#type, ObjectType::kObjectTypeNil)
+    }
 }
 
 impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ObjectType::*;
-
         let mut dbg = f.debug_struct("Object");
         dbg.field("type", &self.r#type);
 
+        use ObjectType::*;
         match self.r#type {
             kObjectTypeNil => dbg.field("data", &"nil"),
 
@@ -75,14 +79,10 @@ impl fmt::Debug for Object {
                 dbg.field("data", unsafe { &self.data.string })
             },
 
-            kObjectTypeArray => {
-                // dbg.field("data", &unsafe { self.data.array })
-                dbg.field("data", &"todo")
-            },
+            kObjectTypeArray => dbg.field("data", unsafe { &self.data.array }),
 
             kObjectTypeDictionary => {
-                // dbg.field("data", &unsafe { self.data.dictionary })
-                dbg.field("data", &"todo")
+                dbg.field("data", unsafe { &self.data.dictionary })
             },
 
             kObjectTypeLuaRef => dbg.field(
@@ -117,51 +117,51 @@ macro_rules! impl_clone_for_clone {
     }};
 }
 
-impl Clone for Object {
-    fn clone(&self) -> Self {
-        use ObjectType::*;
-        match self.r#type {
-            kObjectTypeNil => Self::nil(),
-            kObjectTypeBoolean => impl_clone_for_copy!(self, boolean),
-            kObjectTypeInteger => impl_clone_for_copy!(self, integer),
-            kObjectTypeFloat => impl_clone_for_copy!(self, float),
-            // kObjectTypeString => impl_clone_for_clone!(self, string),
-            // kObjectTypeArray => impl_clone_for_clone!(self, array),
-            // kObjectTypeDictionary => impl_clone_for_clone!(self, dictionary),
-            kObjectTypeString => {
-                let value: &NvimString = unsafe { &self.data.string };
-                Self {
-                    r#type: self.r#type,
-                    data: ObjectData {
-                        string: ManuallyDrop::new(value.clone()),
-                    },
-                }
-            },
+// impl Clone for Object {
+//     fn clone(&self) -> Self {
+//         use ObjectType::*;
+//         match self.r#type {
+//             kObjectTypeNil => Self::nil(),
+//             kObjectTypeBoolean => impl_clone_for_copy!(self, boolean),
+//             kObjectTypeInteger => impl_clone_for_copy!(self, integer),
+//             kObjectTypeFloat => impl_clone_for_copy!(self, float),
+//             // kObjectTypeString => impl_clone_for_clone!(self, string),
+//             // kObjectTypeArray => impl_clone_for_clone!(self, array),
+//             // kObjectTypeDictionary => impl_clone_for_clone!(self, dictionary),
+//             kObjectTypeString => {
+//                 let value: &NvimString = unsafe { &self.data.string };
+//                 Self {
+//                     r#type: self.r#type,
+//                     data: ObjectData {
+//                         string: ManuallyDrop::new(value.clone()),
+//                     },
+//                 }
+//             },
 
-            kObjectTypeArray => {
-                let value: &Array = unsafe { &self.data.array };
-                Self {
-                    r#type: self.r#type,
-                    data: ObjectData {
-                        array: ManuallyDrop::new(value.clone()),
-                    },
-                }
-            },
+//             kObjectTypeArray => {
+//                 let value: &Array = unsafe { &self.data.array };
+//                 Self {
+//                     r#type: self.r#type,
+//                     data: ObjectData {
+//                         array: ManuallyDrop::new(value.clone()),
+//                     },
+//                 }
+//             },
 
-            kObjectTypeDictionary => {
-                let value: &Dictionary = unsafe { &self.data.dictionary };
-                Self {
-                    r#type: self.r#type,
-                    data: ObjectData {
-                        dictionary: ManuallyDrop::new(value.clone()),
-                    },
-                }
-            },
+//             kObjectTypeDictionary => {
+//                 let value: &Dictionary = unsafe { &self.data.dictionary };
+//                 Self {
+//                     r#type: self.r#type,
+//                     data: ObjectData {
+//                         dictionary: ManuallyDrop::new(value.clone()),
+//                     },
+//                 }
+//             },
 
-            kObjectTypeLuaRef => impl_clone_for_copy!(self, luaref),
-        }
-    }
-}
+//             kObjectTypeLuaRef => impl_clone_for_copy!(self, luaref),
+//         }
+//     }
+// }
 
 impl Drop for Object {
     fn drop(&mut self) {
@@ -217,25 +217,25 @@ impl_from_int!(u16);
 // impl_from_int!(i32);
 impl_from_int!(u32);
 
-impl PartialEq for Object {
-    fn eq(&self, other: &Self) -> bool {
-        self.r#type == other.r#type
-            && unsafe {
-                let (sd, od) = (&self.data, &other.data);
-                use ObjectType::*;
-                match self.r#type {
-                    kObjectTypeNil => true,
-                    kObjectTypeBoolean => sd.boolean == od.boolean,
-                    kObjectTypeInteger => sd.integer == od.integer,
-                    kObjectTypeFloat => sd.float == od.float,
-                    kObjectTypeString => sd.string == od.string,
-                    kObjectTypeArray => sd.array == od.array,
-                    kObjectTypeDictionary => sd.dictionary == od.dictionary,
-                    kObjectTypeLuaref => sd.luaref == od.luaref,
-                }
-            }
-    }
-}
+// impl PartialEq for Object {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.r#type == other.r#type
+//             && unsafe {
+//                 let (sd, od) = (&self.data, &other.data);
+//                 use ObjectType::*;
+//                 match self.r#type {
+//                     kObjectTypeNil => true,
+//                     kObjectTypeBoolean => sd.boolean == od.boolean,
+//                     kObjectTypeInteger => sd.integer == od.integer,
+//                     kObjectTypeFloat => sd.float == od.float,
+//                     kObjectTypeString => sd.string == od.string,
+//                     kObjectTypeArray => sd.array == od.array,
+//                     kObjectTypeDictionary => sd.dictionary == od.dictionary,
+//                     kObjectTypeLuaref => sd.luaref == od.luaref,
+//                 }
+//             }
+//     }
+// }
 
 impl From<()> for Object {
     fn from(_unit: ()) -> Self {

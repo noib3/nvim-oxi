@@ -1,12 +1,10 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::alloc::{self, Layout};
-use std::fmt;
 use std::marker::PhantomData;
-use std::mem::{self, ManuallyDrop, MaybeUninit};
-use std::ops::{Deref, Index};
-use std::ptr::{self, addr_of_mut, NonNull};
+use std::mem::{self, ManuallyDrop};
+use std::ops::Deref;
+use std::ptr::{self, NonNull};
 use std::slice;
 
 use libc::size_t;
@@ -19,8 +17,8 @@ pub struct Collection<T> {
     pub(crate) _marker: PhantomData<T>,
 }
 
-unsafe impl<T: Send> Send for Collection<T> {}
-unsafe impl<T: Sync> Sync for Collection<T> {}
+// unsafe impl<T: Send> Send for Collection<T> {}
+// unsafe impl<T: Sync> Sync for Collection<T> {}
 
 impl<T> Collection<T> {
     /// Creates a new empty `Collection`. If you already know how many elements
@@ -35,19 +33,33 @@ impl<T> Collection<T> {
         }
     }
 
-    /// Creates a new empty `Collection` with a preallocated capacity.
-    pub const fn with_capacity(capacity: usize) -> Self {
-        todo!()
-    }
+    // /// Creates a new empty `Collection` with a preallocated capacity.
+    // pub const fn with_capacity(capacity: usize) -> Self {
+    //     todo!()
+    // }
 
-    /// The number of items in the collection.
-    pub const fn len(&self) -> usize {
-        self.size
+    // /// The number of items in the collection.
+    // pub const fn len(&self) -> usize {
+    //     self.size
+    // }
+
+    #[inline]
+    pub(crate) fn as_slice(&self) -> &[T] {
+        unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
     }
 
     #[inline]
-    pub fn as_slice(&self) -> &[T] {
-        unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
+    pub(crate) unsafe fn from_raw_parts(
+        ptr: *mut T,
+        size: usize,
+        capacity: usize,
+    ) -> Self {
+        Self {
+            items: NonNull::new_unchecked(ptr),
+            size,
+            capacity,
+            _marker: PhantomData,
+        }
     }
 
     pub fn from_vec<V: Into<Vec<T>>>(v: V) -> Self {
@@ -84,11 +96,11 @@ impl<T> Collection<T> {
     }
 }
 
-impl<T> Default for Collection<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// impl<T> Default for Collection<T> {
+//     fn default() -> Self {
+//         Self::new()
+//     }
+// }
 
 impl<T> Deref for Collection<T> {
     type Target = [T];
@@ -98,19 +110,19 @@ impl<T> Deref for Collection<T> {
     }
 }
 
-impl<T: Clone> Clone for Collection<T> {
-    fn clone(&self) -> Self {
-        Self::from_vec(self.as_slice().to_owned())
-        // todo!()
-    }
-}
+// impl<T: Clone> Clone for Collection<T> {
+//     fn clone(&self) -> Self {
+//         Self::from_vec(self.as_slice().to_owned())
+//         // todo!()
+//     }
+// }
 
-impl<T: PartialEq> PartialEq<Self> for Collection<T> {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
+// impl<T: PartialEq> PartialEq<Self> for Collection<T> {
+//     #[inline]
+//     fn eq(&self, other: &Self) -> bool {
+//         self.as_slice() == other.as_slice()
+//     }
+// }
 
 impl<T> IntoIterator for Collection<T> {
     type IntoIter = IntoIter<T>;
@@ -135,11 +147,11 @@ impl<T> IntoIterator for Collection<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for Collection<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
-    }
-}
+// impl<T: fmt::Debug> fmt::Debug for Collection<T> {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         f.debug_list().entries(self.iter()).finish()
+//     }
+// }
 
 /// An iterator that moves out of a `Collection`.
 pub struct IntoIter<T> {

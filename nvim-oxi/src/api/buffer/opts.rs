@@ -63,21 +63,21 @@ pub struct BufAttachOpts {
     pub(crate) on_changedtick: AttachCb<OnChangedtickArgs>,
     pub(crate) on_detach: AttachCb<OnDetachArgs>,
     pub(crate) on_reload: AttachCb<OnReloadArgs>,
-    pub(crate) utf_sizes: bool,
-    pub(crate) preview: bool,
+    pub(crate) utf_sizes: Option<bool>,
+    pub(crate) preview: Option<bool>,
 }
 
 impl From<BufAttachOpts> for nvim_types::Dictionary {
     fn from(opts: BufAttachOpts) -> Self {
         Self::from_iter([
-            // ("on_lines", Object::from(opts.on_lines.map(lua::mut_to_luaref))),
+            ("on_lines", Object::from(opts.on_lines.map(lua::mut_to_luaref))),
             ("on_bytes", opts.on_bytes.map(lua::mut_to_luaref).into()),
-            // (
-            //     "on_changedtick",
-            //     opts.on_changedtick.map(lua::mut_to_luaref).into(),
-            // ),
-            // ("on_detach", opts.on_detach.map(lua::mut_to_luaref).into()),
-            // ("on_reload", opts.on_reload.map(lua::mut_to_luaref).into()),
+            (
+                "on_changedtick",
+                opts.on_changedtick.map(lua::mut_to_luaref).into(),
+            ),
+            ("on_detach", opts.on_detach.map(lua::mut_to_luaref).into()),
+            ("on_reload", opts.on_reload.map(lua::mut_to_luaref).into()),
             ("utf_sizes", opts.utf_sizes.into()),
             ("preview", Object::from(opts.preview)),
         ])

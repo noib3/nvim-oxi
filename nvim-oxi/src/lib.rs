@@ -19,15 +19,15 @@ pub(crate) const VIML_INTERNAL_CALL: u64 = INTERNAL_CALL_MASK;
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L47
 pub(crate) const LUA_INTERNAL_CALL: u64 = VIML_INTERNAL_CALL + 1;
 
-#[no_mangle]
-pub extern "C" fn test() -> *mut std::os::raw::c_char {
-    api::get_mode()
-        .get::<_, nvim_types::NvimString>("mode")
-        .unwrap()
-        .as_c_str()
-        .to_owned()
-        .into_raw()
-}
+// #[no_mangle]
+// pub extern "C" fn test() -> *mut std::os::raw::c_char {
+//     api::get_mode()
+//         .get::<_, nvim_types::NvimString>("mode")
+//         .unwrap()
+//         .as_c_str()
+//         .to_owned()
+//         .into_raw()
+// }
 
 #[no_mangle]
 pub extern "C" fn is_modified() -> bool {

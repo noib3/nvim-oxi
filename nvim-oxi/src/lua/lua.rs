@@ -268,17 +268,12 @@ impl LuaPoppable for crate::api::OnDetachArgs {
 
 impl LuaPoppable for StdString {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<StdString> {
-        // TODO: check type and return err.
+        // TODO: check type and return err?
         let mut size = 0;
         let ptr = ffi::lua_tolstring(lstate, -1, &mut size);
-        let mut buf = Vec::<u8>::with_capacity(size);
-        ptr::copy(ptr as *const u8, buf.as_mut_ptr(), size);
-        buf.set_len(size);
-        let str = StdString::from_utf8_unchecked(buf);
-        // TODO: why does `StdStrinh` not have a `set_len` method like `Vec`?
-        // let mut str = StdString::with_capacity(size);
-        // ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
-        // str.set_len(size);
+        let mut str = StdString::with_capacity(size);
+        ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
+        str.as_mut_vec().set_len(size);
         ffi::lua_pop(lstate, 1);
         Ok(str)
     }
@@ -324,7 +319,7 @@ impl<T: Into<Object>> LuaPushable for T {
             },
 
             kObjectTypeInteger => {
-                let n = obj.data.integer.try_into().unwrap();
+                let n = obj.data.integer.try_into()?;
                 ffi::lua_pushinteger(lstate, n);
             },
 

@@ -1,3 +1,4 @@
+use std::fmt;
 use std::marker::PhantomData;
 use std::mem::{self, ManuallyDrop};
 use std::ptr::{self, NonNull};
@@ -7,6 +8,12 @@ use super::object::{Object, ObjectType};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Array = Collection<Object>;
+
+impl fmt::Debug for Array {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
 
 impl TryFrom<Object> for Array {
     type Error = ();
@@ -39,36 +46,15 @@ impl TryFrom<Object> for Array {
     }
 }
 
-// impl<T: Into<Object>, Iter: IntoIterator<Item = T>> From<Iter> for Array {
-//     fn from(iter: Iter) -> Self {
-//         let mut vec = ManuallyDrop::new(
-//             iter.into_iter().map(|item| item.into()).collect::<Vec<Object>>(),
-//         );
-
-//         let size = vec.len();
-
-//         Self {
-//             items: unsafe { NonNull::new_unchecked(vec.as_mut_ptr()) },
-//             size,
-//             capacity: size,
-//             _marker: PhantomData,
-//         }
-//     }
-// }
-
 impl<T: Into<Object>> FromIterator<T> for Array {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let mut vec = ManuallyDrop::new(
-            iter.into_iter().map(|item| item.into()).collect::<Vec<Object>>(),
-        );
+        let vec =
+            iter.into_iter().map(|item| item.into()).collect::<Vec<Object>>();
 
         let size = vec.len();
+        let capacity = vec.capacity();
+        let ptr = vec.leak() as *mut [Object] as *mut Object;
 
-        Self {
-            items: unsafe { NonNull::new_unchecked(vec.as_mut_ptr()) },
-            size,
-            capacity: size,
-            _marker: PhantomData,
-        }
+        unsafe { Self::from_raw_parts(ptr, size, capacity) }
     }
 }

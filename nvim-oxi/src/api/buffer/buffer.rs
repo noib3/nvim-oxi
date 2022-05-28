@@ -201,19 +201,11 @@ impl Buffer {
         Value: TryFrom<Object, Error = ConversionError>,
     {
         let mut err = NvimError::default();
-
         let obj =
             unsafe { nvim_buf_get_option(self.0, name.into(), &mut err) };
-
-        // TODO: rewrite this as
-        //
-        // err.into_err_or_else(|| obj.try_into().map_err(crate::Error::from))
-        //     .flatten()
-        //
-        // after https://github.com/rust-lang/rust/issues/70142 becomes stable.
-
-        err.into_err_or_else(|| ())
-            .and_then(|_| obj.try_into().map_err(crate::Error::from))
+        err.into_err_or_else::<_, _, crate::Error>(|| {
+            obj.try_into().map_err(crate::Error::from)
+        })?
     }
 
     /// Bindint to `nvim_buf_get_text`.
@@ -242,18 +234,10 @@ impl Buffer {
         Value: TryFrom<Object, Error = ConversionError>,
     {
         let mut err = NvimError::default();
-
         let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
-
-        // TODO: rewrite this as
-        //
-        // err.into_err_or_else(|| obj.try_into().map_err(crate::Error::from))
-        //     .flatten()
-        //
-        // after https://github.com/rust-lang/rust/issues/70142 becomes stable.
-
-        err.into_err_or_else(|| ())
-            .and_then(|_| obj.try_into().map_err(crate::Error::from))
+        err.into_err_or_else::<_, _, crate::Error>(|| {
+            obj.try_into().map_err(crate::Error::from)
+        })?
     }
 
     /// Binding to `nvim_buf_is_loaded`.
