@@ -1,8 +1,9 @@
+use std::ffi::CStr;
 use std::string::String as StdString;
 use std::{mem, ptr};
 
-use libc::{c_char, c_int, c_void};
-use nvim_types::{BufHandle, Integer, LuaRef, Object};
+use libc::{c_char, c_int};
+use nvim_types::{BufHandle, LuaRef, Object};
 use once_cell::unsync::OnceCell;
 
 use super::ffi::{self, lua_Integer, lua_State};
@@ -25,6 +26,23 @@ where
     F: FnOnce(*mut lua_State) -> R,
 {
     LUA.with(move |lua| unsafe { fun(*(lua.get().unwrap_unchecked())) })
+}
+
+/// Pretty prints the contents of the Lua stack to the Neovim message area.
+#[allow(dead_code)]
+pub(crate) unsafe fn debug_stack(lstate: *mut lua_State) {
+    let height = ffi::lua_gettop(lstate);
+
+    let stack_pp = (1..height + 1)
+        .map(|n| {
+            let idx = height + 1 - n;
+            let typename = CStr::from_ptr(ffi::luaL_typename(lstate, -n));
+            format!("{idx}: {}", typename.to_string_lossy())
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    crate::print!("{stack_pp}");
 }
 
 // pub(crate) type CallbackMut<A, R> = Box<dyn FnMut(A) -> Result<R> + 'static>;
@@ -226,59 +244,6 @@ impl LuaPoppable for () {
     }
 }
 
-impl LuaPoppable for crate::api::OnLinesArgs {
-    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
-        todo!()
-    }
-}
-
-impl LuaPoppable for crate::api::OnBytesArgs {
-    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
-        // TODO: Check that nargs is 12?
-        // let nargs = ffi::lua_gettop(lstate);
-
-        let n = usize::pop(lstate)?;
-        let m = usize::pop(lstate)?;
-        let l = usize::pop(lstate)?;
-        let i = usize::pop(lstate)?;
-        let h = usize::pop(lstate)?;
-        let g = usize::pop(lstate)?;
-        let f = usize::pop(lstate)?;
-        let e = usize::pop(lstate)?;
-        let d = usize::pop(lstate)?;
-        let c = u32::pop(lstate)?;
-        let b = BufHandle::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b, c, d, e, f, g, h, i, l, m, n))
-    }
-}
-
-impl LuaPoppable for crate::api::OnChangedtickArgs {
-    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
-        todo!()
-    }
-}
-
-impl LuaPoppable for crate::api::OnDetachArgs {
-    unsafe fn pop(_lstate: *mut lua_State) -> crate::Result<Self> {
-        todo!()
-    }
-}
-
-impl LuaPoppable for StdString {
-    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<StdString> {
-        // TODO: check type and return err?
-        let mut size = 0;
-        let ptr = ffi::lua_tolstring(lstate, -1, &mut size);
-        let mut str = StdString::with_capacity(size);
-        ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
-        str.as_mut_vec().set_len(size);
-        ffi::lua_pop(lstate, 1);
-        Ok(str)
-    }
-}
-
 impl LuaPoppable for lua_Integer {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         let int = ffi::lua_tointeger(lstate, -1);
@@ -302,6 +267,97 @@ impl LuaPoppable for BufHandle {
 impl LuaPoppable for usize {
     unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
         Ok(lua_Integer::pop(lstate)?.try_into()?)
+    }
+}
+
+impl LuaPoppable for StdString {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        // TODO: check type and return err?
+        let mut size = 0;
+        let ptr = ffi::lua_tolstring(lstate, -1, &mut size);
+        let mut str = StdString::with_capacity(size);
+        ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
+        str.as_mut_vec().set_len(size);
+        ffi::lua_pop(lstate, 1);
+        Ok(str)
+    }
+}
+
+impl<T: LuaPoppable> LuaPoppable for Option<T> {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        let ltp = ffi::lua_type(lstate, -1);
+        crate::print!(
+            "{ltp}, {}",
+            ltp != ffi::LUA_TNIL && ltp != ffi::LUA_TNONE
+        );
+
+        (ltp != ffi::LUA_TNIL && ltp != ffi::LUA_TNONE)
+            .then(|| T::pop(lstate))
+            .transpose()
+    }
+}
+
+impl LuaPoppable for crate::api::buffer::OnLinesArgs {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        // self::debug_stack(lstate);
+
+        let (h, i) = if ffi::lua_gettop(lstate) == 9 {
+            let h = usize::pop(lstate)?;
+            let i = usize::pop(lstate)?;
+            (Some(h), Some(i))
+        } else {
+            (None, None)
+        };
+        let g = usize::pop(lstate)?;
+        let f = usize::pop(lstate)?;
+        let e = usize::pop(lstate)?;
+        let d = usize::pop(lstate)?;
+        let c = u32::pop(lstate)?;
+        let b = BufHandle::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b.into(), c, d, e, f, g, h, i))
+    }
+}
+
+impl LuaPoppable for crate::api::buffer::OnBytesArgs {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        // TODO: Check that nargs is 12?
+        // let nargs = ffi::lua_gettop(lstate);
+
+        let n = usize::pop(lstate)?;
+        let m = usize::pop(lstate)?;
+        let l = usize::pop(lstate)?;
+        let i = usize::pop(lstate)?;
+        let h = usize::pop(lstate)?;
+        let g = usize::pop(lstate)?;
+        let f = usize::pop(lstate)?;
+        let e = usize::pop(lstate)?;
+        let d = usize::pop(lstate)?;
+        let c = u32::pop(lstate)?;
+        let b = BufHandle::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b.into(), c, d, e, f, g, h, i, l, m, n))
+    }
+}
+
+impl LuaPoppable for crate::api::buffer::OnChangedtickArgs {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        let c = u32::pop(lstate)?;
+        let b = BufHandle::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b.into(), c))
+    }
+}
+
+impl LuaPoppable for crate::api::buffer::OnDetachArgs {
+    unsafe fn pop(lstate: *mut lua_State) -> crate::Result<Self> {
+        let b = BufHandle::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b.into()))
     }
 }
 

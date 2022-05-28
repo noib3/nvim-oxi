@@ -6,14 +6,12 @@ use std::marker::{PhantomData, PhantomPinned};
 
 use libc::{c_char, c_double, c_int, c_void, size_t};
 
-#[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct lua_State {
     _data: [u8; 0],
     _marker: PhantomData<(*mut u8, PhantomPinned)>,
 }
 
-// Pseudo-indices.
 pub(crate) const LUA_REGISTRYINDEX: c_int = -10000;
 pub(crate) const LUA_ENVIRONINDEX: c_int = -10001;
 pub(crate) const LUA_GLOBALSINDEX: c_int = -10002;
@@ -21,6 +19,17 @@ pub(crate) const LUA_GLOBALSINDEX: c_int = -10002;
 pub(crate) const fn lua_upvalueindex(i: c_int) -> c_int {
     LUA_GLOBALSINDEX - i
 }
+
+pub(crate) const LUA_TNONE: c_int = -1;
+pub(crate) const LUA_TNIL: c_int = 0;
+pub(crate) const LUA_TBOOLEAN: c_int = 1;
+pub(crate) const LUA_TLIGHTUSERDATA: c_int = 2;
+pub(crate) const LUA_TNUMBER: c_int = 3;
+pub(crate) const LUA_TSTRING: c_int = 4;
+pub(crate) const LUA_TTABLE: c_int = 5;
+pub(crate) const LUA_TFUNCTION: c_int = 6;
+pub(crate) const LUA_TUSERDATA: c_int = 7;
+pub(crate) const LUA_TTHREAD: c_int = 8;
 
 // https://www.lua.org/manual/5.1/manual.html#lua_CFunction
 pub(crate) type lua_CFunction =

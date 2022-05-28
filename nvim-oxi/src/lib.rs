@@ -89,12 +89,25 @@ extern "C" fn luaopen_libnvim_oxi(
     //     Ok(())
     // });
 
-    let on_bytes = |args| {
-        crate::print!("{:?}", args);
+    use crate::api::buffer::BufAttachOptsBuilder;
+
+    let on_bytes = move |args| {
+        crate::print!("on_bytes: {:?}", args);
         Ok(false)
     };
 
-    let has_attached = Buffer::from(0).attach(false, on_bytes);
+    let on_lines = |args| {
+        crate::print!("on_lines: {:?}", args);
+        Ok(false)
+    };
+
+    let opts = BufAttachOptsBuilder::default()
+        .on_bytes(on_bytes)
+        .on_lines(on_lines)
+        .build()
+        .unwrap();
+
+    let has_attached = Buffer::from(0).attach(false, opts);
     crate::print!("{has_attached:?}");
 
     0

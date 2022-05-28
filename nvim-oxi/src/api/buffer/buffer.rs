@@ -27,18 +27,11 @@ impl<H: Into<BufHandle>> From<H> for Buffer {
 
 impl Buffer {
     /// Binding to `nvim_buf_attach`.
-    pub fn attach<
-        OnBytes: FnMut(OnBytesArgs) -> Result<ShouldDetach> + 'static,
-    >(
+    pub fn attach(
         &self,
         send_buffer: bool,
-        on_bytes: OnBytes,
-        // opts: BufAttachOpts,
+        opts: BufAttachOpts,
     ) -> Result<bool> {
-        let opts = BufAttachOpts {
-            on_bytes: Some(Box::new(on_bytes)),
-            ..Default::default()
-        };
         let mut err = NvimError::default();
         let has_attached = unsafe {
             nvim_buf_attach(
@@ -123,7 +116,7 @@ impl Buffer {
     }
 
     /// Binding to `nvim_buf_del_user_command`.
-    pub fn nvim_buf_del_user_command(&mut self, name: &str) -> Result<()> {
+    pub fn del_user_command(&mut self, name: &str) -> Result<()> {
         let mut err = NvimError::default();
         unsafe { nvim_buf_del_user_command(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
