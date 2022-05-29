@@ -1,7 +1,9 @@
 use std::borrow::Cow;
-use std::ffi::{CStr, CString};
+use std::ffi::{CStr, CString, OsStr};
 use std::fmt;
 use std::mem;
+use std::os::unix::ffi::OsStrExt;
+use std::path::PathBuf;
 use std::ptr;
 
 use libc::{c_char, size_t};
@@ -188,6 +190,22 @@ impl TryFrom<Object> for NvimString {
         mem::forget(obj);
 
         Ok(string)
+    }
+}
+
+#[cfg(not(windows))]
+impl From<NvimString> for PathBuf {
+    #[inline]
+    fn from(nstr: NvimString) -> Self {
+        OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
+    }
+}
+
+#[cfg(windows)]
+impl From<NvimString> for PathBuf {
+    #[inline]
+    fn from(nstr: NvimString) -> Self {
+        StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
     }
 }
 

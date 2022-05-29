@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::PathBuf;
 
 use nvim_types::error::{ConversionError, Error as NvimError};
 use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
@@ -6,7 +7,7 @@ use nvim_types::{Array, BufHandle, Dictionary, Integer, NvimString, Object};
 use super::opts::*;
 use super::r#extern::*;
 use crate::api::global::opts::UserCommandOpts;
-use crate::lua;
+use crate::lua::{self, ffi};
 use crate::Result;
 use crate::LUA_INTERNAL_CALL;
 
@@ -26,6 +27,12 @@ impl<H: Into<BufHandle>> From<H> for Buffer {
 }
 
 impl Buffer {
+    /// Shorthand for `nvim_oxi::api::get_current_buf`.
+    #[inline(always)]
+    pub fn current() -> Self {
+        crate::api::get_current_buf()
+    }
+
     /// Binding to `nvim_buf_attach`.
     pub fn attach(
         &self,
@@ -53,12 +60,17 @@ impl Buffer {
         R: Into<Object> + TryFrom<Object, Error = ConversionError>,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let r#ref = lua::once_to_luaref(fun);
+        let luaref = lua::once_to_luaref(fun);
         let mut err = NvimError::default();
-        let obj = unsafe { nvim_buf_call(self.0, r#ref, &mut err) };
-        // TODO: unref ref
-        err.into_err_or_else(|| ())
-            .and_then(|_| obj.try_into().map_err(crate::Error::from))
+        let obj = unsafe { nvim_buf_call(self.0, luaref, &mut err) };
+
+        err.into_err_or_else::<_, _, crate::Error>(|| {
+            // Remove the reference from the Lua registry.
+            lua::with_state(|lstate| unsafe {
+                ffi::luaL_unref(lstate, ffi::LUA_REGISTRYINDEX, luaref);
+            });
+            obj.try_into().map_err(crate::Error::from)
+        })?
     }
 
     /// Binding to `nvim_buf_create_user_command`.
@@ -160,7 +172,7 @@ impl Buffer {
         start: usize,
         end: usize,
         strict_indexing: bool,
-    ) -> Result<Vec<NvimString>> {
+    ) -> Result<impl Iterator<Item = NvimString>> {
         let mut err = NvimError::default();
         let lines = unsafe {
             nvim_buf_get_lines(
@@ -176,8 +188,6 @@ impl Buffer {
             lines
                 .into_iter()
                 .map(|line| line.try_into().expect("always a string"))
-                // TODO: return iterator
-                .collect::<Vec<NvimString>>()
         })
     }
 
@@ -188,27 +198,11 @@ impl Buffer {
     pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
         let mut err = NvimError::default();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
-
-        // TODO: implement `Index` for `Array`.
-        // err.into_err_or_else(|| {
-        //     (
-        //         mark[0].try_into().expect("always positive"),
-        //         mark[1].try_into().expect("always positive"),
-        //     )
-        // });
-
         err.into_err_or_else(|| {
-            let vec = mark
-                .into_iter()
-                .map(|n| {
-                    i64::try_from(n)
-                        .unwrap()
-                        .try_into()
-                        .expect("always positive")
-                })
-                .collect::<Vec<usize>>();
-
-            (vec[0], vec[1])
+            (
+                (&mark[0]).try_into().expect("always positive"),
+                (&mark[1]).try_into().expect("always positive"),
+            )
         })
     }
 
@@ -216,11 +210,10 @@ impl Buffer {
     ///
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
     /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
-    // TODO: return a `Result<PathBuf>` instead.
-    pub fn get_name(&self) -> Result<String> {
+    pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = NvimError::default();
         let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
-        err.into_err_or_else(|| name.to_string_lossy().into_owned())
+        err.into_err_or_else(|| name.into())
     }
 
     /// Binding to `nvim_buf_get_offset`.
@@ -249,7 +242,7 @@ impl Buffer {
         })?
     }
 
-    /// Bindint to `nvim_buf_get_text`.
+    /// Binding to `nvim_buf_get_text`.
     ///
     /// Gets a range from the buffer. This differs from `Buffer::get_lines` in
     /// that it allows retrieving only portions of a line.
@@ -262,7 +255,7 @@ impl Buffer {
         start_col: usize,
         end_row: usize,
         end_col: usize,
-    ) -> Result<Vec<NvimString>> {
+    ) -> Result<impl Iterator<Item = NvimString>> {
         let mut err = NvimError::default();
         let lines = unsafe {
             nvim_buf_get_text(
@@ -280,8 +273,6 @@ impl Buffer {
             lines
                 .into_iter()
                 .map(|line| line.try_into().expect("always a string"))
-                // TODO: return iterator
-                .collect::<Vec<NvimString>>()
         })
     }
 

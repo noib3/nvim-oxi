@@ -3,9 +3,9 @@
 
 use std::marker::PhantomData;
 use std::mem::{self, ManuallyDrop};
-use std::ops::Deref;
+use std::ops::{Deref, Index};
 use std::ptr::{self, NonNull};
-use std::slice;
+use std::slice::{self, SliceIndex};
 
 use libc::size_t;
 
@@ -107,6 +107,17 @@ impl<T> Deref for Collection<T> {
 
     fn deref(&self) -> &[T] {
         self.as_slice()
+    }
+}
+
+impl<I, T> Index<I> for Collection<T>
+where
+    I: SliceIndex<[T]>,
+{
+    type Output = <I as SliceIndex<[T]>>::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        self.deref().index(index)
     }
 }
 

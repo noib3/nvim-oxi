@@ -348,6 +348,35 @@ impl TryFrom<Object> for i64 {
     }
 }
 
+impl<'a> TryFrom<&'a Object> for i64 {
+    type Error = super::error::ConversionError;
+
+    #[inline]
+    fn try_from(obj: &Object) -> Result<Self, Self::Error> {
+        (matches!(obj.r#type, ObjectType::kObjectTypeInteger))
+            .then(|| unsafe { obj.data.integer })
+            .ok_or_else(|| ConversionError::Primitive {
+                expected: ObjectType::kObjectTypeInteger,
+                got: obj.r#type,
+            })
+    }
+}
+
+impl<'a> TryFrom<&'a Object> for usize {
+    type Error = super::error::ConversionError;
+
+    #[inline]
+    fn try_from(obj: &Object) -> Result<Self, Self::Error> {
+        (matches!(obj.r#type, ObjectType::kObjectTypeInteger))
+            // TODO: don't unwrap
+            .then(|| unsafe { obj.data.integer.try_into().unwrap() })
+            .ok_or_else(|| ConversionError::Primitive {
+                expected: ObjectType::kObjectTypeInteger,
+                got: obj.r#type,
+            })
+    }
+}
+
 impl TryFrom<Object> for () {
     type Error = super::error::ConversionError;
 
