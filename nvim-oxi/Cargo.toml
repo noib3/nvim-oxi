@@ -1,7 +1,13 @@
 [package]
 name = "nvim-oxi"
 version = "0.1.0"
+authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
+description = "Rust bindings to all things Neovim."
+documentation = "https://docs.rs/nvim-oxi"
+repository = "https://github.com/noib3/nvim-oxi"
+license = "MIT"
+keywords = ["bindings", "neovim", "nvim"]
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,4 +17,5 @@ derive_builder = "0.11"
 libc = "0.2"
 nvim-types = { path = "../nvim-types" }
 once_cell = "1.12"
+oxi-derive = { path = "../oxi-derive" }
 thiserror = "1.0"

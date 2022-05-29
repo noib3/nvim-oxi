@@ -1,6 +1,10 @@
 [package]
 name = "nvim-types"
 version = "0.1.0"
+authors = [
+  "Steve Loveless <steve.loveless@gmail.com>",
+  "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
+]
 edition = "2021"
 
 [dependencies]
