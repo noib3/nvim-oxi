@@ -306,6 +306,12 @@ impl From<Array> for Object {
     }
 }
 
+impl<'a> From<&'a str> for Object {
+    fn from(str: &'a str) -> Self {
+        NvimString::from(str).into()
+    }
+}
+
 impl TryFrom<Object> for bool {
     type Error = super::error::ConversionError;
 

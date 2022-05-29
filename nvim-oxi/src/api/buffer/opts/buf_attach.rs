@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{LuaRef, Object};
+use nvim_types::{Dictionary, LuaRef, Object};
 
 use crate::api::buffer::Buffer;
 use crate::lua;
@@ -101,10 +101,10 @@ impl BufAttachOptsBuilder {
     luaref_setter!(on_reload, OnReloadArgs);
 }
 
-impl From<BufAttachOpts> for nvim_types::Dictionary {
+impl From<BufAttachOpts> for Dictionary {
     fn from(opts: BufAttachOpts) -> Self {
-        Self::from_iter([
-            ("on_lines", Object::from(opts.on_lines)),
+        Self::from_iter::<[(_, Object); 7]>([
+            ("on_lines", opts.on_lines.into()),
             ("on_bytes", opts.on_bytes.into()),
             ("on_changedtick", opts.on_changedtick.into()),
             ("on_detach", opts.on_detach.into()),

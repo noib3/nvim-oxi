@@ -127,9 +127,26 @@ extern "C" fn luaopen_libnvim_oxi(
     // buf.set_mark("f", 18, 154).unwrap();
     // crate::print!("{:?}", buf.get_mark("f"));
 
-    let path = Buffer::current().get_name().unwrap();
-    crate::print!("{:?}", path);
-    crate::print!("{:?}", path.components());
+    // let path = Buffer::current().get_name().unwrap();
+    // crate::print!("{:?}", path);
+    // crate::print!("{:?}", path.components());
+
+    let opts =
+        api::global::opts::UserCommandOptsBuilder::default().build().unwrap();
+
+    crate::print!("{:?}", nvim_types::Dictionary::from(opts));
+
+    let opts =
+        api::global::opts::UserCommandOptsBuilder::default().build().unwrap();
+
+    crate::print!(
+        "{:?}",
+        Buffer::current().create_user_command(
+            "Foo",
+            ":lua print('foo')",
+            opts,
+        )
+    );
 
     0
 }

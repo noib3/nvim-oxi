@@ -80,17 +80,15 @@ impl Buffer {
         &self,
         name: &str,
         command: impl Into<Object>,
-        opts: &UserCommandOpts,
+        opts: UserCommandOpts,
     ) -> Result<()> {
-        // let opts: &Dictionary = opts.into();
-        let opts: &Dictionary = &Dictionary::new();
         let mut err = NvimError::default();
         unsafe {
             nvim_buf_create_user_command(
                 self.0,
                 name.into(),
                 command.into(),
-                opts as *const Dictionary,
+                &opts.into(),
                 &mut err,
             )
         };
@@ -185,9 +183,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines
-                .into_iter()
-                .map(|line| line.try_into().expect("always a string"))
+            lines.into_iter().flat_map(NvimString::try_from)
         })
     }
 
