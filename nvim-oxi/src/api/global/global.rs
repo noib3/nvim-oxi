@@ -14,7 +14,7 @@ use crate::{Buffer, Result};
 
 /// Binding to `nvim_create_buf`.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
-    let mut err = NvimError::default();
+    let mut err = NvimError::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
     err.into_err_or_else(|| Buffer::from(handle))
 }
@@ -49,7 +49,7 @@ where
         })
         .collect::<Array>();
 
-    let mut err = NvimError::default();
+    let mut err = NvimError::new();
     unsafe { nvim_echo(chunks, history, Dictionary::new(), &mut err) };
     err.into_err_or_else(|| ())
 }

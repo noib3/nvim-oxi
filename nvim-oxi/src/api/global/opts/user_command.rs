@@ -9,7 +9,7 @@ use nvim_types::{
 use crate::object::ToObject;
 
 #[derive(Debug, Default, Builder)]
-#[builder(default, pattern = "owned")]
+#[builder(default)]
 pub struct UserCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
@@ -38,9 +38,16 @@ pub struct UserCommandOpts {
     register: bool,
 }
 
+impl UserCommandOpts {
+    #[inline(always)]
+    pub fn builder() -> UserCommandOptsBuilder {
+        UserCommandOptsBuilder::default()
+    }
+}
+
 macro_rules! object_setter {
     ($name:ident, $args:ident) => {
-        pub fn $name(mut self, $name: $args) -> Self {
+        pub fn $name(&mut self, $name: $args) -> &mut Self {
             self.$name = Some(Some($name.into()));
             self
         }

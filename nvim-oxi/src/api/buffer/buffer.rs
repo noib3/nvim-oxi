@@ -1,10 +1,10 @@
 use std::fmt;
 use std::path::PathBuf;
 
-use nvim_types::error::Error as NvimError;
 use nvim_types::{
     array::Array,
     dictionary::Dictionary,
+    error::Error as NvimError,
     string::String as NvimString,
     BufHandle,
     Integer,
@@ -45,7 +45,7 @@ impl Buffer {
         send_buffer: bool,
         opts: BufAttachOpts,
     ) -> Result<bool> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let has_attached = unsafe {
             nvim_buf_attach(
                 LUA_INTERNAL_CALL,
@@ -67,7 +67,7 @@ impl Buffer {
         F: FnOnce(()) -> Result<R> + 'static,
     {
         let luaref = LuaRef::from_fn_once(fun);
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_call(self.0, luaref.0, &mut err) };
 
         err.into_err_or_flatten(move || {
@@ -85,7 +85,7 @@ impl Buffer {
         command: impl ToObject,
         opts: UserCommandOpts,
     ) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_create_user_command(
                 self.0,
@@ -102,7 +102,7 @@ impl Buffer {
     ///
     /// Unmaps a buffer-local mapping for the given mode.
     pub fn del_keymap(&mut self, mode: &str, lhs: &str) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_del_keymap(
                 LUA_INTERNAL_CALL,
@@ -119,8 +119,9 @@ impl Buffer {
     ///
     /// Deletes a named mark in the buffer. If the mark is not set in the
     /// buffer it will return false.
+    // TODO: take `char`s instead.
     pub fn del_mark(&mut self, name: &str) -> Result<bool> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let mark_was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| mark_was_deleted)
@@ -128,7 +129,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_del_user_command`.
     pub fn del_user_command(&mut self, name: &str) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe { nvim_buf_del_user_command(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
@@ -137,7 +138,7 @@ impl Buffer {
     ///
     /// Removes a buffer-scoped (b:) variable.
     pub fn del_var(&mut self, name: &str) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe { nvim_buf_del_var(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
@@ -148,14 +149,14 @@ impl Buffer {
             ("force", force.to_obj()),
             ("unload", unload.to_obj()),
         ]);
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe { nvim_buf_delete(self.0, opts, &mut err) };
         err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_get_changedtick`.
     pub fn get_changedtick(&self) -> Result<usize> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
         err.into_err_or_else(|| ct.try_into().expect("always positive"))
     }
@@ -176,7 +177,7 @@ impl Buffer {
         end: usize,
         strict_indexing: bool,
     ) -> Result<impl Iterator<Item = NvimString>> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let lines = unsafe {
             nvim_buf_get_lines(
                 LUA_INTERNAL_CALL,
@@ -196,8 +197,9 @@ impl Buffer {
     ///
     /// Returns a tuple `(row, col)` representing the position of the named
     /// mark. Marks are (1,0)-indexed.
+    // TODO: take `char`s instead.
     pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| {
             let mut iter = mark.into_vec().into_iter();
@@ -212,7 +214,7 @@ impl Buffer {
     /// Returns the full filepath of the buffer, replacing all invalid UTF-8
     /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
     pub fn get_name(&self) -> Result<PathBuf> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
         err.into_err_or_else(|| name.into())
     }
@@ -221,7 +223,7 @@ impl Buffer {
     ///
     /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
     pub fn get_offset(&self, index: impl Into<Integer>) -> Result<usize> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
         err.into_err_or_else(|| offset.try_into().expect("offset is positive"))
@@ -235,7 +237,7 @@ impl Buffer {
     where
         Value: FromObject,
     {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let obj =
             unsafe { nvim_buf_get_option(self.0, name.into(), &mut err) };
         err.into_err_or_flatten(|| {
@@ -257,7 +259,7 @@ impl Buffer {
         end_row: usize,
         end_col: usize,
     ) -> Result<impl Iterator<Item = NvimString>> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let lines = unsafe {
             nvim_buf_get_text(
                 LUA_INTERNAL_CALL,
@@ -285,7 +287,7 @@ impl Buffer {
     where
         Value: FromObject,
     {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
         err.into_err_or_flatten(|| {
             Value::from_obj(obj).map_err(crate::Error::from)
@@ -310,7 +312,7 @@ impl Buffer {
     ///
     /// Returns the number of lines in the given buffer.
     pub fn line_count(&self) -> Result<usize> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let count = unsafe { nvim_buf_line_count(self.0, &mut err) };
         err.into_err_or_else(|| count.try_into().expect("always positive"))
     }
@@ -333,7 +335,7 @@ impl Buffer {
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
@@ -357,11 +359,12 @@ impl Buffer {
     /// as `line` deletes the mark.
     pub fn set_mark(
         &mut self,
+        // TODO: take `char`s instead.
         name: &str,
         line: usize,
         col: usize,
     ) -> Result<bool> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
@@ -379,7 +382,7 @@ impl Buffer {
     ///
     /// Sets the full file name for a buffer.
     pub fn set_name(&mut self, name: impl Into<NvimString>) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe { nvim_buf_set_name(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
@@ -392,7 +395,7 @@ impl Buffer {
     where
         Value: ToObject,
     {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_option(
                 LUA_INTERNAL_CALL,
@@ -422,7 +425,7 @@ impl Buffer {
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_text(
                 LUA_INTERNAL_CALL,
@@ -445,7 +448,7 @@ impl Buffer {
     ///
     /// Sets a buffer-scoped (b:) variable.
     pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
-        let mut err = NvimError::default();
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_var(self.0, name.into(), value.to_obj(), &mut err)
         };

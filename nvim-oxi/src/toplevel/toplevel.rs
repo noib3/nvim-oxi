@@ -1,6 +1,5 @@
 use crate::lua::{self, LuaRef};
 use crate::macros::cstr;
-use crate::Result;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
 /// Rust's `format!` macro and redirects its output to the Neovim message area.
@@ -13,25 +12,25 @@ use crate::Result;
 #[macro_export]
 macro_rules! nprint {
     ($($arg:tt)*) => {{
-        let _ = crate::print(::std::fmt::format(format_args!($($arg)*)));
+        crate::print(::std::fmt::format(format_args!($($arg)*)));
     }}
 }
 
 pub use nprint as print;
 
-/// Prints a message to the Neovim message area. Fails if the provided string
-/// contains a null byte.
+/// Prints a message to the Neovim message area.
 #[doc(hidden)]
-pub fn print(text: impl Into<String>) -> Result<()> {
-    let text = std::ffi::CString::new(text.into())?;
-
+pub fn print(text: impl Into<String>) {
     lua::with_state(move |lstate| unsafe {
+        let text = text.into();
         lua::lua_getglobal(lstate, cstr!("print"));
-        lua::lua_pushstring(lstate, text.as_ptr());
+        lua::lua_pushlstring(
+            lstate,
+            text.as_ptr() as *const ::libc::c_char,
+            text.len(),
+        );
         lua::lua_call(lstate, 1, 0);
     });
-
-    Ok(())
 }
 
 /// Binding to `vim.schedule`.
@@ -44,8 +43,8 @@ where
 {
     // https://github.com/neovim/neovim/blob/master/src/nvim/lua/executor.c#L316
     //
-    // Unfortunately the `nlua_schedule` C function is not exported (it's
-    // static), so we need to call the Lua function instead.
+    // Unfortunately the `nlua_schedule` C function is not exported, so we have
+    // to call the Lua function instead.
     lua::with_state(move |lstate| unsafe {
         // Put `vim.schedule` on the stack.
         lua::lua_getglobal(lstate, cstr!("vim"));

@@ -79,6 +79,13 @@ pub struct BufAttachOpts {
     preview: bool,
 }
 
+impl BufAttachOpts {
+    #[inline(always)]
+    pub fn builder() -> BufAttachOptsBuilder {
+        BufAttachOptsBuilder::default()
+    }
+}
+
 macro_rules! luaref_setter {
     ($name:ident, $args:ident) => {
         pub fn $name<F>(&mut self, fun: F) -> &mut Self
