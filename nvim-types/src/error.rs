@@ -1,9 +1,9 @@
+use std::error::Error as StdError;
 use std::ffi::CStr;
 use std::fmt;
+use std::result::Result as StdResult;
 
 use libc::c_char;
-
-use crate::object::ObjectType;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
 #[derive(thiserror::Error)]
@@ -14,7 +14,6 @@ pub struct Error {
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
-#[derive(Debug)]
 #[allow(dead_code, non_camel_case_types)]
 #[repr(C)]
 pub enum ErrorType {
@@ -23,9 +22,16 @@ pub enum ErrorType {
     kErrorTypeValidation,
 }
 
-impl Default for Error {
-    fn default() -> Self {
+impl Error {
+    pub const fn new() -> Self {
         Self { r#type: ErrorType::kErrorTypeNone, msg: std::ptr::null_mut() }
+    }
+}
+
+impl Default for Error {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -55,29 +61,24 @@ impl fmt::Display for Error {
 impl Error {
     /// Returns `Ok(f())` if it's not actually an error, or moves into a
     /// generic `std::error::Error` if it is.
-    pub fn into_err_or_else<F, Ok, Err>(
-        self,
-        f: F,
-    ) -> std::result::Result<Ok, Err>
+    pub fn into_err_or_else<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
     where
+        Err: StdError + From<self::Error>,
         F: FnOnce() -> Ok,
-        Err: std::error::Error + From<self::Error>,
     {
         (!self.is_err()).then(f).ok_or_else(|| self.into())
+    }
+
+    pub fn into_err_or_flatten<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
+    where
+        Err: StdError + From<self::Error>,
+        F: FnOnce() -> StdResult<Ok, Err>,
+    {
+        (!self.is_err()).then(f).ok_or_else(|| self.into())?
     }
 
     #[inline]
     pub const fn is_err(&self) -> bool {
         !matches!(self.r#type, ErrorType::kErrorTypeNone)
     }
-}
-
-/// Error that occurs when the conversion of an `Object` into another type
-/// fails.
-#[derive(Debug, thiserror::Error)]
-pub enum ConversionError {
-    #[error(
-        "Object type expected to be \"{expected:?}\", but was \"{got:?}\""
-    )]
-    Primitive { expected: ObjectType, got: ObjectType },
 }

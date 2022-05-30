@@ -1,8 +1,10 @@
 use derive_builder::Builder;
-use nvim_types::{Dictionary, LuaRef, Object};
+use nvim_types::{dictionary::Dictionary, LuaRef};
 
 use crate::api::buffer::Buffer;
 use crate::lua;
+use crate::object::ToObject;
+
 /// Arguments passed to the function registered to `on_lines`.
 pub type OnLinesArgs = (
     String,        // the string literal "lines"
@@ -83,7 +85,7 @@ macro_rules! luaref_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(lua::mut_to_luaref(fun)));
+            self.$name = Some(Some(lua::LuaRef::from_fn_mut(fun).0));
             self
         }
     };
@@ -103,14 +105,14 @@ impl BufAttachOptsBuilder {
 
 impl From<BufAttachOpts> for Dictionary {
     fn from(opts: BufAttachOpts) -> Self {
-        Self::from_iter::<[(_, Object); 7]>([
-            ("on_lines", opts.on_lines.into()),
-            ("on_bytes", opts.on_bytes.into()),
-            ("on_changedtick", opts.on_changedtick.into()),
-            ("on_detach", opts.on_detach.into()),
-            ("on_reload", opts.on_reload.into()),
-            ("utf_sizes", opts.utf_sizes.into()),
-            ("preview", opts.preview.into()),
+        Self::from_iter([
+            ("on_lines", opts.on_lines.to_obj()),
+            ("on_bytes", opts.on_bytes.to_obj()),
+            ("on_changedtick", opts.on_changedtick.to_obj()),
+            ("on_detach", opts.on_detach.to_obj()),
+            ("on_reload", opts.on_reload.to_obj()),
+            ("utf_sizes", opts.utf_sizes.to_obj()),
+            ("preview", opts.preview.to_obj()),
         ])
     }
 }

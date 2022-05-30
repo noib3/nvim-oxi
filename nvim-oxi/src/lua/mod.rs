@@ -1,7 +1,11 @@
-//! This module constains definitions from `https://www.lua.org/source/5.1/lua.h.html`
-
-pub(crate) mod ffi;
+mod ffi;
 mod lua;
-pub(crate) mod macros;
+mod luaref;
+mod poppable;
+mod pushable;
 
+pub(crate) use ffi::*;
 pub(crate) use lua::*;
+pub(crate) use luaref::LuaRef;
+pub(crate) use poppable::LuaPoppable;
+pub(crate) use pushable::LuaPushable;

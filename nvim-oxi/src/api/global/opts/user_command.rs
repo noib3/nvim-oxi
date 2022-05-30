@@ -1,28 +1,12 @@
 use derive_builder::Builder;
-use nvim_types::{Dictionary, Integer, NvimString, Object};
+use nvim_types::{
+    dictionary::Dictionary,
+    object::Object,
+    string::String as NvimString,
+    Integer,
+};
 
-use crate::lua::{LuaPoppable, LuaPushable};
-
-// IDEA:
-// implement `ToObject` for all the basic types
-// try to `derive(ToObject)` for structs to automatically convert arbitrary
-// structs to Objects.
-
-pub trait ToObject {
-    fn to_object(self) -> Object;
-}
-
-type LuaFnMut<A, R> = Box<dyn FnMut(A) -> crate::Result<R> + 'static>;
-
-impl<A, R> ToObject for LuaFnMut<A, R>
-where
-    A: LuaPoppable + 'static,
-    R: LuaPushable + 'static,
-{
-    fn to_object(self) -> Object {
-        crate::lua::mut_to_luaref(self).into()
-    }
-}
+use crate::object::ToObject;
 
 #[derive(Debug, Default, Builder)]
 #[builder(default, pattern = "owned")]
@@ -100,7 +84,7 @@ impl From<CommandAddr> for Object {
             Quickfix => "quickfix",
             Other => "other",
         }
-        .into()
+        .to_obj()
     }
 }
 
@@ -129,11 +113,11 @@ impl From<CommandNArgs> for Object {
     fn from(nargs: CommandNArgs) -> Self {
         use CommandNArgs::*;
         match nargs {
-            Zero => 0.into(),
-            One => 1.into(),
-            Any => "*".into(),
-            ZeroOrOne => "?".into(),
-            OneOrMore => "+".into(),
+            Zero => 0.to_obj(),
+            One => 1.to_obj(),
+            Any => "*".to_obj(),
+            ZeroOrOne => "?".to_obj(),
+            OneOrMore => "+".to_obj(),
         }
     }
 }
@@ -155,9 +139,9 @@ impl From<CommandRange> for Object {
     fn from(range: CommandRange) -> Self {
         use CommandRange::*;
         match range {
-            CurrentLine => true.into(),
-            WholeFile => "%".into(),
-            Count(n) => n.into(),
+            CurrentLine => true.to_obj(),
+            WholeFile => "%".to_obj(),
+            Count(n) => n.to_obj(),
         }
     }
 }
@@ -201,7 +185,7 @@ pub enum CommandComplete {
     TagListfiles,
     User,
     Var,
-    Custom(LuaFnMut<(String, String, usize), Vec<String>>),
+    // Custom(LuaFnMut<(String, String, usize), Vec<String>>),
 }
 
 // impl<F: FunctionMut<(String, String, usize), Vec<String>>> ToObject
@@ -253,18 +237,18 @@ pub enum CommandComplete {
 
 impl From<UserCommandOpts> for Dictionary {
     fn from(opts: UserCommandOpts) -> Self {
-        Self::from_iter::<[(_, Object); 11]>([
-            ("addr", opts.addr.into()),
-            ("nargs", opts.nargs.into()),
-            ("range", opts.range.into()),
-            ("complete", opts.complete.into()),
-            ("count", opts.count.into()),
-            ("desc", opts.desc.into()),
-            ("force", opts.force.into()),
-            ("bang", opts.bang.into()),
-            ("bar", opts.bar.into()),
-            ("keepscript", opts.keepscript.into()),
-            ("register", opts.register.into()),
+        Self::from_iter([
+            ("addr", opts.addr.to_obj()),
+            ("nargs", opts.nargs.to_obj()),
+            ("range", opts.range.to_obj()),
+            ("complete", opts.complete.to_obj()),
+            ("count", opts.count.to_obj()),
+            ("desc", opts.desc.to_obj()),
+            ("force", opts.force.to_obj()),
+            ("bang", opts.bang.to_obj()),
+            ("bar", opts.bar.to_obj()),
+            ("keepscript", opts.keepscript.to_obj()),
+            ("register", opts.register.to_obj()),
         ])
     }
 }

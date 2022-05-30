@@ -3,16 +3,16 @@ use std::fmt;
 
 use super::collection::Collection;
 use super::object::Object;
-use super::string::NvimString;
+use super::string::String;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Dictionary = Collection<KeyValuePair>;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L128
-// #[derive(Clone, PartialEq)]
+#[derive(Clone)]
 #[repr(C)]
 pub struct KeyValuePair {
-    key: NvimString,
+    key: String,
     value: Object,
 }
 
@@ -43,7 +43,7 @@ impl fmt::Debug for Dictionary {
 
 impl<K, V> FromIterator<(K, V)> for Dictionary
 where
-    K: Into<NvimString>,
+    K: Into<String>,
     V: Into<Object>,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
@@ -65,7 +65,7 @@ where
 
 impl<K, V> From<StdHashMap<K, V>> for Dictionary
 where
-    K: Into<NvimString>,
+    K: Into<String>,
     V: Into<Object>,
 {
     fn from(hashmap: StdHashMap<K, V>) -> Self {
@@ -84,7 +84,7 @@ impl fmt::Debug for KeyValuePair {
 
 impl<K, V> From<(K, V)> for KeyValuePair
 where
-    K: Into<NvimString>,
+    K: Into<String>,
     V: Into<Object>,
 {
     fn from((k, v): (K, V)) -> Self {

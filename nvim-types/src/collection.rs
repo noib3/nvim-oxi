@@ -4,7 +4,7 @@
 use std::marker::PhantomData;
 use std::mem::{self, ManuallyDrop};
 use std::ops::{Deref, Index};
-use std::ptr::{self, NonNull};
+use std::ptr::{self, addr_of_mut, NonNull};
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
@@ -94,13 +94,21 @@ impl<T> Collection<T> {
 
         new
     }
+
+    pub fn into_vec(self) -> Vec<T> {
+        let vec = unsafe {
+            Vec::from_raw_parts(self.items.as_ptr(), self.size, self.capacity)
+        };
+        mem::forget(self);
+        vec
+    }
 }
 
-// impl<T> Default for Collection<T> {
-//     fn default() -> Self {
-//         Self::new()
-//     }
-// }
+impl<T: Clone> Clone for Collection<T> {
+    fn clone(&self) -> Self {
+        Self::from_vec(self.as_slice().to_owned())
+    }
+}
 
 impl<T> Deref for Collection<T> {
     type Target = [T];
@@ -120,13 +128,6 @@ where
         self.deref().index(index)
     }
 }
-
-// impl<T: Clone> Clone for Collection<T> {
-//     fn clone(&self) -> Self {
-//         Self::from_vec(self.as_slice().to_owned())
-//         // todo!()
-//     }
-// }
 
 // impl<T: PartialEq> PartialEq<Self> for Collection<T> {
 //     #[inline]
@@ -157,12 +158,6 @@ impl<T> IntoIterator for Collection<T> {
         }
     }
 }
-
-// impl<T: fmt::Debug> fmt::Debug for Collection<T> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         f.debug_list().entries(self.iter()).finish()
-//     }
-// }
 
 /// An iterator that moves out of a `Collection`.
 pub struct IntoIter<T> {

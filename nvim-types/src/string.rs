@@ -1,10 +1,13 @@
-use std::borrow::Cow;
-use std::ffi::{CStr, CString, OsStr};
-use std::fmt;
-use std::mem;
-use std::os::unix::ffi::OsStrExt;
-use std::path::PathBuf;
-use std::ptr;
+use std::{
+    borrow::Cow,
+    ffi::{CStr, CString, OsStr},
+    fmt,
+    mem,
+    os::unix::ffi::OsStrExt,
+    path::PathBuf,
+    ptr,
+    string::String as StdString,
+};
 
 use libc::{c_char, size_t};
 
@@ -13,12 +16,12 @@ use super::object::{Object, ObjectType};
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 #[derive(Eq)]
 #[repr(C)]
-pub struct NvimString {
+pub struct String {
     pub data: *mut c_char,
     pub size: size_t,
 }
 
-impl NvimString {
+impl String {
     /// TODO: docs
     #[inline]
     pub fn from_bytes<Raw: Into<Vec<u8>>>(raw: Raw) -> Self {
@@ -34,7 +37,7 @@ impl NvimString {
     #[inline]
     pub fn from_c_string(c_string: CString) -> Self {
         let mut bytes = c_string.into_bytes();
-        let mut uninit = std::mem::MaybeUninit::<NvimString>::uninit();
+        let mut uninit = std::mem::MaybeUninit::<String>::uninit();
 
         let ptr = uninit.as_mut_ptr();
 
@@ -86,7 +89,7 @@ impl NvimString {
     /// TODO: docs
     #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
-        std::string::String::from_utf8_lossy(self.as_bytes())
+        StdString::from_utf8_lossy(self.as_bytes())
     }
 
     /// Converts an `NvimString` into a byte vector, consuming the string.
@@ -100,7 +103,7 @@ impl NvimString {
     }
 }
 
-impl fmt::Debug for NvimString {
+impl fmt::Debug for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("NvimString")
             .field("data", &self.to_string_lossy())
@@ -109,7 +112,7 @@ impl fmt::Debug for NvimString {
     }
 }
 
-impl Clone for NvimString {
+impl Clone for String {
     fn clone(&self) -> Self {
         let size = self.len();
         let mut data = Vec::with_capacity(size);
@@ -124,56 +127,56 @@ impl Clone for NvimString {
     }
 }
 
-impl PartialEq<Self> for NvimString {
+impl PartialEq<Self> for String {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
 
-impl PartialEq<str> for NvimString {
+impl PartialEq<str> for String {
     #[inline]
     fn eq(&self, other: &str) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
 
-impl PartialEq<NvimString> for str {
-    #[inline]
-    fn eq(&self, other: &NvimString) -> bool {
-        self.as_bytes() == other.as_bytes()
-    }
-}
-
-impl<'a> PartialEq<&'a str> for NvimString {
-    #[inline]
-    fn eq(&self, other: &&'a str) -> bool {
-        self.as_bytes() == other.as_bytes()
-    }
-}
-
-impl PartialEq<String> for NvimString {
+impl PartialEq<String> for str {
     #[inline]
     fn eq(&self, other: &String) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
 
-impl<'a> From<&'a str> for NvimString {
+impl<'a> PartialEq<&'a str> for String {
+    #[inline]
+    fn eq(&self, other: &&'a str) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl PartialEq<StdString> for String {
+    #[inline]
+    fn eq(&self, other: &StdString) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl<'a> From<&'a str> for String {
     #[inline]
     fn from(str: &'a str) -> Self {
         Self::from_bytes(str)
     }
 }
 
-impl From<std::string::String> for NvimString {
+impl From<StdString> for String {
     #[inline]
-    fn from(string: std::string::String) -> Self {
+    fn from(string: StdString) -> Self {
         Self::from_bytes(string)
     }
 }
 
-impl TryFrom<Object> for NvimString {
+impl TryFrom<Object> for String {
     type Error = ();
 
     #[inline]
@@ -194,17 +197,17 @@ impl TryFrom<Object> for NvimString {
 }
 
 #[cfg(not(windows))]
-impl From<NvimString> for PathBuf {
+impl From<String> for PathBuf {
     #[inline]
-    fn from(nstr: NvimString) -> Self {
+    fn from(nstr: String) -> Self {
         OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
     }
 }
 
 #[cfg(windows)]
-impl From<NvimString> for PathBuf {
+impl From<String> for PathBuf {
     #[inline]
-    fn from(nstr: NvimString) -> Self {
+    fn from(nstr: String) -> Self {
         StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
     }
 }
@@ -215,22 +218,22 @@ mod tests {
 
     #[test]
     fn partial_eq() {
-        let lhs = NvimString::from("foo bar baz");
-        let rhs = NvimString::from("foo bar baz");
+        let lhs = String::from("foo bar baz");
+        let rhs = String::from("foo bar baz");
         assert_eq!(lhs, rhs);
 
-        let lhs = NvimString::from("foo bar baz");
-        let rhs = NvimString::from("bar foo baz");
+        let lhs = String::from("foo bar baz");
+        let rhs = String::from("bar foo baz");
         assert_ne!(lhs, rhs);
 
-        let lhs = NvimString::from("€");
+        let lhs = String::from("€");
         let rhs = "€";
         assert_eq!(lhs, rhs);
     }
 
     #[test]
     fn clone() {
-        let lhs = NvimString::from("abc");
+        let lhs = String::from("abc");
         let rhs = lhs.clone();
 
         assert_eq!(lhs, rhs);
@@ -238,17 +241,17 @@ mod tests {
 
     #[test]
     fn from_string() {
-        let foo = std::string::String::from("foo bar baz");
+        let foo = StdString::from("foo bar baz");
 
-        let lhs = NvimString::from(foo.as_ref());
-        let rhs = NvimString::from(foo);
+        let lhs = String::from(foo.as_ref());
+        let rhs = String::from(foo);
 
         assert_eq!(lhs, rhs);
     }
 
     #[test]
     fn to_bytes() {
-        let s = NvimString::from("hello");
+        let s = String::from("hello");
         let bytes = s.into_bytes();
         assert_eq!(&[104, 101, 108, 108, 111][..], &bytes[..]);
     }

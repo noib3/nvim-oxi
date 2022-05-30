@@ -1,6 +1,8 @@
 pub mod api;
 mod error;
 mod lua;
+mod macros;
+mod object;
 mod toplevel;
 
 pub use api::Buffer;
@@ -9,15 +11,7 @@ pub use toplevel::*;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L41
-pub(crate) const INTERNAL_CALL_MASK: u64 =
-    1u64 << (std::mem::size_of::<u64>() * 8 - 1);
-
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L44
-pub(crate) const VIML_INTERNAL_CALL: u64 = INTERNAL_CALL_MASK;
-
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L47
-pub(crate) const LUA_INTERNAL_CALL: u64 = VIML_INTERNAL_CALL + 1;
+pub use object::{Object, ObjectData, ObjectType};
 
 // #[no_mangle]
 // pub extern "C" fn test() -> *mut std::os::raw::c_char {
@@ -29,32 +23,32 @@ pub(crate) const LUA_INTERNAL_CALL: u64 = VIML_INTERNAL_CALL + 1;
 //         .into_raw()
 // }
 
-#[no_mangle]
-pub extern "C" fn is_modified() -> bool {
-    api::get_current_buf().get_option::<bool>("modified").unwrap()
-}
+// #[no_mangle]
+// pub extern "C" fn is_modified() -> bool {
+//     api::get_current_buf().get_option::<bool>("modified").unwrap()
+// }
 
-#[no_mangle]
-pub extern "C" fn set_lines() {
-    api::create_buf(true, false)
-        .unwrap()
-        .set_lines(0, 0, false, ["foo", "bar", "baz"])
-        .unwrap()
-}
+// #[no_mangle]
+// pub extern "C" fn set_lines() {
+//     api::create_buf(true, false)
+//         .unwrap()
+//         .set_lines(0, 0, false, ["foo", "bar", "baz"])
+//         .unwrap()
+// }
 
-#[no_mangle]
-pub extern "C" fn set_option() -> bool {
-    let mut buf = api::get_current_buf();
-    buf.set_option("modified", true).unwrap();
-    buf.get_option::<bool>("modified").unwrap()
-}
+// #[no_mangle]
+// pub extern "C" fn set_option() -> bool {
+//     let mut buf = api::get_current_buf();
+//     buf.set_option("modified", true).unwrap();
+//     buf.get_option::<bool>("modified").unwrap()
+// }
 
-#[no_mangle]
-pub extern "C" fn set_var() -> bool {
-    let mut buf = api::get_current_buf();
-    buf.set_var("foo", true).unwrap();
-    buf.get_var::<bool>("foo").unwrap()
-}
+// #[no_mangle]
+// pub extern "C" fn set_var() -> bool {
+//     let mut buf = api::get_current_buf();
+//     buf.set_var("foo", true).unwrap();
+//     buf.get_var::<bool>("foo").unwrap()
+// }
 
 // #[no_mangle]
 // pub extern "C" fn buf_call() -> bool {
@@ -69,9 +63,7 @@ pub extern "C" fn set_var() -> bool {
 // }
 
 #[no_mangle]
-extern "C" fn luaopen_libnvim_oxi(
-    lstate: *mut lua::ffi::lua_State,
-) -> libc::c_int {
+extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     lua::init_state(lstate);
 
     // let mut buf = api::create_buf(true, false).unwrap();
@@ -134,7 +126,7 @@ extern "C" fn luaopen_libnvim_oxi(
     let opts =
         api::global::opts::UserCommandOptsBuilder::default().build().unwrap();
 
-    crate::print!("{:?}", nvim_types::Dictionary::from(opts));
+    crate::print!("{:?}", nvim_types::dictionary::Dictionary::from(opts));
 
     let opts =
         api::global::opts::UserCommandOptsBuilder::default().build().unwrap();

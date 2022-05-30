@@ -7,3 +7,15 @@ description = "Procedural macros for the nvim-oxi crate."
 
 [lib]
 proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["extra-traits"] }
+
+[dev-dependencies]
+trybuild = { version = "1.0", features = ["diff"] }
+
+[[test]]
+name = "tests"
+path = "tests/test.rs"

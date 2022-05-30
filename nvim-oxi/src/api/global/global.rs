@@ -1,7 +1,13 @@
-use nvim_types::{Dictionary, Error as NvimError, NvimString};
+use nvim_types::{
+    array::Array,
+    dictionary::Dictionary,
+    error::Error as NvimError,
+    string::String as NvimString,
+};
 
 use super::opts::*;
 use super::r#extern::*;
+use crate::object::ToObject;
 use crate::{Buffer, Result};
 
 // chan_send
@@ -34,14 +40,14 @@ where
 {
     let chunks = chunks
         .into_iter()
-        .map(|(text, maybe_hlgroup)| {
-            let text = text.to_string();
-            match maybe_hlgroup {
-                Some(group) => vec![text, group.as_ref().to_owned()],
-                None => vec![text],
-            }
+        .map(|(text, hlgroup)| {
+            vec![
+                text.to_string().to_obj(),
+                hlgroup.map(|hl| hl.as_ref().to_owned()).to_obj(),
+            ]
+            .to_obj()
         })
-        .collect();
+        .collect::<Array>();
 
     let mut err = NvimError::default();
     unsafe { nvim_echo(chunks, history, Dictionary::new(), &mut err) };

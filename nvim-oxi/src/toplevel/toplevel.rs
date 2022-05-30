@@ -1,4 +1,5 @@
-use crate::lua::{self, ffi, macros::*};
+use crate::lua::{self, LuaRef};
+use crate::macros::cstr;
 use crate::Result;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
@@ -25,9 +26,9 @@ pub fn print(text: impl Into<String>) -> Result<()> {
     let text = std::ffi::CString::new(text.into())?;
 
     lua::with_state(move |lstate| unsafe {
-        ffi::lua_getglobal(lstate, cstr!("print"));
-        ffi::lua_pushstring(lstate, text.as_ptr());
-        ffi::lua_call(lstate, 1, 0);
+        lua::lua_getglobal(lstate, cstr!("print"));
+        lua::lua_pushstring(lstate, text.as_ptr());
+        lua::lua_call(lstate, 1, 0);
     });
 
     Ok(())
@@ -47,18 +48,18 @@ where
     // static), so we need to call the Lua function instead.
     lua::with_state(move |lstate| unsafe {
         // Put `vim.schedule` on the stack.
-        ffi::lua_getglobal(lstate, cstr!("vim"));
-        ffi::lua_getfield(lstate, -1, cstr!("schedule"));
+        lua::lua_getglobal(lstate, cstr!("vim"));
+        lua::lua_getfield(lstate, -1, cstr!("schedule"));
 
         // Store the function in the registry and put a reference to it on the
         // stack.
-        let luaref = lua::once_to_luaref(fun);
-        ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, luaref);
+        let luaref = LuaRef::from_fn_once(fun);
+        lua::lua_rawgeti(lstate, lua::LUA_REGISTRYINDEX, luaref.0);
 
-        ffi::lua_call(lstate, 1, 0);
+        lua::lua_call(lstate, 1, 0);
 
         // Pop `vim` off the stack and remove the reference from the registry.
-        ffi::lua_pop(lstate, 1);
-        ffi::luaL_unref(lstate, ffi::LUA_REGISTRYINDEX, luaref);
+        lua::lua_pop(lstate, 1);
+        lua::luaL_unref(lstate, lua::LUA_REGISTRYINDEX, luaref.0);
     });
 }

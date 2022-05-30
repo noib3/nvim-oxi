@@ -1,11 +1,7 @@
 use std::fmt;
 use std::mem::ManuallyDrop;
 
-use super::array::Array;
-use super::dictionary::Dictionary;
-use super::error::ConversionError;
-use super::string::NvimString;
-use crate::LuaRef;
+use crate::{array::Array, dictionary::Dictionary, string::String, LuaRef};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
 #[repr(C)]
@@ -35,7 +31,7 @@ pub union ObjectData {
     pub boolean: bool,
     pub integer: i64,
     pub float: f64,
-    pub string: ManuallyDrop<NvimString>,
+    pub string: ManuallyDrop<String>,
     pub array: ManuallyDrop<Array>,
     pub dictionary: ManuallyDrop<Dictionary>,
     pub luaref: LuaRef,
@@ -43,7 +39,7 @@ pub union ObjectData {
 
 impl Object {
     #[inline]
-    const fn nil() -> Self {
+    pub const fn nil() -> Self {
         Self {
             r#type: ObjectType::kObjectTypeNil,
             data: ObjectData { integer: 0 },
@@ -95,7 +91,7 @@ impl fmt::Debug for Object {
     }
 }
 
-macro_rules! impl_clone_for_copy {
+macro_rules! clone_copy {
     ($self:expr, $field:ident) => {{
         Self {
             r#type: $self.r#type,
@@ -104,295 +100,52 @@ macro_rules! impl_clone_for_copy {
     }};
 }
 
-macro_rules! impl_clone_for_clone {
-    ($self:expr, $field:ident) => {{
+macro_rules! clone_drop {
+    ($self:expr, $field:ident, $as_type:ident) => {{
         Self {
             r#type: $self.r#type,
             data: ObjectData {
                 $field: ManuallyDrop::new(
-                    unsafe { &$self.data.$field }.clone(),
+                    unsafe { &$self.data.$field as &$as_type }.clone(),
                 ),
             },
         }
     }};
 }
 
-// impl Clone for Object {
-//     fn clone(&self) -> Self {
+impl Clone for Object {
+    fn clone(&self) -> Self {
+        use ObjectType::*;
+        match self.r#type {
+            kObjectTypeNil => Self::nil(),
+            kObjectTypeBoolean => clone_copy!(self, boolean),
+            kObjectTypeInteger => clone_copy!(self, integer),
+            kObjectTypeFloat => clone_copy!(self, float),
+            kObjectTypeString => clone_drop!(self, string, String),
+            kObjectTypeArray => clone_drop!(self, array, Array),
+            kObjectTypeDictionary => clone_drop!(self, dictionary, Dictionary),
+            kObjectTypeLuaRef => clone_copy!(self, luaref),
+        }
+    }
+}
+
+// impl Drop for Object {
+//     fn drop(&mut self) {
 //         use ObjectType::*;
 //         match self.r#type {
-//             kObjectTypeNil => Self::nil(),
-//             kObjectTypeBoolean => impl_clone_for_copy!(self, boolean),
-//             kObjectTypeInteger => impl_clone_for_copy!(self, integer),
-//             kObjectTypeFloat => impl_clone_for_copy!(self, float),
-//             // kObjectTypeString => impl_clone_for_clone!(self, string),
-//             // kObjectTypeArray => impl_clone_for_clone!(self, array),
-//             // kObjectTypeDictionary => impl_clone_for_clone!(self, dictionary),
-//             kObjectTypeString => {
-//                 let value: &NvimString = unsafe { &self.data.string };
-//                 Self {
-//                     r#type: self.r#type,
-//                     data: ObjectData {
-//                         string: ManuallyDrop::new(value.clone()),
-//                     },
-//                 }
+//             kObjectTypeString => unsafe {
+//                 ManuallyDrop::drop(&mut self.data.string)
 //             },
 
-//             kObjectTypeArray => {
-//                 let value: &Array = unsafe { &self.data.array };
-//                 Self {
-//                     r#type: self.r#type,
-//                     data: ObjectData {
-//                         array: ManuallyDrop::new(value.clone()),
-//                     },
-//                 }
+//             kObjectTypeArray => unsafe {
+//                 ManuallyDrop::drop(&mut self.data.array)
 //             },
 
-//             kObjectTypeDictionary => {
-//                 let value: &Dictionary = unsafe { &self.data.dictionary };
-//                 Self {
-//                     r#type: self.r#type,
-//                     data: ObjectData {
-//                         dictionary: ManuallyDrop::new(value.clone()),
-//                     },
-//                 }
+//             kObjectTypeDictionary => unsafe {
+//                 ManuallyDrop::drop(&mut self.data.dictionary)
 //             },
 
-//             kObjectTypeLuaRef => impl_clone_for_copy!(self, luaref),
+//             _ => {},
 //         }
 //     }
 // }
-
-impl Drop for Object {
-    fn drop(&mut self) {
-        use ObjectType::*;
-        match self.r#type {
-            kObjectTypeString => unsafe {
-                ManuallyDrop::drop(&mut self.data.string)
-            },
-
-            kObjectTypeArray => unsafe {
-                ManuallyDrop::drop(&mut self.data.array)
-            },
-
-            kObjectTypeDictionary => unsafe {
-                ManuallyDrop::drop(&mut self.data.dictionary)
-            },
-
-            _ => {},
-        }
-    }
-}
-
-macro_rules! impl_from_copy_type {
-    ($type:ident, $variant:ident, $data:ident) => {
-        impl From<$type> for Object {
-            fn from($data: $type) -> Self {
-                Self {
-                    r#type: ObjectType::$variant,
-                    data: ObjectData { $data },
-                }
-            }
-        }
-    };
-}
-
-macro_rules! impl_from_int {
-    ($type:ident) => {
-        impl From<$type> for Object {
-            fn from(i: $type) -> Self {
-                Self::from(i64::from(i))
-            }
-        }
-    };
-}
-
-impl_from_copy_type!(bool, kObjectTypeBoolean, boolean);
-impl_from_copy_type!(i64, kObjectTypeInteger, integer);
-
-impl_from_int!(i8);
-impl_from_int!(u8);
-impl_from_int!(i16);
-impl_from_int!(u16);
-// impl_from_int!(i32);
-impl_from_int!(u32);
-
-// impl PartialEq for Object {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.r#type == other.r#type
-//             && unsafe {
-//                 let (sd, od) = (&self.data, &other.data);
-//                 use ObjectType::*;
-//                 match self.r#type {
-//                     kObjectTypeNil => true,
-//                     kObjectTypeBoolean => sd.boolean == od.boolean,
-//                     kObjectTypeInteger => sd.integer == od.integer,
-//                     kObjectTypeFloat => sd.float == od.float,
-//                     kObjectTypeString => sd.string == od.string,
-//                     kObjectTypeArray => sd.array == od.array,
-//                     kObjectTypeDictionary => sd.dictionary == od.dictionary,
-//                     kObjectTypeLuaref => sd.luaref == od.luaref,
-//                 }
-//             }
-//     }
-// }
-
-impl From<()> for Object {
-    fn from(_unit: ()) -> Self {
-        Self::nil()
-    }
-}
-
-impl From<LuaRef> for Object {
-    fn from(luaref: LuaRef) -> Self {
-        Self {
-            r#type: ObjectType::kObjectTypeLuaRef,
-            data: ObjectData { luaref },
-        }
-    }
-}
-
-impl From<std::string::String> for Object {
-    fn from(string: std::string::String) -> Self {
-        NvimString::from_c_string(std::ffi::CString::new(string).unwrap())
-            .into()
-    }
-}
-
-impl From<NvimString> for Object {
-    fn from(string: NvimString) -> Self {
-        Self {
-            r#type: ObjectType::kObjectTypeString,
-            data: ObjectData { string: ManuallyDrop::new(string) },
-        }
-    }
-}
-
-impl<T: Into<Object>> From<Option<T>> for Object {
-    fn from(maybe: Option<T>) -> Self {
-        match maybe {
-            Some(obj) => obj.into(),
-            None => Self {
-                r#type: ObjectType::kObjectTypeNil,
-                data: ObjectData { integer: 0 },
-            },
-        }
-    }
-}
-
-impl<T: Into<Object>> From<Box<T>> for Object {
-    fn from(boxed: Box<T>) -> Self {
-        (*boxed).into()
-    }
-}
-
-impl<T: Into<Object>> From<Vec<T>> for Object {
-    fn from(vec: Vec<T>) -> Self {
-        Self {
-            r#type: ObjectType::kObjectTypeArray,
-            data: ObjectData {
-                array: ManuallyDrop::new(Array::from_iter(vec)),
-            },
-        }
-    }
-}
-
-impl From<Array> for Object {
-    fn from(array: Array) -> Self {
-        Self {
-            r#type: ObjectType::kObjectTypeArray,
-            data: ObjectData { array: ManuallyDrop::new(array) },
-        }
-    }
-}
-
-impl<'a> From<&'a str> for Object {
-    fn from(str: &'a str) -> Self {
-        NvimString::from(str).into()
-    }
-}
-
-impl TryFrom<Object> for bool {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeBoolean))
-            .then(|| unsafe { obj.data.boolean })
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeBoolean,
-                got: obj.r#type,
-            })
-    }
-}
-
-impl TryFrom<Object> for LuaRef {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeLuaRef))
-            .then(|| unsafe { obj.data.luaref })
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeLuaRef,
-                got: obj.r#type,
-            })
-    }
-}
-
-impl TryFrom<Object> for i64 {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeInteger))
-            .then(|| unsafe { obj.data.integer })
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeInteger,
-                got: obj.r#type,
-            })
-    }
-}
-
-impl<'a> TryFrom<&'a Object> for i64 {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: &Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeInteger))
-            .then(|| unsafe { obj.data.integer })
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeInteger,
-                got: obj.r#type,
-            })
-    }
-}
-
-impl<'a> TryFrom<&'a Object> for usize {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: &Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeInteger))
-            // TODO: don't unwrap
-            .then(|| unsafe { obj.data.integer.try_into().unwrap() })
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeInteger,
-                got: obj.r#type,
-            })
-    }
-}
-
-impl TryFrom<Object> for () {
-    type Error = super::error::ConversionError;
-
-    #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectType::kObjectTypeNil))
-            .then(|| ())
-            .ok_or_else(|| ConversionError::Primitive {
-                expected: ObjectType::kObjectTypeNil,
-                got: obj.r#type,
-            })
-    }
-}

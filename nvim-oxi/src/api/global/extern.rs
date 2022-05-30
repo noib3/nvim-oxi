@@ -1,11 +1,11 @@
 use nvim_types::{
-    Array,
+    array::Array,
+    dictionary::Dictionary,
+    error::Error,
+    object::Object,
+    string::String,
     BufHandle,
-    Dictionary,
-    Error,
     Integer,
-    NvimString as String,
-    Object,
     TabHandle,
     WinHandle,
 };
