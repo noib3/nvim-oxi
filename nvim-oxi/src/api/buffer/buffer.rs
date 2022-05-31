@@ -13,7 +13,7 @@ use nvim_types::{
 use super::opts::*;
 use super::r#extern::*;
 use crate::api::global::opts::UserCommandOpts;
-use crate::lua::{LuaRef, LUA_INTERNAL_CALL};
+use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -66,7 +66,7 @@ impl Buffer {
         R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let luaref = LuaRef::from_fn_once(fun);
+        let luaref = LuaFun::from_fn_once(fun);
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_call(self.0, luaref.0, &mut err) };
 

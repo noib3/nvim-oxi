@@ -45,6 +45,9 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub(crate) fn lua_call(L: *mut lua_State, nargs: c_int, nresults: c_int);
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_error
+    pub(crate) fn lua_error(L: *mut lua_State) -> !;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub(crate) fn lua_getfield(
         L: *mut lua_State,
@@ -151,6 +154,9 @@ pub(crate) unsafe fn lua_pushcfunction(
 
 // Lua auxiliary library.
 extern "C" {
+    // https://www.lua.org/manual/5.1/manual.html#luaL_error
+    pub(crate) fn luaL_error(L: *mut lua_State, fmt: *const c_char, ...) -> !;
+
     // https://www.lua.org/manual/5.1/manual.html#luaL_ref
     pub(crate) fn luaL_ref(L: *mut lua_State, t: c_int) -> c_int;
 

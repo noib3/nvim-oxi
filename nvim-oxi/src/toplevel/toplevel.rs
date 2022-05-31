@@ -1,4 +1,4 @@
-use crate::lua::{self, LuaRef};
+use crate::lua::{self, LuaFun};
 use crate::macros::cstr;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
@@ -52,7 +52,7 @@ where
 
         // Store the function in the registry and put a reference to it on the
         // stack.
-        let luaref = LuaRef::from_fn_once(fun);
+        let luaref = LuaFun::from_fn_once(fun);
         lua::lua_rawgeti(lstate, lua::LUA_REGISTRYINDEX, luaref.0);
 
         lua::lua_call(lstate, 1, 0);

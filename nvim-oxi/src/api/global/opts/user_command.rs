@@ -6,6 +6,7 @@ use nvim_types::{
     Integer,
 };
 
+use crate::lua;
 use crate::object::ToObject;
 
 #[derive(Debug, Default, Builder)]
@@ -192,7 +193,7 @@ pub enum CommandComplete {
     TagListfiles,
     User,
     Var,
-    // Custom(LuaFnMut<(String, String, usize), Vec<String>>),
+    // Custom(lua::LuaFun<(String, String, usize), Vec<String>>),
 }
 
 // impl<F: FunctionMut<(String, String, usize), Vec<String>>> ToObject

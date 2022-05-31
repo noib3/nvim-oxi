@@ -13,7 +13,7 @@ use nvim_types::{
     Integer,
 };
 
-use crate::lua::LuaRef;
+use crate::lua;
 
 #[derive(thiserror::Error, Debug)]
 pub enum FromObjectError {
@@ -104,10 +104,14 @@ from_obj_drop!(NvimString, kObjectTypeString, string);
 from_obj_drop!(Array, kObjectTypeArray, array);
 from_obj_drop!(Dictionary, kObjectTypeDictionary, dictionary);
 
-impl FromObject for LuaRef {
+impl<A, R> FromObject for lua::LuaFun<A, R>
+where
+    A: lua::LuaPoppable,
+    R: lua::LuaPushable,
+{
     fn from_obj(obj: Object) -> StdResult<Self, FromObjectError> {
         (matches!(obj.r#type, ObjectType::kObjectTypeLuaRef))
-            .then(|| LuaRef::from(unsafe { obj.data.luaref }))
+            .then(|| lua::LuaFun::from(unsafe { obj.data.luaref }))
             .ok_or_else(|| FromObjectError::Primitive {
                 expected: ObjectType::kObjectTypeLuaRef,
                 actual: obj.r#type,
@@ -116,6 +120,12 @@ impl FromObject for LuaRef {
 }
 
 impl FromObject for usize {
+    fn from_obj(_obj: Object) -> StdResult<Self, FromObjectError> {
+        todo!()
+    }
+}
+
+impl FromObject for StdString {
     fn from_obj(_obj: Object) -> StdResult<Self, FromObjectError> {
         todo!()
     }

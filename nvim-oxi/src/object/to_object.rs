@@ -1,5 +1,4 @@
 use std::mem::ManuallyDrop;
-use std::result::Result as StdResult;
 use std::string::String as StdString;
 
 use nvim_types::{
@@ -12,7 +11,7 @@ use nvim_types::{
     Integer,
 };
 
-use crate::lua::LuaRef;
+use crate::lua;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ToObjectError {}
@@ -23,11 +22,11 @@ pub trait ToObject {
 
 impl<A, R> ToObject for Box<dyn FnMut(A) -> crate::Result<R> + 'static>
 where
-    A: crate::lua::LuaPoppable + 'static,
-    R: crate::lua::LuaPushable + 'static,
+    A: lua::LuaPoppable + 'static,
+    R: lua::LuaPushable + 'static,
 {
     fn to_obj(self) -> Object {
-        LuaRef::from_fn_mut(self).to_obj()
+        lua::LuaFun::from_fn_mut(self).to_obj()
     }
 }
 
@@ -80,7 +79,11 @@ to_object_clone!(NvimString, kObjectTypeString, string);
 to_object_clone!(Array, kObjectTypeArray, array);
 to_object_clone!(Dictionary, kObjectTypeDictionary, dictionary);
 
-impl ToObject for crate::lua::LuaRef {
+impl<A, R> ToObject for lua::LuaFun<A, R>
+where
+    A: lua::LuaPoppable,
+    R: lua::LuaPushable,
+{
     fn to_obj(self) -> Object {
         Object {
             r#type: ObjectType::kObjectTypeLuaRef,

@@ -92,7 +92,7 @@ macro_rules! luaref_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(lua::LuaRef::from_fn_mut(fun).0));
+            self.$name = Some(Some(lua::LuaFun::from_fn_mut(fun).0));
             self
         }
     };
