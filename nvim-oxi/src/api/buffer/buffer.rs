@@ -121,8 +121,7 @@ impl Buffer {
     ///
     /// Deletes a named mark in the buffer. If the mark is not set in the
     /// buffer it will return false.
-    // TODO: take `char`s instead.
-    pub fn del_mark(&mut self, name: &str) -> Result<bool> {
+    pub fn del_mark(&mut self, name: char) -> Result<bool> {
         let mut err = NvimError::new();
         let mark_was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.into(), &mut err) };
@@ -191,7 +190,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().flat_map(NvimString::try_from)
+            lines.into_iter().flat_map(NvimString::from_obj)
         })
     }
 
@@ -199,8 +198,7 @@ impl Buffer {
     ///
     /// Returns a tuple `(row, col)` representing the position of the named
     /// mark. Marks are (1,0)-indexed.
-    // TODO: take `char`s instead.
-    pub fn get_mark(&self, name: &str) -> Result<(usize, usize)> {
+    pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = NvimError::new();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
         err.into_err_or_else(|| {
@@ -275,9 +273,9 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines
-                .into_iter()
-                .map(|line| line.try_into().expect("always a string"))
+            lines.into_iter().map(|line| {
+                NvimString::from_obj(line).expect("always a string")
+            })
         })
     }
 
@@ -384,8 +382,7 @@ impl Buffer {
     /// as `line` deletes the mark.
     pub fn set_mark(
         &mut self,
-        // TODO: take `char`s instead.
-        name: &str,
+        name: char,
         line: usize,
         col: usize,
     ) -> Result<bool> {

@@ -127,6 +127,43 @@ impl Clone for String {
     }
 }
 
+impl From<StdString> for String {
+    #[inline]
+    fn from(string: StdString) -> Self {
+        Self::from_bytes(string)
+    }
+}
+
+impl<'a> From<&'a str> for String {
+    #[inline]
+    fn from(str: &'a str) -> Self {
+        Self::from_bytes(str)
+    }
+}
+
+impl From<char> for String {
+    #[inline]
+    fn from(ch: char) -> Self {
+        Self { data: ch as c_char as *mut c_char, size: 1 }
+    }
+}
+
+#[cfg(not(windows))]
+impl From<String> for PathBuf {
+    #[inline]
+    fn from(nstr: String) -> Self {
+        OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
+    }
+}
+
+#[cfg(windows)]
+impl From<String> for PathBuf {
+    #[inline]
+    fn from(nstr: String) -> Self {
+        StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
+    }
+}
+
 impl PartialEq<Self> for String {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -162,55 +199,25 @@ impl PartialEq<StdString> for String {
     }
 }
 
-impl<'a> From<&'a str> for String {
-    #[inline]
-    fn from(str: &'a str) -> Self {
-        Self::from_bytes(str)
-    }
-}
+// impl TryFrom<Object> for String {
+//     type Error = ();
 
-impl From<StdString> for String {
-    #[inline]
-    fn from(string: StdString) -> Self {
-        Self::from_bytes(string)
-    }
-}
+//     #[inline]
+//     fn try_from(obj: Object) -> Result<Self, Self::Error> {
+//         if !matches!(obj.r#type, ObjectType::kObjectTypeString) {
+//             return Err(());
+//         }
 
-impl TryFrom<Object> for String {
-    type Error = ();
+//         let string = Self {
+//             data: unsafe { obj.data.string.data },
+//             size: unsafe { obj.data.string.size },
+//         };
 
-    #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        if !matches!(obj.r#type, ObjectType::kObjectTypeString) {
-            return Err(());
-        }
+//         mem::forget(obj);
 
-        let string = Self {
-            data: unsafe { obj.data.string.data },
-            size: unsafe { obj.data.string.size },
-        };
-
-        mem::forget(obj);
-
-        Ok(string)
-    }
-}
-
-#[cfg(not(windows))]
-impl From<String> for PathBuf {
-    #[inline]
-    fn from(nstr: String) -> Self {
-        OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
-    }
-}
-
-#[cfg(windows)]
-impl From<String> for PathBuf {
-    #[inline]
-    fn from(nstr: String) -> Self {
-        StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
-    }
-}
+//         Ok(string)
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
