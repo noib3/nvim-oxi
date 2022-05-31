@@ -1,17 +1,11 @@
-use std::{
-    borrow::Cow,
-    ffi::{CStr, CString, OsStr},
-    fmt,
-    mem,
-    os::unix::ffi::OsStrExt,
-    path::PathBuf,
-    ptr,
-    string::String as StdString,
-};
+use std::borrow::Cow;
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
+use std::path::PathBuf;
+use std::string::String as StdString;
+use std::{fmt, mem, ptr, slice};
 
 use libc::{c_char, size_t};
-
-use super::object::{Object, ObjectType};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 #[derive(Eq)]
@@ -24,66 +18,28 @@ pub struct String {
 impl String {
     /// TODO: docs
     #[inline]
-    pub fn from_bytes<Raw: Into<Vec<u8>>>(raw: Raw) -> Self {
-        let mut bytes = raw.into();
-        let string = Self {
-            data: bytes.as_mut_ptr().cast::<c_char>(),
-            size: bytes.len(),
-        };
-        mem::forget(bytes);
-        string
-    }
-
-    #[inline]
-    pub fn from_c_string(c_string: CString) -> Self {
-        let mut bytes = c_string.into_bytes();
-        let mut uninit = std::mem::MaybeUninit::<String>::uninit();
-
-        let ptr = uninit.as_mut_ptr();
-
-        unsafe {
-            ptr::addr_of_mut!((*ptr).size).write(bytes.len());
-        }
-
-        unsafe {
-            ptr::addr_of_mut!((*ptr).data).write(bytes.as_mut_ptr().cast());
-        }
-
-        mem::forget(bytes);
-
-        unsafe { uninit.assume_init() }
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub unsafe fn new_unchecked<Raw: Into<Vec<u8>>>(raw: Raw) -> Self {
-        Self::from_c_string(CString::from_vec_unchecked(raw.into()))
-    }
-
-    #[inline]
-    pub fn as_c_str(&self) -> &CStr {
-        unsafe { CStr::from_ptr(self.data) }
+    pub fn from_bytes(vec: Vec<u8>) -> Self {
+        let size = vec.len();
+        let data = vec.leak().as_mut_ptr() as *mut c_char;
+        Self { data, size }
     }
 
     /// TODO: docs
-    #[allow(dead_code)]
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// TODO: docs
-    #[allow(dead_code)]
     #[inline]
     pub const fn len(&self) -> usize {
         self.size
     }
 
     /// TODO: docs
-    #[allow(dead_code)]
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
-        self.as_c_str().to_bytes()
+        unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
     }
 
     /// TODO: docs
@@ -95,11 +51,9 @@ impl String {
     /// Converts an `NvimString` into a byte vector, consuming the string.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
-        let bytes = unsafe {
+        unsafe {
             Vec::from_raw_parts(self.data.cast::<u8>(), self.size, self.size)
-        };
-        mem::forget(self);
-        bytes
+        }
     }
 }
 
@@ -130,14 +84,14 @@ impl Clone for String {
 impl From<StdString> for String {
     #[inline]
     fn from(string: StdString) -> Self {
-        Self::from_bytes(string)
+        Self::from_bytes(string.into_bytes())
     }
 }
 
 impl<'a> From<&'a str> for String {
     #[inline]
     fn from(str: &'a str) -> Self {
-        Self::from_bytes(str)
+        Self::from_bytes(str.as_bytes().to_owned())
     }
 }
 
@@ -178,13 +132,6 @@ impl PartialEq<str> for String {
     }
 }
 
-impl PartialEq<String> for str {
-    #[inline]
-    fn eq(&self, other: &String) -> bool {
-        self.as_bytes() == other.as_bytes()
-    }
-}
-
 impl<'a> PartialEq<&'a str> for String {
     #[inline]
     fn eq(&self, other: &&'a str) -> bool {
@@ -198,26 +145,6 @@ impl PartialEq<StdString> for String {
         self.as_bytes() == other.as_bytes()
     }
 }
-
-// impl TryFrom<Object> for String {
-//     type Error = ();
-
-//     #[inline]
-//     fn try_from(obj: Object) -> Result<Self, Self::Error> {
-//         if !matches!(obj.r#type, ObjectType::kObjectTypeString) {
-//             return Err(());
-//         }
-
-//         let string = Self {
-//             data: unsafe { obj.data.string.data },
-//             size: unsafe { obj.data.string.size },
-//         };
-
-//         mem::forget(obj);
-
-//         Ok(string)
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

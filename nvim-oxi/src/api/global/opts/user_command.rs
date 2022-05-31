@@ -6,12 +6,13 @@ use nvim_types::{
     Integer,
 };
 
-use crate::lua;
+use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
+use crate::lua::LuaFun;
 use crate::object::ToObject;
 
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
-pub struct UserCommandOpts {
+pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
 
@@ -39,124 +40,39 @@ pub struct UserCommandOpts {
     register: bool,
 }
 
-impl UserCommandOpts {
+impl CreateCommandOpts {
     #[inline(always)]
-    pub fn builder() -> UserCommandOptsBuilder {
-        UserCommandOptsBuilder::default()
+    pub fn builder() -> CreateCommandOptsBuilder {
+        CreateCommandOptsBuilder::default()
     }
 }
 
 macro_rules! object_setter {
     ($name:ident, $args:ident) => {
         pub fn $name(&mut self, $name: $args) -> &mut Self {
-            self.$name = Some(Some($name.into()));
+            self.$name = Some(Some($name.to_obj()));
             self
         }
     };
 }
 
-impl UserCommandOptsBuilder {
+impl CreateCommandOptsBuilder {
     object_setter!(addr, CommandAddr);
 
     object_setter!(nargs, CommandNArgs);
 
     object_setter!(range, CommandRange);
 
-    // object_setter!(complete, CommandComplete);
+    object_setter!(complete, CommandComplete);
 }
 
-/// See `:h command-addr` for details.
-#[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
-pub enum CommandAddr {
-    Lines,
-    Arguments,
-    Buffers,
-    LoadedBuffers,
-    Windows,
-    Tabs,
-    Quickfix,
-    Other,
-}
-
-impl From<CommandAddr> for Object {
-    fn from(addr: CommandAddr) -> Self {
-        use CommandAddr::*;
-        match addr {
-            Lines => "lines",
-            Arguments => "arguments",
-            Buffers => "buffers",
-            LoadedBuffers => "loaded_buffers",
-            Windows => "windows",
-            Tabs => "tabs",
-            Quickfix => "quickfix",
-            Other => "other",
-        }
-        .to_obj()
-    }
-}
-
-/// Number of arguments accepted by the command. See `:h command-nargs` for
-/// details.
-#[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
-pub enum CommandNArgs {
-    // #[object("0")]
-    Zero,
-
-    // #[object("1")]
-    One,
-
-    // #[object("\"*\"")]
-    Any,
-
-    // #[object("\"?\"")]
-    ZeroOrOne,
-
-    // #[object("\"+\"")]
-    OneOrMore,
-}
-
-impl From<CommandNArgs> for Object {
-    fn from(nargs: CommandNArgs) -> Self {
-        use CommandNArgs::*;
-        match nargs {
-            Zero => 0.to_obj(),
-            One => 1.to_obj(),
-            Any => "*".to_obj(),
-            ZeroOrOne => "?".to_obj(),
-            OneOrMore => "+".to_obj(),
-        }
-    }
-}
-
-/// See `:h command-range` for details.
-#[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
-pub enum CommandRange {
-    // #[object("true")]
-    CurrentLine,
-
-    // #[object("\"%\"")]
-    WholeFile,
-
-    Count(u32),
-}
-
-impl From<CommandRange> for Object {
-    fn from(range: CommandRange) -> Self {
-        use CommandRange::*;
-        match range {
-            CurrentLine => true.to_obj(),
-            WholeFile => "%".to_obj(),
-            Count(n) => n.to_obj(),
-        }
-    }
-}
+/// See `:h command-completion-custom` for details.
+type CompleteFun = Box<
+    dyn FnMut((String, String, usize)) -> crate::Result<Vec<String>> + 'static,
+>;
 
 /// See `:h command-complete` for details.
 #[non_exhaustive]
-// #[derive(ToObject)]
 pub enum CommandComplete {
     Arglist,
     Augroup,
@@ -193,58 +109,56 @@ pub enum CommandComplete {
     TagListfiles,
     User,
     Var,
-    // Custom(lua::LuaFun<(String, String, usize), Vec<String>>),
+    Custom(CompleteFun),
 }
 
-// impl<F: FunctionMut<(String, String, usize), Vec<String>>> ToObject
-//     for CommandComplete
-// {
-//     fn into(&self) -> Object {
-//         use CommandComplete::*;
-//         match self {
-//             Arglist => "arglist",
-//             Augroup => "augroup",
-//             Buffer => "buffer",
-//             Behave => "behave",
-//             Color => "color",
-//             Command => "command",
-//             Compiler => "compiler",
-//             Cscope => "cscope",
-//             Dir => "dir",
-//             Environment => "environment",
-//             Event => "event",
-//             Expression => "expression",
-//             File => "file",
-//             FileInPath => "file_in_path",
-//             Filetype => "filetype",
-//             Function => "function",
-//             Help => "help",
-//             Highlight => "highlight",
-//             History => "history",
-//             Locale => "locale",
-//             Lua => "lua",
-//             Mapclear => "mapclear",
-//             Mapping => "mapping",
-//             Menu => "menu",
-//             Messages => "messages",
-//             Option => "option",
-//             Packadd => "packadd",
-//             Shellcmd => "shellcmd",
-//             Sign => "sign",
-//             Syntax => "syntax",
-//             Syntime => "syntime",
-//             Tag => "tag",
-//             TagListFiles => "tag_listfiles",
-//             User => "user",
-//             Var => "var",
-//             Custom(f) => return f.into(),
-//         }
-//         .into()
-//     }
-// }
+impl ToObject for CommandComplete {
+    fn to_obj(self) -> Object {
+        use CommandComplete::*;
+        match self {
+            Arglist => "arglist",
+            Augroup => "augroup",
+            Buffer => "buffer",
+            Behave => "behave",
+            Color => "color",
+            Command => "command",
+            Compiler => "compiler",
+            Cscope => "cscope",
+            Dir => "dir",
+            Environment => "environment",
+            Event => "event",
+            Expression => "expression",
+            File => "file",
+            FileInPath => "file_in_path",
+            Filetype => "filetype",
+            Function => "function",
+            Help => "help",
+            Highlight => "highlight",
+            History => "history",
+            Locale => "locale",
+            Lua => "lua",
+            Mapclear => "mapclear",
+            Mapping => "mapping",
+            Menu => "menu",
+            Messages => "messages",
+            Option => "option",
+            Packadd => "packadd",
+            Shellcmd => "shellcmd",
+            Sign => "sign",
+            Syntax => "syntax",
+            Syntime => "syntime",
+            Tag => "tag",
+            TagListfiles => "tag_listfiles",
+            User => "user",
+            Var => "var",
+            Custom(f) => return LuaFun::from_fn_mut(f).to_obj(),
+        }
+        .to_obj()
+    }
+}
 
-impl From<UserCommandOpts> for Dictionary {
-    fn from(opts: UserCommandOpts) -> Self {
+impl From<CreateCommandOpts> for Dictionary {
+    fn from(opts: CreateCommandOpts) -> Self {
         Self::from_iter([
             ("addr", opts.addr.to_obj()),
             ("nargs", opts.nargs.to_obj()),
@@ -261,8 +175,8 @@ impl From<UserCommandOpts> for Dictionary {
     }
 }
 
-impl<'a> From<&'a UserCommandOpts> for Dictionary {
-    fn from(opts: &UserCommandOpts) -> Self {
+impl<'a> From<&'a CreateCommandOpts> for Dictionary {
+    fn from(opts: &CreateCommandOpts) -> Self {
         opts.clone().into()
     }
 }

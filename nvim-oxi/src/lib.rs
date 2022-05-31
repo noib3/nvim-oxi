@@ -66,12 +66,12 @@ pub use object::{Object, ObjectData, ObjectType};
 extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     lua::init_state(lstate);
 
-    let buf = api::create_buf(true, false).unwrap();
+    // let buf = api::create_buf(true, false).unwrap();
     // buf.set_option("modified", true).unwrap();
 
-    let ciao = String::from("nope");
-    let is_modified =
-        buf.call(move |_| Buffer::from(0).get_option::<bool>(&ciao));
+    // let ciao = String::from("nope");
+    // let is_modified =
+    //     buf.call(move |_| Buffer::from(0).get_option::<bool>(&ciao));
 
     // toplevel::print!("{buf:?} is modified? {is_modified:?} YEAAAAAAA");
 
@@ -128,17 +128,17 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
 
     // crate::print!("{:?}", nvim_types::dictionary::Dictionary::from(opts));
 
-    // let opts =
-    //     api::global::opts::UserCommandOptsBuilder::default().build().unwrap();
+    let opts =
+        api::global::opts::CreateCommandOpts::builder().build().unwrap();
 
-    // crate::print!(
-    //     "{:?}",
-    //     Buffer::current().create_user_command(
-    //         "Foo",
-    //         ":lua print('foo')",
-    //         opts,
-    //     )
-    // );
+    crate::print!(
+        "{:?}",
+        Buffer::current().create_user_command(
+            "Foo",
+            ":lua print('foo')",
+            &opts,
+        )
+    );
 
     0
 }

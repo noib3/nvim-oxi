@@ -130,3 +130,13 @@ impl LuaPoppable for bufopts::OnDetachArgs {
         Ok((a, b.into()))
     }
 }
+
+impl LuaPoppable for (StdString, StdString, usize) {
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
+        let c = usize::pop(lstate)?;
+        let b = <StdString as LuaPoppable>::pop(lstate)?;
+        let a = <StdString as LuaPoppable>::pop(lstate)?;
+
+        Ok((a, b, c))
+    }
+}

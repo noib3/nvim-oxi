@@ -1,6 +1,5 @@
 mod buffer;
-mod r#extern;
+mod ffi;
 pub mod opts;
 
 pub use buffer::*;
-use opts::*;

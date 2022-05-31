@@ -85,7 +85,7 @@ where
         Self(r#ref, PhantomData, PhantomData)
     }
 
-    pub(crate) fn _call(_args: A) -> crate::Result<R> {
+    pub fn _call(_args: A) -> crate::Result<R> {
         todo!()
     }
 

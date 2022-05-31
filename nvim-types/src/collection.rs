@@ -4,7 +4,7 @@
 use std::marker::PhantomData;
 use std::mem::{self, ManuallyDrop};
 use std::ops::{Deref, Index};
-use std::ptr::{self, addr_of_mut, NonNull};
+use std::ptr::{self, NonNull};
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
@@ -32,11 +32,6 @@ impl<T> Collection<T> {
             _marker: PhantomData,
         }
     }
-
-    // /// Creates a new empty `Collection` with a preallocated capacity.
-    // pub const fn with_capacity(capacity: usize) -> Self {
-    //     todo!()
-    // }
 
     // /// The number of items in the collection.
     // pub const fn len(&self) -> usize {
@@ -129,29 +124,21 @@ where
     }
 }
 
-// impl<T: PartialEq> PartialEq<Self> for Collection<T> {
-//     #[inline]
-//     fn eq(&self, other: &Self) -> bool {
-//         self.as_slice() == other.as_slice()
-//     }
-// }
-
 impl<T> IntoIterator for Collection<T> {
     type IntoIter = IntoIter<T>;
     type Item = T;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        let capacity = self.capacity;
+        // let capacity = self.capacity;
 
-        let mut me = ManuallyDrop::new(self);
-
+        let me = ManuallyDrop::new(self);
         let start = me.items.as_ptr();
         let end = unsafe { start.add(me.len()) };
 
         IntoIter {
-            buf: unsafe { NonNull::new_unchecked(start) },
-            capacity,
+            // buf: unsafe { NonNull::new_unchecked(start) },
+            // capacity,
             start,
             end,
             _marker: PhantomData,
@@ -161,10 +148,10 @@ impl<T> IntoIterator for Collection<T> {
 
 /// An iterator that moves out of a `Collection`.
 pub struct IntoIter<T> {
-    buf: NonNull<T>,
+    // buf: NonNull<T>,
     start: *const T,
     end: *const T,
-    capacity: usize,
+    // capacity: usize,
     _marker: PhantomData<T>,
 }
 

@@ -22,8 +22,6 @@ pub struct KeyValuePair {
 //         K: ?Sized + PartialEq<NvimString>,
 //         V: TryFrom<Object>,
 //     {
-//         // TODO: return reference if V is already of type Object, clone
-//         // otherwise?
 //         self.iter()
 //             .find_map(|target| {
 //                 (key == &target.key).then(|| target.value.clone())

@@ -10,9 +10,10 @@ use nvim_types::{
     Integer,
 };
 
+use super::ffi::*;
 use super::opts::*;
-use super::r#extern::*;
-use crate::api::global::opts::{SetKeymapOpts, UserCommandOpts};
+use crate::api::global::opts::{CreateCommandOpts, SetKeymapOpts};
+use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
@@ -79,13 +80,12 @@ impl Buffer {
     /// Binding to `nvim_buf_create_user_command`.
     ///
     /// Creates a new buffer-local user command.
+    // TODO: this doesn't work.
     pub fn create_user_command(
         &self,
         name: &str,
         command: impl ToObject,
-        // TODO: this doesn't work, also complete should work w/ Custom command
-        // option.
-        opts: &UserCommandOpts,
+        opts: &CreateCommandOpts,
     ) -> Result<()> {
         let mut err = NvimError::new();
         unsafe {
@@ -103,7 +103,7 @@ impl Buffer {
     /// Binding to `nvim_buf_del_keymap`.
     ///
     /// Unmaps a buffer-local mapping for the given mode.
-    pub fn del_keymap(&mut self, mode: &str, lhs: &str) -> Result<()> {
+    pub fn del_keymap(&mut self, mode: Mode, lhs: &str) -> Result<()> {
         let mut err = NvimError::new();
         unsafe {
             nvim_buf_del_keymap(
@@ -162,9 +162,37 @@ impl Buffer {
         err.into_err_or_else(|| ct.try_into().expect("always positive"))
     }
 
-    // get_commands
+    /// Binding to `nvim_buf_get_commands`.
+    ///
+    /// Returns an iterator over the buffer-local `CommandInfos`.
+    pub fn get_commands(&self) -> Result<impl Iterator<Item = CommandInfos>> {
+        let mut err = NvimError::new();
+        // TODO:
+        let _cmds = unsafe {
+            nvim_buf_get_commands(self.0, &Dictionary::new(), &mut err)
+        };
+        Ok(Vec::new().into_iter())
+    }
 
-    // get_keymap
+    /// Binding to `nvim_buf_get_keymap`.
+    ///
+    /// Returns an iterator over the buffer-local `KeymapInfos`.
+    pub fn get_keymap(
+        &self,
+        mode: Mode,
+    ) -> Result<impl Iterator<Item = KeymapInfos>> {
+        let mut err = NvimError::new();
+        // TODO:
+        let _maps = unsafe {
+            nvim_buf_get_keymap(
+                LUA_INTERNAL_CALL,
+                self.0,
+                mode.into(),
+                &mut err,
+            )
+        };
+        Ok(Vec::new().into_iter())
+    }
 
     /// Binding to `nvim_buf_get_lines`.
     ///
@@ -322,7 +350,7 @@ impl Buffer {
     /// Sets a buffer-local mapping for the given mode.
     pub fn set_keymap(
         &self,
-        mode: &str,
+        mode: Mode,
         lhs: &str,
         rhs: Option<&str>,
         opts: &SetKeymapOpts,

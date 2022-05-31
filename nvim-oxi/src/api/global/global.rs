@@ -5,8 +5,8 @@ use nvim_types::{
     string::String as NvimString,
 };
 
-use super::opts::*;
-use super::r#extern::*;
+// use super::opts::*;
+use super::ffi::*;
 use crate::object::ToObject;
 use crate::{Buffer, Result};
 
