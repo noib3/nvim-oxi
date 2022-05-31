@@ -20,16 +20,6 @@ pub trait ToObject {
     fn to_obj(self) -> Object;
 }
 
-impl<A, R> ToObject for Box<dyn FnMut(A) -> crate::Result<R> + 'static>
-where
-    A: lua::LuaPoppable + 'static,
-    R: lua::LuaPushable + 'static,
-{
-    fn to_obj(self) -> Object {
-        lua::LuaFun::from_fn_mut(self).to_obj()
-    }
-}
-
 impl ToObject for Object {
     #[inline(always)]
     fn to_obj(self) -> Object {
@@ -44,7 +34,7 @@ impl ToObject for () {
 }
 
 /// Implements `ToObject` for primitive `Copy` types.
-macro_rules! to_object_copy {
+macro_rules! impl_prim_copy {
     ($type:ident, $variant:ident, $data:ident) => {
         impl ToObject for $type {
             fn to_obj(self) -> Object {
@@ -57,12 +47,12 @@ macro_rules! to_object_copy {
     };
 }
 
-to_object_copy!(Boolean, kObjectTypeBoolean, boolean);
-to_object_copy!(Integer, kObjectTypeInteger, integer);
-to_object_copy!(Float, kObjectTypeFloat, float);
+impl_prim_copy!(Boolean, kObjectTypeBoolean, boolean);
+impl_prim_copy!(Integer, kObjectTypeInteger, integer);
+impl_prim_copy!(Float, kObjectTypeFloat, float);
 
 /// Implements `ToObject` for primitive `Clone` types.
-macro_rules! to_object_clone {
+macro_rules! impl_prim_clone {
     ($type:ident, $variant:ident, $data:ident) => {
         impl ToObject for $type {
             fn to_obj(self) -> Object {
@@ -75,9 +65,9 @@ macro_rules! to_object_clone {
     };
 }
 
-to_object_clone!(NvimString, kObjectTypeString, string);
-to_object_clone!(Array, kObjectTypeArray, array);
-to_object_clone!(Dictionary, kObjectTypeDictionary, dictionary);
+impl_prim_clone!(NvimString, kObjectTypeString, string);
+impl_prim_clone!(Array, kObjectTypeArray, array);
+impl_prim_clone!(Dictionary, kObjectTypeDictionary, dictionary);
 
 impl<A, R> ToObject for lua::LuaFun<A, R>
 where
@@ -93,7 +83,7 @@ where
 }
 
 /// Implements `ToObject` for an integer type convertible to `Integer`.
-macro_rules! to_object_int {
+macro_rules! impl_int {
     ($type:ident) => {
         impl ToObject for $type {
             fn to_obj(self) -> Object {
@@ -103,18 +93,54 @@ macro_rules! to_object_int {
     };
 }
 
-to_object_int!(i8);
-to_object_int!(u8);
-to_object_int!(i16);
-to_object_int!(u16);
-to_object_int!(i32);
-to_object_int!(u32);
+impl_int!(i8);
+impl_int!(u8);
+impl_int!(i16);
+impl_int!(u16);
+impl_int!(i32);
+impl_int!(u32);
 
 impl ToObject for f32 {
     fn to_obj(self) -> Object {
         Float::from(self).to_obj()
     }
 }
+
+// macro_rules! impl_closure {
+//     ($fn_trait:ident, $from_fn:ident) => {
+//         impl<A, R, F> ToObject for F
+//         where
+//             A: lua::LuaPoppable + 'static,
+//             R: lua::LuaPushable + 'static,
+//             F: $fn_trait(A) -> crate::Result<R> + 'static,
+//         {
+//             fn to_obj(self) -> Object {
+//                 lua::LuaFun::$from_fn(self).to_obj()
+//             }
+//         }
+//     };
+// }
+
+// impl_closure!(FnMut, from_fn_mut);
+// impl_closure!(FnOnce, from_fn_once);
+
+macro_rules! impl_boxed_closure {
+    ($fn_trait:ident, $from_fn:ident) => {
+        impl<A, R> ToObject
+            for Box<dyn $fn_trait(A) -> crate::Result<R> + 'static>
+        where
+            A: lua::LuaPoppable + 'static,
+            R: lua::LuaPushable + 'static,
+        {
+            fn to_obj(self) -> Object {
+                lua::LuaFun::$from_fn(self).to_obj()
+            }
+        }
+    };
+}
+
+impl_boxed_closure!(FnMut, from_fn_mut);
+impl_boxed_closure!(FnOnce, from_fn_once);
 
 impl ToObject for StdString {
     fn to_obj(self) -> Object {

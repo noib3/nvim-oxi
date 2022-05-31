@@ -27,26 +27,6 @@ where
     }
 }
 
-macro_rules! from_boxed_closure {
-    ($fn_trait:ident, $from_fn:ident) => {
-        impl<A, R> From<Box<dyn $fn_trait(A) -> crate::Result<R> + 'static>>
-            for LuaFun<A, R>
-        where
-            A: super::LuaPoppable + 'static,
-            R: super::LuaPushable + 'static,
-        {
-            fn from(
-                boxed: Box<dyn $fn_trait(A) -> crate::Result<R> + 'static>,
-            ) -> Self {
-                Self::$from_fn(boxed)
-            }
-        }
-    };
-}
-
-from_boxed_closure!(FnMut, from_fn_mut);
-from_boxed_closure!(FnOnce, from_fn_once);
-
 type CbMut = Box<dyn FnMut(*mut lua_State) -> Result<c_int> + 'static>;
 type CbOnce = Box<dyn FnOnce(*mut lua_State) -> Result<c_int> + 'static>;
 

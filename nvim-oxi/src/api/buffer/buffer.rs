@@ -12,7 +12,7 @@ use nvim_types::{
 
 use super::opts::*;
 use super::r#extern::*;
-use crate::api::global::opts::UserCommandOpts;
+use crate::api::global::opts::{SetKeymapOpts, UserCommandOpts};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
@@ -83,7 +83,9 @@ impl Buffer {
         &self,
         name: &str,
         command: impl ToObject,
-        opts: UserCommandOpts,
+        // TODO: this doesn't work, also complete should work w/ Custom command
+        // option.
+        opts: &UserCommandOpts,
     ) -> Result<()> {
         let mut err = NvimError::new();
         unsafe {
@@ -91,7 +93,7 @@ impl Buffer {
                 self.0,
                 name.into(),
                 command.to_obj(),
-                &opts.into(),
+                &(opts.into()),
                 &mut err,
             )
         };
@@ -317,7 +319,30 @@ impl Buffer {
         err.into_err_or_else(|| count.try_into().expect("always positive"))
     }
 
-    // set_keymap
+    /// Binding to `nvim_buf_set_keymap`.
+    ///
+    /// Sets a buffer-local mapping for the given mode.
+    pub fn set_keymap(
+        &self,
+        mode: &str,
+        lhs: &str,
+        rhs: Option<&str>,
+        opts: &SetKeymapOpts,
+    ) -> Result<()> {
+        let mut err = NvimError::new();
+        unsafe {
+            nvim_buf_set_keymap(
+                LUA_INTERNAL_CALL,
+                self.0,
+                mode.into(),
+                lhs.into(),
+                rhs.unwrap_or_default().into(),
+                &(opts.into()),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| ())
+    }
 
     /// Binding to `nvim_buf_set_lines`.
     ///

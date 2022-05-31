@@ -9,7 +9,7 @@ use nvim_types::{
 use crate::lua;
 use crate::object::ToObject;
 
-#[derive(Debug, Default, Builder)]
+#[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct UserCommandOpts {
     #[builder(setter(custom))]
@@ -258,5 +258,11 @@ impl From<UserCommandOpts> for Dictionary {
             ("keepscript", opts.keepscript.to_obj()),
             ("register", opts.register.to_obj()),
         ])
+    }
+}
+
+impl<'a> From<&'a UserCommandOpts> for Dictionary {
+    fn from(opts: &UserCommandOpts) -> Self {
+        opts.clone().into()
     }
 }

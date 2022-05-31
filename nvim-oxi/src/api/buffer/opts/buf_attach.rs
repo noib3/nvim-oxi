@@ -2,7 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{dictionary::Dictionary, LuaRef};
 
 use crate::api::buffer::Buffer;
-use crate::lua;
+use crate::lua::LuaFun;
 use crate::object::ToObject;
 
 /// Arguments passed to the function registered to `on_lines`.
@@ -57,7 +57,7 @@ pub type OnReloadArgs = (
 /// in `:h api-lua-detach`.
 pub type ShouldDetach = bool;
 
-#[derive(Default, Builder)]
+#[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
@@ -92,7 +92,7 @@ macro_rules! luaref_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(lua::LuaFun::from_fn_mut(fun).0));
+            self.$name = Some(Some(LuaFun::from_fn_mut(fun).0));
             self
         }
     };
