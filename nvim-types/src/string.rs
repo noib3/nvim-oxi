@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::string::String as StdString;
-use std::{fmt, mem, ptr, slice};
+use std::{fmt, slice};
 
 use libc::{c_char, size_t};
 
@@ -68,16 +68,7 @@ impl fmt::Debug for String {
 
 impl Clone for String {
     fn clone(&self) -> Self {
-        let size = self.len();
-        let mut data = Vec::with_capacity(size);
-
-        unsafe { ptr::copy(self.data, data.as_mut_ptr(), size) };
-        unsafe { data.set_len(size) };
-
-        let new = Self { data: data.as_mut_ptr(), size };
-        mem::forget(data);
-
-        new
+        Self::from_bytes(self.as_bytes().to_owned())
     }
 }
 
@@ -98,7 +89,7 @@ impl<'a> From<&'a str> for String {
 impl From<char> for String {
     #[inline]
     fn from(ch: char) -> Self {
-        Self { data: ch as c_char as *mut c_char, size: 1 }
+        Self { data: *(Box::new(ch as c_char)) as *mut c_char, size: 1 }
     }
 }
 
