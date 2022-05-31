@@ -1,10 +1,8 @@
-use std::fmt;
-use std::marker::PhantomData;
-use std::mem::{self, ManuallyDrop};
-use std::ptr::{self, NonNull};
+use std::mem::ManuallyDrop;
+use std::{fmt, ptr};
 
 use super::collection::Collection;
-use super::object::{Object, ObjectType};
+use super::object::Object;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Array = Collection<Object>;
@@ -15,46 +13,60 @@ impl fmt::Debug for Array {
     }
 }
 
-impl TryFrom<Object> for Array {
-    type Error = ();
+impl IntoIterator for Array {
+    type IntoIter = ArrayIter;
+    type Item = <ArrayIter as Iterator>::Item;
 
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        if !matches!(obj.r#type, ObjectType::kObjectTypeArray) {
-            return Err(());
-        }
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        let arr = ManuallyDrop::new(self);
+        let start = arr.items.as_ptr();
+        let end = unsafe { start.add(arr.len()) };
 
-        let array = unsafe { &obj.data.array };
+        ArrayIter { start, end }
+    }
+}
 
-        let mut items = ManuallyDrop::new(Vec::with_capacity(array.size));
+pub struct ArrayIter {
+    start: *const Object,
+    end: *const Object,
+}
 
-        unsafe {
-            ptr::copy(array.items.as_ptr(), items.as_mut_ptr(), array.size);
+impl Iterator for ArrayIter {
+    type Item = Object;
 
-            items.set_len(array.size);
-        }
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        (self.start != self.end).then(|| {
+            let old = self.start;
+            self.start = unsafe { self.start.offset(1) };
+            unsafe { ptr::read(old) }
+        })
+    }
 
-        let array = Self {
-            items: unsafe { NonNull::new_unchecked(items.as_mut_ptr()) },
-            size: array.size,
-            capacity: array.size,
-            _marker: PhantomData,
-        };
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let exact = self.len();
+        (exact, Some(exact))
+    }
 
-        mem::forget(obj);
+    #[inline]
+    fn count(self) -> usize {
+        self.len()
+    }
+}
 
-        Ok(array)
+impl ExactSizeIterator for ArrayIter {
+    fn len(&self) -> usize {
+        unsafe { self.end.offset_from(self.start) as usize }
     }
 }
 
 impl<T: Into<Object>> FromIterator<T> for Array {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let vec =
-            iter.into_iter().map(|item| item.into()).collect::<Vec<Object>>();
-
-        let size = vec.len();
-        let capacity = vec.capacity();
-        let ptr = vec.leak() as *mut [Object] as *mut Object;
-
-        unsafe { Self::from_raw_parts(ptr, size, capacity) }
+        iter.into_iter()
+            .map(|item| item.into())
+            .collect::<Vec<Object>>()
+            .into()
     }
 }

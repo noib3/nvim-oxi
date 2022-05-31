@@ -1,5 +1,6 @@
 use std::collections::HashMap as StdHashMap;
-use std::fmt;
+use std::mem::ManuallyDrop;
+use std::{fmt, ptr};
 
 use super::collection::Collection;
 use super::object::Object;
@@ -16,65 +17,10 @@ pub struct KeyValuePair {
     value: Object,
 }
 
-// impl Dictionary {
-//     pub fn get<K, V>(&self, key: &K) -> Option<V>
-//     where
-//         K: ?Sized + PartialEq<NvimString>,
-//         V: TryFrom<Object>,
-//     {
-//         self.iter()
-//             .find_map(|target| {
-//                 (key == &target.key).then(|| target.value.clone())
-//             })?
-//             .try_into()
-//             .ok()
-//     }
-// }
-
-impl fmt::Debug for Dictionary {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO:
-        // f.debug_map().entries(self.iter()).finish()
-        f.debug_list().entries(self.iter()).finish()
-    }
-}
-
-impl<K, V> FromIterator<(K, V)> for Dictionary
-where
-    K: Into<String>,
-    V: Into<Object>,
-{
-    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
-        let vec = iter
-            .into_iter()
-            .filter_map(|(k, v)| {
-                let obj = v.into();
-                (!obj.is_nil()).then(|| KeyValuePair::from((k, obj)))
-            })
-            .collect::<Vec<KeyValuePair>>();
-
-        let size = vec.len();
-        let capacity = vec.capacity();
-        let ptr = vec.leak() as *mut [KeyValuePair] as *mut KeyValuePair;
-
-        unsafe { Self::from_raw_parts(ptr, size, capacity) }
-    }
-}
-
-impl<K, V> From<StdHashMap<K, V>> for Dictionary
-where
-    K: Into<String>,
-    V: Into<Object>,
-{
-    fn from(hashmap: StdHashMap<K, V>) -> Self {
-        hashmap.into_iter().collect()
-    }
-}
-
 impl fmt::Debug for KeyValuePair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("KeyValuePair")
-            .field(&self.key.to_string_lossy())
+            .field(&self.key)
             .field(&self.value)
             .finish()
     }
@@ -87,5 +33,89 @@ where
 {
     fn from((k, v): (K, V)) -> Self {
         Self { key: k.into(), value: v.into() }
+    }
+}
+
+impl fmt::Debug for Dictionary {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_map()
+            .entries(self.iter().map(|pair| (&pair.key, &pair.value)))
+            .finish()
+    }
+}
+
+impl IntoIterator for Dictionary {
+    type IntoIter = DictIter;
+    type Item = <DictIter as Iterator>::Item;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        let arr = ManuallyDrop::new(self);
+        let start = arr.items.as_ptr();
+        let end = unsafe { start.add(arr.len()) };
+
+        DictIter { start, end }
+    }
+}
+
+pub struct DictIter {
+    start: *const KeyValuePair,
+    end: *const KeyValuePair,
+}
+
+impl Iterator for DictIter {
+    type Item = (String, Object);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        (self.start != self.end).then(|| {
+            let old = self.start;
+            self.start = unsafe { self.start.offset(1) };
+            let KeyValuePair { key, value } = unsafe { ptr::read(old) };
+            (key, value)
+        })
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let exact = self.len();
+        (exact, Some(exact))
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.len()
+    }
+}
+
+impl ExactSizeIterator for DictIter {
+    fn len(&self) -> usize {
+        unsafe { self.end.offset_from(self.start) as usize }
+    }
+}
+
+impl<K, V> FromIterator<(K, V)> for Dictionary
+where
+    K: Into<String>,
+    V: Into<Object>,
+{
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
+        iter.into_iter()
+            .filter_map(|(k, v)| {
+                let obj = v.into();
+                (!obj.is_nil()).then(|| KeyValuePair::from((k, obj)))
+            })
+            .collect::<Vec<KeyValuePair>>()
+            .into()
+    }
+}
+
+impl<K, V> From<StdHashMap<K, V>> for Dictionary
+where
+    K: Into<String>,
+    V: Into<Object>,
+{
+    fn from(hashmap: StdHashMap<K, V>) -> Self {
+        hashmap.into_iter().collect()
     }
 }

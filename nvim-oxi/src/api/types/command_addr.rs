@@ -1,10 +1,11 @@
 use nvim_types::object::Object;
+use serde::{Deserialize, Serialize};
 
 use crate::object::ToObject;
 
 /// See `:h command-addr` for details.
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum CommandAddr {
     Lines,
     Arguments,

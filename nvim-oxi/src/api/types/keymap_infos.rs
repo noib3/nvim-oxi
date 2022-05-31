@@ -1,8 +1,9 @@
 use nvim_types::LuaRef;
+use serde::Deserialize;
 
 use super::Mode;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
 pub struct KeymapInfos {
     buffer: bool,
     callback: Option<LuaRef>,

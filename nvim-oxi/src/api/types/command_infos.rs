@@ -1,8 +1,9 @@
 use nvim_types::LuaRef;
+use serde::Deserialize;
 
 use super::{CommandAddr, CommandNArgs, CommandRange};
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandInfos {
     pub addr: Option<CommandAddr>,
     pub bang: bool,

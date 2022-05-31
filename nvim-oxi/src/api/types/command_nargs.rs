@@ -1,11 +1,12 @@
 use nvim_types::object::Object;
+use serde::{Deserialize, Serialize};
 
 use crate::object::ToObject;
 
 /// Number of arguments accepted by a command. See `:h command-nargs` for
 /// details.
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum CommandNArgs {
     // #[object("0")]
     Zero,

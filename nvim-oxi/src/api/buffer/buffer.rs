@@ -15,7 +15,7 @@ use super::opts::*;
 use crate::api::global::opts::{CreateCommandOpts, SetKeymapOpts};
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
-use crate::object::{FromObject, ToObject};
+use crate::object::{Diocan, FromObject, ToObject};
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -167,11 +167,12 @@ impl Buffer {
     /// Returns an iterator over the buffer-local `CommandInfos`.
     pub fn get_commands(&self) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
-        // TODO:
-        let _cmds = unsafe {
+        let cmds = unsafe {
             nvim_buf_get_commands(self.0, &Dictionary::new(), &mut err)
         };
-        Ok(Vec::new().into_iter())
+        err.into_err_or_else(|| {
+            cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
+        })
     }
 
     /// Binding to `nvim_buf_get_keymap`.
@@ -183,7 +184,7 @@ impl Buffer {
     ) -> Result<impl Iterator<Item = KeymapInfos>> {
         let mut err = NvimError::new();
         // TODO:
-        let _maps = unsafe {
+        let maps = unsafe {
             nvim_buf_get_keymap(
                 LUA_INTERNAL_CALL,
                 self.0,
@@ -191,7 +192,9 @@ impl Buffer {
                 &mut err,
             )
         };
-        Ok(Vec::new().into_iter())
+        err.into_err_or_else(|| {
+            maps.into_iter().flat_map(KeymapInfos::from_obj)
+        })
     }
 
     /// Binding to `nvim_buf_get_lines`.
@@ -229,12 +232,8 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = NvimError::new();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
-        err.into_err_or_else(|| {
-            let mut iter = mark.into_vec().into_iter();
-            let row = usize::from_obj(iter.next().unwrap()).unwrap();
-            let col = usize::from_obj(iter.next().unwrap()).unwrap();
-            (row, col)
-        })
+        // err.into_err_or_flatten(|| <(usize, usize)>::from_obj(mark.into()))
+        todo!()
     }
 
     /// Binding to `nvim_buf_get_name`.
