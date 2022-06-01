@@ -63,9 +63,9 @@ impl Buffer {
     /// Binding to `nvim_buf_call`.
     ///
     /// Calls a closure with the buffer as the temporary current buffer.
-    pub fn call<'de, F, R>(&self, fun: F) -> Result<R>
+    pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
-        R: ser::Serialize + de::Deserialize<'de>,
+        R: ser::Serialize + de::DeserializeOwned,
         F: FnOnce(()) -> Result<R> + 'static,
     {
         let luaref = LuaFun::from_fn_once(fun);
@@ -260,9 +260,9 @@ impl Buffer {
     ///
     /// Gets a buffer option value. Fails if the specified type couldn't be
     /// deserialized from the returned object.
-    pub fn get_option<'de, Value>(&self, name: &str) -> Result<Value>
+    pub fn get_option<Value>(&self, name: &str) -> Result<Value>
     where
-        Value: de::Deserialize<'de>,
+        Value: de::DeserializeOwned,
     {
         let mut err = NvimError::new();
         let obj =
@@ -306,9 +306,9 @@ impl Buffer {
     ///
     /// Gets a buffer-scoped (b:) variable. Fails if the specified type
     /// couldn't be deserialized from the returned object.
-    pub fn get_var<'de, Value>(&self, name: &str) -> Result<Value>
+    pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
-        Value: de::Deserialize<'de>,
+        Value: de::DeserializeOwned,
     {
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
