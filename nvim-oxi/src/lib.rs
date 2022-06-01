@@ -5,13 +5,10 @@ mod macros;
 mod object;
 mod toplevel;
 
-pub use api::Buffer;
 pub use error::Error;
 pub use toplevel::*;
 
 pub type Result<T> = std::result::Result<T, Error>;
-
-pub use object::{Object, ObjectData, ObjectType};
 
 // #[no_mangle]
 // pub extern "C" fn test() -> *mut std::os::raw::c_char {
@@ -61,6 +58,8 @@ pub use object::{Object, ObjectData, ObjectType};
 //     })
 //     .is_err()
 // }
+
+use crate::api::Buffer;
 
 #[no_mangle]
 extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
@@ -128,16 +127,14 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
 
     // crate::print!("{:?}", nvim_types::dictionary::Dictionary::from(opts));
 
-    let opts =
-        api::global::opts::CreateCommandOpts::builder().build().unwrap();
+    // let opts =
+    //     api::global::opts::CreateCommandOpts::builder().build().unwrap();
 
     crate::print!(
         "{:?}",
-        Buffer::current().create_user_command(
-            "Foo",
-            ":lua print('foo')",
-            &opts,
-        )
+        Buffer::current()
+            .get_keymap(api::Mode::Normal)
+            .map(|iter| iter.collect::<Vec<api::types::KeymapInfos>>())
     );
 
     0

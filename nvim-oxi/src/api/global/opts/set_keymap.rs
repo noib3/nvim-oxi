@@ -1,18 +1,17 @@
 use derive_builder::Builder;
 use nvim_types::{
     dictionary::Dictionary,
+    object::Object,
     string::String as NvimString,
-    LuaRef,
 };
 
 use crate::lua::LuaFun;
-use crate::object::ToObject;
 
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct SetKeymapOpts {
     #[builder(setter(custom))]
-    callback: Option<LuaRef>,
+    callback: Option<LuaFun<(), ()>>,
 
     #[builder(setter(into, strip_option))]
     desc: Option<NvimString>,
@@ -37,7 +36,7 @@ impl SetKeymapOptsBuilder {
     where
         F: FnMut(()) -> crate::Result<()> + 'static,
     {
-        self.callback = Some(Some(LuaFun::from_fn_mut(fun).0));
+        self.callback = Some(Some(LuaFun::from_fn_mut(fun)));
         self
     }
 }
@@ -45,14 +44,14 @@ impl SetKeymapOptsBuilder {
 impl From<SetKeymapOpts> for Dictionary {
     fn from(opts: SetKeymapOpts) -> Self {
         Self::from_iter([
-            ("callback", opts.callback.to_obj()),
-            ("desc", opts.desc.to_obj()),
-            ("expr", opts.expr.to_obj()),
-            ("noremap", opts.noremap.to_obj()),
-            ("nowait", opts.nowait.to_obj()),
-            ("script", opts.script.to_obj()),
-            ("silent", opts.silent.to_obj()),
-            ("unique", opts.unique.to_obj()),
+            ("callback", Object::from(opts.callback)),
+            ("desc", opts.desc.into()),
+            ("expr", opts.expr.into()),
+            ("noremap", opts.noremap.into()),
+            ("nowait", opts.nowait.into()),
+            ("script", opts.script.into()),
+            ("silent", opts.silent.into()),
+            ("unique", opts.unique.into()),
         ])
     }
 }

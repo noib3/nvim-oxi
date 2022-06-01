@@ -137,6 +137,14 @@ impl PartialEq<StdString> for String {
     }
 }
 
+impl TryFrom<String> for StdString {
+    type Error = std::string::FromUtf8Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        StdString::from_utf8(s.into_bytes())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

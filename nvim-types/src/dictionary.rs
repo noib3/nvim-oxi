@@ -96,15 +96,14 @@ impl ExactSizeIterator for DictIter {
 
 impl<K, V> FromIterator<(K, V)> for Dictionary
 where
-    K: Into<String>,
-    V: Into<Object>,
+    String: From<K>,
+    Object: From<V>,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
         iter.into_iter()
-            .filter_map(|(k, v)| {
-                let obj = v.into();
-                (!obj.is_nil()).then(|| KeyValuePair::from((k, obj)))
-            })
+            .map(|(k, v)| (k, Object::from(v)))
+            .filter(|(_, obj)| obj.is_some())
+            .map(KeyValuePair::from)
             .collect::<Vec<KeyValuePair>>()
             .into()
     }
@@ -112,8 +111,8 @@ where
 
 impl<K, V> From<StdHashMap<K, V>> for Dictionary
 where
-    K: Into<String>,
-    V: Into<Object>,
+    String: From<K>,
+    Object: From<V>,
 {
     fn from(hashmap: StdHashMap<K, V>) -> Self {
         hashmap.into_iter().collect()

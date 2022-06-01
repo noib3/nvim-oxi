@@ -1,7 +1,6 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::marker::PhantomData;
 use std::ops::{Deref, Index};
 use std::ptr::NonNull;
 use std::slice::{self, SliceIndex};
@@ -13,23 +12,17 @@ pub struct Collection<T> {
     pub(crate) items: NonNull<T>,
     pub(crate) size: size_t,
     pub(crate) capacity: size_t,
-    pub(crate) _marker: PhantomData<T>,
 }
 
 impl<T> Collection<T> {
-    /// Creates a new empty `Collection`. If you already know how many elements
-    /// the collection will have consider using `Collection::with_capacity`
-    /// instead.
+    /// Creates a new empty `Collection`.
+    #[inline]
     pub const fn new() -> Self {
-        Self {
-            items: NonNull::dangling(),
-            size: 0,
-            capacity: 0,
-            _marker: PhantomData,
-        }
+        Self { items: NonNull::dangling(), size: 0, capacity: 0 }
     }
 
     /// The number of items in the collection.
+    #[inline]
     pub const fn len(&self) -> usize {
         self.size
     }
@@ -45,12 +38,7 @@ impl<T> Collection<T> {
         size: usize,
         capacity: usize,
     ) -> Self {
-        Self {
-            items: NonNull::new_unchecked(ptr),
-            size,
-            capacity,
-            _marker: PhantomData,
-        }
+        Self { items: NonNull::new_unchecked(ptr), size, capacity }
     }
 }
 
@@ -80,6 +68,7 @@ where
 }
 
 impl<T> From<Vec<T>> for Collection<T> {
+    #[inline]
     fn from(vec: Vec<T>) -> Self {
         let size = vec.len();
         let capacity = vec.capacity();
@@ -90,6 +79,7 @@ impl<T> From<Vec<T>> for Collection<T> {
 }
 
 impl<T> From<Collection<T>> for Vec<T> {
+    #[inline]
     fn from(coll: Collection<T>) -> Self {
         unsafe {
             Vec::from_raw_parts(coll.items.as_ptr(), coll.size, coll.capacity)

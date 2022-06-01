@@ -1,9 +1,8 @@
 use derive_builder::Builder;
-use nvim_types::{dictionary::Dictionary, LuaRef};
+use nvim_types::{dictionary::Dictionary, object::Object};
 
 use crate::api::buffer::Buffer;
 use crate::lua::LuaFun;
-use crate::object::ToObject;
 
 /// Arguments passed to the function registered to `on_lines`.
 pub type OnLinesArgs = (
@@ -61,19 +60,19 @@ pub type ShouldDetach = bool;
 #[builder(default)]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
-    on_lines: Option<LuaRef>,
+    on_lines: Option<LuaFun<OnLinesArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_bytes: Option<LuaRef>,
+    on_bytes: Option<LuaFun<OnBytesArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_changedtick: Option<LuaRef>,
+    on_changedtick: Option<LuaFun<OnChangedtickArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_detach: Option<LuaRef>,
+    on_detach: Option<LuaFun<OnDetachArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_reload: Option<LuaRef>,
+    on_reload: Option<LuaFun<OnReloadArgs, ShouldDetach>>,
 
     utf_sizes: bool,
     preview: bool,
@@ -92,7 +91,7 @@ macro_rules! luaref_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(LuaFun::from_fn_mut(fun).0));
+            self.$name = Some(Some(LuaFun::from_fn_mut(fun)));
             self
         }
     };
@@ -113,13 +112,13 @@ impl BufAttachOptsBuilder {
 impl From<BufAttachOpts> for Dictionary {
     fn from(opts: BufAttachOpts) -> Self {
         Self::from_iter([
-            ("on_lines", opts.on_lines.to_obj()),
-            ("on_bytes", opts.on_bytes.to_obj()),
-            ("on_changedtick", opts.on_changedtick.to_obj()),
-            ("on_detach", opts.on_detach.to_obj()),
-            ("on_reload", opts.on_reload.to_obj()),
-            ("utf_sizes", opts.utf_sizes.to_obj()),
-            ("preview", opts.preview.to_obj()),
+            ("on_lines", Object::from(opts.on_lines)),
+            ("on_bytes", opts.on_bytes.into()),
+            ("on_changedtick", opts.on_changedtick.into()),
+            ("on_detach", opts.on_detach.into()),
+            ("on_reload", opts.on_reload.into()),
+            ("utf_sizes", opts.utf_sizes.into()),
+            ("preview", opts.preview.into()),
         ])
     }
 }

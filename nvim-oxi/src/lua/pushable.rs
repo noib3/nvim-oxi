@@ -9,9 +9,9 @@ pub(crate) trait LuaPushable {
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int>;
 }
 
-impl<T: ToObject> LuaPushable for T {
+impl<T: serde::Serialize> LuaPushable for T {
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int> {
-        let obj = self.to_obj();
+        let obj = self.to_obj()?;
 
         use nvim_types::object::ObjectType::*;
         match obj.r#type {

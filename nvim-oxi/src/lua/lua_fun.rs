@@ -2,12 +2,16 @@ use std::marker::PhantomData;
 use std::{mem, ptr};
 
 use libc::{c_char, c_int};
-use nvim_types::LuaRef;
+use nvim_types::{
+    object::{Object, ObjectData, ObjectType},
+    LuaRef,
+};
 
 use super::ffi::*;
 use crate::Result;
 
 /// TODO: docs
+#[derive(Clone, Debug)]
 pub(crate) struct LuaFun<A, R>(
     pub(crate) LuaRef,
     PhantomData<A>,
@@ -24,6 +28,19 @@ where
 {
     fn from(luaref: LuaRef) -> Self {
         Self(luaref, PhantomData, PhantomData)
+    }
+}
+
+impl<A, R> From<LuaFun<A, R>> for Object
+where
+    A: super::LuaPoppable,
+    R: super::LuaPushable,
+{
+    fn from(fun: LuaFun<A, R>) -> Self {
+        Self {
+            r#type: ObjectType::kObjectTypeLuaRef,
+            data: ObjectData { luaref: fun.0 },
+        }
     }
 }
 

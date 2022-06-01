@@ -2,12 +2,12 @@ use nvim_types::{
     array::Array,
     dictionary::Dictionary,
     error::Error as NvimError,
+    object::Object,
     string::String as NvimString,
 };
 
 // use super::opts::*;
 use super::ffi::*;
-use crate::object::ToObject;
 use crate::{Buffer, Result};
 
 // chan_send
@@ -41,11 +41,10 @@ where
     let chunks = chunks
         .into_iter()
         .map(|(text, hlgroup)| {
-            vec![
-                text.to_string().to_obj(),
-                hlgroup.map(|hl| hl.as_ref().to_owned()).to_obj(),
-            ]
-            .to_obj()
+            Array::from_iter([
+                Object::from(text.to_string()),
+                Object::from(hlgroup.map(|hl| hl.as_ref().to_owned())),
+            ])
         })
         .collect::<Array>();
 

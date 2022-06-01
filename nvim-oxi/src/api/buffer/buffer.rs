@@ -9,13 +9,14 @@ use nvim_types::{
     BufHandle,
     Integer,
 };
+use serde::{de, ser};
 
 use super::ffi::*;
 use super::opts::*;
 use crate::api::global::opts::{CreateCommandOpts, SetKeymapOpts};
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
-use crate::object::{Diocan, FromObject, ToObject};
+use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -62,9 +63,9 @@ impl Buffer {
     /// Binding to `nvim_buf_call`.
     ///
     /// Calls a closure with the buffer as the temporary current buffer.
-    pub fn call<F, R>(&self, fun: F) -> Result<R>
+    pub fn call<'de, F, R>(&self, fun: F) -> Result<R>
     where
-        R: ToObject + FromObject,
+        R: ser::Serialize + de::Deserialize<'de>,
         F: FnOnce(()) -> Result<R> + 'static,
     {
         let luaref = LuaFun::from_fn_once(fun);
@@ -73,7 +74,7 @@ impl Buffer {
 
         err.into_err_or_flatten(move || {
             luaref.unref();
-            R::from_obj(obj).map_err(crate::Error::from)
+            R::from_obj(obj)
         })
     }
 
@@ -84,7 +85,7 @@ impl Buffer {
     pub fn create_user_command(
         &self,
         name: &str,
-        command: impl ToObject,
+        command: impl ser::Serialize,
         opts: &CreateCommandOpts,
     ) -> Result<()> {
         let mut err = NvimError::new();
@@ -92,7 +93,7 @@ impl Buffer {
             nvim_buf_create_user_command(
                 self.0,
                 name.into(),
-                command.to_obj(),
+                command.to_obj()?,
                 &(opts.into()),
                 &mut err,
             )
@@ -147,8 +148,8 @@ impl Buffer {
     // Binding to `nvim_buf_delete`.
     pub fn delete(self, force: bool, unload: bool) -> Result<()> {
         let opts = Dictionary::from_iter([
-            ("force", force.to_obj()),
-            ("unload", unload.to_obj()),
+            ("force", force.to_obj()?),
+            ("unload", unload.to_obj()?),
         ]);
         let mut err = NvimError::new();
         unsafe { nvim_buf_delete(self.0, opts, &mut err) };
@@ -183,7 +184,6 @@ impl Buffer {
         mode: Mode,
     ) -> Result<impl Iterator<Item = KeymapInfos>> {
         let mut err = NvimError::new();
-        // TODO:
         let maps = unsafe {
             nvim_buf_get_keymap(
                 LUA_INTERNAL_CALL,
@@ -221,7 +221,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().flat_map(NvimString::from_obj)
+            lines.into_iter().flat_map(NvimString::try_from)
         })
     }
 
@@ -258,18 +258,16 @@ impl Buffer {
 
     /// Binding to `nvim_buf_get_option`.
     ///
-    /// Gets a buffer option value. Fails if the returned object couldn't be
-    /// converted into the specified type.
-    pub fn get_option<Value>(&self, name: &str) -> Result<Value>
+    /// Gets a buffer option value. Fails if the specified type couldn't be
+    /// deserialized from the returned object.
+    pub fn get_option<'de, Value>(&self, name: &str) -> Result<Value>
     where
-        Value: FromObject,
+        Value: de::Deserialize<'de>,
     {
         let mut err = NvimError::new();
         let obj =
             unsafe { nvim_buf_get_option(self.0, name.into(), &mut err) };
-        err.into_err_or_flatten(|| {
-            Value::from_obj(obj).map_err(crate::Error::from)
-        })
+        err.into_err_or_flatten(|| Value::from_obj(obj))
     }
 
     /// Binding to `nvim_buf_get_text`.
@@ -300,25 +298,21 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().map(|line| {
-                NvimString::from_obj(line).expect("always a string")
-            })
+            lines.into_iter().flat_map(NvimString::try_from)
         })
     }
 
     /// Binding to `nvim_buf_get_var`.
     ///
-    /// Gets a buffer-scoped (b:) variable. Fails in the returned object
-    /// couldn't be converted into the specified type.
-    pub fn get_var<Value>(&self, name: &str) -> Result<Value>
+    /// Gets a buffer-scoped (b:) variable. Fails if the specified type
+    /// couldn't be deserialized from the returned object.
+    pub fn get_var<'de, Value>(&self, name: &str) -> Result<Value>
     where
-        Value: FromObject,
+        Value: de::Deserialize<'de>,
     {
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
-        err.into_err_or_flatten(|| {
-            Value::from_obj(obj).map_err(crate::Error::from)
-        })
+        err.into_err_or_flatten(|| Value::from_obj(obj))
     }
 
     /// Binding to `nvim_buf_is_loaded`.
@@ -395,7 +389,7 @@ impl Buffer {
                 strict_indexing,
                 replacement
                     .into_iter()
-                    .map(|line| line.into().to_obj())
+                    .map(|line| line.into())
                     .collect::<Array>(),
                 &mut err,
             )
@@ -440,9 +434,9 @@ impl Buffer {
     ///
     /// Sets a buffer option value. Passing `None` as value deletes the option
     /// (only works if there's a global fallback).
-    pub fn set_option<Value>(&mut self, name: &str, value: Value) -> Result<()>
+    pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
     where
-        Value: ToObject,
+        V: ser::Serialize,
     {
         let mut err = NvimError::new();
         unsafe {
@@ -450,7 +444,7 @@ impl Buffer {
                 LUA_INTERNAL_CALL,
                 self.0,
                 name.into(),
-                value.to_obj(),
+                value.to_obj()?,
                 &mut err,
             )
         };
@@ -485,7 +479,7 @@ impl Buffer {
                 end_col.into(),
                 replacement
                     .into_iter()
-                    .map(|line| line.into().to_obj())
+                    .map(|line| line.into())
                     .collect::<Array>(),
                 &mut err,
             )
@@ -496,10 +490,14 @@ impl Buffer {
     /// Binding to `nvim_buf_set_var`.
     ///
     /// Sets a buffer-scoped (b:) variable.
-    pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
+    pub fn set_var(
+        &mut self,
+        name: &str,
+        value: impl ser::Serialize,
+    ) -> Result<()> {
         let mut err = NvimError::new();
         unsafe {
-            nvim_buf_set_var(self.0, name.into(), value.to_obj(), &mut err)
+            nvim_buf_set_var(self.0, name.into(), value.to_obj()?, &mut err)
         };
         err.into_err_or_else(|| ())
     }
