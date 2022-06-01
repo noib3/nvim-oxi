@@ -9,6 +9,9 @@ pub enum Error {
     NvimError(#[from] nvim_types::error::Error),
 
     #[error(transparent)]
+    FromObjectError(#[from] nvim_types::object::FromObjectError),
+
+    #[error(transparent)]
     NulByteStringError(#[from] std::ffi::NulError),
 
     #[error(transparent)]

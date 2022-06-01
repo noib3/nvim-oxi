@@ -9,7 +9,7 @@ pub(crate) trait LuaPushable {
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int>;
 }
 
-impl<T: serde::Serialize> LuaPushable for T {
+impl<T: ToObject> LuaPushable for T {
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int> {
         let obj = self.to_obj()?;
 

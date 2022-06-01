@@ -1,7 +1,9 @@
 mod de;
-// mod from_object;
+mod from_object;
 mod ser;
-// mod to_object;
+mod to_object;
 
-pub(crate) use de::FromObject;
-pub(crate) use ser::ToObject;
+use de::Deserializer;
+pub(crate) use from_object::FromObject;
+use ser::Serializer;
+pub(crate) use to_object::ToObject;

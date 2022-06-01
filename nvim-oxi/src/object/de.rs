@@ -1,33 +1,22 @@
+use std::mem::ManuallyDrop;
+use std::string::String as StdString;
+
 use nvim_types::object::{Object, ObjectType};
 use serde::de;
 
 use crate::Result;
 
-pub(crate) trait FromObject: Sized {
-    fn from_obj(obj: Object) -> Result<Self>;
-}
-
-impl<'de, T> FromObject for T
-where
-    T: de::Deserialize<'de>,
-{
-    fn from_obj(obj: Object) -> Result<Self> {
-        T::deserialize(Deserializer { obj })
-    }
-}
-
-/// A struct for deserializing Neovim `Object`s into Rust values.
-#[derive(Debug)]
-struct Deserializer {
-    obj: Object,
+/// A struct used for deserializing Neovim `Object`s into Rust values.
+pub(super) struct Deserializer {
+    pub(super) obj: Object,
 }
 
 impl<'de> de::Deserializer<'de> for Deserializer {
     type Error = crate::Error;
 
     serde::forward_to_deserialize_any! {
-        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string bytes
-        byte_buf unit unit_struct identifier ignored_any
+        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
+            bytes byte_buf unit unit_struct identifier ignored_any
     }
 
     #[inline]
@@ -43,7 +32,12 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             kObjectTypeBoolean => visitor.visit_bool(unsafe { data.boolean }),
             kObjectTypeInteger => visitor.visit_i64(unsafe { data.integer }),
             kObjectTypeFloat => visitor.visit_f64(unsafe { data.float }),
-            kObjectTypeString => todo!(),
+            kObjectTypeString => match StdString::try_from(unsafe {
+                ManuallyDrop::into_inner(self.obj.data.string)
+            }) {
+                Ok(str) => visitor.visit_str(&str),
+                Err(_) => todo!(),
+            },
             kObjectTypeArray => self.deserialize_seq(visitor),
             kObjectTypeDictionary => self.deserialize_map(visitor),
             kObjectTypeLuaRef => todo!(),
@@ -76,13 +70,16 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_seq<V>(self, _visitor: V) -> Result<V::Value>
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
     where
         V: de::Visitor<'de>,
     {
         use ObjectType::*;
         match self.obj.r#type {
-            kObjectTypeArray => todo!(),
+            kObjectTypeArray => visitor.visit_seq(&mut SeqDeserializer {
+                iter: unsafe { ManuallyDrop::into_inner(self.obj.data.array) }
+                    .into_iter(),
+            }),
 
             ty => Err(de::Error::invalid_type(
                 de::Unexpected::Other(&format!("{ty:?}")),
@@ -146,12 +143,25 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 }
 
-// pub trait Diocan: Sized {
-//     fn from_obj(obj: Object) -> Result<Self>;
-// }
+struct SeqDeserializer {
+    iter: nvim_types::array::ArrayIter,
+}
 
-// impl<'de, S: serde::Deserialize<'de>> Diocan for S {
-//     fn from_obj(_obj: Object) -> Result<Self> {
-//         todo!()
-//     }
-// }
+impl<'de> de::SeqAccess<'de> for SeqDeserializer {
+    type Error = crate::Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        while let Some(obj) = self.iter.next() {
+            return seed.deserialize(Deserializer { obj }).map(Some);
+        }
+
+        Ok(None)
+    }
+
+    fn size_hint(&self) -> Option<usize> {
+        Some(self.iter.len())
+    }
+}

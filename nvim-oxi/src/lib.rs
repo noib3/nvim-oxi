@@ -130,12 +130,29 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     // let opts =
     //     api::global::opts::CreateCommandOpts::builder().build().unwrap();
 
-    crate::print!(
-        "{:?}",
-        Buffer::current()
-            .get_keymap(api::Mode::Normal)
-            .map(|iter| iter.collect::<Vec<api::types::KeymapInfos>>())
-    );
+    // crate::print!(
+    //     "{:?}",
+    //     Buffer::current()
+    //         .get_keymap(api::Mode::Normal)
+    //         .map(|iter| iter.collect::<Vec<api::types::KeymapInfos>>())
+    // );
+
+    use nvim_types::object::Object;
+
+    use crate::object::FromObject;
+
+    let obj = nvim_types::array::Array::from_iter([
+        Object::from(true),
+        Object::from(true),
+        Object::from(true),
+        // Object::from("hey"),
+        // Object::from(17),
+    ]);
+
+    // let des = <(bool, bool, bool)>::from_obj(obj.into());
+    let des = <[bool; 3]>::from_obj(obj.into());
+
+    crate::print!("{des:?}");
 
     0
 }
@@ -144,7 +161,7 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
 
 // fn cool_shit() -> nvim::Result<()> {
 //     let mut i = 0;
-//     let timer = nvim::r#loop::new_timer();
+//     let timer = nvim::r#loop::Timer::new();
 //     timer.start(0, 1000, move || {
 //         let msg =
 //             if i % 2 == 0 { "Try doing this with RPC" } else { "Good luck!" };

@@ -9,7 +9,6 @@ use nvim_types::{
     BufHandle,
     Integer,
 };
-use serde::{de, ser};
 
 use super::ffi::*;
 use super::opts::*;
@@ -65,7 +64,7 @@ impl Buffer {
     /// Calls a closure with the buffer as the temporary current buffer.
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
-        R: ser::Serialize + de::DeserializeOwned,
+        R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
     {
         let luaref = LuaFun::from_fn_once(fun);
@@ -85,7 +84,7 @@ impl Buffer {
     pub fn create_user_command(
         &self,
         name: &str,
-        command: impl ser::Serialize,
+        command: impl ToObject,
         opts: &CreateCommandOpts,
     ) -> Result<()> {
         let mut err = NvimError::new();
@@ -232,8 +231,7 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = NvimError::new();
         let mark = unsafe { nvim_buf_get_mark(self.0, name.into(), &mut err) };
-        // err.into_err_or_flatten(|| <(usize, usize)>::from_obj(mark.into()))
-        todo!()
+        err.into_err_or_flatten(|| <(usize, usize)>::from_obj(mark.into()))
     }
 
     /// Binding to `nvim_buf_get_name`.
@@ -262,7 +260,7 @@ impl Buffer {
     /// deserialized from the returned object.
     pub fn get_option<Value>(&self, name: &str) -> Result<Value>
     where
-        Value: de::DeserializeOwned,
+        Value: FromObject,
     {
         let mut err = NvimError::new();
         let obj =
@@ -308,7 +306,7 @@ impl Buffer {
     /// couldn't be deserialized from the returned object.
     pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
-        Value: de::DeserializeOwned,
+        Value: FromObject,
     {
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_get_var(self.0, name.into(), &mut err) };
@@ -436,7 +434,7 @@ impl Buffer {
     /// (only works if there's a global fallback).
     pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
     where
-        V: ser::Serialize,
+        V: ToObject,
     {
         let mut err = NvimError::new();
         unsafe {
@@ -490,11 +488,7 @@ impl Buffer {
     /// Binding to `nvim_buf_set_var`.
     ///
     /// Sets a buffer-scoped (b:) variable.
-    pub fn set_var(
-        &mut self,
-        name: &str,
-        value: impl ser::Serialize,
-    ) -> Result<()> {
+    pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
         let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_var(self.0, name.into(), value.to_obj()?, &mut err)

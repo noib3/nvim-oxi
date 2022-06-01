@@ -3,23 +3,9 @@ use serde::ser;
 
 use crate::Result;
 
-pub(crate) trait ToObject {
-    fn to_obj(self) -> Result<Object>;
-}
-
-impl<T> ToObject for T
-where
-    T: ser::Serialize,
-{
-    fn to_obj(self) -> Result<Object> {
-        todo!()
-        // self.serialize(Serializer)
-    }
-}
-
 /// A struct for serializing Rust values into Neovim `Object`s.
 #[derive(Debug)]
-struct Serializer;
+pub(super) struct Serializer;
 
 // impl ser::Serializer for Serializer {
 //     type Error = crate::Error;
