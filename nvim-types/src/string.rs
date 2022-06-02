@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
-use std::string::String as StdString;
-use std::{fmt, slice};
+use std::string::{self, String as StdString};
+use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
 
@@ -44,6 +44,12 @@ impl String {
 
     /// TODO: docs
     #[inline]
+    pub fn as_str(&self) -> Result<&str, str::Utf8Error> {
+        str::from_utf8(self.as_bytes())
+    }
+
+    /// TODO: docs
+    #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
         StdString::from_utf8_lossy(self.as_bytes())
     }
@@ -54,6 +60,13 @@ impl String {
         unsafe {
             Vec::from_raw_parts(self.data.cast::<u8>(), self.size, self.size)
         }
+    }
+
+    /// TODO: docs
+    #[inline]
+    pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
+        StdString::from_utf8(self.into_bytes())
+        // StdString::from_utf8_lossy(self.as_bytes())
     }
 }
 

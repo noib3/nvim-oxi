@@ -15,11 +15,9 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
 
-    #[builder(setter(custom))]
-    nargs: Option<Object>,
+    bang: bool,
 
-    #[builder(setter(custom))]
-    range: Option<Object>,
+    bar: bool,
 
     #[builder(setter(custom))]
     complete: Option<Object>, // string or function
@@ -33,9 +31,14 @@ pub struct CreateCommandOpts {
     #[builder(default = "true")]
     force: bool,
 
-    bang: bool,
-    bar: bool,
     keepscript: bool,
+
+    #[builder(setter(custom))]
+    nargs: Option<Object>,
+
+    #[builder(setter(custom))]
+    range: Option<Object>,
+
     register: bool,
 }
 

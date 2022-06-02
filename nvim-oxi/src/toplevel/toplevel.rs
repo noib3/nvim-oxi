@@ -26,7 +26,7 @@ pub fn print(text: impl Into<String>) {
         lua::lua_getglobal(lstate, cstr!("print"));
         lua::lua_pushlstring(
             lstate,
-            text.as_ptr() as *const ::libc::c_char,
+            text.as_ptr() as *const libc::c_char,
             text.len(),
         );
         lua::lua_call(lstate, 1, 0);

@@ -5,10 +5,8 @@ mod macros;
 mod object;
 mod toplevel;
 
-pub use error::Error;
+pub use error::{Error, Result};
 pub use toplevel::*;
-
-pub type Result<T> = std::result::Result<T, Error>;
 
 // #[no_mangle]
 // pub extern "C" fn test() -> *mut std::os::raw::c_char {
@@ -58,7 +56,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 //     })
 //     .is_err()
 // }
-
 use crate::api::Buffer;
 
 #[no_mangle]
@@ -139,7 +136,7 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
 
     use nvim_types::object::Object;
 
-    use crate::object::FromObject;
+    use crate::object::{FromObject, ToObject};
 
     let obj = nvim_types::array::Array::from_iter([
         Object::from(true),
@@ -150,9 +147,41 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     ]);
 
     // let des = <(bool, bool, bool)>::from_obj(obj.into());
-    let des = <[bool; 3]>::from_obj(obj.into());
+    // let des = <[bool; 3]>::from_obj(obj.into());
+
+    // #[derive(serde::Deserialize, Debug)]
+    // struct Test {
+    //     foo: String,
+    //     bar: Option<u32>,
+    //     foor: Foo,
+    // }
+
+    // #[derive(serde::Deserialize, Debug)]
+    // struct Foo {
+    //     ciao: bool,
+    // }
+
+    // let dict = Object::from_iter([
+    //     ("foo", Object::from("Ciaone")),
+    //     ("bar", 32.into()),
+    //     ("foor", Object::from_iter([("ciao", true)])),
+    // ]);
+
+    #[derive(serde::Deserialize, Debug, serde::Serialize)]
+    #[serde(rename_all = "lowercase")]
+    enum Foo {
+        Foo,
+        Bar,
+        Baz,
+    }
+
+    let des = Foo::from_obj("foo".into());
+
+    let foo = Foo::Foo;
+    // let ser = foo.to_obj();
 
     crate::print!("{des:?}");
+    // crate::print!("{ser:?}");
 
     0
 }

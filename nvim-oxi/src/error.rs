@@ -1,7 +1,8 @@
 use std::fmt;
-use std::string::String as StdString;
 
 use serde::{de, ser};
+
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -12,16 +13,19 @@ pub enum Error {
     FromObjectError(#[from] nvim_types::object::FromObjectError),
 
     #[error(transparent)]
+    BadUtf8Error(#[from] std::string::FromUtf8Error),
+
+    #[error(transparent)]
     NulByteStringError(#[from] std::ffi::NulError),
 
     #[error(transparent)]
     IntError(#[from] std::num::TryFromIntError),
 
     #[error("{0}")]
-    SerializeError(StdString),
+    SerializeError(String),
 
     #[error("{0}")]
-    DeserializeError(StdString),
+    DeserializeError(String),
 }
 
 impl ser::Error for Error {
