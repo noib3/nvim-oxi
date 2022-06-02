@@ -167,21 +167,30 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     //     ("foor", Object::from_iter([("ciao", true)])),
     // ]);
 
-    #[derive(serde::Deserialize, Debug, serde::Serialize)]
-    #[serde(rename_all = "lowercase")]
-    enum Foo {
-        Foo,
-        Bar,
-        Baz,
-    }
+    // #[derive(serde::Deserialize, Debug, serde::Serialize)]
+    // #[serde(rename_all = "lowercase")]
+    // enum Foo {
+    //     Foo,
+    //     Bar,
+    //     Baz(u32),
+    // }
 
-    let des = Foo::from_obj("foo".into());
+    // let des = Foo::from_obj(17.into());
 
-    let foo = Foo::Foo;
+    // crate::print!("{des:?}");
+
     // let ser = foo.to_obj();
-
-    crate::print!("{des:?}");
+    // let foo = Foo::Foo;
     // crate::print!("{ser:?}");
+
+    let opts = api::global::opts::GetCommandsOpts::builder().build().unwrap();
+
+    crate::print!(
+        "{:?}",
+        Buffer::current()
+            .get_commands(&opts)
+            .map(|iter| iter.collect::<Vec<_>>())
+    );
 
     0
 }

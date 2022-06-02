@@ -81,7 +81,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L983
     pub(super) fn nvim_buf_get_commands(
         buf: BufHandle,
-        opts: *const Dictionary,
+        opts: *mut Dictionary,
         err: *mut Error,
     ) -> Dictionary;
 

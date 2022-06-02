@@ -26,8 +26,8 @@ pub struct SetKeymapOpts {
 
 impl SetKeymapOpts {
     #[inline(always)]
-    pub fn builder() -> SetKeymapOpts {
-        SetKeymapOpts::default()
+    pub fn builder() -> SetKeymapOptsBuilder {
+        SetKeymapOptsBuilder::default()
     }
 }
 

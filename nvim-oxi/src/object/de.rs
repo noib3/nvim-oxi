@@ -45,7 +45,9 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
             kObjectTypeArray => self.deserialize_seq(visitor),
             kObjectTypeDictionary => self.deserialize_map(visitor),
-            kObjectTypeLuaRef => panic!("what to do here?"),
+
+            // TODO: map Lua functions to i32 for now.
+            kObjectTypeLuaRef => visitor.visit_i32(unsafe { data.luaref }),
         }
     }
 

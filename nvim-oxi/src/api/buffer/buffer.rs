@@ -12,7 +12,11 @@ use nvim_types::{
 
 use super::ffi::*;
 use super::opts::*;
-use crate::api::global::opts::{CreateCommandOpts, SetKeymapOpts};
+use crate::api::global::opts::{
+    CreateCommandOpts,
+    GetCommandsOpts,
+    SetKeymapOpts,
+};
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
@@ -165,10 +169,13 @@ impl Buffer {
     /// Binding to `nvim_buf_get_commands`.
     ///
     /// Returns an iterator over the buffer-local `CommandInfos`.
-    pub fn get_commands(&self) -> Result<impl Iterator<Item = CommandInfos>> {
+    pub fn get_commands(
+        &self,
+        opts: &GetCommandsOpts,
+    ) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
         let cmds = unsafe {
-            nvim_buf_get_commands(self.0, &Dictionary::new(), &mut err)
+            nvim_buf_get_commands(self.0, &mut (opts.into()), &mut err)
         };
         err.into_err_or_else(|| {
             cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
