@@ -73,9 +73,7 @@ macro_rules! deserialize {
             A: super::LuaPoppable,
             R: super::LuaPushable,
         {
-            fn deserialize<D>(
-                deserializer: D,
-            ) -> StdResult<$name<A, R>, D::Error>
+            fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
             where
                 D: de::Deserializer<'de>,
             {

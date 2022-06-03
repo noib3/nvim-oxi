@@ -173,15 +173,19 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     // crate::print!("{ser:?}");
 
     use api::global::opts::*;
+    use nvim_types::{array::Array, dictionary::Dictionary, object::Object};
 
-    let opts = GetCommandsOpts::builder().build().unwrap();
+    use crate::api::types::CommandInfos;
+    use crate::object::FromObject;
 
-    crate::print!(
-        "{:?}",
-        Buffer::current()
-            .get_commands(&opts)
-            .map(|iter| iter.collect::<Vec<_>>())
-    );
+    // let opts = GetCommandsOpts::builder().build().unwrap();
+
+    // crate::print!(
+    //     "{:?}",
+    //     Buffer::current()
+    //         .get_commands(&opts)
+    //         .map(|iter| iter.collect::<Vec<_>>())
+    // );
 
     // vim.api.nvim_buf_create_user_command(
     //     0,
@@ -190,13 +194,78 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     //     {},
     // )
 
-    let res = api::Buffer::current().create_user_command(
-        "Fooooo",
-        LuaFn::from(|()| Ok(crate::print!("Foo!"))),
-        &CreateCommandOpts::builder().build().unwrap(),
-    );
+    // TODO
+    // let res = api::Buffer::current().create_user_command(
+    //     "Fooooo",
+    //     LuaFn::from(|()| Ok(crate::print!("Foo!"))),
+    //     &CreateCommandOpts::builder().build().unwrap(),
+    // );
 
-    crate::print!("{res:?}");
+    // let cmd_1 = Dictionary::from_iter([
+    //     ("bang", Object::from(false)),
+    //     ("bar", Object::from(false)),
+    //     ("definition", Object::from("foo")),
+    //     ("keepscript", Object::from(false)),
+    //     ("name", Object::from("RustEmitAsm")),
+    //     ("nargs", Object::from("*")),
+    //     ("preview", Object::from(false)),
+    //     ("register", Object::from(false)),
+    //     ("script_id", Object::from(66)),
+    // ]);
+
+    // let cmd_2 = Dictionary::from_iter([
+    //     ("bang", Object::from(false)),
+    //     ("bar", Object::from(false)),
+    //     ("definition", Object::from("foo")),
+    //     ("keepscript", Object::from(false)),
+    //     ("name", Object::from("RustFmt")),
+    //     ("nargs", Object::from("0")),
+    //     ("preview", Object::from(false)),
+    //     ("register", Object::from(false)),
+    //     ("script_id", Object::from(66)),
+    // ]);
+
+    // let cmd_3 = Dictionary::from_iter([
+    //     ("bang", Object::from(false)),
+    //     ("bar", Object::from(false)),
+    //     ("callback", Object::from(LuaFn::from(|()| Ok(())))),
+    //     ("definition", Object::from("foo")),
+    //     ("keepscript", Object::from(false)),
+    //     ("name", Object::from("RustFmtRange")),
+    //     ("nargs", Object::from("0")),
+    //     ("preview", Object::from(false)),
+    //     ("range", Object::from(".")),
+    //     ("register", Object::from(false)),
+    //     ("script_id", Object::from(66)),
+    // ]);
+
+    let cmd_4 = Dictionary::from_iter([
+        ("addr", Object::from("other")),
+        ("bang", Object::from(false)),
+        ("bar", Object::from(false)),
+        ("definition", Object::from("foo")),
+        ("keepscript", Object::from(false)),
+        ("name", Object::from("Test")),
+        ("nargs", Object::from("0")),
+        ("preview", Object::from(false)),
+        ("range", Object::from("17")),
+        ("register", Object::from(false)),
+        ("script_id", Object::from(66)),
+    ]);
+
+    let cmds = Dictionary::from_iter([
+        // ("RustEmitAsm", Object::from(cmd_1)),
+        // ("RustFmt", cmd_2.into()),
+        // ("RustFmtRange", cmd_3.into()),
+        ("Test", Object::from(cmd_4)),
+    ]);
+
+    crate::print!(
+        "{:?}",
+        cmds.into_iter()
+            .map(|(_, cmd)| CommandInfos::from_obj(cmd))
+            .collect::<Vec<_>>()
+    );
 
     0
 }

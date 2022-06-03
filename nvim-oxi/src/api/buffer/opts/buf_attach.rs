@@ -85,7 +85,7 @@ impl BufAttachOpts {
     }
 }
 
-macro_rules! luaref_setter {
+macro_rules! lua_fn_setter {
     ($name:ident, $args:ident) => {
         pub fn $name<F>(&mut self, fun: F) -> &mut Self
         where
@@ -98,15 +98,11 @@ macro_rules! luaref_setter {
 }
 
 impl BufAttachOptsBuilder {
-    luaref_setter!(on_lines, OnLinesArgs);
-
-    luaref_setter!(on_bytes, OnBytesArgs);
-
-    luaref_setter!(on_changedtick, OnChangedtickArgs);
-
-    luaref_setter!(on_detach, OnDetachArgs);
-
-    luaref_setter!(on_reload, OnReloadArgs);
+    lua_fn_setter!(on_lines, OnLinesArgs);
+    lua_fn_setter!(on_bytes, OnBytesArgs);
+    lua_fn_setter!(on_changedtick, OnChangedtickArgs);
+    lua_fn_setter!(on_detach, OnDetachArgs);
+    lua_fn_setter!(on_reload, OnReloadArgs);
 }
 
 impl From<BufAttachOpts> for Dictionary {

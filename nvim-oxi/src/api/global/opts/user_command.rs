@@ -61,11 +61,8 @@ macro_rules! object_setter {
 
 impl CreateCommandOptsBuilder {
     object_setter!(addr, CommandAddr);
-
     object_setter!(nargs, CommandNArgs);
-
     object_setter!(range, CommandRange);
-
     object_setter!(complete, CommandComplete);
 }
 
@@ -110,8 +107,8 @@ pub enum CommandComplete {
     Var,
 
     #[serde(skip)]
-    /// See `:h command-completion-custom` for details.
-    Custom(LuaFn<(String, String, usize), Vec<String>>),
+    /// See `:h command-completion-customlist` for details.
+    CustomList(LuaFn<(String, String, usize), Vec<String>>),
 }
 
 impl From<CreateCommandOpts> for Dictionary {

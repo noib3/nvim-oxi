@@ -51,11 +51,7 @@ impl ser::Serializer for Serializer {
     type SerializeStruct = SerializeMap;
     type SerializeStructVariant = SerializeMap;
 
-    #[inline]
-    fn serialize_bool(self, value: bool) -> Result<Self::Ok> {
-        Ok(value.into())
-    }
-
+    serialize_into!(serialize_bool, bool);
     serialize_into!(serialize_i8, i8);
     serialize_into!(serialize_u8, u8);
     serialize_into!(serialize_i16, i16);
@@ -292,7 +288,7 @@ macro_rules! serialize_map {
             }
 
             fn end(self) -> Result<Self::Ok> {
-                Ok(Object::from_iter(self.pairs))
+                ser::SerializeMap::end(self)
             }
         }
     };
