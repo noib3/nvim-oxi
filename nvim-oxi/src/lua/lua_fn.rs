@@ -1,17 +1,17 @@
 use std::marker::PhantomData;
+use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
 use libc::c_int;
 use nvim_types::{object, LuaRef};
-use serde::{Deserialize, Serialize};
+use serde::{de, ser};
 
 use super::ffi::*;
 use crate::Result;
 
 macro_rules! define {
     ($name:ident) => {
-        // TODO: custom impls for serialize & deserialize
-        #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+        #[derive(Copy, Clone, Eq, PartialEq, Hash)]
         pub struct $name<A, R>(
             pub(crate) LuaRef,
             PhantomData<A>,
@@ -65,6 +65,78 @@ macro_rules! from_fn_for_object {
 from_fn_for_object!(LuaFn);
 from_fn_for_object!(LuaFnMut);
 from_fn_for_object!(LuaFnOnce);
+
+macro_rules! deserialize {
+    ($name:ident, $visitor:ident) => {
+        impl<'de, A, R> de::Deserialize<'de> for $name<A, R>
+        where
+            A: super::LuaPoppable,
+            R: super::LuaPushable,
+        {
+            fn deserialize<D>(
+                deserializer: D,
+            ) -> StdResult<$name<A, R>, D::Error>
+            where
+                D: de::Deserializer<'de>,
+            {
+                struct $visitor<A, R>(PhantomData<A>, PhantomData<R>);
+
+                impl<'de, A, R> de::Visitor<'de> for $visitor<A, R>
+                where
+                    A: super::LuaPoppable,
+                    R: super::LuaPushable,
+                {
+                    type Value = $name<A, R>;
+
+                    fn expecting(
+                        &self,
+                        f: &mut fmt::Formatter,
+                    ) -> fmt::Result {
+                        f.write_str("an f32 representing a Lua reference")
+                    }
+
+                    fn visit_f32<E>(
+                        self,
+                        value: f32,
+                    ) -> StdResult<Self::Value, E>
+                    where
+                        E: de::Error,
+                    {
+                        Ok($name(value as i32, PhantomData, PhantomData))
+                    }
+                }
+
+                deserializer
+                    .deserialize_f32($visitor(PhantomData, PhantomData))
+            }
+        }
+    };
+}
+
+deserialize!(LuaFn, LuaFnVisitor);
+deserialize!(LuaFnMut, LuaFnMutVisitor);
+deserialize!(LuaFnOnce, LuaFnOnceVisitor);
+
+macro_rules! serialize {
+    ($name:ident) => {
+        impl<A, R> ser::Serialize for $name<A, R>
+        where
+            A: super::LuaPoppable,
+            R: super::LuaPushable,
+        {
+            fn serialize<S>(&self, serializer: S) -> StdResult<S::Ok, S::Error>
+            where
+                S: ser::Serializer,
+            {
+                serializer.serialize_f32(self.0 as f32)
+            }
+        }
+    };
+}
+
+serialize!(LuaFn);
+serialize!(LuaFnMut);
+serialize!(LuaFnOnce);
 
 macro_rules! create_ref {
     ($lstate:ident, $fun:ident, $cb:ident) => {
@@ -154,18 +226,6 @@ where
     }
 }
 
-macro_rules! unref {
-    () => {
-        /// Removes the stored reference from the Lua registry.
-        #[allow(dead_code)]
-        pub(crate) fn unref(self) {
-            super::with_state(move |lstate| unsafe {
-                luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
-            })
-        }
-    };
-}
-
 macro_rules! call_body {
     ($self:ident, $args:ident) => {
         todo!()
@@ -177,8 +237,6 @@ where
     A: super::LuaPoppable,
     R: super::LuaPushable,
 {
-    unref!();
-
     pub fn _call(&self, _args: A) -> crate::Result<R> {
         call_body!(self, _args)
     }
@@ -189,8 +247,6 @@ where
     A: super::LuaPoppable,
     R: super::LuaPushable,
 {
-    unref!();
-
     pub fn _call(&mut self, _args: A) -> crate::Result<R> {
         call_body!(self, _args)
     }
@@ -201,9 +257,14 @@ where
     A: super::LuaPoppable,
     R: super::LuaPushable,
 {
-    unref!();
-
     pub fn _call(self, _args: A) -> crate::Result<R> {
         call_body!(self, _args)
+    }
+
+    /// Removes the stored reference from the Lua registry.
+    pub(crate) fn unref(self) {
+        super::with_state(move |lstate| unsafe {
+            luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
+        })
     }
 }

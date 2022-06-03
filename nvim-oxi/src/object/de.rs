@@ -42,8 +42,14 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             },
             kObjectTypeArray => self.deserialize_seq(visitor),
             kObjectTypeDictionary => self.deserialize_map(visitor),
-            // TODO: map Lua functions to i32 for now.
-            kObjectTypeLuaRef => visitor.visit_i32(unsafe { data.luaref }),
+
+            // We map the ref representing the index of the lua function in the
+            // Lua registry to `f32`. It's definitely a hack, but Neovim rarely
+            // returns a float so it should a good place to store it to avoid
+            // collisions.
+            kObjectTypeLuaRef => {
+                visitor.visit_f32(unsafe { data.luaref } as f32)
+            },
         }
     }
 

@@ -22,12 +22,18 @@ use crate::lua::{LuaFnOnce, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Buffer(BufHandle);
+
+impl fmt::Debug for Buffer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_tuple("Buffer").field(&self.0).finish()
+    }
+}
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Buffer({})", self.0)
+        write!(f, "{self:?}")
     }
 }
 
