@@ -34,18 +34,21 @@ impl<'de> de::Deserialize<'de> for CommandRange {
             where
                 E: de::Error,
             {
-                match v.parse::<u32>() {
-                    Ok(n) => Ok(Self::Value::Count(n)),
+                match v {
+                    "." => return Ok(Self::Value::CurrentLine),
+                    "%" => return Ok(Self::Value::WholeFile),
 
-                    _ => match v {
-                        "." => Ok(Self::Value::CurrentLine),
-                        "%" => Ok(Self::Value::WholeFile),
-                        other => Err(E::invalid_value(
-                            de::Unexpected::Str(other),
-                            &"\".\", \"%\" or an integer",
-                        )),
+                    other => {
+                        if let Ok(n) = other.parse::<u32>() {
+                            return Ok(Self::Value::Count(n));
+                        }
                     },
-                }
+                };
+
+                Err(E::invalid_value(
+                    de::Unexpected::Str(v),
+                    &"\".\", \"%\" or an integer",
+                ))
             }
         }
 

@@ -248,7 +248,7 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
         ("name", Object::from("Test")),
         ("nargs", Object::from("0")),
         ("preview", Object::from(false)),
-        ("range", Object::from("17")),
+        ("range", Object::from("42")),
         ("register", Object::from(false)),
         ("script_id", Object::from(66)),
     ]);
