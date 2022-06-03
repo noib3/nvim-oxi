@@ -5,9 +5,18 @@ use serde::{Deserialize, Serialize};
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum CommandNArgs {
-    Zero,      // 0
-    One,       // 1
-    Any,       // "*"
-    ZeroOrOne, // "?"
-    OneOrMore, // "+"
+    #[serde(rename = "0")]
+    Zero,
+
+    #[serde(rename = "1")]
+    One,
+
+    #[serde(rename = "*")]
+    Any,
+
+    #[serde(rename = "?")]
+    ZeroOrOne,
+
+    #[serde(rename = "+")]
+    OneOrMore,
 }

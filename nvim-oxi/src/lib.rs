@@ -6,6 +6,7 @@ mod object;
 mod toplevel;
 
 pub use error::{Error, Result};
+pub use lua::{LuaFn, LuaFnMut, LuaFnOnce};
 pub use toplevel::*;
 
 // #[no_mangle]
@@ -134,18 +135,6 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     //         .map(|iter| iter.collect::<Vec<api::types::KeymapInfos>>())
     // );
 
-    use nvim_types::object::Object;
-
-    use crate::object::{FromObject, ToObject};
-
-    let obj = nvim_types::array::Array::from_iter([
-        Object::from(true),
-        Object::from(true),
-        Object::from(true),
-        // Object::from("hey"),
-        // Object::from(17),
-    ]);
-
     // let des = <(bool, bool, bool)>::from_obj(obj.into());
     // let des = <[bool; 3]>::from_obj(obj.into());
 
@@ -183,7 +172,9 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     // let foo = Foo::Foo;
     // crate::print!("{ser:?}");
 
-    let opts = api::global::opts::GetCommandsOpts::builder().build().unwrap();
+    use api::global::opts::*;
+
+    let opts = GetCommandsOpts::builder().build().unwrap();
 
     crate::print!(
         "{:?}",
@@ -191,6 +182,21 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
             .get_commands(&opts)
             .map(|iter| iter.collect::<Vec<_>>())
     );
+
+    // vim.api.nvim_buf_create_user_command(
+    //     0,
+    //     "Foo",
+    //     function() print("Foo!") end,
+    //     {},
+    // )
+
+    let res = api::Buffer::current().create_user_command(
+        "Fooooo",
+        LuaFn::from(|()| Ok(crate::print!("Foo!"))),
+        &CreateCommandOpts::builder().build().unwrap(),
+    );
+
+    crate::print!("{res:?}");
 
     0
 }

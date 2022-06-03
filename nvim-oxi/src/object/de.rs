@@ -32,20 +32,16 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             kObjectTypeBoolean => visitor.visit_bool(unsafe { data.boolean }),
             kObjectTypeInteger => visitor.visit_i64(unsafe { data.integer }),
             kObjectTypeFloat => visitor.visit_f64(unsafe { data.float }),
-
             kObjectTypeString => {
                 let string =
                     ManuallyDrop::into_inner(unsafe { self.obj.data.string });
-
                 match string.as_str() {
                     Ok(str) => visitor.visit_str(str),
                     _ => visitor.visit_bytes(string.as_bytes()),
                 }
             },
-
             kObjectTypeArray => self.deserialize_seq(visitor),
             kObjectTypeDictionary => self.deserialize_map(visitor),
-
             // TODO: map Lua functions to i32 for now.
             kObjectTypeLuaRef => visitor.visit_i32(unsafe { data.luaref }),
         }

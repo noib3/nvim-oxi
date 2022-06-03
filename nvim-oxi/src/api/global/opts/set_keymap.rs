@@ -5,13 +5,13 @@ use nvim_types::{
     string::String as NvimString,
 };
 
-use crate::lua::LuaFun;
+use crate::lua::LuaFnMut;
 
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct SetKeymapOpts {
     #[builder(setter(custom))]
-    callback: Option<LuaFun<(), ()>>,
+    callback: Option<LuaFnMut<(), ()>>,
 
     #[builder(setter(into, strip_option))]
     desc: Option<NvimString>,
@@ -36,7 +36,7 @@ impl SetKeymapOptsBuilder {
     where
         F: FnMut(()) -> crate::Result<()> + 'static,
     {
-        self.callback = Some(Some(LuaFun::from_fn_mut(fun)));
+        self.callback = Some(Some(fun.into()));
         self
     }
 }

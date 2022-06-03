@@ -7,7 +7,8 @@ use super::ffi::*;
 use crate::api::buffer::opts as bufopts;
 use crate::Result;
 
-pub(crate) trait LuaPoppable: Sized {
+#[doc(hidden)]
+pub trait LuaPoppable: Sized {
     /// Assembles itself by popping values off the stack. Fails if there aren't
     /// enough values or if they are of the wrong type.
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self>;

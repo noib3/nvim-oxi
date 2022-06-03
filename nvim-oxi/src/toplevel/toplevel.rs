@@ -1,4 +1,4 @@
-use crate::lua::{self, LuaFun};
+use crate::lua::{self, LuaFnOnce};
 use crate::macros::cstr;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
@@ -52,13 +52,13 @@ where
 
         // Store the function in the registry and put a reference to it on the
         // stack.
-        let luaref = LuaFun::from_fn_once(fun);
-        lua::lua_rawgeti(lstate, lua::LUA_REGISTRYINDEX, luaref.0);
+        let fun = LuaFnOnce::from(fun);
+        lua::lua_rawgeti(lstate, lua::LUA_REGISTRYINDEX, fun.0);
 
         lua::lua_call(lstate, 1, 0);
 
         // Pop `vim` off the stack and remove the reference from the registry.
         lua::lua_pop(lstate, 1);
-        lua::luaL_unref(lstate, lua::LUA_REGISTRYINDEX, luaref.0);
+        lua::luaL_unref(lstate, lua::LUA_REGISTRYINDEX, fun.0);
     });
 }

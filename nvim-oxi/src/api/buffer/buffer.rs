@@ -18,7 +18,7 @@ use crate::api::global::opts::{
     SetKeymapOpts,
 };
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
-use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
+use crate::lua::{LuaFnOnce, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -71,12 +71,12 @@ impl Buffer {
         R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let luaref = LuaFun::from_fn_once(fun);
+        let fun = LuaFnOnce::from(fun);
         let mut err = NvimError::new();
-        let obj = unsafe { nvim_buf_call(self.0, luaref.0, &mut err) };
+        let obj = unsafe { nvim_buf_call(self.0, fun.0, &mut err) };
 
         err.into_err_or_flatten(move || {
-            luaref.unref();
+            fun.unref();
             R::from_obj(obj)
         })
     }
@@ -84,7 +84,6 @@ impl Buffer {
     /// Binding to `nvim_buf_create_user_command`.
     ///
     /// Creates a new buffer-local user command.
-    // TODO: this doesn't work.
     pub fn create_user_command(
         &self,
         name: &str,

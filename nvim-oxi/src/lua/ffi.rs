@@ -7,7 +7,8 @@ use std::marker::{PhantomData, PhantomPinned};
 use libc::{c_char, c_double, c_int, c_void, size_t};
 
 #[repr(C)]
-pub(crate) struct lua_State {
+#[doc(hidden)]
+pub struct lua_State {
     _data: [u8; 0],
     _marker: PhantomData<(*mut u8, PhantomPinned)>,
 }

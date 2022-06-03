@@ -7,6 +7,7 @@ use nvim_types::{
 };
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
+use crate::lua::LuaFn;
 use crate::object::ToObject;
 
 #[derive(Clone, Debug, Default, Builder)]
@@ -68,11 +69,6 @@ impl CreateCommandOptsBuilder {
     object_setter!(complete, CommandComplete);
 }
 
-/// See `:h command-completion-custom` for details.
-type CompleteFun = Box<
-    dyn FnMut((String, String, usize)) -> crate::Result<Vec<String>> + 'static,
->;
-
 /// See `:h command-complete` for details.
 #[non_exhaustive]
 #[derive(serde::Serialize)]
@@ -112,54 +108,11 @@ pub enum CommandComplete {
     TagListfiles,
     User,
     Var,
-    #[serde(skip)]
-    Custom(CompleteFun),
-}
 
-// impl From<CommandComplete> for CommandComplete {
-//     fn to_obj(self) -> Object {
-//         use CommandComplete::*;
-//         match self {
-//             Arglist => "arglist",
-//             Augroup => "augroup",
-//             Buffer => "buffer",
-//             Behave => "behave",
-//             Color => "color",
-//             Command => "command",
-//             Compiler => "compiler",
-//             Cscope => "cscope",
-//             Dir => "dir",
-//             Environment => "environment",
-//             Event => "event",
-//             Expression => "expression",
-//             File => "file",
-//             FileInPath => "file_in_path",
-//             Filetype => "filetype",
-//             Function => "function",
-//             Help => "help",
-//             Highlight => "highlight",
-//             History => "history",
-//             Locale => "locale",
-//             Lua => "lua",
-//             Mapclear => "mapclear",
-//             Mapping => "mapping",
-//             Menu => "menu",
-//             Messages => "messages",
-//             Option => "option",
-//             Packadd => "packadd",
-//             Shellcmd => "shellcmd",
-//             Sign => "sign",
-//             Syntax => "syntax",
-//             Syntime => "syntime",
-//             Tag => "tag",
-//             TagListfiles => "tag_listfiles",
-//             User => "user",
-//             Var => "var",
-//             Custom(f) => return LuaFun::from_fn_mut(f).into(),
-//         }
-//         .into()
-//     }
-// }
+    #[serde(skip)]
+    /// See `:h command-completion-custom` for details.
+    Custom(LuaFn<(String, String, usize), Vec<String>>),
+}
 
 impl From<CreateCommandOpts> for Dictionary {
     fn from(opts: CreateCommandOpts) -> Self {

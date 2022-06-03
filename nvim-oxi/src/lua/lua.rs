@@ -1,6 +1,7 @@
 use std::ffi::CStr;
 use std::mem;
 
+use libc::c_char;
 use once_cell::unsync::OnceCell;
 
 use super::ffi::*;
@@ -49,4 +50,15 @@ pub(crate) unsafe fn debug_stack(lstate: *mut lua_State) {
         .join("\n");
 
     crate::print!("{stack_pp}");
+}
+
+// TODO: better error reporting. Look at
+// https://github.com/khvzak/mlua/blob/b065db37c2dd9e9c1d5483509bbd1bcc355f4fef/src/lua.rs#L2971
+pub(super) unsafe fn handle_error(
+    lstate: *mut lua_State,
+    err: crate::Error,
+) -> ! {
+    let msg = err.to_string();
+    lua_pushlstring(lstate, msg.as_ptr() as *const c_char, msg.len());
+    lua_error(lstate);
 }

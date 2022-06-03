@@ -3,7 +3,8 @@ use libc::{c_char, c_int};
 use super::ffi::*;
 use crate::object::ToObject;
 
-pub(crate) trait LuaPushable {
+#[doc(hidden)]
+pub trait LuaPushable {
     /// Pushes all its values on the Lua stack, returning the number of values
     /// that it pushed.
     unsafe fn push(self, lstate: *mut lua_State) -> crate::Result<c_int>;
