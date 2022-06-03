@@ -1,5 +1,5 @@
 use nvim_types::object::Object;
-use serde::ser;
+use serde::ser::{self};
 
 use crate::Result;
 
@@ -12,7 +12,6 @@ where
     T: ser::Serialize,
 {
     fn to_obj(self) -> Result<Object> {
-        // self.serialize(super::Serializer)
-        todo!()
+        self.serialize(super::Serializer)
     }
 }
