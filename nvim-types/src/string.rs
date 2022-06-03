@@ -66,7 +66,6 @@ impl String {
     #[inline]
     pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
         StdString::from_utf8(self.into_bytes())
-        // StdString::from_utf8_lossy(self.as_bytes())
     }
 }
 

@@ -12,7 +12,6 @@ where
     T: ser::Serialize,
 {
     fn to_obj(self) -> Result<Object> {
-        // self.serialize(super::Serializer)
-        todo!()
+        self.serialize(super::Serializer)
     }
 }

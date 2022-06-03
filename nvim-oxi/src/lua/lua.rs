@@ -44,7 +44,7 @@ pub(crate) unsafe fn debug_stack(lstate: *mut lua_State) {
         .map(|n| {
             let idx = height + 1 - n;
             let typename = CStr::from_ptr(luaL_typename(lstate, -n));
-            format!("{idx}: {}", typename.to_string_lossy())
+            format!("{idx}: {typename:?}")
         })
         .collect::<Vec<String>>()
         .join("\n");

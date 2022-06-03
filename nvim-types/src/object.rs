@@ -50,7 +50,7 @@ pub union ObjectData {
 }
 
 impl Object {
-    /// Returns a new object with type `kObjectNil`.
+    /// Returns a new object with type `kObjectTypeNil`.
     #[inline]
     pub const fn nil() -> Self {
         Self {
@@ -321,7 +321,7 @@ pub enum FromObjectError {
     #[error("Was expecting a \"{expected:?}\", got \"{actual:?}\" instead")]
     Primitive { expected: ObjectType, actual: ObjectType },
 
-    /// Raised when implementig `TryFrom<Object>` for a type that implements
+    /// Raised when implementing `TryFrom<Object>` for a type that implements
     /// `TryFrom<{type}>`, where `{type}` is a primitive data type. For
     /// example, `TryFrom<StdString>` or `TryFrom<usize>`.
     #[error("Error converting {into} into {primitive:?}: {source}")]
