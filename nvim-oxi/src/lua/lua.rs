@@ -19,10 +19,12 @@ thread_local! {
     static LUA: OnceCell<*mut lua_State> = OnceCell::new();
 }
 
-/// Initializes the Lua state. It's only called once when the module is loaded.
+/// Initializes the Lua state. It's only called once when the module is loaded,
+/// and calling it more than once is ub.
+#[doc(hidden)]
 #[inline(always)]
-pub(crate) fn init_state(lstate: *mut lua_State) {
-    LUA.with(|lua| lua.set(lstate).expect("couldn't initialize Lua state"));
+pub unsafe fn init_state(lstate: *mut lua_State) {
+    LUA.with(|lua| lua.set(lstate).unwrap_unchecked());
 }
 
 /// Runs a piece of code with access to the raw Lua state. Calling this before

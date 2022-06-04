@@ -28,6 +28,11 @@ impl<T> Collection<T> {
     }
 
     #[inline]
+    pub const fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    #[inline]
     pub(crate) fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
     }

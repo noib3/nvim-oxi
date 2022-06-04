@@ -3,6 +3,7 @@ members = [
   "nvim-oxi",
   "nvim-types",
   "oxi-derive",
+  "oxi-tests",
 ]
 
 [profile.release]

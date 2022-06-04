@@ -10,6 +10,7 @@ use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
 use crate::lua::LuaFn;
 use crate::object::ToObject;
 
+/// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct CreateCommandOpts {

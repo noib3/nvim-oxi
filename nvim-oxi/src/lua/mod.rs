@@ -4,7 +4,9 @@ mod lua_fn;
 mod poppable;
 mod pushable;
 
+pub use ffi::lua_State;
 pub(crate) use ffi::*;
+pub use lua::init_state;
 pub(crate) use lua::*;
 pub use lua_fn::{LuaFn, LuaFnMut, LuaFnOnce};
 pub(crate) use poppable::LuaPoppable;

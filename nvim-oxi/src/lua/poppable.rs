@@ -4,7 +4,7 @@ use std::string::String as StdString;
 use nvim_types::BufHandle;
 
 use super::ffi::*;
-use crate::api::buffer::opts as bufopts;
+use crate::api::opts;
 use crate::Result;
 
 #[doc(hidden)]
@@ -70,7 +70,7 @@ impl<T: LuaPoppable> LuaPoppable for Option<T> {
     }
 }
 
-impl LuaPoppable for bufopts::OnLinesArgs {
+impl LuaPoppable for opts::OnLinesArgs {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
         let (h, i) = if lua_gettop(lstate) == 9 {
             let h = usize::pop(lstate)?;
@@ -91,7 +91,7 @@ impl LuaPoppable for bufopts::OnLinesArgs {
     }
 }
 
-impl LuaPoppable for bufopts::OnBytesArgs {
+impl LuaPoppable for opts::OnBytesArgs {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
         // TODO: Check that nargs is 12?
         // let nargs = lua_gettop(lstate);
@@ -113,7 +113,7 @@ impl LuaPoppable for bufopts::OnBytesArgs {
     }
 }
 
-impl LuaPoppable for bufopts::OnChangedtickArgs {
+impl LuaPoppable for opts::OnChangedtickArgs {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
         let c = u32::pop(lstate)?;
         let b = BufHandle::pop(lstate)?;
@@ -123,7 +123,7 @@ impl LuaPoppable for bufopts::OnChangedtickArgs {
     }
 }
 
-impl LuaPoppable for bufopts::OnDetachArgs {
+impl LuaPoppable for opts::OnDetachArgs {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
         let b = BufHandle::pop(lstate)?;
         let a = <StdString as LuaPoppable>::pop(lstate)?;

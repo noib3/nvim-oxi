@@ -1,6 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::dictionary::Dictionary;
 
+/// Options passed to `Buffer::get_commands`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct GetCommandsOpts {

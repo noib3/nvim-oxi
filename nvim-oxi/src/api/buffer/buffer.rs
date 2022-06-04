@@ -11,8 +11,8 @@ use nvim_types::{
 };
 
 use super::ffi::*;
-use super::opts::*;
-use crate::api::global::opts::{
+use crate::api::opts::{
+    BufAttachOpts,
     CreateCommandOpts,
     GetCommandsOpts,
     SetKeymapOpts,

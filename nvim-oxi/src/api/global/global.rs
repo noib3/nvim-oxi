@@ -6,7 +6,6 @@ use nvim_types::{
     string::String as NvimString,
 };
 
-// use super::opts::*;
 use super::ffi::*;
 use crate::{Buffer, Result};
 

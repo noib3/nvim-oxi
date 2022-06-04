@@ -1,13 +1,19 @@
-pub mod api;
-mod error;
-mod lua;
-mod macros;
-mod object;
-mod toplevel;
+//! # First-class bindings to Neovim internals
+//!
+//! The `nvim-oxi` crate ...
 
+pub mod api;
 pub use error::{Error, Result};
 pub use lua::{LuaFn, LuaFnMut, LuaFnOnce};
 pub use toplevel::*;
+
+#[doc(hidden)]
+pub mod lua;
+
+mod error;
+mod macros;
+mod object;
+mod toplevel;
 
 // #[no_mangle]
 // pub extern "C" fn test() -> *mut std::os::raw::c_char {
@@ -60,7 +66,9 @@ pub use toplevel::*;
 use crate::api::Buffer;
 
 #[no_mangle]
-extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
+unsafe extern "C" fn luaopen_libnvim_oxi(
+    lstate: *mut lua::lua_State,
+) -> libc::c_int {
     lua::init_state(lstate);
 
     // let buf = api::create_buf(true, false).unwrap();
@@ -172,7 +180,7 @@ extern "C" fn luaopen_libnvim_oxi(lstate: *mut lua::lua_State) -> libc::c_int {
     // let foo = Foo::Foo;
     // crate::print!("{ser:?}");
 
-    use api::global::opts::*;
+    use api::opts::*;
     use nvim_types::{array::Array, dictionary::Dictionary, object::Object};
 
     use crate::api::types::CommandInfos;

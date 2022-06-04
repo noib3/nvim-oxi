@@ -56,6 +56,7 @@ pub type OnReloadArgs = (
 /// in `:h api-lua-detach`.
 pub type ShouldDetach = bool;
 
+/// Options passed to `Buffer::attach`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct BufAttachOpts {

@@ -9,9 +9,6 @@ repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
-[lib]
-crate-type = ["cdylib"]
-
 [dependencies]
 derive_builder = "0.11"
 libc = "0.2"

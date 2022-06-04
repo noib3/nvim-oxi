@@ -1,5 +1,5 @@
 /target
 /Cargo.lock
-/foo.lua
+/oxi-tests/foo.lua
 /lua
 /TODO.md

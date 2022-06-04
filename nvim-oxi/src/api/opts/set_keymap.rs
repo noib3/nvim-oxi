@@ -7,6 +7,7 @@ use nvim_types::{
 
 use crate::lua::LuaFnMut;
 
+/// Options passed to `Buffer::set_keymap`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct SetKeymapOpts {
