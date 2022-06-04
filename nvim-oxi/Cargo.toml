@@ -1,6 +1,6 @@
 [package]
 name = "nvim-oxi"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 description = "Rust bindings to all things Neovim."
@@ -14,6 +14,5 @@ derive_builder = "0.11"
 libc = "0.2"
 nvim-types = { path = "../nvim-types" }
 once_cell = "1.12"
-oxi-derive = { path = "../oxi-derive" }
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"

@@ -10,7 +10,7 @@ use nvim_types::{
     Integer,
 };
 
-use super::ffi::*;
+use super::ffi::buffer::*;
 use crate::api::opts::{
     BufAttachOpts,
     CreateCommandOpts,
@@ -33,7 +33,7 @@ impl fmt::Debug for Buffer {
 
 impl fmt::Display for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{self:?}")
+        fmt::Debug::fmt(self, f)
     }
 }
 

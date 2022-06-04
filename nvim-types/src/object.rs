@@ -72,40 +72,21 @@ impl Object {
 
 impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut dbg = f.debug_struct("Object");
-        dbg.field("type", &self.r#type);
-
-        use ObjectType::*;
-        match self.r#type {
-            kObjectTypeNil => dbg.field("data", &"nil"),
-
-            kObjectTypeBoolean => {
-                dbg.field("data", &unsafe { self.data.boolean })
-            },
-
-            kObjectTypeInteger => {
-                dbg.field("data", &unsafe { self.data.integer })
-            },
-
-            kObjectTypeFloat => dbg.field("data", &unsafe { self.data.float }),
-
-            kObjectTypeString => {
-                dbg.field("data", unsafe { &self.data.string })
-            },
-
-            kObjectTypeArray => dbg.field("data", unsafe { &self.data.array }),
-
-            kObjectTypeDictionary => {
-                dbg.field("data", unsafe { &self.data.dictionary })
-            },
-
-            kObjectTypeLuaRef => dbg.field(
-                "data",
-                &format!("Function({})", unsafe { self.data.luaref }),
-            ),
+        let data: &dyn fmt::Debug = match self.r#type {
+            kObjectTypeNil => &"nil",
+            kObjectTypeBoolean => unsafe { &self.data.boolean },
+            kObjectTypeInteger => unsafe { &self.data.integer },
+            kObjectTypeFloat => unsafe { &self.data.float },
+            kObjectTypeString => unsafe { &self.data.string },
+            kObjectTypeArray => unsafe { &self.data.array },
+            kObjectTypeDictionary => unsafe { &self.data.dictionary },
+            kObjectTypeLuaRef => unsafe { &self.data.luaref },
         };
 
-        dbg.finish()
+        f.debug_struct("Object")
+            .field("type", &self.r#type)
+            .field("data", data)
+            .finish()
     }
 }
 

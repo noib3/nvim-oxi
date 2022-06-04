@@ -9,8 +9,8 @@ use libc::c_char;
 #[derive(thiserror::Error)]
 #[repr(C)]
 pub struct Error {
-    pub r#type: ErrorType,
-    pub msg: *mut c_char,
+    r#type: ErrorType,
+    msg: *mut c_char,
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
@@ -44,8 +44,7 @@ impl fmt::Debug for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.msg.is_null() {
-            let msg = unsafe { CStr::from_ptr(self.msg) }.to_string_lossy();
-            write!(f, "{}", msg)
+            write!(f, "{:?}", unsafe { CStr::from_ptr(self.msg) })
         } else {
             use ErrorType::*;
             let msg = match self.r#type {
@@ -61,6 +60,7 @@ impl fmt::Display for Error {
 impl Error {
     /// Returns `Ok(f())` if it's not actually an error, or moves into a
     /// generic `std::error::Error` if it is.
+    #[inline]
     pub fn into_err_or_else<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
     where
         Err: StdError + From<self::Error>,
@@ -69,12 +69,13 @@ impl Error {
         (!self.is_err()).then(f).ok_or_else(|| self.into())
     }
 
+    #[inline]
     pub fn into_err_or_flatten<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
     where
         Err: StdError + From<self::Error>,
         F: FnOnce() -> StdResult<Ok, Err>,
     {
-        (!self.is_err()).then(f).ok_or_else(|| self.into())?
+        self.into_err_or_else(f)?
     }
 
     #[inline]

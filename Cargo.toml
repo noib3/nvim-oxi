@@ -2,10 +2,9 @@
 members = [
   "nvim-oxi",
   "nvim-types",
-  "oxi-derive",
-  "oxi-tests",
+  "oxi-module",
 ]
 
-[profile.release]
-codegen-units = 1
-lto = "fat"
+default-members = ["nvim-oxi"]
+
+exclude = ["oxi-tests"]

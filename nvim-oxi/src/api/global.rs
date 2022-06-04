@@ -6,7 +6,7 @@ use nvim_types::{
     string::String as NvimString,
 };
 
-use super::ffi::*;
+use super::ffi::global::*;
 use crate::{Buffer, Result};
 
 // chan_send
