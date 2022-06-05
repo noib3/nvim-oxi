@@ -1,7 +1,4 @@
-use nvim_oxi::{
-    self as nvim,
-    api::{self, opts::*, Buffer},
-};
+use nvim_oxi::api::{self, opts::*, Buffer};
 
 pub fn attach() {
     let buf = Buffer::current();
