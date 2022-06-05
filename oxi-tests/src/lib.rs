@@ -1,25 +1,6 @@
+use nvim_oxi as nvim;
+
 mod api;
-
-#[no_mangle]
-unsafe extern "C" fn luaopen_liboxi_tests(
-    state: *mut ::nvim_oxi::lua::lua_State,
-) -> std::os::raw::c_int {
-    ::nvim_oxi::lua::init_state(state);
-
-    let result = ::std::panic::catch_unwind(|| {
-        api::buffer::attach();
-        api::buffer::get_changedtick();
-    });
-
-    std::process::exit(match result {
-        Ok(_) => 0,
-
-        Err(err) => {
-            eprintln!("{err:?}");
-            1
-        },
-    })
-}
 
 // #[test]
 // fn get_changedtick() {
@@ -36,19 +17,19 @@ unsafe extern "C" fn luaopen_liboxi_tests(
 //     assert_eq!(stderr, String::new());
 // }
 
-// #[nvim::module]
-// fn buffer() -> nvim::Result<()> {
-//     let result = ::std::panic::catch_unwind(|| {
-//         attach();
-//         get_changedtick();
-//     });
+#[nvim::module]
+fn oxi_tests() -> nvim::Result<()> {
+    let result = ::std::panic::catch_unwind(|| {
+        api::buffer::attach();
+        api::buffer::get_changedtick();
+    });
 
-//     std::process::exit(match result {
-//         Ok(_) => 0,
+    std::process::exit(match result {
+        Ok(_) => 0,
 
-//         Err(err) => {
-//             eprintln!("{err:?}");
-//             1
-//         },
-//     })
-// }
+        Err(err) => {
+            eprintln!("{err:?}");
+            1
+        },
+    })
+}

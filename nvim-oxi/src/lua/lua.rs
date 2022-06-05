@@ -21,10 +21,24 @@ thread_local! {
 
 /// Initializes the Lua state. It's only called once when the module is loaded,
 /// and calling it more than once is ub.
+#[inline(always)]
+unsafe fn init_state(lstate: *mut lua_State) {
+    LUA.with(|lua| lua.set(lstate).unwrap_unchecked());
+}
+
+/// TODO: docs
 #[doc(hidden)]
 #[inline(always)]
-pub unsafe fn init_state(lstate: *mut lua_State) {
-    LUA.with(|lua| lua.set(lstate).unwrap_unchecked());
+pub unsafe fn module_entrypoint<F, R>(
+    lstate: *mut lua_State,
+    body: F,
+) -> libc::c_int
+where
+    R: super::LuaPushable,
+    F: FnOnce() -> crate::Result<R> + 'static,
+{
+    self::init_state(lstate);
+    body().unwrap().push(lstate).unwrap()
 }
 
 /// Runs a piece of code with access to the raw Lua state. Calling this before

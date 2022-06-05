@@ -11,7 +11,7 @@ use nvim_types::{
 };
 
 use super::ffi::buffer::*;
-use crate::api::opts::{
+use super::opts::{
     BufAttachOpts,
     CreateCommandOpts,
     GetCommandsOpts,

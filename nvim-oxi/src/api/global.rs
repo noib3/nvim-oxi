@@ -7,7 +7,7 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use crate::{Buffer, Result};
+use crate::{api::Buffer, Result};
 
 // chan_send
 
@@ -15,7 +15,7 @@ use crate::{Buffer, Result};
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = NvimError::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
-    err.into_err_or_else(|| Buffer::from(handle))
+    err.into_err_or_else(|| handle.into())
 }
 
 // create_user_command
@@ -76,7 +76,7 @@ where
 
 /// Binding to `nvim_get_current_buf`.
 pub fn get_current_buf() -> Buffer {
-    Buffer::from(unsafe { nvim_get_current_buf() })
+    unsafe { nvim_get_current_buf() }.into()
 }
 
 // get_current_line

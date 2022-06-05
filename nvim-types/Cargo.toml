@@ -6,6 +6,7 @@ authors = [
   "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
 ]
 edition = "2021"
+publish = false
 
 [dependencies]
 libc = "0.2"
