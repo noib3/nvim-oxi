@@ -7,20 +7,22 @@ use crate::macros::cstr;
 /// # Examples
 ///
 /// ```rust
-/// nvim_oxi::print!("Hello {planet}!", planet = "Mars");
+/// use nvim_oxi as nvim;
+///
+/// nvim::print!("Hello {planet}!", planet = "Mars");
 /// ```
 #[macro_export]
 macro_rules! nprint {
     ($($arg:tt)*) => {{
-        crate::print(::std::fmt::format(format_args!($($arg)*)));
+        $crate::__print(::std::fmt::format(format_args!($($arg)*)));
     }}
 }
 
-pub use nprint as print;
+pub use nprint;
 
 /// Prints a message to the Neovim message area.
 #[doc(hidden)]
-pub fn print(text: impl Into<String>) {
+pub fn __print(text: impl Into<String>) {
     lua::with_state(move |lstate| unsafe {
         let text = text.into();
         lua::lua_getglobal(lstate, cstr!("print"));

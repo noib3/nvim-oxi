@@ -1,6 +1,8 @@
-use nvim_oxi::api::{opts::*, Buffer};
+use nvim_oxi::{
+    self as nvim,
+    api::{self, opts::*, Buffer},
+};
 
-/// Tests ...
 pub fn attach() {
     let buf = Buffer::current();
 
@@ -18,9 +20,35 @@ pub fn attach() {
     assert!(has_attached);
 }
 
-/// Tests ...
+pub fn call() {
+    let buf = Buffer::current();
+    let res = buf.call(|_| Ok(()));
+    assert!(res.is_ok());
+}
+
 pub fn get_changedtick() {
     let buf = Buffer::current();
-
     assert!(buf.get_changedtick().is_ok());
+}
+
+pub fn set_lines() {
+    let mut buf = api::create_buf(true, false).unwrap();
+    assert!(buf.set_lines(0, 0, false, ["foo", "bar", "baz"]).is_ok());
+    assert!(buf.delete(true, true).is_ok());
+}
+
+pub fn set_option() {
+    let mut buf = Buffer::current();
+
+    buf.set_option("modified", true).unwrap();
+    assert!(buf.get_option::<bool>("modified").unwrap());
+
+    buf.set_option("modified", false).unwrap();
+    assert!(!buf.get_option::<bool>("modified").unwrap());
+}
+
+pub fn set_var() {
+    let mut buf = Buffer::current();
+    buf.set_var("foo", 42).unwrap();
+    assert_eq!(42, buf.get_var("foo").unwrap());
 }
