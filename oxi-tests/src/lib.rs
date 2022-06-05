@@ -69,6 +69,7 @@ fn liboxi_tests() -> nvim::Result<()> {
     let result = panic::catch_unwind(|| {
         api::buffer::attach();
         api::buffer::call();
+        api::buffer::create_user_command();
         api::buffer::get_changedtick();
         api::buffer::set_lines();
         api::buffer::set_option();

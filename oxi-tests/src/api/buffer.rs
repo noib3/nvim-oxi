@@ -23,6 +23,18 @@ pub fn call() {
     assert!(res.is_ok());
 }
 
+pub fn create_user_command() {
+    let buf = Buffer::current();
+    let opts = CreateCommandOpts::builder().build().unwrap();
+
+    // let ciao: nvim::Dictionary = opts.clone().into();
+    // nvim_oxi::print!("{ciao:?}");
+
+    let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
+    // nvim_oxi::print!("{res:?}");
+    assert!(res.is_ok());
+}
+
 pub fn get_changedtick() {
     let buf = Buffer::current();
     assert!(buf.get_changedtick().is_ok());
