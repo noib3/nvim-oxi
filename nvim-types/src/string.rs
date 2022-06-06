@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
+#[cfg(target_family = "unix")]
 use std::os::unix::ffi::OsStrExt;
+#[cfg(target_family = "windows")]
+use std::os::windows::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
