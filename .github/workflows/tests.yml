@@ -1,11 +1,6 @@
 name: Testing
 
-on:
-  push:
-    branches:
-      - 'master'
-    pull_request:
-      - 'master'
+on: [push, pull_request]
 
 jobs:
   windows:
