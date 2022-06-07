@@ -7,7 +7,7 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use crate::{api::Buffer, Result, object::FromObject};
+use crate::{api::Buffer, Result, object::{FromObject, ToObject}};
 
 // chan_send
 
@@ -186,7 +186,15 @@ pub fn replace_termcodes<Str: Into<NvimString>>(
 
 // set_option_value
 
-// set_var
+/// Binding to `nvim_set_var`
+pub fn set_var<Value>(name: &str, value: Value) -> Result<()>
+where
+    Value: ToObject,
+{
+    let mut err = NvimError::new();
+    unsafe { nvim_set_var(name.into(), value.to_obj()?, &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 // set_vvar
 
