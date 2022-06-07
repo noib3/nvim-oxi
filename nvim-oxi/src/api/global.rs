@@ -28,7 +28,12 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 
 // del_user_command
 
-// del_var
+/// Binding to `nvim_del_var`
+pub fn del_var(name: &str) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_del_var(name.into(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_echo`.
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
