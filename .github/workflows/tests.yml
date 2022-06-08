@@ -7,6 +7,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+            neovim: true
       - name: Install latest stable Rustc
         uses: actions-rs/toolchain@v1
         with:
@@ -22,6 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+            neovim: true
       - name: Install latest stable Rustc
         uses: actions-rs/toolchain@v1
         with:
@@ -37,6 +45,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+            neovim: true
       - name: Install latest stable Rustc
         uses: actions-rs/toolchain@v1
         with:
