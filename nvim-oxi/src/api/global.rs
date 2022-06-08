@@ -4,12 +4,21 @@ use nvim_types::{
     error::Error as NvimError,
     object::Object,
     string::String as NvimString,
+    Integer,
 };
 
 use super::ffi::global::*;
 use crate::{api::Buffer, Result, object::{FromObject, ToObject}};
 
-// chan_send
+/// Binding to `nvim_chan_send`
+pub fn chan_send<Int>(chan: Int, data: &str) -> Result<()>
+where
+    Int: Into<Integer>,
+{
+    let mut err = NvimError::new();
+    unsafe { nvim_chan_send(chan.into(), data.into(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_create_buf`.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
