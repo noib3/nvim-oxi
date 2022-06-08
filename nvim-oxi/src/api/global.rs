@@ -49,7 +49,12 @@ where
     err.into_err_or_else(|| ())
 }
 
-// del_current_line
+/// Binding to `nvim_del_current_line`
+pub fn del_current_line() -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_del_current_line(&mut err) };
+    err.into_err_or_else(|| ())
+}
 
 // del_keymap
 
