@@ -131,7 +131,15 @@ where
     err.into_err_or_flatten(|| Value::from_obj(obj))
 }
 
-// get_vvar
+/// Binding to `nvim_get_vvar`
+pub fn get_vvar<Value>(name: &str) -> Result<Value>
+where
+    Value: FromObject,
+{
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_vvar(name.into(), &mut err) };
+    err.into_err_or_flatten(|| Value::from_obj(obj))
+}
 
 // input
 
