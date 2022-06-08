@@ -118,7 +118,10 @@ where
     err.into_err_or_else(|| ())
 }
 
-// err_write
+/// Binding to `nvim_err_write`
+pub fn err_write(string: &str) {
+    unsafe { nvim_err_write(string.into()) }
+}
 
 // err_writeln
 
