@@ -209,6 +209,15 @@ where
     err.into_err_or_else(|| ())
 }
 
-// set_vvar
+/// Binding to `nvim_set_vvar`
+pub fn set_vvar<Value>(name: &str, value: Value) -> Result<()>
+where
+    Value: ToObject,
+{
+    let mut err = NvimError::new();
+    unsafe { nvim_set_vvar(name.into(), value.to_obj()?, &mut err) };
+    err.into_err_or_else(|| ())
+}
+
 
 // strwidth
