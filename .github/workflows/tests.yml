@@ -12,11 +12,12 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+      - name: Build library
+        run: cargo build -vv
+        working-directory: oxi-tests
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -vv
+        run: cargo test -vv
+        working-directory: oxi-tests
   linux:
     runs-on: ubuntu-latest
     steps:
@@ -26,11 +27,12 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+      - name: Build library
+        run: cargo build -vv
+        working-directory: oxi-tests
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -vv
+        run: cargo test -vv
+        working-directory: oxi-tests
   macos:
     runs-on: macos-latest
     steps:
@@ -40,8 +42,9 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+      - name: Build library
+        run: cargo build -vv
+        working-directory: oxi-tests
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -vv
+        run: cargo test -vv
+        working-directory: oxi-tests
