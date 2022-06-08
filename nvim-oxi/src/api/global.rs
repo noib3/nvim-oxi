@@ -123,7 +123,11 @@ pub fn err_write(string: &str) {
     unsafe { nvim_err_write(string.into()) }
 }
 
-// err_writeln
+/// Binding to `nvim_err_writeln`
+pub fn err_writeln(string: &str) {
+    unsafe { nvim_err_writeln(string.into()) }
+}
+
 
 // eval_statusline
 
