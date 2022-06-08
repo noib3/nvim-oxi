@@ -8,6 +8,7 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
+use super::opts::CreateCommandOpts;
 use crate::{api::Buffer, Result, object::{FromObject, ToObject}};
 
 /// Binding to `nvim_chan_send`
@@ -27,7 +28,26 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     err.into_err_or_else(|| handle.into())
 }
 
-// create_user_command
+/// Binding to `nvim_create_user_command`
+pub fn create_user_command<Value>(
+    name: &str,
+    command: Value,
+    opts: &CreateCommandOpts,
+) -> Result<()>
+where
+    Value: ToObject,
+{
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_create_user_command(
+            name.into(),
+            command.to_obj()?,
+            &(opts.into()),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 // del_current_line
 
