@@ -74,7 +74,12 @@ pub fn del_keymap(mode: &str, lhs: &str) -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-// del_mark
+/// Binding to `nvim_del_mark`
+pub fn del_mark(name: &str) -> Result<bool> {
+    let mut err = NvimError::new();
+    let res = unsafe { nvim_del_mark(name.into(), &mut err) };
+    err.into_err_or_else(|| res)
+}
 
 // del_user_command
 
