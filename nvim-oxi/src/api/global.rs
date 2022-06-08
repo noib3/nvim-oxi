@@ -9,6 +9,7 @@ use nvim_types::{
 
 use super::ffi::global::*;
 use super::opts::CreateCommandOpts;
+use super::types::Mode;
 use crate::{
     api::Buffer, Result,
     lua::LUA_INTERNAL_CALL,
@@ -61,7 +62,7 @@ pub fn del_current_line() -> Result<()> {
 }
 
 /// Binding to `nvim_del_keymap`
-pub fn del_keymap(mode: &str, lhs: &str) -> Result<()> {
+pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mut err = NvimError::new();
     unsafe {
         nvim_del_keymap(
