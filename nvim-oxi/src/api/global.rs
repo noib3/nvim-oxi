@@ -81,7 +81,12 @@ pub fn del_mark(name: &str) -> Result<bool> {
     err.into_err_or_else(|| res)
 }
 
-// del_user_command
+/// Binding to `nvim_del_user_command`
+pub fn del_user_command(name: &str) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_del_user_command(name.into(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_del_var`
 pub fn del_var(name: &str) -> Result<()> {
