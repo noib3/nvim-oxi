@@ -7,7 +7,7 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use crate::{api::Buffer, Result};
+use crate::{api::Buffer, Result, object::FromObject};
 
 // chan_send
 
@@ -116,7 +116,15 @@ pub fn get_mode() -> Dictionary {
 
 // get_runtime_file
 
-// get_var
+/// Binding to `nvim_get_var`.
+pub fn get_var<Value>(name: &str) -> Result<Value>
+where
+    Value: FromObject,
+{
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_var(name.into(), &mut err) };
+    err.into_err_or_flatten(|| Value::from_obj(obj))
+}
 
 // get_vvar
 

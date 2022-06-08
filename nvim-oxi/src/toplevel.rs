@@ -6,7 +6,7 @@ use crate::macros::cstr;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```ignore
 /// use nvim_oxi as nvim;
 ///
 /// nvim::print!("Hello {planet}!", planet = "Mars");
