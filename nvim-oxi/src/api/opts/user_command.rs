@@ -1,10 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{
-    dictionary::Dictionary,
-    object::Object,
-    string::String as NvimString,
-    Integer,
-};
+use nvim_types::{object::Object, string::String as NvimString, Integer};
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
 use crate::lua::LuaFn;
@@ -17,12 +12,14 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
 
-    bang: bool,
+    #[builder(setter(strip_option))]
+    bang: Option<bool>,
 
-    bar: bool,
+    #[builder(setter(strip_option))]
+    bar: Option<bool>,
 
     #[builder(setter(custom))]
-    complete: Option<Object>, // string or function
+    complete: Option<Object>,
 
     #[builder(setter(into, strip_option))]
     count: Option<Integer>,
@@ -30,10 +27,11 @@ pub struct CreateCommandOpts {
     #[builder(setter(into, strip_option))]
     desc: Option<NvimString>,
 
-    #[builder(default = "true")]
-    force: bool,
+    #[builder(setter(strip_option))]
+    force: Option<bool>,
 
-    keepscript: bool,
+    #[builder(setter(strip_option))]
+    keepscript: Option<bool>,
 
     #[builder(setter(custom))]
     nargs: Option<Object>,
@@ -41,7 +39,8 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     range: Option<Object>,
 
-    register: bool,
+    #[builder(setter(strip_option))]
+    register: Option<bool>,
 }
 
 impl CreateCommandOpts {
@@ -112,26 +111,46 @@ pub enum CommandComplete {
     CustomList(LuaFn<(String, String, usize), Vec<String>>),
 }
 
-impl From<CreateCommandOpts> for Dictionary {
-    fn from(opts: CreateCommandOpts) -> Self {
-        Self::from_iter([
-            ("addr", Object::from(opts.addr)),
-            ("nargs", opts.nargs.into()),
-            ("range", opts.range.into()),
-            ("complete", opts.complete.into()),
-            ("count", opts.count.into()),
-            ("desc", opts.desc.into()),
-            ("force", opts.force.into()),
-            ("bang", opts.bang.into()),
-            ("bar", opts.bar.into()),
-            ("keepscript", opts.keepscript.into()),
-            ("register", opts.register.into()),
-        ])
-    }
+// To see the generated key dicts you need to build Neovim and look in
+// `/build/src/nvim/auto/keysets_defs.generated.h`.
+// TODO: write a proc macro that writes this. Something like a
+// ```
+// #[derive(ToKeyDict)]
+// ```
+#[allow(non_camel_case_types)]
+#[repr(C)]
+#[derive(Default, Debug)]
+pub(crate) struct KeyDict_user_command {
+    addr: Object,
+    bang: Object,
+    bar: Object,
+    complete: Object,
+    count: Object,
+    desc: Object,
+    force: Object,
+    keepscript: Object,
+    nargs: Object,
+    preview: Object,
+    range: Object,
+    register_: Object,
 }
 
-impl<'a> From<&'a CreateCommandOpts> for Dictionary {
+impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command {
     fn from(opts: &CreateCommandOpts) -> Self {
-        opts.clone().into()
+        Self {
+            addr: opts.addr.clone().into(),
+            bang: opts.bang.into(),
+            bar: opts.bar.into(),
+            complete: opts.complete.clone().into(),
+            count: opts.count.into(),
+            desc: opts.desc.clone().into(),
+            force: opts.force.into(),
+            keepscript: opts.keepscript.into(),
+            nargs: opts.nargs.clone().into(),
+            // TODO: what's `preview`?
+            preview: Object::nil(),
+            range: opts.range.clone().into(),
+            register_: opts.register.into(),
+        }
     }
 }

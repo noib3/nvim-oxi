@@ -70,6 +70,13 @@ impl Object {
     }
 }
 
+impl Default for Object {
+    #[inline]
+    fn default() -> Self {
+        Self::nil()
+    }
+}
+
 impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let data: &dyn fmt::Debug = match self.r#type {

@@ -102,7 +102,7 @@ impl Buffer {
                 self.0,
                 name.into(),
                 command.to_obj()?,
-                &(opts.into()),
+                &opts.into(),
                 &mut err,
             )
         };

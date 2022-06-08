@@ -9,6 +9,8 @@ use nvim_types::{
     LuaRef,
 };
 
+use crate::api::opts::KeyDict_user_command;
+
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L145
     pub(crate) fn nvim_buf_attach(
@@ -31,7 +33,7 @@ extern "C" {
         buf: BufHandle,
         name: String,
         command: Object,
-        opts: *const Dictionary,
+        opts: *const KeyDict_user_command,
         err: *mut Error,
     );
 

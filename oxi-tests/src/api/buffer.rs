@@ -1,4 +1,8 @@
-use nvim_oxi::api::{self, opts::*, Buffer};
+use nvim_oxi::{
+    self as nvim,
+    api::{self, opts::*, Buffer},
+    LuaFn,
+};
 
 pub fn attach() {
     let buf = Buffer::current();
@@ -27,11 +31,14 @@ pub fn create_user_command() {
     let buf = Buffer::current();
     let opts = CreateCommandOpts::builder().build().unwrap();
 
-    // let ciao: nvim::Dictionary = opts.clone().into();
-    // nvim_oxi::print!("{ciao:?}");
-
     let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
-    // nvim_oxi::print!("{res:?}");
+    assert!(res.is_ok());
+
+    let cb = LuaFn::from(|()| {
+        nvim::print!("bar!");
+        Ok(())
+    });
+    let res = buf.create_user_command("Bar", cb, &opts);
     assert!(res.is_ok());
 }
 
