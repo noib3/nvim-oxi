@@ -9,7 +9,11 @@ use nvim_types::{
 
 use super::ffi::global::*;
 use super::opts::CreateCommandOpts;
-use crate::{api::Buffer, Result, object::{FromObject, ToObject}};
+use crate::{
+    api::Buffer, Result,
+    lua::LUA_INTERNAL_CALL,
+    object::{FromObject, ToObject},
+};
 
 /// Binding to `nvim_chan_send`
 pub fn chan_send<Int>(chan: Int, data: &str) -> Result<()>
@@ -56,7 +60,19 @@ pub fn del_current_line() -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-// del_keymap
+/// Binding to `nvim_del_keymap`
+pub fn del_keymap(mode: &str, lhs: &str) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_del_keymap(
+            LUA_INTERNAL_CALL,
+            mode.into(),
+            lhs.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 // del_mark
 
