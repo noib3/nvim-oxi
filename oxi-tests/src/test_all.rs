@@ -1,23 +1,23 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-#[cfg(target_family = "unix")]
-const LIB_NAME: &str = "liboxi_tests";
-
-#[cfg(target_family = "windows")]
-const LIB_NAME: &str = "oxi_tests";
-
 #[cfg(all(unix, not(target_os = "macos")))]
-const LIB_EXTENSION: &str = "so";
+const LIB_COMPILED: &str = "liboxi_tests.so";
 
 #[cfg(target_os = "macos")]
-const LIB_EXTENSION: &str = "dylib";
+const LIB_COMPILED: &str = "liboxi_tests.dylib";
 
 #[cfg(target_os = "windows")]
-const LIB_EXTENSION: &str = "dll";
+const LIB_COMPILED: &str = "oxi_tests.dll";
+
+#[cfg(target_family = "unix")]
+const LIB_LUA: &str = "liboxi_tests.so";
+
+#[cfg(target_family = "windows")]
+const LIB_LUA: &str = "liboxi_tests.dll";
 
 fn setup(root: &Path) {
-    let lib_name = PathBuf::from(LIB_NAME).with_extension(LIB_EXTENSION);
+    let lib_name = PathBuf::from(LIB_COMPILED);
     let lib_path = root.join("target").join("debug").join(&lib_name);
 
     if !lib_path.exists() {
@@ -33,7 +33,7 @@ fn setup(root: &Path) {
         .expect(&format!("Couldn't create '{}'", lua_dir.display()));
 
     let from = lib_path;
-    let to = lua_dir.join("liboxi_tests").with_extension("so");
+    let to = lua_dir.join(LIB_LUA);
     std::fs::copy(&from, &to).expect(&format!(
         "Couldn't copy {} to {}",
         from.display(),
