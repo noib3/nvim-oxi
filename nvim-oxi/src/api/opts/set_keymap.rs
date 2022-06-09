@@ -1,9 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{
-    dictionary::Dictionary,
-    object::Object,
-    string::String as NvimString,
-};
+use nvim_types::{object::Object, string::String as NvimString};
 
 use crate::lua::LuaFnMut;
 
@@ -17,12 +13,23 @@ pub struct SetKeymapOpts {
     #[builder(setter(into, strip_option))]
     desc: Option<NvimString>,
 
-    expr: bool,
-    noremap: bool,
-    nowait: bool,
-    script: bool,
-    silent: bool,
-    unique: bool,
+    #[builder(setter(strip_option))]
+    expr: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    noremap: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    nowait: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    script: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    silent: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    unique: Option<bool>,
 }
 
 impl SetKeymapOpts {
@@ -42,23 +49,31 @@ impl SetKeymapOptsBuilder {
     }
 }
 
-impl From<SetKeymapOpts> for Dictionary {
-    fn from(opts: SetKeymapOpts) -> Self {
-        Self::from_iter([
-            ("callback", Object::from(opts.callback)),
-            ("desc", opts.desc.into()),
-            ("expr", opts.expr.into()),
-            ("noremap", opts.noremap.into()),
-            ("nowait", opts.nowait.into()),
-            ("script", opts.script.into()),
-            ("silent", opts.silent.into()),
-            ("unique", opts.unique.into()),
-        ])
-    }
+#[allow(non_camel_case_types)]
+#[repr(C)]
+#[derive(Default, Debug)]
+pub(crate) struct KeyDict_keymap {
+    callback: Object,
+    desc: Object,
+    expr: Object,
+    noremap: Object,
+    nowait: Object,
+    script: Object,
+    silent: Object,
+    unique: Object,
 }
 
-impl<'a> From<&'a SetKeymapOpts> for Dictionary {
+impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap {
     fn from(opts: &SetKeymapOpts) -> Self {
-        opts.clone().into()
+        Self {
+            callback: opts.callback.into(),
+            desc: opts.desc.clone().into(),
+            expr: opts.expr.into(),
+            noremap: opts.noremap.into(),
+            nowait: opts.nowait.into(),
+            script: opts.script.into(),
+            silent: opts.silent.into(),
+            unique: opts.unique.into(),
+        }
     }
 }

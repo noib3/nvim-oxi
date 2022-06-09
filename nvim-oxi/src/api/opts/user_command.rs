@@ -1,8 +1,10 @@
 use derive_builder::Builder;
 use nvim_types::{object::Object, string::String as NvimString, Integer};
+use serde::{Deserialize, Serialize};
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
-use crate::lua::LuaFn;
+use crate::api::Buffer;
+use crate::lua::LuaFnMut;
 use crate::object::ToObject;
 
 /// Options passed to `Buffer::create_user_command`.
@@ -37,6 +39,9 @@ pub struct CreateCommandOpts {
     nargs: Option<Object>,
 
     #[builder(setter(custom))]
+    preview: Option<Object>,
+
+    #[builder(setter(custom))]
     range: Option<Object>,
 
     #[builder(setter(strip_option))]
@@ -64,11 +69,39 @@ impl CreateCommandOptsBuilder {
     object_setter!(nargs, CommandNArgs);
     object_setter!(range, CommandRange);
     object_setter!(complete, CommandComplete);
+
+    // fn preview<F>(&mut self, f: F) -> &mut Self
+    // where
+    //     F: FnMut(
+    //             (CreateCommandArgs, Option<u32>, Option<Buffer>),
+    //         ) -> crate::Result<u8>
+    //         + 'static,
+    // {
+    //     self.preview = Some(Some(LuaFnMut::from(f).to_obj().unwrap()));
+    //     self
+    // }
+}
+
+/// TODO: docs
+#[derive(Clone, Debug, Deserialize)]
+pub struct CreateCommandArgs {
+    pub args: Option<String>,
+    pub fargs: Option<Vec<String>>,
+    pub bang: bool,
+    pub line1: usize,
+    pub line2: usize,
+    pub range: usize,
+    pub count: Option<u32>,
+    #[serde(rename = "reg")]
+    pub register: Option<String>,
+    pub mods: Option<String>,
+    // TODO
+    pub smods: (),
 }
 
 /// See `:h command-complete` for details.
 #[non_exhaustive]
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub enum CommandComplete {
     Arglist,
     Augroup,
@@ -106,9 +139,9 @@ pub enum CommandComplete {
     User,
     Var,
 
-    #[serde(skip)]
     /// See `:h command-completion-customlist` for details.
-    CustomList(LuaFn<(String, String, usize), Vec<String>>),
+    #[serde(skip)]
+    CustomList(LuaFnMut<(String, String, usize), Vec<String>>),
 }
 
 // To see the generated key dicts you need to build Neovim and look in
@@ -147,8 +180,7 @@ impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command {
             force: opts.force.into(),
             keepscript: opts.keepscript.into(),
             nargs: opts.nargs.clone().into(),
-            // TODO: what's `preview`?
-            preview: Object::nil(),
+            preview: opts.preview.clone().into(),
             range: opts.range.clone().into(),
             register_: opts.register.into(),
         }

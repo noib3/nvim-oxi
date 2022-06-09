@@ -1,11 +1,12 @@
 use derive_builder::Builder;
-use nvim_types::dictionary::Dictionary;
+use nvim_types::object::Object;
 
 /// Options passed to `Buffer::get_commands`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default)]
 pub struct GetCommandsOpts {
-    builtin: bool,
+    #[builder(setter(strip_option))]
+    builtin: Option<bool>,
 }
 
 impl GetCommandsOpts {
@@ -15,14 +16,15 @@ impl GetCommandsOpts {
     }
 }
 
-impl From<GetCommandsOpts> for Dictionary {
-    fn from(opts: GetCommandsOpts) -> Self {
-        Self::from_iter([("builtin", opts.builtin)])
-    }
+#[allow(non_camel_case_types)]
+#[repr(C)]
+#[derive(Default, Debug)]
+pub(crate) struct KeyDict_get_commands {
+    builtin: Object,
 }
 
-impl<'a> From<&'a GetCommandsOpts> for Dictionary {
+impl<'a> From<&'a GetCommandsOpts> for KeyDict_get_commands {
     fn from(opts: &GetCommandsOpts) -> Self {
-        opts.clone().into()
+        Self { builtin: opts.builtin.into() }
     }
 }

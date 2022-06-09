@@ -9,7 +9,11 @@ use nvim_types::{
     LuaRef,
 };
 
-use crate::api::opts::KeyDict_user_command;
+use crate::api::opts::{
+    KeyDict_get_commands,
+    KeyDict_keymap,
+    KeyDict_user_command,
+};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L145
@@ -83,7 +87,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L983
     pub(crate) fn nvim_buf_get_commands(
         buf: BufHandle,
-        opts: *mut Dictionary,
+        opts: *const KeyDict_get_commands,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -168,7 +172,7 @@ extern "C" {
         mode: String,
         lhs: String,
         rhs: String,
-        opts: *const Dictionary,
+        opts: *const KeyDict_keymap,
         err: *mut Error,
     );
 

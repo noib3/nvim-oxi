@@ -50,7 +50,9 @@ pub fn get_changedtick() {
 pub fn set_lines() {
     let mut buf = api::create_buf(true, false).unwrap();
     assert!(buf.set_lines(0, 0, false, ["foo", "bar", "baz"]).is_ok());
-    assert!(buf.delete(true, true).is_ok());
+    let opts =
+        BufDeleteOpts::builder().force(true).unload(true).build().unwrap();
+    assert!(buf.delete(opts).is_ok());
 }
 
 pub fn set_option() {

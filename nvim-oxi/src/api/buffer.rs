@@ -11,12 +11,7 @@ use nvim_types::{
 };
 
 use super::ffi::buffer::*;
-use super::opts::{
-    BufAttachOpts,
-    CreateCommandOpts,
-    GetCommandsOpts,
-    SetKeymapOpts,
-};
+use super::opts::*;
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFnOnce, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
@@ -154,13 +149,9 @@ impl Buffer {
     }
 
     // Binding to `nvim_buf_delete`.
-    pub fn delete(self, force: bool, unload: bool) -> Result<()> {
-        let opts = Dictionary::from_iter([
-            ("force", force.to_obj()?),
-            ("unload", unload.to_obj()?),
-        ]);
+    pub fn delete(self, opts: BufDeleteOpts) -> Result<()> {
         let mut err = NvimError::new();
-        unsafe { nvim_buf_delete(self.0, opts, &mut err) };
+        unsafe { nvim_buf_delete(self.0, opts.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
 
@@ -179,9 +170,8 @@ impl Buffer {
         opts: &GetCommandsOpts,
     ) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
-        let cmds = unsafe {
-            nvim_buf_get_commands(self.0, &mut (opts.into()), &mut err)
-        };
+        let cmds =
+            unsafe { nvim_buf_get_commands(self.0, &opts.into(), &mut err) };
         err.into_err_or_else(|| {
             cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
         })
@@ -248,8 +238,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_get_name`.
     ///
-    /// Returns the full filepath of the buffer, replacing all invalid UTF-8
-    /// byte sequences in the path with `U+FFFD REPLACEMENT CHARACTER` (�).
+    /// Returns the full filepath of the buffer.
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = NvimError::new();
         let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
@@ -366,7 +355,7 @@ impl Buffer {
                 mode.into(),
                 lhs.into(),
                 rhs.unwrap_or_default().into(),
-                &(opts.into()),
+                &opts.into(),
                 &mut err,
             )
         };
@@ -465,16 +454,15 @@ impl Buffer {
     ///
     /// Sets (replaces) a range in the buffer. Indexing is zero-based, with
     /// both row and column indices being end-exclusive.
-    pub fn set_text<Int, Line, Lines>(
+    pub fn set_text<Line, Lines>(
         &mut self,
-        start_row: Int,
-        start_col: Int,
-        end_row: Int,
-        end_col: Int,
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
         replacement: Lines,
     ) -> Result<()>
     where
-        Int: Into<Integer>,
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
@@ -483,10 +471,10 @@ impl Buffer {
             nvim_buf_set_text(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start_row.into(),
-                start_col.into(),
-                end_row.into(),
-                end_col.into(),
+                start_row.try_into()?,
+                start_col.try_into()?,
+                end_row.try_into()?,
+                end_col.try_into()?,
                 replacement
                     .into_iter()
                     .map(|line| line.into())
