@@ -13,10 +13,11 @@ extern "C" {
         err: *mut Error,
     );
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L701
     pub(crate) fn nvim_create_augroup(
         channel_id: u64,
         name: String,
         opts: *const Dictionary,
         err: *mut Error,
-    ) -> Integer;
+    ) -> u32;
 }
