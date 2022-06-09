@@ -119,7 +119,7 @@ impl<'a> From<&'a str> for String {
 impl From<char> for String {
     #[inline]
     fn from(ch: char) -> Self {
-        Self { data: *(Box::new(ch as c_char)) as *mut c_char, size: 1 }
+        ch.to_string().into()
     }
 }
 
