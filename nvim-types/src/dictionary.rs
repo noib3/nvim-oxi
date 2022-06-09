@@ -13,8 +13,8 @@ pub type Dictionary = Collection<KeyValuePair>;
 #[derive(Clone)]
 #[repr(C)]
 pub struct KeyValuePair {
-    key: String,
-    value: Object,
+    pub key: String,
+    pub value: Object,
 }
 
 impl fmt::Debug for KeyValuePair {

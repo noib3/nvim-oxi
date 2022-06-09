@@ -77,7 +77,24 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     {
         use ObjectType::*;
         let (variant, obj) = match self.obj.r#type {
-            kObjectTypeDictionary => todo!(),
+            kObjectTypeDictionary => {
+                let mut iter = ManuallyDrop::into_inner(unsafe {
+                    self.obj.data.dictionary
+                })
+                .into_iter();
+
+                let (variant, value) = match iter.len() {
+                    1 => iter.next().expect("checked length"),
+                    _ => {
+                        return Err(de::Error::invalid_value(
+                            de::Unexpected::Map,
+                            &"dictionary with a single key-value pair",
+                        ))
+                    },
+                };
+
+                (variant.into_string()?, Some(value))
+            },
 
             kObjectTypeString => (
                 ManuallyDrop::into_inner(unsafe { self.obj.data.string })
