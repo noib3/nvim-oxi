@@ -146,10 +146,6 @@ pub enum CommandComplete {
 
 // To see the generated key dicts you need to build Neovim and look in
 // `/build/src/nvim/auto/keysets_defs.generated.h`.
-// TODO: write a proc macro that writes this. Something like a
-// ```
-// #[derive(ToKeyDict)]
-// ```
 #[allow(non_camel_case_types)]
 #[repr(C)]
 #[derive(Default, Debug)]
