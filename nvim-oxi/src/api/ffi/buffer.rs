@@ -7,6 +7,7 @@ use nvim_types::{
     LuaRef,
     Object,
     String,
+    NonOwning,
 };
 
 use crate::api::opts::{
@@ -21,7 +22,7 @@ extern "C" {
         channel_id: u64,
         buf: BufHandle,
         send_buffer: bool,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> bool;
 
@@ -35,8 +36,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1383
     pub(crate) fn nvim_buf_create_user_command(
         buf: BufHandle,
-        name: String,
-        command: Object,
+        name: NonOwning<String>,
+        command: NonOwning<Object>,
         opts: *const KeyDict_user_command,
         err: *mut Error,
     );
@@ -45,36 +46,36 @@ extern "C" {
     pub(crate) fn nvim_buf_del_keymap(
         channel_id: u64,
         buf: BufHandle,
-        mode: String,
-        lhs: String,
+        mode: NonOwning<String>,
+        lhs: NonOwning<String>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1216
     pub(crate) fn nvim_buf_del_mark(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     ) -> bool;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1406
     pub(crate) fn nvim_buf_del_user_command(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1030
     pub(crate) fn nvim_buf_del_var(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1150
     pub(crate) fn nvim_buf_delete(
         buf: BufHandle,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     );
 
@@ -95,7 +96,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_keymap(
         channel_id: u64,
         buf: BufHandle,
-        mode: String,
+        mode: NonOwning<String>,
         err: *mut Error,
     ) -> Array;
 
@@ -112,7 +113,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1299
     pub(crate) fn nvim_buf_get_mark(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     ) -> Array;
 
@@ -130,7 +131,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     ) -> Object;
 
@@ -142,14 +143,14 @@ extern "C" {
         start_col: Integer,
         end_row: Integer,
         end_col: Integer,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1049
     pub(crate) fn nvim_buf_get_var(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     ) -> Object;
 
@@ -169,9 +170,9 @@ extern "C" {
     pub(crate) fn nvim_buf_set_keymap(
         channel_id: u64,
         buf: BufHandle,
-        mode: String,
-        lhs: String,
-        rhs: String,
+        mode: NonOwning<String>,
+        lhs: NonOwning<String>,
+        rhs: NonOwning<String>,
         opts: *const KeyDict_keymap,
         err: *mut Error,
     );
@@ -183,24 +184,24 @@ extern "C" {
         start: Integer,
         end: Integer,
         strict_indexing: bool,
-        replacement: Array,
+        replacement: NonOwning<Array>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1265
     pub(crate) fn nvim_buf_set_mark(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         line: Integer,
         col: Integer,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> bool;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1104
     pub(crate) fn nvim_buf_set_name(
         buf: BufHandle,
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     );
 
@@ -208,8 +209,8 @@ extern "C" {
     pub(crate) fn nvim_buf_set_option(
         channel_id: u64,
         buf: BufHandle,
-        name: String,
-        value: Object,
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
         err: *mut Error,
     );
 
@@ -221,15 +222,15 @@ extern "C" {
         start_col: Integer,
         end_row: Integer,
         end_col: Integer,
-        replacement: Array,
+        replacement: NonOwning<Array>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1013
     pub(crate) fn nvim_buf_set_var(
         buf: BufHandle,
-        name: String,
-        value: Object,
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
         err: *mut Error,
     );
 }
