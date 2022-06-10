@@ -7,7 +7,7 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use crate::{api::Buffer, Result, object::FromObject};
+use crate::{api::Buffer, object::FromObject, Result};
 
 // chan_send
 
@@ -48,7 +48,10 @@ where
         .collect::<Array>();
 
     let mut err = NvimError::new();
-    unsafe { nvim_echo(chunks, history, Dictionary::new(), &mut err) };
+    let opts = Dictionary::new();
+    unsafe {
+        nvim_echo(chunks.non_owning(), history, opts.non_owning(), &mut err)
+    };
     err.into_err_or_else(|| ())
 }
 
@@ -122,7 +125,8 @@ where
     Value: FromObject,
 {
     let mut err = NvimError::new();
-    let obj = unsafe { nvim_get_var(name.into(), &mut err) };
+    let name = NvimString::from(name);
+    let obj = unsafe { nvim_get_var(name.non_owning(), &mut err) };
     err.into_err_or_flatten(|| Value::from_obj(obj))
 }
 
@@ -163,7 +167,8 @@ pub fn replace_termcodes<Str: Into<NvimString>>(
     do_lt: bool,
     special: bool,
 ) -> NvimString {
-    unsafe { nvim_replace_termcodes(str.into(), from_part, do_lt, special) }
+    let str = str.into();
+    unsafe { nvim_replace_termcodes(str.non_owning(), from_part, do_lt, special) }
 }
 
 // select_popupmenu_item
