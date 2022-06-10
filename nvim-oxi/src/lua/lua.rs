@@ -76,5 +76,6 @@ pub(super) unsafe fn handle_error(
 ) -> ! {
     let msg = err.to_string();
     lua_pushlstring(lstate, msg.as_ptr() as *const c_char, msg.len());
+    // Not really sure why I'm not seeing the error message pop up in Neovim :/
     lua_error(lstate);
 }

@@ -46,6 +46,9 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub(crate) fn lua_call(L: *mut lua_State, nargs: c_int, nresults: c_int);
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_createtable
+    pub(crate) fn lua_createtable(L: *mut lua_State, narr: c_int, nrec: c_int);
+
     // https://www.lua.org/manual/5.1/manual.html#lua_error
     pub(crate) fn lua_error(L: *mut lua_State) -> !;
 
@@ -58,9 +61,6 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#lua_gettop
     pub(crate) fn lua_gettop(L: *mut lua_State) -> c_int;
-
-    // https://www.lua.org/manual/5.1/manual.html#lua_rawgeti
-    pub(crate) fn lua_rawgeti(L: *mut lua_State, index: c_int, n: c_int);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_newuserdata
     pub(crate) fn lua_newuserdata(
@@ -99,6 +99,12 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushstring
     pub(crate) fn lua_pushstring(L: *mut lua_State, s: *const c_char);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_rawgeti
+    pub(crate) fn lua_rawgeti(L: *mut lua_State, index: c_int, n: c_int);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_rawset
+    pub(crate) fn lua_rawset(L: *mut lua_State, index: c_int);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_rawseti
     pub(crate) fn lua_rawseti(L: *mut lua_State, index: c_int, n: c_int);
