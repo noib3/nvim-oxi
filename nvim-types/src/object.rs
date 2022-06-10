@@ -7,6 +7,7 @@ use std::string::String as StdString;
 
 use crate::{
     array::Array,
+    non_owning::NonOwning,
     dictionary::Dictionary,
     string::String as NvimString,
     Boolean,
@@ -67,6 +68,14 @@ impl Object {
     #[inline]
     pub const fn is_some(&self) -> bool {
         !self.is_nil()
+    }
+
+    /// Make a non-owning version of this Object.
+    #[inline]
+    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
+        // The Object is owned by self, and will not be droped before 'a ends
+        // using ptr::read, because can't copy the union
+        unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 }
 

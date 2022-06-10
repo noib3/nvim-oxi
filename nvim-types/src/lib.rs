@@ -4,6 +4,7 @@ pub mod dictionary;
 pub mod error;
 pub mod object;
 pub mod string;
+pub mod non_owning;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 pub type Boolean = bool;

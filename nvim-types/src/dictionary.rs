@@ -5,6 +5,7 @@ use std::{fmt, ptr};
 use super::collection::Collection;
 use super::object::Object;
 use super::string::String;
+use crate::non_owning::NonOwning;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Dictionary = Collection<KeyValuePair>;
@@ -116,5 +117,20 @@ where
 {
     fn from(hashmap: StdHashMap<K, V>) -> Self {
         hashmap.into_iter().collect()
+    }
+}
+
+impl Dictionary {
+    /// Make a non-owning version of this Dictionary.
+    #[inline]
+    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
+        // The Dictionary is owned by self, and will not be droped before 'a ends
+        unsafe {
+            NonOwning::new(Self {
+                items: self.items,
+                size: self.size,
+                capacity: self.capacity,
+            })
+        }
     }
 }
