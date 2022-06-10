@@ -10,6 +10,8 @@ use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
 
+use crate::NonOwning;
+
 /// Neovim's `String`s:
 ///   - are null-terminated;
 ///   - *can* contain null bytes (confirmed by bfredl on matrix);
@@ -84,6 +86,13 @@ impl String {
     #[inline]
     pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
         StdString::from_utf8(self.into_bytes())
+    }
+
+    /// Make a non-owning version of this string.
+    #[inline]
+    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, String> {
+        // The string is owned by self, and will not be droped before 'a ends
+        unsafe { NonOwning::new(String { data: self.data, size: self.size }) }
     }
 }
 

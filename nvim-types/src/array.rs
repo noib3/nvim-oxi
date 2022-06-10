@@ -1,6 +1,8 @@
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
+use crate::NonOwning;
+
 use super::collection::Collection;
 use super::object::Object;
 
@@ -72,5 +74,20 @@ where
             .filter(Object::is_some)
             .collect::<Vec<Object>>()
             .into()
+    }
+}
+
+impl Array {
+    /// Make a non-owning version of this Array.
+    #[inline]
+    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
+        // The Dictionary is owned by self, and will not be droped before 'a ends
+        unsafe {
+            NonOwning::new(Self {
+                items: self.items,
+                size: self.size,
+                capacity: self.capacity,
+            })
+        }
     }
 }
