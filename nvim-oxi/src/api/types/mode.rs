@@ -1,7 +1,7 @@
-use nvim_types::{Object, String as NvimString};
+use nvim_types::String as NvimString;
 use serde::{Deserialize, Serialize};
 
-use crate::object::{self, ToObject};
+use crate::object;
 
 /// TODO: docs
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -63,17 +63,11 @@ impl Mode {
     is_mode!(is_visual_select, VisualSelect);
 }
 
-impl ToObject for Mode {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
-    }
-}
-
 impl From<Mode> for NvimString {
     fn from(mode: Mode) -> Self {
-        unsafe {
-            NvimString::try_from(mode.to_obj().unwrap_unchecked())
-                .unwrap_unchecked()
-        }
+        mode.serialize(object::Serializer)
+            .expect("`Mode` is serializable")
+            .try_into()
+            .expect("`Mode` is serialized into a string")
     }
 }

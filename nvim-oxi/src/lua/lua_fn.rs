@@ -9,6 +9,16 @@ use serde::{de, ser};
 use super::ffi::*;
 use crate::Result;
 
+impl<A, R> crate::object::ToObject for LuaFn<A, R>
+where
+    A: super::LuaPoppable,
+    R: super::LuaPushable,
+{
+    fn to_obj(self) -> crate::Result<Object> {
+        Ok(self.into())
+    }
+}
+
 impl<A, R> crate::object::ToObject for LuaFnMut<A, R>
 where
     A: super::LuaPoppable,

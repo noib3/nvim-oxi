@@ -123,6 +123,13 @@ impl From<char> for String {
     }
 }
 
+impl<'a> From<Cow<'a, str>> for String {
+    #[inline]
+    fn from(moo: Cow<'a, str>) -> Self {
+        moo.into_owned().into()
+    }
+}
+
 #[cfg(not(windows))]
 impl From<String> for PathBuf {
     #[inline]

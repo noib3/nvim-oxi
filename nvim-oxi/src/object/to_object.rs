@@ -19,17 +19,6 @@ macro_rules! to_into {
     };
 }
 
-/// Implements `ToObject` for "big integer" types.
-macro_rules! to_bigint {
-    ($type:ty) => {
-        impl ToObject for $type {
-            fn to_obj(self) -> Result<Object> {
-                Ok(i64::try_from(self)?.into())
-            }
-        }
-    };
-}
-
 to_into!(());
 to_into!(bool);
 to_into!(i8);
@@ -43,11 +32,34 @@ to_into!(f64);
 to_into!(StdString);
 to_into!(NvimString);
 
+/// Implements `ToObject` for "big integer" types.
+macro_rules! to_bigint {
+    ($type:ty) => {
+        impl ToObject for $type {
+            fn to_obj(self) -> Result<Object> {
+                Ok(i64::try_from(self)?.into())
+            }
+        }
+    };
+}
+
 to_bigint!(u64);
 to_bigint!(i128);
 to_bigint!(u128);
 to_bigint!(isize);
 to_bigint!(usize);
+
+impl<'a> ToObject for &'a str {
+    fn to_obj(self) -> Result<Object> {
+        Ok(NvimString::from(self).into())
+    }
+}
+
+impl<'a> ToObject for std::borrow::Cow<'a, str> {
+    fn to_obj(self) -> Result<Object> {
+        Ok(NvimString::from(self).into())
+    }
+}
 
 impl<T> ToObject for Option<T>
 where
