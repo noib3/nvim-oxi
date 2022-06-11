@@ -149,6 +149,12 @@ pub enum CommandComplete {
     CustomList(LuaFnMut<(String, String, usize), Vec<String>>),
 }
 
+impl ToObject for CommandComplete {
+    fn to_obj(self) -> crate::Result<Object> {
+        self.serialize(object::Serializer)
+    }
+}
+
 // To see the generated key dicts you need to build Neovim and look in
 // `/build/src/nvim/auto/keysets_defs.generated.h`.
 #[allow(non_camel_case_types)]

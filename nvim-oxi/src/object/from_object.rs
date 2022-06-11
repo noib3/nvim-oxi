@@ -1,6 +1,6 @@
 use std::string::String as StdString;
 
-use nvim_types::{Object, String as NvimString};
+use nvim_types::{Array, Object, String as NvimString};
 
 use crate::Result;
 
@@ -8,7 +8,7 @@ pub trait FromObject: Sized {
     fn from_obj(obj: Object) -> Result<Self>;
 }
 
-/// Implements `FromObject` for a `TryFrom<Object>` type.
+/// Implements `FromObject` for `TryFrom<Object>` types.
 macro_rules! from_try_from {
     ($type:ty) => {
         impl FromObject for $type {
@@ -44,5 +44,14 @@ where
 {
     fn from_obj(obj: Object) -> Result<Self> {
         (!obj.is_nil()).then(|| T::from_obj(obj)).transpose()
+    }
+}
+
+impl<T> FromObject for Vec<T>
+where
+    T: FromObject,
+{
+    fn from_obj(obj: Object) -> Result<Self> {
+        Array::try_from(obj)?.into_iter().map(FromObject::from_obj).collect()
     }
 }

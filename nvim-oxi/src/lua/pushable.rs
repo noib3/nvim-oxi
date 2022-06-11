@@ -7,20 +7,6 @@ use super::ffi::*;
 use crate::object::ToObject;
 use crate::Result;
 
-#[doc(hidden)]
-pub trait LuaPushable {
-    /// Pushes all its values on the Lua stack, returning the number of values
-    /// that it pushed.
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int>;
-}
-
-impl<T: ToObject> LuaPushable for T {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int> {
-        self.to_obj()?.push(lstate)?;
-        Ok(1)
-    }
-}
-
 trait ObjectExt {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<()>;
 }
@@ -87,3 +73,58 @@ impl ObjectExt for Object {
         Ok(())
     }
 }
+
+#[doc(hidden)]
+pub trait LuaPushable {
+    /// Pushes all its values on the Lua stack, returning the number of values
+    /// that it pushed.
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int>;
+}
+
+impl<A> LuaPushable for A
+where
+    A: ToObject,
+{
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int> {
+        self.to_obj()?.push(lstate)?;
+        Ok(1)
+    }
+}
+
+macro_rules! impl_tuple {
+    ($($name:ident)*) => (
+        impl<$($name,)*> LuaPushable for ($($name,)*)
+            where $($name: ToObject,)*
+        {
+            #[allow(non_snake_case)]
+            #[inline]
+            unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int> {
+                let ($($name,)*) = self;
+                $($name.to_obj()?.push(lstate)?;)*
+                Ok(count!($($name)*))
+            }
+        }
+    );
+}
+
+macro_rules! count {
+    () => {0i32};
+    ($x:tt $($xs:tt)*) => {1i32 + count!($($xs)*)};
+}
+
+impl_tuple!(A);
+impl_tuple!(A B);
+impl_tuple!(A B C);
+impl_tuple!(A B C D);
+impl_tuple!(A B C D E);
+impl_tuple!(A B C D E F);
+impl_tuple!(A B C D E F G);
+impl_tuple!(A B C D E F G H);
+impl_tuple!(A B C D E F G H I);
+impl_tuple!(A B C D E F G H I J);
+impl_tuple!(A B C D E F G H I J K);
+impl_tuple!(A B C D E F G H I J K L);
+impl_tuple!(A B C D E F G H I J K L M);
+impl_tuple!(A B C D E F G H I J K L M N);
+impl_tuple!(A B C D E F G H I J K L M N O);
+impl_tuple!(A B C D E F G H I J K L M N O P);

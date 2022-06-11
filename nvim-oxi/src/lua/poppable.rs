@@ -46,20 +46,6 @@ where
     }
 }
 
-macro_rules! count {
-    () => {0i32};
-    ($x:tt $($xs:tt)*) => {1i32 + count!($($xs)*)};
-}
-
-macro_rules! pop_reverse {
-    ($lstate:expr, $x:ident $($xs:ident)*) => {
-        pop_reverse!($lstate, $($xs)*);
-        let $x = $x::from_obj(Object::pop($lstate)?)?;
-    };
-
-    ($lstate:expr,) => ();
-}
-
 macro_rules! impl_tuple {
     ($($name:ident)*) => (
         impl<$($name,)*> LuaPoppable for ($($name,)*)
@@ -76,6 +62,20 @@ macro_rules! impl_tuple {
             }
         }
     );
+}
+
+macro_rules! count {
+    () => {0i32};
+    ($x:tt $($xs:tt)*) => {1i32 + count!($($xs)*)};
+}
+
+macro_rules! pop_reverse {
+    ($lstate:expr, $x:ident $($xs:ident)*) => {
+        pop_reverse!($lstate, $($xs)*);
+        let $x = $x::from_obj(Object::pop($lstate)?)?;
+    };
+
+    ($lstate:expr,) => ();
 }
 
 impl_tuple!(A);
