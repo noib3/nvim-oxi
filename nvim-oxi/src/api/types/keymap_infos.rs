@@ -1,14 +1,16 @@
+use nvim_types::Object;
 use serde::{de, Deserialize};
 
 use super::Mode;
-use crate::lua::LuaFn;
+use crate::lua::LuaFun;
+use crate::object::{self, FromObject};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
 pub struct KeymapInfos {
     #[serde(deserialize_with = "bool_from_int")]
     buffer: bool,
 
-    callback: Option<LuaFn<(), ()>>,
+    callback: Option<LuaFun<(), ()>>,
 
     #[serde(deserialize_with = "bool_from_int")]
     expr: bool,
@@ -59,9 +61,8 @@ where
     u32::deserialize(deserializer).map(|lnum| (lnum != 0).then(|| lnum))
 }
 
-// fn empty_is_none<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-// where
-//     D: de::Deserializer<'de>,
-// {
-//     String::deserialize(deserializer).map(|rhs| (!rhs.is_empty()).then(|| rhs))
-// }
+impl FromObject for KeymapInfos {
+    fn from_obj(obj: Object) -> crate::Result<Self> {
+        Self::deserialize(object::Deserializer::new(obj))
+    }
+}

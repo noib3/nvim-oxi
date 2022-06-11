@@ -1,10 +1,17 @@
-pub mod array;
-pub mod collection;
-pub mod dictionary;
-pub mod error;
-pub mod object;
-pub mod string;
+mod array;
+mod collection;
+mod dictionary;
+mod error;
+mod object;
+mod string;
 pub mod non_owning;
+
+pub use array::*;
+pub use collection::*;
+pub use dictionary::*;
+pub use error::*;
+pub use object::*;
+pub use string::*;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 pub type Boolean = bool;

@@ -1,15 +1,18 @@
-use nvim_types::{
-    object::{Object, ObjectData, ObjectType},
-    string::String as NvimString,
-};
+use nvim_types::{Object, ObjectData, ObjectType, String as NvimString};
 use serde::ser;
 
-use super::ToObject;
 use crate::Result;
 
 /// A struct for serializing Rust values into Neovim `Object`s.
+#[non_exhaustive]
 #[derive(Debug)]
-pub(super) struct Serializer;
+pub struct Serializer;
+
+impl Serializer {
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 macro_rules! serialize_into {
     ($name:ident, $type:ty) => {
@@ -204,7 +207,7 @@ impl ser::SerializeSeq for SerializeSeq {
     where
         T: ser::Serialize + ?Sized,
     {
-        self.items.push(value.to_obj()?);
+        self.items.push(value.serialize(Serializer)?);
         Ok(())
     }
 
@@ -250,7 +253,7 @@ impl ser::SerializeMap for SerializeMap {
     where
         T: ser::Serialize + ?Sized,
     {
-        self.key = Some(key.to_obj()?.try_into()?);
+        self.key = Some(key.serialize(Serializer)?.try_into()?);
         Ok(())
     }
 
@@ -259,7 +262,7 @@ impl ser::SerializeMap for SerializeMap {
         T: ser::Serialize + ?Sized,
     {
         let key = self.key.take().expect("value serialized before key");
-        let obj = value.to_obj()?;
+        let obj = value.serialize(Serializer)?;
         self.pairs.push((key, obj));
         Ok(())
     }

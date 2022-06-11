@@ -1,16 +1,16 @@
 #![allow(dead_code)]
 
 use nvim_types::{
-    array::Array,
-    dictionary::Dictionary,
-    error::Error,
-    non_owning::NonOwning,
-    object::Object,
-    string::String,
+    Array,
     BufHandle,
+    Dictionary,
+    Error,
     Integer,
+    Object,
+    String,
     TabHandle,
     WinHandle,
+    non_owning::NonOwning,
 };
 
 extern "C" {

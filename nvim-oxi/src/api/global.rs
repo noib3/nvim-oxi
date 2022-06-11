@@ -1,9 +1,9 @@
 use nvim_types::{
-    array::Array,
-    dictionary::Dictionary,
-    error::Error as NvimError,
-    object::Object,
-    string::String as NvimString,
+    Array,
+    Dictionary,
+    Error as NvimError,
+    Object,
+    String as NvimString,
 };
 
 use super::ffi::global::*;

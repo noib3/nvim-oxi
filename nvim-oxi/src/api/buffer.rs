@@ -2,22 +2,24 @@ use std::fmt;
 use std::path::PathBuf;
 
 use nvim_types::{
-    array::Array,
-    dictionary::Dictionary,
-    error::Error as NvimError,
-    string::String as NvimString,
+    Array,
     BufHandle,
+    Dictionary,
+    Error as NvimError,
     Integer,
+    Object,
+    String as NvimString,
 };
+use serde::{Deserialize, Serialize};
 
 use super::ffi::buffer::*;
 use super::opts::*;
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
-use crate::lua::{LuaFnOnce, LUA_INTERNAL_CALL};
+use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Buffer(BufHandle);
 
 impl fmt::Debug for Buffer {
@@ -37,6 +39,18 @@ impl<H: Into<BufHandle>> From<H> for Buffer {
         Buffer(handle.into())
     }
 }
+
+impl FromObject for Buffer {
+    fn from_obj(obj: Object) -> Result<Self> {
+        Ok(BufHandle::try_from(obj)?.into())
+    }
+}
+
+// impl ToObject for Buffer {
+//     fn to_obj(self) -> Result<Object> {
+//         Ok(self.0.into())
+//     }
+// }
 
 impl Buffer {
     /// Shorthand for `nvim_oxi::api::get_current_buf`.
@@ -73,10 +87,9 @@ impl Buffer {
         R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let fun = LuaFnOnce::from(fun);
+        let fun = LuaFun::from_fn_once(fun);
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_call(self.0, fun.0, &mut err) };
-
         err.into_err_or_flatten(move || {
             fun.unref();
             R::from_obj(obj)
@@ -245,9 +258,13 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = NvimError::new();
         let name = NvimString::from(name);
-        let mark =
-            unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| <(usize, usize)>::from_obj(mark.into()))
+        let mark = unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
+        err.into_err_or_flatten(|| {
+            let mut iter = mark.into_iter().map(usize::try_from);
+            let row = iter.next().expect("row is present")?;
+            let col = iter.next().expect("col is present")?;
+            Ok((row, col))
+        })
     }
 
     /// Binding to `nvim_buf_get_name`.

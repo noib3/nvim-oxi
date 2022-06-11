@@ -1,15 +1,15 @@
 use derive_builder::Builder;
-use nvim_types::{object::Object, string::String as NvimString, Integer};
+use nvim_types::{Integer, Object, String as NvimString};
 use serde::{Deserialize, Serialize};
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
 use crate::api::Buffer;
-use crate::lua::LuaFnMut;
-use crate::object::ToObject;
+use crate::lua::LuaFun;
+use crate::object::{self, FromObject, ToObject};
 
 /// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
-#[builder(default)]
+#[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
@@ -70,16 +70,20 @@ impl CreateCommandOptsBuilder {
     object_setter!(range, CommandRange);
     object_setter!(complete, CommandComplete);
 
-    // fn preview<F>(&mut self, f: F) -> &mut Self
-    // where
-    //     F: FnMut(
-    //             (CreateCommandArgs, Option<u32>, Option<Buffer>),
-    //         ) -> crate::Result<u8>
-    //         + 'static,
-    // {
-    //     self.preview = Some(Some(LuaFnMut::from(f).to_obj().unwrap()));
-    //     self
-    // }
+    pub fn preview<F>(&mut self, f: F) -> &mut Self
+    where
+        F: FnMut(
+                (CreateCommandArgs, Option<u32>, Option<Buffer>),
+            ) -> crate::Result<u8>
+            + 'static,
+    {
+        self.preview = Some(Some(LuaFun::from_fn_mut(f).into()));
+        self
+    }
+
+    pub fn build(&mut self) -> CreateCommandOpts {
+        self.fallible_build().expect("never fails, all fields have defaults")
+    }
 }
 
 /// TODO: docs
@@ -91,12 +95,18 @@ pub struct CreateCommandArgs {
     pub line1: usize,
     pub line2: usize,
     pub range: usize,
-    pub count: Option<u32>,
+    pub count: Option<i32>,
     #[serde(rename = "reg")]
     pub register: Option<String>,
     pub mods: Option<String>,
     // TODO
-    pub smods: (),
+    // pub smods: (),
+}
+
+impl FromObject for CreateCommandArgs {
+    fn from_obj(obj: Object) -> crate::Result<Self> {
+        Self::deserialize(object::Deserializer::new(obj))
+    }
 }
 
 /// See `:h command-complete` for details.
@@ -140,8 +150,13 @@ pub enum CommandComplete {
     Var,
 
     /// See `:h command-completion-customlist` for details.
-    #[serde(skip)]
-    CustomList(LuaFnMut<(String, String, usize), Vec<String>>),
+    CustomList(LuaFun<(String, String, usize), Vec<String>>),
+}
+
+impl ToObject for CommandComplete {
+    fn to_obj(self) -> crate::Result<Object> {
+        self.serialize(object::Serializer)
+    }
 }
 
 // To see the generated key dicts you need to build Neovim and look in

@@ -1,6 +1,9 @@
 use std::fmt;
 
+use nvim_types::Object;
 use serde::{de, ser, Serialize};
+
+use crate::object::{self, ToObject};
 
 /// See `:h command-range` for details.
 #[non_exhaustive]
@@ -61,4 +64,10 @@ where
     S: ser::Serializer,
 {
     serializer.serialize_bool(true)
+}
+
+impl ToObject for CommandRange {
+    fn to_obj(self) -> crate::Result<Object> {
+        self.serialize(object::Serializer)
+    }
 }

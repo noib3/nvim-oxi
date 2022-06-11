@@ -1,9 +1,9 @@
 use derive_builder::Builder;
-use nvim_types::object::Object;
+use nvim_types::Object;
 
 /// Options passed to `Buffer::get_commands`.
 #[derive(Clone, Debug, Default, Builder)]
-#[builder(default)]
+#[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetCommandsOpts {
     #[builder(setter(strip_option))]
     builtin: Option<bool>,
@@ -13,6 +13,12 @@ impl GetCommandsOpts {
     #[inline(always)]
     pub fn builder() -> GetCommandsOptsBuilder {
         GetCommandsOptsBuilder::default()
+    }
+}
+
+impl GetCommandsOptsBuilder {
+    pub fn build(&mut self) -> GetCommandsOpts {
+        self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
 

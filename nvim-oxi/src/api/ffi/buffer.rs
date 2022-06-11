@@ -1,4 +1,14 @@
-use nvim_types::{BufHandle, Integer, LuaRef, array::Array, dictionary::Dictionary, error::Error, non_owning::NonOwning, object::Object, string::String};
+use nvim_types::{
+    Array,
+    BufHandle,
+    Dictionary,
+    Error,
+    Integer,
+    LuaRef,
+    Object,
+    String,
+    non_owning::NonOwning,
+};
 
 use crate::api::opts::{
     KeyDict_get_commands,
