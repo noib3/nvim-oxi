@@ -58,7 +58,7 @@ pub type ShouldDetach = bool;
 
 /// Options passed to `Buffer::attach`.
 #[derive(Clone, Debug, Default, Builder)]
-#[builder(default)]
+#[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
     on_lines: Option<LuaFun<OnLinesArgs, ShouldDetach>>,
@@ -104,6 +104,10 @@ impl BufAttachOptsBuilder {
     lua_fn_setter!(on_changedtick, OnChangedtickArgs);
     lua_fn_setter!(on_detach, OnDetachArgs);
     lua_fn_setter!(on_reload, OnReloadArgs);
+
+    pub fn build(&mut self) -> BufAttachOpts {
+        self.fallible_build().expect("never fails, all fields have defaults")
+    }
 }
 
 impl From<BufAttachOpts> for Dictionary {

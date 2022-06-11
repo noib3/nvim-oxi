@@ -9,7 +9,7 @@ use crate::object::{self, FromObject, ToObject};
 
 /// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
-#[builder(default)]
+#[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     addr: Option<Object>,
@@ -79,6 +79,10 @@ impl CreateCommandOptsBuilder {
     {
         self.preview = Some(Some(LuaFun::from_fn_mut(f).into()));
         self
+    }
+
+    pub fn build(&mut self) -> CreateCommandOpts {
+        self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
 

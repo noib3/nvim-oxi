@@ -97,7 +97,7 @@ where
 }
 
 macro_rules! create_ref {
-    ($lstate:ident, $fun:ident, $cb:ident) => {
+    ($lstate:ident, $fun:ident, $cb:ty) => {
         super::with_state(move |$lstate| unsafe {
             let fun = Box::new(move |l| $fun(A::pop(l)?)?.push(l));
             let ud = lua_newuserdata($lstate, mem::size_of::<$cb>());

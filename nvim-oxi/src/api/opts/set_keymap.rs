@@ -5,7 +5,7 @@ use crate::lua::LuaFun;
 
 /// Options passed to `Buffer::set_keymap`.
 #[derive(Clone, Debug, Default, Builder)]
-#[builder(default)]
+#[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetKeymapOpts {
     #[builder(setter(custom))]
     callback: Option<LuaFun<(), ()>>,
@@ -46,6 +46,10 @@ impl SetKeymapOptsBuilder {
     {
         self.callback = Some(Some(LuaFun::from_fn_mut(fun)));
         self
+    }
+
+    pub fn build(&mut self) -> SetKeymapOpts {
+        self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
 
