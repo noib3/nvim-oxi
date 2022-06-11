@@ -89,7 +89,10 @@ impl Buffer {
         let fun = LuaFun::from_fn_once(fun);
         let mut err = NvimError::new();
         let obj = unsafe { nvim_buf_call(self.0, fun.0, &mut err) };
-        err.into_err_or_flatten(|| R::from_obj(obj))
+        err.into_err_or_flatten(move || {
+            fun.unref();
+            R::from_obj(obj)
+        })
     }
 
     /// Binding to `nvim_buf_create_user_command`.

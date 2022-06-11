@@ -180,24 +180,17 @@ where
     pub fn _call(&self, _args: A) -> Result<R> {
         todo!()
     }
+
+    pub(crate) fn unref(self) {
+        // Consume and remove the reference stored in the Lua registry.
+        super::with_state(move |lstate| unsafe {
+            luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
+        })
+    }
 }
 
 unsafe fn handle_error(lstate: *mut lua_State, err: crate::Error) -> ! {
     let msg = err.to_string();
     lua_pushlstring(lstate, msg.as_ptr() as *const c_char, msg.len());
     lua_error(lstate);
-}
-
-impl<A, R> Drop for LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
-    fn drop(&mut self) {
-        // Remove the reference stored in the Lua registry when the function
-        // gets dropped.
-        super::with_state(move |lstate| unsafe {
-            luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
-        })
-    }
 }

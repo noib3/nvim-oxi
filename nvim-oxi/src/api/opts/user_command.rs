@@ -95,12 +95,12 @@ pub struct CreateCommandArgs {
     pub line1: usize,
     pub line2: usize,
     pub range: usize,
-    pub count: Option<u32>,
+    pub count: Option<i32>,
     #[serde(rename = "reg")]
     pub register: Option<String>,
     pub mods: Option<String>,
     // TODO
-    pub smods: (),
+    // pub smods: (),
 }
 
 impl FromObject for CreateCommandArgs {

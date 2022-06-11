@@ -59,7 +59,8 @@ where
 
         lua_call(lstate, 1, 0);
 
-        // Pop `vim` off the stack.
+        // Pop `vim` off the stack and remove the function from the registry.
         lua_pop(lstate, 1);
+        luaL_unref(lstate, LUA_REGISTRYINDEX, fun.0);
     });
 }
