@@ -26,6 +26,12 @@ pub enum Error {
 
     #[error("{0}")]
     DeserializeError(String),
+
+    #[error("FnMut called recursively")]
+    LuaFunMutRecursiveCallback,
+
+    #[error("FnOnce called more than once")]
+    LuaFunOnceMoreThanOnceCallback,
 }
 
 impl ser::Error for Error {
