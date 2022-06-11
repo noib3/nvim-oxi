@@ -7,8 +7,8 @@ use std::string::String as StdString;
 
 use crate::{
     array::Array,
-    non_owning::NonOwning,
     dictionary::Dictionary,
+    non_owning::NonOwning,
     string::String as NvimString,
     Boolean,
     Float,
@@ -70,11 +70,10 @@ impl Object {
         !self.is_nil()
     }
 
-    /// Make a non-owning version of this Object.
+    /// Make a non-owning version of this `Object`.
     #[inline]
-    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
-        // The Object is owned by self, and will not be droped before 'a ends
-        // using ptr::read, because can't copy the union
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        // Using ptr::read, because can't copy the union.
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 }
@@ -144,26 +143,26 @@ impl Clone for Object {
     }
 }
 
-// impl Drop for Object {
-//     fn drop(&mut self) {
-//         use ObjectType::*;
-//         match self.r#type {
-//             kObjectTypeString => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.string)
-//             },
+impl Drop for Object {
+    fn drop(&mut self) {
+        use ObjectType::*;
+        match self.r#type {
+            kObjectTypeString => unsafe {
+                ManuallyDrop::drop(&mut self.data.string)
+            },
 
-//             kObjectTypeArray => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.array)
-//             },
+            kObjectTypeArray => unsafe {
+                ManuallyDrop::drop(&mut self.data.array)
+            },
 
-//             kObjectTypeDictionary => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.dictionary)
-//             },
+            kObjectTypeDictionary => unsafe {
+                ManuallyDrop::drop(&mut self.data.dictionary)
+            },
 
-//             _ => {},
-//         }
-//     }
-// }
+            _ => {},
+        }
+    }
+}
 
 impl From<()> for Object {
     fn from(_: ()) -> Self {
@@ -380,11 +379,11 @@ macro_rules! try_from_man_drop {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
-            fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
+            fn try_from(mut obj: Object) -> StdResult<Self, Self::Error> {
                 let ty = obj.r#type;
                 (matches!(ty, ObjectType::$variant))
                     .then(|| unsafe {
-                        ManuallyDrop::into_inner(obj.data.$data)
+                        ManuallyDrop::take(&mut obj.data.$data)
                     })
                     .ok_or_else(|| FromObjectError::Primitive {
                         expected: ObjectType::$variant,

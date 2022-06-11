@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use nvim_types::{
+    non_owning::NonOwning,
     Array,
     BufHandle,
     Dictionary,
@@ -10,7 +11,6 @@ use nvim_types::{
     String,
     TabHandle,
     WinHandle,
-    non_owning::NonOwning,
 };
 
 extern "C" {

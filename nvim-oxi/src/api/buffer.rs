@@ -258,7 +258,8 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = NvimError::new();
         let name = NvimString::from(name);
-        let mark = unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
+        let mark =
+            unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
         err.into_err_or_flatten(|| {
             let mut iter = mark.into_iter().map(usize::try_from);
             let row = iter.next().expect("row is present")?;

@@ -168,7 +168,9 @@ pub fn replace_termcodes<Str: Into<NvimString>>(
     special: bool,
 ) -> NvimString {
     let str = str.into();
-    unsafe { nvim_replace_termcodes(str.non_owning(), from_part, do_lt, special) }
+    unsafe {
+        nvim_replace_termcodes(str.non_owning(), from_part, do_lt, special)
+    }
 }
 
 // select_popupmenu_item

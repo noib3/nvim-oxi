@@ -1,4 +1,5 @@
 use nvim_types::{
+    non_owning::NonOwning,
     Array,
     BufHandle,
     Dictionary,
@@ -7,7 +8,6 @@ use nvim_types::{
     LuaRef,
     Object,
     String,
-    non_owning::NonOwning,
 };
 
 use crate::api::opts::{

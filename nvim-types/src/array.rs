@@ -1,10 +1,9 @@
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
-use crate::non_owning::NonOwning;
-
 use super::collection::Collection;
 use super::object::Object;
+use crate::non_owning::NonOwning;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Array = Collection<Object>;
@@ -12,6 +11,14 @@ pub type Array = Collection<Object>;
 impl fmt::Debug for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl Array {
+    /// Make a non-owning version of this `Array`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
     }
 }
 
@@ -74,20 +81,5 @@ where
             .filter(Object::is_some)
             .collect::<Vec<Object>>()
             .into()
-    }
-}
-
-impl Array {
-    /// Make a non-owning version of this Array.
-    #[inline]
-    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
-        // The Dictionary is owned by self, and will not be droped before 'a ends
-        unsafe {
-            NonOwning::new(Self {
-                items: self.items,
-                size: self.size,
-                capacity: self.capacity,
-            })
-        }
     }
 }

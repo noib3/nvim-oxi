@@ -45,6 +45,14 @@ impl fmt::Debug for Dictionary {
     }
 }
 
+impl Dictionary {
+    /// Make a non-owning version of this `Dictionary`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
+    }
+}
+
 impl IntoIterator for Dictionary {
     type IntoIter = DictIter;
     type Item = <DictIter as Iterator>::Item;
@@ -117,20 +125,5 @@ where
 {
     fn from(hashmap: StdHashMap<K, V>) -> Self {
         hashmap.into_iter().collect()
-    }
-}
-
-impl Dictionary {
-    /// Make a non-owning version of this Dictionary.
-    #[inline]
-    pub fn non_owning<'a>(&'a self) -> NonOwning<'a, Self> {
-        // The Dictionary is owned by self, and will not be droped before 'a ends
-        unsafe {
-            NonOwning::new(Self {
-                items: self.items,
-                size: self.size,
-                capacity: self.capacity,
-            })
-        }
     }
 }

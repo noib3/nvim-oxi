@@ -2,9 +2,9 @@ mod array;
 mod collection;
 mod dictionary;
 mod error;
+pub mod non_owning;
 mod object;
 mod string;
-pub mod non_owning;
 
 pub use array::*;
 pub use collection::*;
