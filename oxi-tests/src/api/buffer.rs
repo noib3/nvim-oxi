@@ -1,7 +1,6 @@
 use nvim_oxi::{
     self as nvim,
     api::{self, opts::*, Buffer},
-    LuaFn,
 };
 
 pub fn attach() {
@@ -34,10 +33,10 @@ pub fn create_user_command() {
     let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
     assert!(res.is_ok());
 
-    let cb = LuaFn::from(|()| {
+    let cb = Box::new(|()| {
         nvim::print!("bar!");
         Ok(())
-    });
+    }) as Box<dyn Fn(()) -> nvim::Result<()>>;
     let res = buf.create_user_command("Bar", cb, &opts);
     assert!(res.is_ok());
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
 use crate::api::Buffer;
-use crate::lua::LuaFnMut;
+use crate::lua::LuaFun;
 use crate::object::{self, FromObject, ToObject};
 
 /// Options passed to `Buffer::create_user_command`.
@@ -77,7 +77,7 @@ impl CreateCommandOptsBuilder {
             ) -> crate::Result<u8>
             + 'static,
     {
-        self.preview = Some(Some(LuaFnMut::from(f).to_obj().unwrap()));
+        self.preview = Some(Some(LuaFun::from_fn_mut(f).into()));
         self
     }
 }
@@ -146,7 +146,7 @@ pub enum CommandComplete {
     Var,
 
     /// See `:h command-completion-customlist` for details.
-    CustomList(LuaFnMut<(String, String, usize), Vec<String>>),
+    CustomList(LuaFun<(String, String, usize), Vec<String>>),
 }
 
 impl ToObject for CommandComplete {

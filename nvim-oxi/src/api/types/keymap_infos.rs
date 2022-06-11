@@ -2,7 +2,7 @@ use nvim_types::Object;
 use serde::{de, Deserialize};
 
 use super::Mode;
-use crate::lua::LuaFn;
+use crate::lua::LuaFun;
 use crate::object::{self, FromObject};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
@@ -10,7 +10,7 @@ pub struct KeymapInfos {
     #[serde(deserialize_with = "bool_from_int")]
     buffer: bool,
 
-    callback: Option<LuaFn<(), ()>>,
+    callback: Option<LuaFun<(), ()>>,
 
     #[serde(deserialize_with = "bool_from_int")]
     expr: bool,

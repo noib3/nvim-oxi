@@ -2,7 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::api::buffer::Buffer;
-use crate::lua::LuaFnMut;
+use crate::lua::LuaFun;
 
 /// Arguments passed to the function registered to `on_lines`.
 pub type OnLinesArgs = (
@@ -61,19 +61,19 @@ pub type ShouldDetach = bool;
 #[builder(default)]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
-    on_lines: Option<LuaFnMut<OnLinesArgs, ShouldDetach>>,
+    on_lines: Option<LuaFun<OnLinesArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_bytes: Option<LuaFnMut<OnBytesArgs, ShouldDetach>>,
+    on_bytes: Option<LuaFun<OnBytesArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_changedtick: Option<LuaFnMut<OnChangedtickArgs, ShouldDetach>>,
+    on_changedtick: Option<LuaFun<OnChangedtickArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_detach: Option<LuaFnMut<OnDetachArgs, ShouldDetach>>,
+    on_detach: Option<LuaFun<OnDetachArgs, ShouldDetach>>,
 
     #[builder(setter(custom))]
-    on_reload: Option<LuaFnMut<OnReloadArgs, ShouldDetach>>,
+    on_reload: Option<LuaFun<OnReloadArgs, ShouldDetach>>,
 
     utf_sizes: bool,
     preview: bool,
@@ -92,7 +92,7 @@ macro_rules! lua_fn_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(fun.into()));
+            self.$name = Some(Some(LuaFun::from_fn_mut(fun)));
             self
         }
     };

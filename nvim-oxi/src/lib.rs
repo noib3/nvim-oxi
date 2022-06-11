@@ -11,7 +11,7 @@ pub mod object;
 mod toplevel;
 
 pub use error::{Error, Result};
-pub use lua::{LuaFn, LuaFnMut, LuaFnOnce};
+pub use lua::LuaFun;
 pub use nvim_types::{Object, String};
 pub use oxi_module::oxi_module as module;
 pub use toplevel::{nprint as print, *};

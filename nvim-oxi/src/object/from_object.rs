@@ -9,7 +9,7 @@ pub trait FromObject: Sized {
 }
 
 /// Implements `FromObject` for `TryFrom<Object>` types.
-macro_rules! from_try_from {
+macro_rules! impl_try_from {
     ($type:ty) => {
         impl FromObject for $type {
             #[inline(always)]
@@ -20,23 +20,23 @@ macro_rules! from_try_from {
     };
 }
 
-from_try_from!(());
-from_try_from!(bool);
-from_try_from!(i8);
-from_try_from!(u8);
-from_try_from!(i16);
-from_try_from!(u16);
-from_try_from!(i32);
-from_try_from!(u32);
-from_try_from!(i64);
-from_try_from!(u64);
-from_try_from!(i128);
-from_try_from!(u128);
-from_try_from!(isize);
-from_try_from!(usize);
-from_try_from!(f64);
-from_try_from!(StdString);
-from_try_from!(NvimString);
+impl_try_from!(());
+impl_try_from!(bool);
+impl_try_from!(i8);
+impl_try_from!(u8);
+impl_try_from!(i16);
+impl_try_from!(u16);
+impl_try_from!(i32);
+impl_try_from!(u32);
+impl_try_from!(i64);
+impl_try_from!(u64);
+impl_try_from!(i128);
+impl_try_from!(u128);
+impl_try_from!(isize);
+impl_try_from!(usize);
+impl_try_from!(f64);
+impl_try_from!(StdString);
+impl_try_from!(NvimString);
 
 impl<T> FromObject for Option<T>
 where
