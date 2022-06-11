@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
@@ -96,18 +97,6 @@ where
     }
 }
 
-macro_rules! create_ref {
-    ($lstate:ident, $fun:ident, $cb:ty) => {
-        super::with_state(move |$lstate| unsafe {
-            let fun = Box::new(move |l| $fun(A::pop(l)?)?.push(l));
-            let ud = lua_newuserdata($lstate, mem::size_of::<$cb>());
-            ptr::write(ud as *mut $cb, fun);
-            lua_pushcclosure($lstate, c_fun, 1);
-            luaL_ref($lstate, LUA_REGISTRYINDEX)
-        })
-    };
-}
-
 impl<A, R> LuaFun<A, R>
 where
     A: super::LuaPoppable,
@@ -129,52 +118,43 @@ where
             fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
         }
 
-        let r#ref = create_ref!(lstate, fun, Cb);
+        let r#ref = super::with_state(move |lstate| unsafe {
+            let fun = Box::new(move |l| fun(A::pop(l)?)?.push(l));
+            let ud = lua_newuserdata(lstate, mem::size_of::<Cb>());
+            ptr::write(ud as *mut Cb, fun);
+            lua_pushcclosure(lstate, c_fun, 1);
+            luaL_ref(lstate, LUA_REGISTRYINDEX)
+        });
 
         Self(r#ref, PhantomData, PhantomData)
     }
 
-    pub fn from_fn_mut<F>(mut fun: F) -> Self
+    pub fn from_fn_mut<F>(fun: F) -> Self
     where
         F: FnMut(A) -> Result<R> + 'static,
     {
-        type CbMut = Box<dyn FnMut(*mut lua_State) -> Result<c_int> + 'static>;
-
-        unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
-            let fun = {
-                let idx = lua_upvalueindex(1);
-                let upv = lua_touserdata(lstate, idx) as *mut CbMut;
-                &mut **upv
-            };
-
-            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
-        }
-
-        let r#ref = create_ref!(lstate, fun, CbMut);
-
-        Self(r#ref, PhantomData, PhantomData)
+        let fun = RefCell::new(fun);
+        Self::from_fn(move |args| {
+            let mut fun = fun
+                .try_borrow_mut()
+                .map_err(|_| crate::Error::LuaFunMutRecursiveCallback)?;
+            fun(args)
+        })
     }
 
     pub fn from_fn_once<F>(fun: F) -> Self
     where
         F: FnOnce(A) -> Result<R> + 'static,
     {
-        type CbOnce =
-            Box<dyn FnOnce(*mut lua_State) -> Result<c_int> + 'static>;
-
-        unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
-            let fun = {
-                let idx = lua_upvalueindex(1);
-                let upv = lua_touserdata(lstate, idx) as *mut CbOnce;
-                Box::from_raw(&mut **upv)
-            };
-
-            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
-        }
-
-        let r#ref = create_ref!(lstate, fun, CbOnce);
-
-        Self(r#ref, PhantomData, PhantomData)
+        let fun = RefCell::new(Some(fun));
+        Self::from_fn(move |args| {
+            let fun = fun
+                .try_borrow_mut()
+                .ok()
+                .and_then(|mut fun| fun.take())
+                .ok_or_else(|| crate::Error::LuaFunOnceMoreThanOnceCallback)?;
+            fun(args)
+        })
     }
 
     pub fn _call(&self, _args: A) -> Result<R> {
