@@ -7,10 +7,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    NvimError(#[from] nvim_types::error::Error),
+    NvimError(#[from] nvim_types::Error),
 
     #[error(transparent)]
-    FromObjectError(#[from] nvim_types::object::FromObjectError),
+    FromObjectError(#[from] nvim_types::FromObjectError),
 
     #[error(transparent)]
     BadUtf8Error(#[from] std::string::FromUtf8Error),

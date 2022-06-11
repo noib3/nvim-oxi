@@ -253,10 +253,7 @@ where
 {
     #[inline(always)]
     fn from(maybe: Option<T>) -> Self {
-        match maybe {
-            Some(t) => t.into(),
-            _ => Self::nil(),
-        }
+        maybe.map(Into::into).unwrap_or_default()
     }
 }
 

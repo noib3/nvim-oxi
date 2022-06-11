@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::object::Object;
+use nvim_types::Object;
 
 /// Options passed to `Buffer::get_commands`.
 #[derive(Clone, Debug, Default, Builder)]

@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{dictionary::Dictionary, object::Object};
+use nvim_types::{Dictionary, Object};
 
 use crate::api::buffer::Buffer;
 use crate::lua::LuaFnMut;

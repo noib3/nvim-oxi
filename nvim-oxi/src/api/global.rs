@@ -1,13 +1,13 @@
 use nvim_types::{
-    array::Array,
-    dictionary::Dictionary,
-    error::Error as NvimError,
-    object::Object,
-    string::String as NvimString,
+    Array,
+    Dictionary,
+    Error as NvimError,
+    Object,
+    String as NvimString,
 };
 
 use super::ffi::global::*;
-use crate::{api::Buffer, Result, object::FromObject};
+use crate::{api::Buffer, object::FromObject, Result};
 
 // chan_send
 

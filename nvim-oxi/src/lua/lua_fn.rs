@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
-use libc::c_int;
-use nvim_types::{object, LuaRef};
+use libc::{c_char, c_int};
+use nvim_types::{LuaRef, Object, ObjectData, ObjectType};
 use serde::{de, ser};
 
 use super::ffi::*;
@@ -47,15 +47,15 @@ debug!(LuaFnOnce, "LuaFnOnce");
 
 macro_rules! from_fn_for_object {
     ($name:ident) => {
-        impl<A, R> From<$name<A, R>> for object::Object
+        impl<A, R> From<$name<A, R>> for Object
         where
             A: super::LuaPoppable,
             R: super::LuaPushable,
         {
             fn from(fun: $name<A, R>) -> Self {
                 Self {
-                    r#type: object::ObjectType::kObjectTypeLuaRef,
-                    data: object::ObjectData { luaref: fun.0 },
+                    r#type: ObjectType::kObjectTypeLuaRef,
+                    data: ObjectData { luaref: fun.0 },
                 }
             }
         }
@@ -164,7 +164,7 @@ where
                 &**upv
             };
 
-            fun(lstate).unwrap_or_else(|err| super::handle_error(lstate, err))
+            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
         }
 
         let r#ref = create_ref!(lstate, fun, Cb);
@@ -189,7 +189,7 @@ where
                 &mut **upv
             };
 
-            fun(lstate).unwrap_or_else(|err| super::handle_error(lstate, err))
+            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
         }
 
         let r#ref = create_ref!(lstate, fun, CbMut);
@@ -215,13 +215,19 @@ where
                 Box::from_raw(&mut **upv)
             };
 
-            fun(lstate).unwrap_or_else(|err| super::handle_error(lstate, err))
+            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
         }
 
         let r#ref = create_ref!(lstate, fun, CbOnce);
 
         Self(r#ref, PhantomData, PhantomData)
     }
+}
+
+unsafe fn handle_error(lstate: *mut lua_State, err: crate::Error) -> ! {
+    let msg = err.to_string();
+    lua_pushlstring(lstate, msg.as_ptr() as *const c_char, msg.len());
+    lua_error(lstate);
 }
 
 macro_rules! call_body {

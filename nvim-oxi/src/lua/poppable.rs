@@ -1,143 +1,96 @@
-use std::ptr;
-use std::string::String as StdString;
+use libc::c_int;
+use nvim_types::{Error as NvimError, Object};
 
-use nvim_types::BufHandle;
-
-use super::ffi::*;
-use crate::api::opts;
+use super::ffi::{lua_State, lua_settop};
+use crate::object::FromObject;
 use crate::Result;
 
-#[doc(hidden)]
-pub trait LuaPoppable: Sized {
-    /// Assembles itself by popping values off the stack. Fails if there aren't
-    /// enough values or if they are of the wrong type.
+extern "C" {
+    fn nlua_pop_Object(
+        lstate: *const lua_State,
+        r#ref: bool,
+        err: *mut NvimError,
+    ) -> Object;
+}
+
+trait ObjectExt: Sized {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self>;
 }
 
-impl LuaPoppable for () {
-    unsafe fn pop(_lstate: *mut lua_State) -> Result<Self> {
-        Ok(())
-    }
-}
-
-impl LuaPoppable for lua_Integer {
+impl ObjectExt for Object {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let int = lua_tointeger(lstate, -1);
-        lua_pop(lstate, 1);
-        Ok(int)
+        let mut err = NvimError::new();
+        let obj = nlua_pop_Object(lstate, true, &mut err);
+        err.into_err_or_else(|| obj)
     }
 }
 
-impl LuaPoppable for u32 {
+#[doc(hidden)]
+pub trait LuaPoppable: Sized {
+    const N: c_int;
+
+    /// Assembles itself by popping `N` values off the stack. Fails if the
+    /// popped values are of the wrong type.
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self>;
+}
+
+impl<A> LuaPoppable for A
+where
+    A: FromObject,
+{
+    const N: c_int = 1;
+
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        Ok(lua_Integer::pop(lstate)?.try_into()?)
+        lua_settop(lstate, Self::N);
+        A::from_obj(Object::pop(lstate)?)
     }
 }
 
-impl LuaPoppable for BufHandle {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        Ok(lua_Integer::pop(lstate)?.try_into()?)
-    }
+macro_rules! count {
+    () => {0i32};
+    ($x:tt $($xs:tt)*) => {1i32 + count!($($xs)*)};
 }
 
-impl LuaPoppable for usize {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        Ok(lua_Integer::pop(lstate)?.try_into()?)
-    }
+macro_rules! pop_reverse {
+    ($lstate:expr, $x:ident $($xs:ident)*) => {
+        pop_reverse!($lstate, $($xs)*);
+        let $x = $x::from_obj(Object::pop($lstate)?)?;
+    };
+
+    ($lstate:expr,) => ();
 }
 
-impl LuaPoppable for StdString {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        // TODO: check type and return err?
-        let mut size = 0;
-        let ptr = lua_tolstring(lstate, -1, &mut size);
-        let mut str = StdString::with_capacity(size);
-        ptr::copy(ptr as *const u8, str.as_mut_ptr(), size);
-        str.as_mut_vec().set_len(size);
-        lua_pop(lstate, 1);
-        Ok(str)
-    }
+macro_rules! impl_tuple {
+    ($($name:ident)*) => (
+        impl<$($name,)*> LuaPoppable for ($($name,)*)
+            where $($name: FromObject,)*
+        {
+            const N: c_int = count!($($name)*);
+
+            #[allow(non_snake_case)]
+            #[inline]
+            unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
+                lua_settop(lstate, Self::N);
+                pop_reverse!(lstate, $($name)*);
+                Ok(($($name,)*))
+            }
+        }
+    );
 }
 
-impl<T: LuaPoppable> LuaPoppable for Option<T> {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let ltp = lua_type(lstate, -1);
-        crate::print!("{ltp}, {}", ltp != LUA_TNIL && ltp != LUA_TNONE);
-
-        (ltp != LUA_TNIL && ltp != LUA_TNONE)
-            .then(|| T::pop(lstate))
-            .transpose()
-    }
-}
-
-impl LuaPoppable for opts::OnLinesArgs {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let (h, i) = if lua_gettop(lstate) == 9 {
-            let h = usize::pop(lstate)?;
-            let i = usize::pop(lstate)?;
-            (Some(h), Some(i))
-        } else {
-            (None, None)
-        };
-        let g = usize::pop(lstate)?;
-        let f = usize::pop(lstate)?;
-        let e = usize::pop(lstate)?;
-        let d = usize::pop(lstate)?;
-        let c = u32::pop(lstate)?;
-        let b = BufHandle::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b.into(), c, d, e, f, g, h, i))
-    }
-}
-
-impl LuaPoppable for opts::OnBytesArgs {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        // TODO: Check that nargs is 12?
-        // let nargs = lua_gettop(lstate);
-
-        let n = usize::pop(lstate)?;
-        let m = usize::pop(lstate)?;
-        let l = usize::pop(lstate)?;
-        let i = usize::pop(lstate)?;
-        let h = usize::pop(lstate)?;
-        let g = usize::pop(lstate)?;
-        let f = usize::pop(lstate)?;
-        let e = usize::pop(lstate)?;
-        let d = usize::pop(lstate)?;
-        let c = u32::pop(lstate)?;
-        let b = BufHandle::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b.into(), c, d, e, f, g, h, i, l, m, n))
-    }
-}
-
-impl LuaPoppable for opts::OnChangedtickArgs {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let c = u32::pop(lstate)?;
-        let b = BufHandle::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b.into(), c))
-    }
-}
-
-impl LuaPoppable for opts::OnDetachArgs {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let b = BufHandle::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b.into()))
-    }
-}
-
-impl LuaPoppable for (StdString, StdString, usize) {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let c = usize::pop(lstate)?;
-        let b = <StdString as LuaPoppable>::pop(lstate)?;
-        let a = <StdString as LuaPoppable>::pop(lstate)?;
-
-        Ok((a, b, c))
-    }
-}
+impl_tuple!(A);
+impl_tuple!(A B);
+impl_tuple!(A B C);
+impl_tuple!(A B C D);
+impl_tuple!(A B C D E);
+impl_tuple!(A B C D E F);
+impl_tuple!(A B C D E F G);
+impl_tuple!(A B C D E F G H);
+impl_tuple!(A B C D E F G H I);
+impl_tuple!(A B C D E F G H I J);
+impl_tuple!(A B C D E F G H I J K);
+impl_tuple!(A B C D E F G H I J K L);
+impl_tuple!(A B C D E F G H I J K L M);
+impl_tuple!(A B C D E F G H I J K L M N);
+impl_tuple!(A B C D E F G H I J K L M N O);
+impl_tuple!(A B C D E F G H I J K L M N O P);

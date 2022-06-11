@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{object::Object, string::String as NvimString};
+use nvim_types::{Object, String as NvimString};
 
 use crate::lua::LuaFnMut;
 

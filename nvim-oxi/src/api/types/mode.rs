@@ -1,4 +1,4 @@
-use nvim_types::string::String as NvimString;
+use nvim_types::String as NvimString;
 use serde::{Deserialize, Serialize};
 
 /// TODO: docs

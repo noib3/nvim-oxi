@@ -1,15 +1,19 @@
-use nvim_types::{
-    object::{Object, ObjectData, ObjectType},
-    string::String as NvimString,
-};
+use nvim_types::{Object, ObjectData, ObjectType, String as NvimString};
 use serde::ser;
 
 use super::ToObject;
 use crate::Result;
 
 /// A struct for serializing Rust values into Neovim `Object`s.
+#[non_exhaustive]
 #[derive(Debug)]
-pub(super) struct Serializer;
+pub struct Serializer;
+
+impl Serializer {
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 macro_rules! serialize_into {
     ($name:ident, $type:ty) => {

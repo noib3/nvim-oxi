@@ -1,11 +1,11 @@
 use derive_builder::Builder;
-use nvim_types::{object::Object, string::String as NvimString, Integer};
+use nvim_types::{Integer, Object, String as NvimString};
 use serde::{Deserialize, Serialize};
 
 use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
 use crate::api::Buffer;
 use crate::lua::LuaFnMut;
-use crate::object::ToObject;
+use crate::object::{self, FromObject, ToObject};
 
 /// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
@@ -70,16 +70,16 @@ impl CreateCommandOptsBuilder {
     object_setter!(range, CommandRange);
     object_setter!(complete, CommandComplete);
 
-    // fn preview<F>(&mut self, f: F) -> &mut Self
-    // where
-    //     F: FnMut(
-    //             (CreateCommandArgs, Option<u32>, Option<Buffer>),
-    //         ) -> crate::Result<u8>
-    //         + 'static,
-    // {
-    //     self.preview = Some(Some(LuaFnMut::from(f).to_obj().unwrap()));
-    //     self
-    // }
+    pub fn preview<F>(&mut self, f: F) -> &mut Self
+    where
+        F: FnMut(
+                (CreateCommandArgs, Option<u32>, Option<Buffer>),
+            ) -> crate::Result<u8>
+            + 'static,
+    {
+        self.preview = Some(Some(LuaFnMut::from(f).to_obj().unwrap()));
+        self
+    }
 }
 
 /// TODO: docs
@@ -97,6 +97,12 @@ pub struct CreateCommandArgs {
     pub mods: Option<String>,
     // TODO
     pub smods: (),
+}
+
+impl FromObject for CreateCommandArgs {
+    fn from_obj(obj: Object) -> crate::Result<Self> {
+        Self::deserialize(object::Deserializer::new(obj))
+    }
 }
 
 /// See `:h command-complete` for details.
@@ -140,7 +146,6 @@ pub enum CommandComplete {
     Var,
 
     /// See `:h command-completion-customlist` for details.
-    #[serde(skip)]
     CustomList(LuaFnMut<(String, String, usize), Vec<String>>),
 }
 

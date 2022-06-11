@@ -1,14 +1,20 @@
 use std::mem::ManuallyDrop;
 use std::string::String as StdString;
 
-use nvim_types::object::{Object, ObjectType};
+use nvim_types::{Object, ObjectType};
 use serde::de::{self, IntoDeserializer};
 
 use crate::Result;
 
 /// A struct used for deserializing Neovim `Object`s into Rust values.
-pub(super) struct Deserializer {
-    pub(super) obj: Object,
+pub struct Deserializer {
+    obj: Object,
+}
+
+impl Deserializer {
+    pub fn new(obj: Object) -> Self {
+        Self { obj }
+    }
 }
 
 impl<'de> de::Deserializer<'de> for Deserializer {
@@ -201,7 +207,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 }
 
 struct SeqDeserializer {
-    iter: nvim_types::array::ArrayIter,
+    iter: nvim_types::ArrayIter,
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
@@ -224,7 +230,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: nvim_types::dictionary::DictIter,
+    iter: nvim_types::DictIter,
     obj: Option<Object>,
 }
 

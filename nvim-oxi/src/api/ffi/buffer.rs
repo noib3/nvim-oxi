@@ -1,12 +1,12 @@
 use nvim_types::{
-    array::Array,
-    dictionary::Dictionary,
-    error::Error,
-    object::Object,
-    string::String,
+    Array,
     BufHandle,
+    Dictionary,
+    Error,
     Integer,
     LuaRef,
+    Object,
+    String,
 };
 
 use crate::api::opts::{

@@ -1,4 +1,4 @@
-use nvim_types::object::Object;
+use nvim_types::Object;
 use serde::ser;
 
 use crate::Result;
