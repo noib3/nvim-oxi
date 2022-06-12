@@ -1,4 +1,4 @@
-use std::mem::ManuallyDrop;
+use std::mem::{self, ManuallyDrop};
 
 use libc::{c_char, c_int};
 use nvim_types::Object;
@@ -38,6 +38,8 @@ impl ObjectExt for Object {
                     string.data as *const c_char,
                     string.size,
                 );
+                // Forget `self` to avoid running the destructor twice.
+                mem::forget(self);
             },
 
             kObjectTypeArray => {
@@ -48,6 +50,9 @@ impl ObjectExt for Object {
                     obj.push(lstate)?;
                     lua_rawseti(lstate, -2, (i + 1).try_into()?);
                 }
+
+                // Same as above.
+                mem::forget(self);
             },
 
             kObjectTypeDictionary => {
@@ -63,6 +68,9 @@ impl ObjectExt for Object {
                     value.push(lstate)?;
                     lua_rawset(lstate, -3);
                 }
+
+                // Same as above.
+                mem::forget(self);
             },
 
             kObjectTypeLuaRef => {
