@@ -7,6 +7,7 @@ use crate::object::{self, de::utils, FromObject};
 /// Arguments passed to callbacks registered with
 /// `crate::api::nvim_create_user_command`. See `:h nvim_create_user_command`
 /// for details.
+#[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandArgs {
     #[serde(deserialize_with = "utils::empty_string_is_none")]

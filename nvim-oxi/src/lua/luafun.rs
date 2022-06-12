@@ -161,6 +161,7 @@ impl<A, R> LuaFun<A, R> {
                         LUA_ERRERR => {
                             panic!("errorfunc is 0, this never happens!")
                         },
+
                         _ => unreachable!(),
                     }
                 },

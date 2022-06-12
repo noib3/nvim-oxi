@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 /// Split modifier passed to the `split` key of `CommandModifiers`.
+#[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SplitModifier {

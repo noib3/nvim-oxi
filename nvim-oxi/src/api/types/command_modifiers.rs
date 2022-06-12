@@ -4,6 +4,7 @@ use super::SplitModifier;
 use crate::object::de::utils;
 
 /// See `:h command-modifiers` for more infos.
+#[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandModifiers {
     pub browse: bool,
