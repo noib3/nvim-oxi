@@ -2,7 +2,7 @@
 //! `Dictionary`s.
 
 use std::ops::{Deref, Index};
-use std::ptr::{self, NonNull};
+use std::ptr::NonNull;
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
@@ -55,7 +55,11 @@ impl<T: Clone> Clone for Collection<T> {
 
 impl<T> Drop for Collection<T> {
     fn drop(&mut self) {
-        unsafe { ptr::drop_in_place(self.items.as_ptr()) }
+        unsafe {
+            let slice =
+                std::slice::from_raw_parts_mut(self.items.as_ptr(), self.size);
+            drop(Box::from_raw(slice));
+        }
     }
 }
 

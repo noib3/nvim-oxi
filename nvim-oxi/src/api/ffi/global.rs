@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
 use nvim_types::{
-    non_owning::NonOwning,
     Array,
     BufHandle,
     Dictionary,
     Error,
     Integer,
+    NonOwning,
     Object,
     String,
     TabHandle,

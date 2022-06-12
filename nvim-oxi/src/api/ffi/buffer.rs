@@ -1,11 +1,11 @@
 use nvim_types::{
-    non_owning::NonOwning,
     Array,
     BufHandle,
     Dictionary,
     Error,
     Integer,
     LuaRef,
+    NonOwning,
     Object,
     String,
 };
