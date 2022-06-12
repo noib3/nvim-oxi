@@ -64,7 +64,11 @@ impl String {
     /// Returns a byte slice of this `String`'s contents.
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
-        unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+        if self.data.is_null() {
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+        }
     }
 
     /// Returns a string slice of this `String`'s contents. Fails if it doesn't
@@ -85,9 +89,17 @@ impl String {
     /// Converts the `String` into a byte vector, consuming it.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
-        let mdrop = ManuallyDrop::new(self);
-        unsafe {
-            Vec::from_raw_parts(mdrop.data as *mut u8, mdrop.size, mdrop.size)
+        if self.data.is_null() {
+            Vec::new()
+        } else {
+            unsafe {
+                let mdrop = ManuallyDrop::new(self);
+                Vec::from_raw_parts(
+                    mdrop.data.cast::<u8>(),
+                    mdrop.size,
+                    mdrop.size,
+                )
+            }
         }
     }
 

@@ -101,7 +101,7 @@ impl IntoIterator for Dictionary {
     fn into_iter(self) -> Self::IntoIter {
         // Wrap `self` in `ManuallyDrop` to avoid running destructor.
         let arr = ManuallyDrop::new(self);
-        let start = arr.items.as_ptr();
+        let start = arr.items;
         let end = unsafe { start.add(arr.len()) };
 
         DictIterator { start, end }
