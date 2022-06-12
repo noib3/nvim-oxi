@@ -3,7 +3,6 @@ use serde::Deserialize;
 use super::SplitModifier;
 use crate::object::de::utils;
 
-// TODO: better docs.
 /// See `:h command-modifiers` for more infos.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandModifiers {

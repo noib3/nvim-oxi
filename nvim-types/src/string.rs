@@ -32,7 +32,7 @@ pub struct String {
 }
 
 impl String {
-    /// TODO: docs
+    /// Creates a [`String`] from a byte vector.
     #[inline]
     pub fn from_bytes(mut vec: Vec<u8>) -> Self {
         vec.reserve_exact(1);
@@ -44,37 +44,42 @@ impl String {
         Self { data, size }
     }
 
-    /// TODO: docs
+    /// Returns `true` if the `String` has a length of zero, and `false`
+    /// otherwise.
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    /// TODO: docs
+    /// Returns the byte length of the `String`, *not* including the final null
+    /// byte.
     #[inline]
     pub const fn len(&self) -> usize {
         self.size
     }
 
-    /// TODO: docs
+    /// Returns a byte slice of this `String`'s contents.
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
     }
 
-    /// TODO: docs
+    /// Returns a string slice of this `String`'s contents. Fails if it doesn't
+    /// contain a valid UTF-8 byte sequence.
     #[inline]
     pub fn as_str(&self) -> Result<&str, str::Utf8Error> {
         str::from_utf8(self.as_bytes())
     }
 
-    /// TODO: docs
+    /// Converts the `String` into Rust's `std::string::String`. If it already
+    /// holds a valid UTF-8 byte sequence no allocation is made. If it doesn't
+    /// the `String` is copied and all invalid sequences are replaced with `�`.
     #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
         StdString::from_utf8_lossy(self.as_bytes())
     }
 
-    /// Converts an `NvimString` into a byte vector, consuming the string.
+    /// Converts the `String` into a byte vector, consuming it.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
         unsafe {
@@ -82,13 +87,14 @@ impl String {
         }
     }
 
-    /// TODO: docs
+    /// Converts the `String` into Rust's `std::string::String`, consuming it.
+    /// Fails if it doesn't contain a valid UTF-8 byte sequence.
     #[inline]
     pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
         StdString::from_utf8(self.into_bytes())
     }
 
-    /// Make a non-owning version of this `String`.
+    /// Makes a non-owning version of this `String`.
     #[inline]
     pub fn non_owning(&self) -> NonOwning<'_, String> {
         NonOwning::new(Self { ..*self })

@@ -16,9 +16,6 @@ pub enum Error {
     BadUtf8Error(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]
-    NulByteStringError(#[from] std::ffi::NulError),
-
-    #[error(transparent)]
     IntError(#[from] std::num::TryFromIntError),
 
     #[error("{0}")]
@@ -31,7 +28,7 @@ pub enum Error {
     LuaFunMutRecursiveCallback,
 
     #[error("FnOnce called more than once")]
-    LuaFunOnceMoreThanOnceCallback,
+    LuaFunOnceMoreThanOnce,
 }
 
 impl ser::Error for Error {

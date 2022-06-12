@@ -152,7 +152,7 @@ where
                 .try_borrow_mut()
                 .ok()
                 .and_then(|mut fun| fun.take())
-                .ok_or_else(|| crate::Error::LuaFunOnceMoreThanOnceCallback)?;
+                .ok_or_else(|| crate::Error::LuaFunOnceMoreThanOnce)?;
             fun(args)
         })
     }
@@ -161,8 +161,9 @@ where
         todo!()
     }
 
+    /// Consumes the `LuaFun`, removing the reference stored in the Lua
+    /// registry.
     pub(crate) fn unref(self) {
-        // Consume and remove the reference stored in the Lua registry.
         super::with_state(move |lstate| unsafe {
             luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
         })

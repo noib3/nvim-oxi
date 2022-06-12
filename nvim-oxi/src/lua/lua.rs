@@ -25,7 +25,8 @@ unsafe fn init_state(lstate: *mut lua_State) {
     LUA.with(|lua| lua.set(lstate).unwrap_unchecked());
 }
 
-/// TODO: docs
+/// The entrypoint of the plugin. Initializes the Lua state, executes the
+/// entrypoint function and pushes the result on the stack.
 #[doc(hidden)]
 #[inline(always)]
 pub unsafe fn module_entrypoint<F, R>(
@@ -33,8 +34,8 @@ pub unsafe fn module_entrypoint<F, R>(
     body: F,
 ) -> libc::c_int
 where
-    R: super::LuaPushable,
     F: FnOnce() -> crate::Result<R> + 'static,
+    R: super::LuaPushable,
 {
     self::init_state(lstate);
     body().unwrap().push(lstate).unwrap()
