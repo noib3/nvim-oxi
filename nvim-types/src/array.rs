@@ -3,6 +3,7 @@ use std::{fmt, ptr};
 
 use super::collection::Collection;
 use super::object::Object;
+use crate::non_owning::NonOwning;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Array = Collection<Object>;
@@ -10,6 +11,14 @@ pub type Array = Collection<Object>;
 impl fmt::Debug for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl Array {
+    /// Make a non-owning version of this `Array`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
     }
 }
 

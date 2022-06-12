@@ -6,6 +6,7 @@ use nvim_types::{
     Dictionary,
     Error,
     Integer,
+    NonOwning,
     Object,
     String,
     TabHandle,
@@ -14,7 +15,11 @@ use nvim_types::{
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1231
-    pub(crate) fn nvim_chan_send(chan: Integer, data: String, err: *mut Error);
+    pub(crate) fn nvim_chan_send(
+        chan: Integer,
+        data: NonOwning<String>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1057
     pub(crate) fn nvim_create_buf(
@@ -25,8 +30,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2487
     pub(crate) fn nvim_create_user_command(
-        name: String,
-        command: Object,
+        name: NonOwning<String>,
+        command: NonOwning<Object>,
         opts: *const Dictionary,
         err: *mut Error,
     );
@@ -37,43 +42,53 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1645
     pub(crate) fn nvim_del_keymap(
         channel_id: u64,
-        mode: String,
-        lhs: String,
+        mode: NonOwning<String>,
+        lhs: NonOwning<String>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2172
-    pub(crate) fn nvim_del_mark(name: String, err: *mut Error) -> bool;
+    pub(crate) fn nvim_del_mark(
+        name: NonOwning<String>,
+        err: *mut Error,
+    ) -> bool;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2497
-    pub(crate) fn nvim_del_user_command(name: String, err: *mut Error);
+    pub(crate) fn nvim_del_user_command(
+        name: NonOwning<String>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L671
-    pub(crate) fn nvim_del_var(name: String, err: *mut Error);
+    pub(crate) fn nvim_del_var(name: NonOwning<String>, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L889
     pub(crate) fn nvim_echo(
-        chunks: Array,
+        chunks: NonOwning<Array>,
         history: bool,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L938
-    pub(crate) fn nvim_err_write(str: String);
+    pub(crate) fn nvim_err_write(str: NonOwning<String>);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L949
-    pub(crate) fn nvim_err_writeln(str: String);
+    pub(crate) fn nvim_err_writeln(str: NonOwning<String>);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2290
     pub(crate) fn nvim_eval_statusline(
-        str: String,
+        str: NonOwning<String>,
         opts: *const Dictionary,
         errr: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L235
-    pub(crate) fn nvim_feedkeys(keys: String, mode: String, escape_ks: bool);
+    pub(crate) fn nvim_feedkeys(
+        keys: NonOwning<String>,
+        mode: NonOwning<String>,
+        escape_ks: bool,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L835
     pub(crate) fn nvim_get_all_options_info(err: *mut Error) -> Dictionary;
@@ -85,7 +100,7 @@ extern "C" {
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1477
-    pub(crate) fn nvim_get_color_by_name(name: String) -> Integer;
+    pub(crate) fn nvim_get_color_by_name(name: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1489
     pub(crate) fn nvim_get_color_map() -> Dictionary;
@@ -123,21 +138,24 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L75
     pub(crate) fn nvim_get_hl_by_name(
-        name: String,
+        name: NonOwning<String>,
         rgb: bool,
         error: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L109
-    pub(crate) fn nvim_get_hl_id_by_name(name: String) -> Integer;
+    pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1525
-    pub(crate) fn nvim_get_keymap(channel_id: u64, mode: String) -> Array;
+    pub(crate) fn nvim_get_keymap(
+        channel_id: u64,
+        mode: NonOwning<String>,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2119
     pub(crate) fn nvim_get_mark(
-        name: String,
-        opts: Dictionary,
+        name: NonOwning<String>,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Array;
 
@@ -145,17 +163,20 @@ extern "C" {
     pub(crate) fn nvim_get_mode() -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L682
-    pub(crate) fn nvim_get_option(name: String, err: *mut Error) -> Object;
+    pub(crate) fn nvim_get_option(
+        name: NonOwning<String>,
+        err: *mut Error,
+    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L839
     pub(crate) fn nvim_get_option_info(
-        name: String,
+        name: NonOwning<String>,
         err: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L700
     pub(crate) fn nvim_get_option_value(
-        name: String,
+        name: NonOwning<String>,
         opts: *const Dictionary,
         err: *mut Error,
     ) -> Object;
@@ -171,25 +192,31 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L519
     pub(crate) fn nvim_get_runtime_file(
-        name: String,
+        name: NonOwning<String>,
         all: bool,
         err: *mut Error,
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L621
-    pub(crate) fn nvim_get_var(name: String, err: *mut Error) -> Object;
+    pub(crate) fn nvim_get_var(
+        name: NonOwning<String>,
+        err: *mut Error,
+    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L662
-    pub(crate) fn nvim_get_vvar(name: String, err: *mut Error) -> Object;
+    pub(crate) fn nvim_get_vvar(
+        name: NonOwning<String>,
+        err: *mut Error,
+    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L311
-    pub(crate) fn nvim_input(keys: String) -> Integer;
+    pub(crate) fn nvim_input(keys: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L338
     pub(crate) fn nvim_input_mouse(
-        button: String,
-        action: String,
-        modifier: String,
+        button: NonOwning<String>,
+        action: NonOwning<String>,
+        modifier: NonOwning<String>,
         grid: Integer,
         row: Integer,
         col: Integer,
@@ -215,29 +242,29 @@ extern "C" {
     pub(crate) fn nvim_list_wins() -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1485
-    pub(crate) fn nvim_load_context(dict: Dictionary) -> Object;
+    pub(crate) fn nvim_load_context(dict: NonOwning<Dictionary>) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L468
     pub(crate) fn nvim_notify(
-        msg: String,
+        msg: NonOwning<String>,
         log_level: Integer,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1095
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L899
-    pub(crate) fn nvim_out_write(str: String);
+    pub(crate) fn nvim_out_write(str: NonOwning<String>);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1265
     pub(crate) fn nvim_paste(
-        data: String,
+        data: NonOwning<String>,
         crlf: bool,
         phase: Integer,
         err: *mut Error,
@@ -245,8 +272,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1335
     pub(crate) fn nvim_put(
-        lines: Array,
-        r#type: String,
+        lines: NonOwning<Array>,
+        r#type: NonOwning<String>,
         after: bool,
         follow: bool,
         err: *mut Error,
@@ -254,7 +281,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L398
     pub(crate) fn nvim_replace_termcodes(
-        str: String,
+        str: NonOwning<String>,
         from_part: bool,
         do_lt: bool,
         special: bool,
@@ -265,7 +292,7 @@ extern "C" {
         item: Integer,
         insert: bool,
         finish: bool,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     );
 
@@ -273,10 +300,16 @@ extern "C" {
     pub(crate) fn nvim_set_current_buf(buffer: BufHandle, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L567
-    pub(crate) fn nvim_set_current_dir(dir: String, err: *mut Error);
+    pub(crate) fn nvim_set_current_dir(
+        dir: NonOwning<String>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L603
-    pub(crate) fn nvim_set_current_line(line: String, err: *mut Error);
+    pub(crate) fn nvim_set_current_line(
+        line: NonOwning<String>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1228
     pub(crate) fn nvim_set_current_tabpage(
@@ -290,7 +323,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L164
     pub(crate) fn nvim_set_hl(
         ns_id: Integer,
-        name: String,
+        name: NonOwning<String>,
         val: *const Dictionary,
         err: *mut Error,
     );
@@ -298,9 +331,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1560
     pub(crate) fn nvim_set_keymap(
         channel_id: u64,
-        mode: String,
-        lhs: String,
-        rhs: String,
+        mode: NonOwning<String>,
+        lhs: NonOwning<String>,
+        rhs: NonOwning<String>,
         opts: *const Dictionary,
         err: *mut Error,
     );
@@ -308,25 +341,36 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L850
     pub(crate) fn nvim_set_option(
         channel_id: u64,
-        name: String,
-        value: Object,
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L760
     pub(crate) fn nvim_set_option_value(
-        name: String,
-        value: Object,
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
         opts: *const Dictionary,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L643
-    pub(crate) fn nvim_set_var(name: String, value: Object, err: *mut Error);
+    pub(crate) fn nvim_set_var(
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L672
-    pub(crate) fn nvim_set_vvar(name: String, value: Object, err: *mut Error);
+    pub(crate) fn nvim_set_vvar(
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L672
-    pub(crate) fn nvim_strwidth(text: String, err: *mut Error) -> Integer;
+    pub(crate) fn nvim_strwidth(
+        text: NonOwning<String>,
+        err: *mut Error,
+    ) -> Integer;
 }

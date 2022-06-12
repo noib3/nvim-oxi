@@ -26,7 +26,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_any<V>(mut self, visitor: V) -> Result<V::Value>
     where
         V: de::Visitor<'de>,
     {
@@ -40,7 +40,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             kObjectTypeFloat => visitor.visit_f64(unsafe { data.float }),
             kObjectTypeString => {
                 let string =
-                    ManuallyDrop::into_inner(unsafe { self.obj.data.string });
+                    unsafe { ManuallyDrop::take(&mut self.obj.data.string) };
                 match string.as_str() {
                     Ok(str) => visitor.visit_str(str),
                     _ => visitor.visit_bytes(string.as_bytes()),
@@ -73,7 +73,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
     #[inline]
     fn deserialize_enum<V>(
-        self,
+        mut self,
         _name: &str,
         _variants: &'static [&'static str],
         visitor: V,
@@ -84,9 +84,9 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         use ObjectType::*;
         let (variant, obj) = match self.obj.r#type {
             kObjectTypeDictionary => {
-                let mut iter = ManuallyDrop::into_inner(unsafe {
-                    self.obj.data.dictionary
-                })
+                let mut iter = unsafe {
+                    ManuallyDrop::take(&mut self.obj.data.dictionary)
+                }
                 .into_iter();
 
                 let (variant, value) = match iter.len() {
@@ -103,7 +103,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             },
 
             kObjectTypeString => (
-                ManuallyDrop::into_inner(unsafe { self.obj.data.string })
+                unsafe { ManuallyDrop::take(&mut self.obj.data.string) }
                     .into_string()?,
                 None,
             ),
@@ -115,7 +115,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_seq<V>(mut self, visitor: V) -> Result<V::Value>
     where
         V: de::Visitor<'de>,
     {
@@ -123,7 +123,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         match self.obj.r#type {
             kObjectTypeArray => {
                 let iter =
-                    ManuallyDrop::into_inner(unsafe { self.obj.data.array })
+                    unsafe { ManuallyDrop::take(&mut self.obj.data.array) }
                         .into_iter();
                 let mut deserializer = SeqDeserializer { iter };
                 visitor.visit_seq(&mut deserializer)
@@ -158,16 +158,16 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_map<V>(mut self, visitor: V) -> Result<V::Value>
     where
         V: de::Visitor<'de>,
     {
         use ObjectType::*;
         match self.obj.r#type {
             kObjectTypeDictionary => {
-                let iter = ManuallyDrop::into_inner(unsafe {
-                    self.obj.data.dictionary
-                })
+                let iter = unsafe {
+                    ManuallyDrop::take(&mut self.obj.data.dictionary)
+                }
                 .into_iter();
                 let mut deserializer = MapDeserializer { iter, obj: None };
                 visitor.visit_map(&mut deserializer)

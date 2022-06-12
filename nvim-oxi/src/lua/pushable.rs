@@ -12,7 +12,7 @@ trait ObjectExt {
 }
 
 impl ObjectExt for Object {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<()> {
+    unsafe fn push(mut self, lstate: *mut lua_State) -> Result<()> {
         use nvim_types::ObjectType::*;
         match self.r#type {
             kObjectTypeNil => lua_pushnil(lstate),
@@ -32,7 +32,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeString => {
-                let string = ManuallyDrop::into_inner(self.data.string);
+                let string = ManuallyDrop::take(&mut self.data.string);
                 lua_pushlstring(
                     lstate,
                     string.data as *const c_char,
@@ -41,7 +41,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeArray => {
-                let array = ManuallyDrop::into_inner(self.data.array);
+                let array = ManuallyDrop::take(&mut self.data.array);
                 lua_createtable(lstate, array.len().try_into()?, 0);
 
                 for (i, obj) in array.into_iter().enumerate() {
@@ -51,7 +51,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeDictionary => {
-                let dict = ManuallyDrop::into_inner(self.data.dictionary);
+                let dict = ManuallyDrop::take(&mut self.data.dictionary);
                 lua_createtable(lstate, 0, dict.len().try_into()?);
 
                 for (key, value) in dict {
