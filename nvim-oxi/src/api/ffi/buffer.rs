@@ -5,9 +5,9 @@ use nvim_types::{
     Error,
     Integer,
     LuaRef,
+    NonOwning,
     Object,
     String,
-    NonOwning,
 };
 
 use crate::api::opts::{

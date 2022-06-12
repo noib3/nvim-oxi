@@ -2,7 +2,7 @@
 //! `Dictionary`s.
 
 use std::ops::{Deref, Index};
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
@@ -50,6 +50,12 @@ impl<T> Collection<T> {
 impl<T: Clone> Clone for Collection<T> {
     fn clone(&self) -> Self {
         self.as_slice().to_owned().into()
+    }
+}
+
+impl<T> Drop for Collection<T> {
+    fn drop(&mut self) {
+        unsafe { ptr::drop_in_place(self.items.as_ptr()) }
     }
 }
 
