@@ -20,7 +20,7 @@ impl IntoIterator for Array {
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         let arr = ManuallyDrop::new(self);
-        let start = arr.items.as_ptr();
+        let start = arr.items;
         let end = unsafe { start.add(arr.len()) };
 
         ArrayIter { start, end }

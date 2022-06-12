@@ -57,7 +57,11 @@ impl String {
     /// TODO: docs
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
-        unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+        if self.data.is_null() {
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+        }
     }
 
     /// TODO: docs
@@ -76,7 +80,15 @@ impl String {
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
         unsafe {
-            Vec::from_raw_parts(self.data.cast::<u8>(), self.size, self.size)
+            if self.data.is_null() {
+                Vec::new()
+            } else {
+                Vec::from_raw_parts(
+                    self.data.cast::<u8>(),
+                    self.size,
+                    self.size,
+                )
+            }
         }
     }
 

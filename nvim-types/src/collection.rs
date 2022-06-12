@@ -2,14 +2,13 @@
 //! `Dictionary`s.
 
 use std::ops::{Deref, Index};
-use std::ptr::NonNull;
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
 
 #[repr(C)]
 pub struct Collection<T> {
-    pub(crate) items: NonNull<T>,
+    pub(crate) items: *mut T,
     pub(crate) size: size_t,
     pub(crate) capacity: size_t,
 }
@@ -18,7 +17,7 @@ impl<T> Collection<T> {
     /// Creates a new empty `Collection`.
     #[inline]
     pub const fn new() -> Self {
-        Self { items: NonNull::dangling(), size: 0, capacity: 0 }
+        Self { items: std::ptr::null_mut(), size: 0, capacity: 0 }
     }
 
     /// The number of items in the collection.
@@ -34,7 +33,11 @@ impl<T> Collection<T> {
 
     #[inline]
     pub(crate) fn as_slice(&self) -> &[T] {
-        unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
+        if self.items.is_null() {
+            &[]
+        } else {
+            unsafe { slice::from_raw_parts(self.items, self.size) }
+        }
     }
 
     #[inline]
@@ -43,7 +46,7 @@ impl<T> Collection<T> {
         size: usize,
         capacity: usize,
     ) -> Self {
-        Self { items: NonNull::new_unchecked(ptr), size, capacity }
+        Self { items: ptr, size, capacity }
     }
 }
 
@@ -87,7 +90,15 @@ impl<T> From<Collection<T>> for Vec<T> {
     #[inline]
     fn from(coll: Collection<T>) -> Self {
         unsafe {
-            Vec::from_raw_parts(coll.items.as_ptr(), coll.size, coll.capacity)
+            if coll.items.is_null() {
+                Vec::new()
+            } else {
+                Vec::from_raw_parts(
+                    coll.items,
+                    coll.size,
+                    coll.capacity,
+                )
+            }
         }
     }
 }
