@@ -148,15 +148,15 @@ impl Drop for Object {
         use ObjectType::*;
         match self.r#type {
             kObjectTypeString => unsafe {
-                ManuallyDrop::drop(&mut self.data.string)
+                // ManuallyDrop::drop(&mut self.data.string)
             },
 
             kObjectTypeArray => unsafe {
-                ManuallyDrop::drop(&mut self.data.array)
+                // ManuallyDrop::drop(&mut self.data.array)
             },
 
             kObjectTypeDictionary => unsafe {
-                ManuallyDrop::drop(&mut self.data.dictionary)
+                // ManuallyDrop::drop(&mut self.data.dictionary)
             },
 
             _ => {},

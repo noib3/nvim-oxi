@@ -13,6 +13,7 @@ pub struct lua_State {
     _marker: PhantomData<(*mut u8, PhantomPinned)>,
 }
 
+// Pseudo-indices.
 pub(crate) const LUA_REGISTRYINDEX: c_int = -10000;
 pub(crate) const LUA_ENVIRONINDEX: c_int = -10001;
 pub(crate) const LUA_GLOBALSINDEX: c_int = -10002;
@@ -21,6 +22,13 @@ pub(crate) const fn lua_upvalueindex(i: c_int) -> c_int {
     LUA_GLOBALSINDEX - i
 }
 
+/// Thread status.
+pub(crate) const LUA_OK: c_int = 0;
+pub(crate) const LUA_ERRRUN: c_int = 2;
+pub(crate) const LUA_ERRMEM: c_int = 4;
+pub(crate) const LUA_ERRERR: c_int = 5;
+
+/// Type codes.
 pub(crate) const LUA_TNONE: c_int = -1;
 pub(crate) const LUA_TNIL: c_int = 0;
 pub(crate) const LUA_TBOOLEAN: c_int = 1;
@@ -68,6 +76,14 @@ extern "C" {
         size: size_t,
     ) -> *mut c_void;
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_pcall
+    pub(crate) fn lua_pcall(
+        L: *mut lua_State,
+        nargs: c_int,
+        nresults: c_int,
+        errorfunc: c_int,
+    ) -> c_int;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_pushinteger
     pub(crate) fn lua_pushboolean(L: *mut lua_State, n: lua_Integer);
 
@@ -112,6 +128,9 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_settop
     pub(crate) fn lua_settop(L: *mut lua_State, index: c_int);
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_toboolean
+    pub(crate) fn lua_toboolean(L: *mut lua_State, index: c_int) -> c_int;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_tointeger
     pub(crate) fn lua_tointeger(
         L: *mut lua_State,
@@ -124,6 +143,9 @@ extern "C" {
         index: c_int,
         len: *mut size_t,
     ) -> *const c_char;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_tonumber
+    pub(crate) fn lua_tonumber(L: *mut lua_State, index: c_int) -> lua_Number;
 
     // https://www.lua.org/manual/5.1/manual.html#lua_touserdata
     pub(crate) fn lua_touserdata(
@@ -157,6 +179,16 @@ pub(crate) unsafe fn lua_pushcfunction(
     r#fn: lua_CFunction,
 ) {
     lua_pushcclosure(L, r#fn, 0)
+}
+
+// https://www.lua.org/manual/5.1/manual.html#lua_pop
+#[inline(always)]
+// https://www.lua.org/manual/5.1/manual.html#lua_tostring
+pub(crate) unsafe fn lua_tostring(
+    L: *mut lua_State,
+    index: c_int,
+) -> *const c_char {
+    lua_tolstring(L, index, std::ptr::null_mut())
 }
 
 // Lua auxiliary library.

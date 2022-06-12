@@ -55,9 +55,9 @@ impl<T: Clone> Clone for Collection<T> {
 
 impl<T> Drop for Collection<T> {
     fn drop(&mut self) {
-        let _ = unsafe {
-            Vec::from_raw_parts(self.items.as_ptr(), self.size, self.size)
-        };
+        // let _ = unsafe {
+        //     Vec::from_raw_parts(self.items.as_ptr(), self.size, self.size)
+        // };
     }
 }
 

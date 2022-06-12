@@ -1,6 +1,7 @@
 use std::ffi::CStr;
-use std::mem;
+use std::{fmt, mem};
 
+use libc::c_int;
 use once_cell::unsync::OnceCell;
 
 use super::ffi::*;
@@ -51,6 +52,16 @@ where
     LUA.with(move |lua| unsafe { fun(*(lua.get().unwrap_unchecked())) })
 }
 
+/// No-op if the stack is already taller than `n`, grows the stack to `n` by
+/// adding `nil`s if it's not.
+pub(crate) fn grow_stack(lstate: *mut lua_State, n: c_int) {
+    unsafe {
+        if lua_gettop(lstate) < n {
+            lua_settop(lstate, n);
+        }
+    }
+}
+
 /// Pretty prints the contents of the Lua stack to the Neovim message area.
 #[allow(dead_code)]
 pub(crate) unsafe fn debug_stack(lstate: *mut lua_State) {
@@ -59,11 +70,37 @@ pub(crate) unsafe fn debug_stack(lstate: *mut lua_State) {
     let stack_pp = (1..height + 1)
         .map(|n| {
             let idx = height + 1 - n;
-            let typename = CStr::from_ptr(luaL_typename(lstate, -n));
-            format!("{idx}: {typename:?}")
+            let value = debug_value(lstate, -n);
+            let typename = debug_type(lstate, -n);
+            format!("{idx}: {value} ({typename})")
         })
         .collect::<Vec<String>>()
         .join("\n");
 
     crate::print!("{stack_pp}");
+}
+
+/// Returns the string representation of the Lua value at a given stack index.
+pub(crate) unsafe fn debug_value(lstate: *mut lua_State, n: c_int) -> String {
+    match lua_type(lstate, n) {
+        LUA_TNONE | LUA_TNIL => "()".to_string(),
+
+        LUA_TBOOLEAN => (lua_toboolean(lstate, n) == 1).to_string(),
+
+        LUA_TSTRING => {
+            format!("{:?}", CStr::from_ptr(lua_tostring(lstate, n)))
+        },
+
+        LUA_TNUMBER => lua_tonumber(lstate, n).to_string(),
+
+        _ => "other".to_string(),
+    }
+}
+
+/// Returns the type of the Lua value at a given stack index.
+pub(crate) unsafe fn debug_type(
+    lstate: *mut lua_State,
+    n: c_int,
+) -> impl fmt::Display {
+    CStr::from_ptr(luaL_typename(lstate, n)).to_string_lossy()
 }

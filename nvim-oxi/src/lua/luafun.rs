@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
@@ -7,31 +8,20 @@ use libc::{c_char, c_int};
 use nvim_types::{LuaRef, Object, ObjectData, ObjectType};
 use serde::{de, ser};
 
-use super::ffi::*;
+use super::{ffi::*, LuaPoppable, LuaPushable};
 use crate::object::ToObject;
 use crate::Result;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-pub struct LuaFun<A, R>(pub(crate) LuaRef, PhantomData<A>, PhantomData<R>)
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable;
+pub struct LuaFun<A, R>(pub(crate) LuaRef, PhantomData<A>, PhantomData<R>);
 
-impl<A, R> fmt::Debug for LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<A, R> fmt::Debug for LuaFun<A, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("LuaFun").field(&self.0).finish()
     }
 }
 
-impl<A, R> From<LuaFun<A, R>> for Object
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<A, R> From<LuaFun<A, R>> for Object {
     fn from(fun: LuaFun<A, R>) -> Self {
         Self {
             r#type: ObjectType::kObjectTypeLuaRef,
@@ -40,32 +30,20 @@ where
     }
 }
 
-impl<A, R> ToObject for LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<A, R> ToObject for LuaFun<A, R> {
     fn to_obj(self) -> Result<Object> {
         Ok(self.into())
     }
 }
 
-impl<'de, A, R> de::Deserialize<'de> for LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<'de, A, R> de::Deserialize<'de> for LuaFun<A, R> {
     fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
         struct LuaFunVisitor<A, R>(PhantomData<A>, PhantomData<R>);
 
-        impl<'de, A, R> de::Visitor<'de> for LuaFunVisitor<A, R>
-        where
-            A: super::LuaPoppable,
-            R: super::LuaPushable,
-        {
+        impl<'de, A, R> de::Visitor<'de> for LuaFunVisitor<A, R> {
             type Value = LuaFun<A, R>;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -84,11 +62,7 @@ where
     }
 }
 
-impl<A, R> ser::Serialize for LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<A, R> ser::Serialize for LuaFun<A, R> {
     fn serialize<S>(&self, serializer: S) -> StdResult<S::Ok, S::Error>
     where
         S: ser::Serializer,
@@ -97,13 +71,11 @@ where
     }
 }
 
-impl<A, R> LuaFun<A, R>
-where
-    A: super::LuaPoppable,
-    R: super::LuaPushable,
-{
+impl<A, R> LuaFun<A, R> {
     pub fn from_fn<F>(fun: F) -> Self
     where
+        A: LuaPoppable,
+        R: LuaPushable,
         F: Fn(A) -> Result<R> + 'static,
     {
         type Cb = Box<dyn Fn(*mut lua_State) -> Result<c_int> + 'static>;
@@ -131,34 +103,69 @@ where
 
     pub fn from_fn_mut<F>(fun: F) -> Self
     where
+        A: LuaPoppable,
+        R: LuaPushable,
         F: FnMut(A) -> Result<R> + 'static,
     {
         let fun = RefCell::new(fun);
         Self::from_fn(move |args| {
-            let mut fun = fun
-                .try_borrow_mut()
-                .map_err(|_| crate::Error::LuaFunMutRecursiveCallback)?;
-            fun(args)
+            fun.try_borrow_mut()
+                .map_err(|_| crate::Error::LuaFunMutRecursiveCallback)?(
+                args
+            )
         })
     }
 
     pub fn from_fn_once<F>(fun: F) -> Self
     where
+        A: LuaPoppable,
+        R: LuaPushable,
         F: FnOnce(A) -> Result<R> + 'static,
     {
         let fun = RefCell::new(Some(fun));
         Self::from_fn(move |args| {
-            let fun = fun
-                .try_borrow_mut()
+            fun.try_borrow_mut()
                 .ok()
                 .and_then(|mut fun| fun.take())
-                .ok_or_else(|| crate::Error::LuaFunOnceMoreThanOnce)?;
-            fun(args)
+                .ok_or_else(|| crate::Error::LuaFunOnceMoreThanOnce)?(
+                args
+            )
         })
     }
 
-    pub fn _call(&self, _args: A) -> Result<R> {
-        todo!()
+    /// Calls the function, passing `args` as function arguments.
+    pub fn call(&self, args: A) -> Result<R>
+    where
+        A: LuaPushable,
+        R: LuaPoppable,
+    {
+        super::with_state(move |lstate| unsafe {
+            lua_rawgeti(lstate, LUA_REGISTRYINDEX, self.0);
+            let nargs = args.push(lstate)?;
+
+            match lua_pcall(lstate, nargs, R::N, 0) {
+                LUA_OK => R::pop(lstate),
+
+                err_code => {
+                    let msg = CStr::from_ptr(lua_tostring(lstate, -1))
+                        .to_string_lossy()
+                        .to_string();
+
+                    lua_pop(lstate, 1);
+
+                    match err_code {
+                        LUA_ERRRUN => Err(crate::Error::LuaRuntimeError(msg)),
+
+                        LUA_ERRMEM => Err(crate::Error::LuaMemoryError(msg)),
+
+                        LUA_ERRERR => {
+                            panic!("errorfunc is 0, this never happens!")
+                        },
+                        _ => unreachable!(),
+                    }
+                },
+            }
+        })
     }
 
     /// Consumes the `LuaFun`, removing the reference stored in the Lua

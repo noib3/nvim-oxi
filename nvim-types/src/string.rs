@@ -119,9 +119,9 @@ impl Clone for String {
 impl Drop for String {
     fn drop(&mut self) {
         // One extra for null terminator.
-        let _ = unsafe {
-            Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
-        };
+        // let _ = unsafe {
+        //     Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
+        // };
     }
 }
 

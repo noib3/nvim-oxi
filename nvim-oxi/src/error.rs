@@ -29,6 +29,12 @@ pub enum Error {
 
     #[error("FnOnce called more than once")]
     LuaFunOnceMoreThanOnce,
+
+    #[error("Lua runtime error: {0}")]
+    LuaRuntimeError(String),
+
+    #[error("Lua memory error: {0}")]
+    LuaMemoryError(String),
 }
 
 impl ser::Error for Error {

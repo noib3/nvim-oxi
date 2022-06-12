@@ -1,18 +1,18 @@
 use serde::Deserialize;
 
 /// Split modifier passed to the `split` key of `CommandModifiers`.
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SplitModifier {
     /// See `:h `:aboveleft`` for more infos.
     AboveLeft,
 
-    /// See `:h `:aboveleft`` for more infos.
+    /// See `:h `:belowright`` for more infos.
     BelowRight,
 
-    /// See `:h `:aboveleft`` for more infos.
+    /// See `:h `:topleft`` for more infos.
     TopLeft,
 
-    /// See `:h `:aboveleft`` for more infos.
+    /// See `:h `:botright`` for more infos.
     BotRight,
 }
