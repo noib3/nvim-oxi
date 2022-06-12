@@ -1,11 +1,16 @@
 use derive_builder::Builder;
 use nvim_types::{Integer, Object, String as NvimString};
-use serde::{Deserialize, Serialize};
 
-use crate::api::types::{CommandAddr, CommandNArgs, CommandRange};
+use crate::api::types::{
+    CommandAddr,
+    CommandArgs,
+    CommandComplete,
+    CommandNArgs,
+    CommandRange,
+};
 use crate::api::Buffer;
 use crate::lua::LuaFun;
-use crate::object::{self, FromObject, ToObject};
+use crate::object::ToObject;
 
 /// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
@@ -73,7 +78,7 @@ impl CreateCommandOptsBuilder {
     pub fn preview<F>(&mut self, f: F) -> &mut Self
     where
         F: FnMut(
-                (CreateCommandArgs, Option<u32>, Option<Buffer>),
+                (CommandArgs, Option<u32>, Option<Buffer>),
             ) -> crate::Result<u8>
             + 'static,
     {
@@ -83,79 +88,6 @@ impl CreateCommandOptsBuilder {
 
     pub fn build(&mut self) -> CreateCommandOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
-    }
-}
-
-/// TODO: docs
-#[derive(Clone, Debug, Deserialize)]
-pub struct CreateCommandArgs {
-    pub args: Option<String>,
-    pub fargs: Option<Vec<String>>,
-    pub bang: bool,
-    pub line1: usize,
-    pub line2: usize,
-    pub range: usize,
-    pub count: Option<i32>,
-    #[serde(rename = "reg")]
-    pub register: Option<String>,
-    pub mods: Option<String>,
-    // TODO
-    // pub smods: (),
-}
-
-impl FromObject for CreateCommandArgs {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
-    }
-}
-
-/// See `:h command-complete` for details.
-#[non_exhaustive]
-#[derive(Serialize)]
-pub enum CommandComplete {
-    Arglist,
-    Augroup,
-    Buffer,
-    Behave,
-    Color,
-    Command,
-    Compiler,
-    Cscope,
-    Dir,
-    Environment,
-    Event,
-    Expression,
-    File,
-    FileInPath,
-    Filetype,
-    Function,
-    Help,
-    Highlight,
-    History,
-    Locale,
-    Lua,
-    Mapclear,
-    Mapping,
-    Menu,
-    Messages,
-    Option,
-    Packadd,
-    Shellcmd,
-    Sign,
-    Syntax,
-    Syntime,
-    Tag,
-    TagListfiles,
-    User,
-    Var,
-
-    /// See `:h command-completion-customlist` for details.
-    CustomList(LuaFun<(String, String, usize), Vec<String>>),
-}
-
-impl ToObject for CommandComplete {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
     }
 }
 

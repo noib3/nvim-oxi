@@ -1,4 +1,4 @@
-mod de;
+pub(crate) mod de;
 mod from_object;
 mod ser;
 mod to_object;

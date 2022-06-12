@@ -1,6 +1,6 @@
 use nvim_oxi::{
-    self as nvim,
-    api::{self, opts::*, Buffer},
+    api::{self, opts::*, types::*, Buffer},
+    LuaFun,
 };
 
 pub fn attach() {
@@ -31,13 +31,14 @@ pub fn create_user_command() {
 
     let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
     assert!(res.is_ok());
+    // TODO: `api::nvim_command("Foo")`
 
-    let cb = Box::new(|()| {
-        nvim::print!("bar!");
-        Ok(())
-    }) as Box<dyn Fn(()) -> nvim::Result<()>>;
+    let cb = LuaFun::from_fn(|_args: CommandArgs| Ok(()));
     let res = buf.create_user_command("Bar", cb, &opts);
     assert!(res.is_ok());
+    // TODO: `api::nvim_command("Foo")`
+    // SEGFAULT: calling this segfaults bc of the `impl Drop for Object`.
+    // Commenting that out fixes it.
 }
 
 pub fn get_changedtick() {

@@ -1,13 +1,21 @@
 mod command_addr;
+mod command_args;
+mod command_complete;
 mod command_infos;
+mod command_modifiers;
 mod command_nargs;
 mod command_range;
 mod keymap_infos;
 mod mode;
+mod split_modifier;
 
 pub use command_addr::CommandAddr;
+pub use command_args::CommandArgs;
+pub use command_complete::CommandComplete;
 pub use command_infos::CommandInfos;
+pub use command_modifiers::CommandModifiers;
 pub use command_nargs::CommandNArgs;
 pub use command_range::CommandRange;
 pub use keymap_infos::KeymapInfos;
 pub use mode::Mode;
+pub use split_modifier::SplitModifier;
