@@ -131,7 +131,10 @@ pub fn err_writeln(string: &str) {
 
 // eval_statusline
 
-// feedkeys
+/// Binding to `nvim_feedkeys`
+pub fn feedkeys(keys: &str, mode: &str, escape_ks: bool) {
+    unsafe { nvim_feedkeys(keys.into(), mode.into(), escape_ks) }
+}
 
 // get_all_options_info
 
