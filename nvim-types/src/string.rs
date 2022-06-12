@@ -112,7 +112,11 @@ impl Clone for String {
 
 impl Drop for String {
     fn drop(&mut self) {
-        unsafe { std::ptr::drop_in_place(self.data) }
+        unsafe {
+            // one extra for null terminator
+            let slice = std::slice::from_raw_parts_mut(self.data, self.size + 1);
+            drop(Box::from_raw(slice));
+        }
     }
 }
 
