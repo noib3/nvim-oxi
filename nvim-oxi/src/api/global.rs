@@ -142,7 +142,11 @@ pub fn feedkeys(keys: &str, mode: &str, escape_ks: bool) {
 
 // get_chan_info
 
-// get_color_by_name
+/// Binding to `nvim_get_color_by_name`
+pub fn get_color_by_name(name: &str) -> usize {
+    let color = unsafe { nvim_get_color_by_name(name.into()) };
+    color.try_into().expect("invalid argument")
+}
 
 // get_color_map
 
