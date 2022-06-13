@@ -22,13 +22,13 @@ pub(crate) const fn lua_upvalueindex(i: c_int) -> c_int {
     LUA_GLOBALSINDEX - i
 }
 
-/// Thread status.
+// Thread status.
 pub(crate) const LUA_OK: c_int = 0;
 pub(crate) const LUA_ERRRUN: c_int = 2;
 pub(crate) const LUA_ERRMEM: c_int = 4;
 pub(crate) const LUA_ERRERR: c_int = 5;
 
-/// Type codes.
+// Type codes.
 pub(crate) const LUA_TNONE: c_int = -1;
 pub(crate) const LUA_TNIL: c_int = 0;
 pub(crate) const LUA_TBOOLEAN: c_int = 1;

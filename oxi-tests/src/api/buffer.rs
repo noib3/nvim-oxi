@@ -37,8 +37,6 @@ pub fn create_user_command() {
     let res = buf.create_user_command("Bar", cb, &opts);
     assert!(res.is_ok());
     // TODO: `api::nvim_command("Foo")`
-    // SEGFAULT: calling this segfaults bc of the `impl Drop for Object`.
-    // Commenting that out fixes it.
 }
 
 pub fn get_changedtick() {

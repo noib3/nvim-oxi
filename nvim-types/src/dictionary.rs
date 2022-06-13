@@ -81,6 +81,7 @@ impl Iterator for DictIter {
             let old = self.start;
             self.start = unsafe { self.start.offset(1) };
             let KeyValuePair { key, value } = unsafe { ptr::read(old) };
+            // TODO: read copies, there's a leak here!
             (key, value)
         })
     }

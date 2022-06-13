@@ -6,7 +6,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::os::windows::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::string::{self, String as StdString};
-use std::{fmt, slice, str};
+use std::{fmt, mem, slice, str};
 
 use libc::{c_char, size_t};
 
@@ -82,9 +82,12 @@ impl String {
     /// Converts the `String` into a byte vector, consuming it.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
-        unsafe {
-            Vec::from_raw_parts(self.data.cast::<u8>(), self.size, self.size)
-        }
+        let vec = unsafe {
+            Vec::from_raw_parts(self.data as *mut u8, self.size, self.size)
+        };
+        // Forget the string to avoid running the destructor.
+        mem::forget(self);
+        vec
     }
 
     /// Converts the `String` into Rust's `std::string::String`, consuming it.
@@ -119,9 +122,9 @@ impl Clone for String {
 impl Drop for String {
     fn drop(&mut self) {
         // One extra for null terminator.
-        // let _ = unsafe {
-        //     Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
-        // };
+        let _ = unsafe {
+            Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
+        };
     }
 }
 

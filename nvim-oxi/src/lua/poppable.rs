@@ -6,6 +6,7 @@ use crate::object::FromObject;
 use crate::Result;
 
 extern "C" {
+    // https://github.com/neovim/neovim/blob/master/src/nvim/lua/converter.c#L1048
     fn nlua_pop_Object(
         lstate: *const lua_State,
         r#ref: bool,

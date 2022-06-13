@@ -49,6 +49,7 @@ impl Iterator for ArrayIter {
         (self.start != self.end).then(|| {
             let old = self.start;
             self.start = unsafe { self.start.offset(1) };
+            // TODO: read copies, there's a leak here!
             unsafe { ptr::read(old) }
         })
     }

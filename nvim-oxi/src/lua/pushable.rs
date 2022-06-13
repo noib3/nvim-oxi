@@ -1,5 +1,3 @@
-use std::mem::{self, ManuallyDrop};
-
 use libc::{c_char, c_int};
 use nvim_types::Object;
 
@@ -12,7 +10,7 @@ trait ObjectExt {
 }
 
 impl ObjectExt for Object {
-    unsafe fn push(mut self, lstate: *mut lua_State) -> Result<()> {
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<()> {
         use nvim_types::ObjectType::*;
         match self.r#type {
             kObjectTypeNil => lua_pushnil(lstate),
@@ -32,31 +30,26 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeString => {
-                let string = ManuallyDrop::take(&mut self.data.string);
+                let string = self.into_string_unchecked();
                 lua_pushlstring(
                     lstate,
                     string.data as *const c_char,
                     string.size,
                 );
-                // Forget `self` to avoid running the destructor twice.
-                mem::forget(self);
             },
 
             kObjectTypeArray => {
-                let array = ManuallyDrop::take(&mut self.data.array);
+                let array = self.into_array_unchecked();
                 lua_createtable(lstate, array.len().try_into()?, 0);
 
                 for (i, obj) in array.into_iter().enumerate() {
                     obj.push(lstate)?;
                     lua_rawseti(lstate, -2, (i + 1).try_into()?);
                 }
-
-                // Same as above.
-                mem::forget(self);
             },
 
             kObjectTypeDictionary => {
-                let dict = ManuallyDrop::take(&mut self.data.dictionary);
+                let dict = self.into_dict_unchecked();
                 lua_createtable(lstate, 0, dict.len().try_into()?);
 
                 for (key, value) in dict {
@@ -68,9 +61,6 @@ impl ObjectExt for Object {
                     value.push(lstate)?;
                     lua_rawset(lstate, -3);
                 }
-
-                // Same as above.
-                mem::forget(self);
             },
 
             kObjectTypeLuaRef => {

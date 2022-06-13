@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
-use std::mem::ManuallyDrop;
+use std::mem::{self, ManuallyDrop};
 use std::result::Result as StdResult;
 use std::string::String as StdString;
 
@@ -76,6 +76,44 @@ impl Object {
         // Using ptr::read, because can't copy the union.
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
+
+    /// Extracts the inner `String` from the object, without checking that the
+    /// object actually represents a `String`.
+    #[inline]
+    pub unsafe fn into_string_unchecked(self) -> NvimString {
+        let str = NvimString {
+            data: self.data.string.data,
+            size: self.data.string.size,
+        };
+        mem::forget(self);
+        str
+    }
+
+    /// Extracts the inner `Array` from the object, without checking that the
+    /// object actually represents an `Array`.
+    #[inline]
+    pub unsafe fn into_array_unchecked(self) -> Array {
+        let array = Array {
+            items: self.data.array.items,
+            size: self.data.array.size,
+            capacity: self.data.array.capacity,
+        };
+        mem::forget(self);
+        array
+    }
+
+    /// Extracts the inner `Dictionary` from the object, without checking that
+    /// the object actually represents a `Dictionary`.
+    #[inline]
+    pub unsafe fn into_dict_unchecked(self) -> Dictionary {
+        let dict = Dictionary {
+            items: self.data.dictionary.items,
+            size: self.data.dictionary.size,
+            capacity: self.data.dictionary.capacity,
+        };
+        mem::forget(self);
+        dict
+    }
 }
 
 impl Default for Object {
@@ -148,15 +186,15 @@ impl Drop for Object {
         use ObjectType::*;
         match self.r#type {
             kObjectTypeString => unsafe {
-                // ManuallyDrop::drop(&mut self.data.string)
+                ManuallyDrop::drop(&mut self.data.string)
             },
 
             kObjectTypeArray => unsafe {
-                // ManuallyDrop::drop(&mut self.data.array)
+                ManuallyDrop::drop(&mut self.data.array)
             },
 
             kObjectTypeDictionary => unsafe {
-                // ManuallyDrop::drop(&mut self.data.dictionary)
+                ManuallyDrop::drop(&mut self.data.dictionary)
             },
 
             _ => {},
@@ -375,16 +413,14 @@ try_from_copy!(Float, kObjectTypeFloat, float);
 
 /// Implements `TryFrom<Object>` for primitive `ManuallyDrop` types.
 macro_rules! try_from_man_drop {
-    ($type:ident, $variant:ident, $data:ident) => {
+    ($type:ident, $variant:ident, $into_inner:ident) => {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
-            fn try_from(mut obj: Object) -> StdResult<Self, Self::Error> {
+            fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
                 let ty = obj.r#type;
                 (matches!(ty, ObjectType::$variant))
-                    .then(|| unsafe {
-                        ManuallyDrop::take(&mut obj.data.$data)
-                    })
+                    .then(|| unsafe { obj.$into_inner() })
                     .ok_or_else(|| FromObjectError::Primitive {
                         expected: ObjectType::$variant,
                         actual: ty,
@@ -394,9 +430,9 @@ macro_rules! try_from_man_drop {
     };
 }
 
-try_from_man_drop!(NvimString, kObjectTypeString, string);
-try_from_man_drop!(Array, kObjectTypeArray, array);
-try_from_man_drop!(Dictionary, kObjectTypeDictionary, dictionary);
+try_from_man_drop!(NvimString, kObjectTypeString, into_string_unchecked);
+try_from_man_drop!(Array, kObjectTypeArray, into_array_unchecked);
+try_from_man_drop!(Dictionary, kObjectTypeDictionary, into_dict_unchecked);
 
 /// Implements `TryFrom<Object>` for a type that implements `TryFrom<{prim}>`,
 /// where `{prim}` is one of the primitive data types.
