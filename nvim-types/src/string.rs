@@ -1,12 +1,13 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
+use std::mem::ManuallyDrop;
 #[cfg(target_family = "unix")]
 use std::os::unix::ffi::OsStrExt;
 #[cfg(target_family = "windows")]
 use std::os::windows::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::string::{self, String as StdString};
-use std::{fmt, mem, slice, str};
+use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
 
@@ -82,13 +83,10 @@ impl String {
     /// Converts the `String` into a byte vector, consuming it.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
-        let vec = unsafe {
-            Vec::from_raw_parts(self.data as *mut u8, self.size, self.size)
-        };
-        // Forget the string to avoid running the destructor.
-        // TODO: use ManuallyDrop?
-        mem::forget(self);
-        vec
+        let mdrop = ManuallyDrop::new(self);
+        unsafe {
+            Vec::from_raw_parts(mdrop.data as *mut u8, mdrop.size, mdrop.size)
+        }
     }
 
     /// Converts the `String` into Rust's `std::string::String`, consuming it.

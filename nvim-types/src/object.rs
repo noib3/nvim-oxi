@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
-use std::mem::{self, ManuallyDrop};
+use std::mem::ManuallyDrop;
 use std::result::Result as StdResult;
 use std::string::String as StdString;
 
@@ -81,41 +81,24 @@ impl Object {
     /// object actually represents a `String`.
     #[inline]
     pub unsafe fn into_string_unchecked(self) -> NvimString {
-        let str = NvimString {
-            data: self.data.string.data,
-            size: self.data.string.size,
-        };
-        // TODO: use ManuallyDrop?
-        mem::forget(self);
-        str
+        let str = ManuallyDrop::new(self);
+        NvimString { ..*str.data.string }
     }
 
     /// Extracts the inner `Array` from the object, without checking that the
     /// object actually represents an `Array`.
     #[inline]
     pub unsafe fn into_array_unchecked(self) -> Array {
-        let array = Array {
-            items: self.data.array.items,
-            size: self.data.array.size,
-            capacity: self.data.array.capacity,
-        };
-        // TODO: use ManuallyDrop?
-        mem::forget(self);
-        array
+        let array = ManuallyDrop::new(self);
+        Array { ..*array.data.array }
     }
 
     /// Extracts the inner `Dictionary` from the object, without checking that
     /// the object actually represents a `Dictionary`.
     #[inline]
     pub unsafe fn into_dict_unchecked(self) -> Dictionary {
-        let dict = Dictionary {
-            items: self.data.dictionary.items,
-            size: self.data.dictionary.size,
-            capacity: self.data.dictionary.capacity,
-        };
-        // TODO: use ManuallyDrop?
-        mem::forget(self);
-        dict
+        let dict = ManuallyDrop::new(self);
+        Dictionary { ..*dict.data.dictionary }
     }
 }
 
