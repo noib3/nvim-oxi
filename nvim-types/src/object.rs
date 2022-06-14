@@ -6,14 +6,14 @@ use std::result::Result as StdResult;
 use std::string::String as StdString;
 
 use crate::{
-    array::Array,
-    dictionary::Dictionary,
-    non_owning::NonOwning,
-    string::String as NvimString,
+    Array,
     Boolean,
+    Dictionary,
     Float,
     Integer,
     LuaRef,
+    NonOwning,
+    String as NvimString,
 };
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115

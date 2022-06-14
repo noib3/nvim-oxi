@@ -1,4 +1,5 @@
-use std::{marker::PhantomData, mem::ManuallyDrop};
+use std::marker::PhantomData;
+use std::mem::ManuallyDrop;
 
 /// A non-owning value for lifetime `'a`.
 ///

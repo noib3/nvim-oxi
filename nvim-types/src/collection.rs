@@ -7,6 +7,8 @@ use std::slice::{self, SliceIndex};
 
 use libc::size_t;
 
+use crate::NonOwning;
+
 #[repr(C)]
 pub struct Collection<T> {
     pub(crate) items: NonNull<T>,
@@ -44,6 +46,12 @@ impl<T> Collection<T> {
         capacity: usize,
     ) -> Self {
         Self { items: NonNull::new_unchecked(ptr), size, capacity }
+    }
+
+    /// Make a non-owning version of this `Collection`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
     }
 }
 

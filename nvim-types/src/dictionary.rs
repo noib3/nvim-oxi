@@ -2,10 +2,7 @@ use std::collections::HashMap as StdHashMap;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
-use super::collection::Collection;
-use super::object::Object;
-use super::string::String;
-use crate::non_owning::NonOwning;
+use super::{Collection, Object, String};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 pub type Dictionary = Collection<KeyValuePair>;
@@ -42,14 +39,6 @@ impl fmt::Debug for Dictionary {
         f.debug_map()
             .entries(self.iter().map(|pair| (&pair.key, &pair.value)))
             .finish()
-    }
-}
-
-impl Dictionary {
-    /// Make a non-owning version of this `Dictionary`.
-    #[inline]
-    pub fn non_owning(&self) -> NonOwning<'_, Self> {
-        NonOwning::new(Self { ..*self })
     }
 }
 
