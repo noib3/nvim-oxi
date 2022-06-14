@@ -344,4 +344,13 @@ where
     err.into_err_or_else(|| ())
 }
 
-// strwidth
+/// Binding to `nvim_strwidth`.
+///
+/// Calculates the number of display cells occupied by `text`. Control
+/// characters like `<Tab>` count as one cell.
+pub fn strwidth(text: &str) -> Result<usize> {
+    let text = NvimString::from(text);
+    let mut err = NvimError::new();
+    let width = unsafe { nvim_strwidth(text.non_owning(), &mut err) };
+    err.into_err_or_else(|| width.try_into().expect("always positive"))
+}
