@@ -17,7 +17,7 @@ use crate::{
     Result,
 };
 
-/// Binding to `nvim_chan_send`
+/// Binding to `nvim_chan_send`.
 pub fn chan_send(chan: impl Into<Integer>, data: &str) -> Result<()> {
     let mut err = NvimError::new();
     let data = NvimString::from(data);
@@ -26,13 +26,15 @@ pub fn chan_send(chan: impl Into<Integer>, data: &str) -> Result<()> {
 }
 
 /// Binding to `nvim_create_buf`.
+///
+/// Creates a new, empty, unnamed buffer.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = NvimError::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
     err.into_err_or_else(|| handle.into())
 }
 
-/// Binding to `nvim_create_user_command`
+/// Binding to `nvim_create_user_command`.
 pub fn create_user_command<Value>(
     name: &str,
     command: Value,
@@ -43,14 +45,12 @@ where
 {
     let name = NvimString::from(name);
     let command = command.to_obj()?;
-    let opts: Dictionary = todo!();
     let mut err = NvimError::new();
     unsafe {
         nvim_create_user_command(
             name.non_owning(),
             command.non_owning(),
-            &opts.non_owning() as *const nvim_types::NonOwning<Dictionary>
-                as *const Dictionary,
+            &opts.into(),
             &mut err,
         )
     };
@@ -64,7 +64,7 @@ pub fn del_current_line() -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_del_keymap`
+/// Binding to `nvim_del_keymap`.
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mode = NvimString::from(mode);
     let lhs = NvimString::from(lhs);
@@ -80,7 +80,7 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_del_mark`
+/// Binding to `nvim_del_mark`.
 pub fn del_mark(name: char) -> Result<bool> {
     let name = NvimString::from(name);
     let mut err = NvimError::new();
@@ -88,7 +88,7 @@ pub fn del_mark(name: char) -> Result<bool> {
     err.into_err_or_else(|| res)
 }
 
-/// Binding to `nvim_del_user_command`
+/// Binding to `nvim_del_user_command`.
 pub fn del_user_command(name: &str) -> Result<()> {
     let name = NvimString::from(name);
     let mut err = NvimError::new();
@@ -96,7 +96,9 @@ pub fn del_user_command(name: &str) -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_del_var`
+/// Binding to `nvim_del_var`.
+///
+/// Removes a global (`g:`) variable.
 pub fn del_var(name: &str) -> Result<()> {
     let name = NvimString::from(name);
     let mut err = NvimError::new();
@@ -105,6 +107,8 @@ pub fn del_var(name: &str) -> Result<()> {
 }
 
 /// Binding to `nvim_echo`.
+///
+/// Echoes a message to the Neovim message area.
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
     Text: std::fmt::Display,
@@ -129,12 +133,19 @@ where
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_err_write`
+/// Binding to `nvim_err_write`.
+///
+/// Writes a message to the Neovim error buffer. Does not append a newline
+/// (`"\n"`); the message gets buffered and won't be displayed until a linefeed
+/// is written.
 pub fn err_write(str: &str) {
     unsafe { nvim_err_write(NvimString::from(str).non_owning()) }
 }
 
-/// Binding to `nvim_err_writeln`
+/// Binding to `nvim_err_writeln`.
+///
+/// Writes a message to the Neovim error buffer. Appends a newline (`"\n"`), so
+/// the buffer is flused and displayed.
 pub fn err_writeln(str: &str) {
     unsafe { nvim_err_writeln(NvimString::from(str).non_owning()) }
 }
@@ -154,7 +165,10 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
 
 // get_chan_info
 
-/// Binding to `nvim_get_color_by_name`
+/// Binding to `nvim_get_color_by_name`.
+///
+/// Returns the 24-bit RGB value of a `crate::api::get_color_map` color name or
+/// "#rrggbb" hexadecimal string.
 pub fn get_color_by_name(name: &str) -> u32 {
     let name = NvimString::from(name);
     let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
@@ -169,6 +183,8 @@ pub fn get_color_by_name(name: &str) -> u32 {
 // get_context
 
 /// Binding to `nvim_get_current_buf`.
+///
+/// Gets the current buffer.
 pub fn get_current_buf() -> Buffer {
     unsafe { nvim_get_current_buf() }.into()
 }
@@ -211,6 +227,8 @@ pub fn get_mode() -> Dictionary {
 // get_runtime_file
 
 /// Binding to `nvim_get_var`.
+///
+/// Gets a global (`g:`) variable.
 pub fn get_var<Value>(name: &str) -> Result<Value>
 where
     Value: FromObject,
@@ -221,7 +239,9 @@ where
     err.into_err_or_flatten(|| Value::from_obj(obj))
 }
 
-/// Binding to `nvim_get_vvar`
+/// Binding to `nvim_get_vvar`.
+///
+/// Gets a `v:` variable.
 pub fn get_vvar<Value>(name: &str) -> Result<Value>
 where
     Value: FromObject,
@@ -261,8 +281,11 @@ where
 // put
 
 /// Binding to `nvim_replace_termcodes`.
-pub fn replace_termcodes<Str: Into<NvimString>>(
-    str: Str,
+///
+/// Replaces terminal codes and keycodes (`<CR>`, `<Esc>`, ...) in a string
+/// with the internal representation.
+pub fn replace_termcodes<Codes: Into<NvimString>>(
+    str: Codes,
     from_part: bool,
     do_lt: bool,
     special: bool,
@@ -293,7 +316,9 @@ pub fn replace_termcodes<Str: Into<NvimString>>(
 
 // set_option_value
 
-/// Binding to `nvim_set_var`
+/// Binding to `nvim_set_var`.
+///
+/// Sets a global (`g:`) variable.
 pub fn set_var<Value>(name: &str, value: Value) -> Result<()>
 where
     Value: ToObject,
@@ -305,7 +330,9 @@ where
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_set_vvar`
+/// Binding to `nvim_set_vvar`.
+///
+/// Sets a `v:` variable, if it's not readonly.
 pub fn set_vvar<Value>(name: &str, value: Value) -> Result<()>
 where
     Value: ToObject,

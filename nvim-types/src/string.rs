@@ -155,6 +155,13 @@ impl<'a> From<Cow<'a, str>> for String {
     }
 }
 
+impl From<Vec<u8>> for String {
+    #[inline]
+    fn from(vec: Vec<u8>) -> Self {
+        Self::from_bytes(vec)
+    }
+}
+
 #[cfg(not(windows))]
 impl From<String> for PathBuf {
     #[inline]
