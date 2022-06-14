@@ -61,6 +61,13 @@ impl<T> Drop for Collection<T> {
     }
 }
 
+impl<T: PartialEq> PartialEq for Collection<T> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        PartialEq::eq(self.as_slice(), other.as_slice())
+    }
+}
+
 impl<T> Deref for Collection<T> {
     type Target = [T];
 

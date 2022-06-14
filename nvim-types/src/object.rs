@@ -202,6 +202,31 @@ impl Drop for Object {
     }
 }
 
+impl PartialEq<Self> for Object {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        if self.r#type != other.r#type {
+            return false;
+        };
+
+        let (lhs, rhs) = (&self.data, &other.data);
+
+        unsafe {
+            use ObjectType::*;
+            match self.r#type {
+                kObjectTypeNil => true,
+                kObjectTypeBoolean => lhs.boolean == rhs.boolean,
+                kObjectTypeInteger => lhs.boolean == rhs.boolean,
+                kObjectTypeFloat => lhs.float == rhs.float,
+                kObjectTypeString => lhs.string == rhs.string,
+                kObjectTypeArray => lhs.array == rhs.array,
+                kObjectTypeDictionary => lhs.dictionary == rhs.dictionary,
+                kObjectTypeLuaRef => lhs.luaref == rhs.luaref,
+            }
+        }
+    }
+}
+
 impl From<()> for Object {
     fn from(_: ()) -> Self {
         Self::nil()

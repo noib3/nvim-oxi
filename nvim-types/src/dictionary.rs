@@ -11,7 +11,7 @@ use crate::non_owning::NonOwning;
 pub type Dictionary = Collection<KeyValuePair>;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L128
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 #[repr(C)]
 pub struct KeyValuePair {
     pub key: String,
@@ -78,10 +78,9 @@ impl Iterator for DictIter {
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         (self.start != self.end).then(|| {
-            let old = self.start;
+            let current = self.start;
             self.start = unsafe { self.start.offset(1) };
-            let KeyValuePair { key, value } = unsafe { ptr::read(old) };
-            // TODO: read copies, there's a leak here!
+            let KeyValuePair { key, value } = unsafe { ptr::read(current) };
             (key, value)
         })
     }
@@ -97,6 +96,8 @@ impl Iterator for DictIter {
         self.len()
     }
 }
+
+// TODO: implement `Drop` for `DictIter`.
 
 impl ExactSizeIterator for DictIter {
     fn len(&self) -> usize {
@@ -114,6 +115,7 @@ where
             .map(|(k, v)| (k, Object::from(v)))
             .filter(|(_, obj)| obj.is_some())
             .map(KeyValuePair::from)
+            // TODO: collect directly into self
             .collect::<Vec<KeyValuePair>>()
             .into()
     }
@@ -126,5 +128,34 @@ where
 {
     fn from(hashmap: StdHashMap<K, V>) -> Self {
         hashmap.into_iter().collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Dictionary, Object, String as NvimString};
+
+    #[test]
+    fn iter_basic() {
+        let dict = Dictionary::from_iter([
+            ("foo", "Foo"),
+            ("bar", "Bar"),
+            ("baz", "Baz"),
+        ]);
+
+        let mut iter = dict.into_iter();
+        assert_eq!(
+            Some((NvimString::from("foo"), Object::from("Foo"))),
+            iter.next()
+        );
+        assert_eq!(
+            Some((NvimString::from("bar"), Object::from("Bar"))),
+            iter.next()
+        );
+        assert_eq!(
+            Some((NvimString::from("baz"), Object::from("Baz"))),
+            iter.next()
+        );
+        assert_eq!(None, iter.next());
     }
 }

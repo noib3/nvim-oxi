@@ -47,10 +47,9 @@ impl Iterator for ArrayIter {
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         (self.start != self.end).then(|| {
-            let old = self.start;
+            let current = self.start;
             self.start = unsafe { self.start.offset(1) };
-            // TODO: read copies, there's a leak here!
-            unsafe { ptr::read(old) }
+            unsafe { ptr::read(current) }
         })
     }
 
@@ -65,6 +64,8 @@ impl Iterator for ArrayIter {
         self.len()
     }
 }
+
+// TODO: implement `Drop` for `ArrayIter`.
 
 impl ExactSizeIterator for ArrayIter {
     fn len(&self) -> usize {
@@ -81,6 +82,23 @@ where
             .map(Object::from)
             .filter(Object::is_some)
             .collect::<Vec<Object>>()
+            // TODO: collect directly into self
             .into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Array, Object};
+
+    #[test]
+    fn iter_basic() {
+        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
+
+        let mut iter = array.into_iter();
+        assert_eq!(Some(Object::from("Foo")), iter.next());
+        assert_eq!(Some(Object::from("Bar")), iter.next());
+        assert_eq!(Some(Object::from("Baz")), iter.next());
+        assert_eq!(None, iter.next());
     }
 }
