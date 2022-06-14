@@ -85,6 +85,7 @@ impl Object {
             data: self.data.string.data,
             size: self.data.string.size,
         };
+        // TODO: use ManuallyDrop?
         mem::forget(self);
         str
     }
@@ -98,6 +99,7 @@ impl Object {
             size: self.data.array.size,
             capacity: self.data.array.capacity,
         };
+        // TODO: use ManuallyDrop?
         mem::forget(self);
         array
     }
@@ -111,6 +113,7 @@ impl Object {
             size: self.data.dictionary.size,
             capacity: self.data.dictionary.capacity,
         };
+        // TODO: use ManuallyDrop?
         mem::forget(self);
         dict
     }
@@ -488,3 +491,17 @@ try_from_prim!(Integer, isize, kObjectTypeInteger);
 try_from_prim!(Integer, usize, kObjectTypeInteger);
 
 try_from_prim!(NvimString, StdString, kObjectTypeString);
+
+#[cfg(test)]
+mod tests {
+    use super::{Object, StdString};
+
+    #[test]
+    fn std_string_to_obj_and_back() {
+        let str = StdString::from("foo");
+        let obj = Object::from(str.clone());
+        let str_again = StdString::try_from(obj);
+        assert!(str_again.is_ok());
+        assert_eq!(str, str_again.unwrap());
+    }
+}

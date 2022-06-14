@@ -54,25 +54,26 @@ impl Dictionary {
 }
 
 impl IntoIterator for Dictionary {
-    type IntoIter = DictIter;
-    type Item = <DictIter as Iterator>::Item;
+    type IntoIter = DictIterator;
+    type Item = <DictIterator as Iterator>::Item;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
+        // Wrap `self` in `ManuallyDrop` to avoid running destructor.
         let arr = ManuallyDrop::new(self);
         let start = arr.items.as_ptr();
         let end = unsafe { start.add(arr.len()) };
 
-        DictIter { start, end }
+        DictIterator { start, end }
     }
 }
 
-pub struct DictIter {
+pub struct DictIterator {
     start: *const KeyValuePair,
     end: *const KeyValuePair,
 }
 
-impl Iterator for DictIter {
+impl Iterator for DictIterator {
     type Item = (String, Object);
 
     #[inline]
@@ -97,11 +98,21 @@ impl Iterator for DictIter {
     }
 }
 
-// TODO: implement `Drop` for `DictIter`.
-
-impl ExactSizeIterator for DictIter {
+impl ExactSizeIterator for DictIterator {
+    #[inline]
     fn len(&self) -> usize {
         unsafe { self.end.offset_from(self.start) as usize }
+    }
+}
+
+impl Drop for DictIterator {
+    fn drop(&mut self) {
+        while self.start != self.end {
+            unsafe {
+                ptr::drop_in_place(self.start as *mut Object);
+                self.start = self.start.offset(1);
+            }
+        }
     }
 }
 
@@ -115,7 +126,6 @@ where
             .map(|(k, v)| (k, Object::from(v)))
             .filter(|(_, obj)| obj.is_some())
             .map(KeyValuePair::from)
-            // TODO: collect directly into self
             .collect::<Vec<KeyValuePair>>()
             .into()
     }
@@ -157,5 +167,20 @@ mod tests {
             iter.next()
         );
         assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn drop_iter_halfway() {
+        let dict = Dictionary::from_iter([
+            ("foo", "Foo"),
+            ("bar", "Bar"),
+            ("baz", "Baz"),
+        ]);
+
+        let mut iter = dict.into_iter();
+        assert_eq!(
+            Some((NvimString::from("foo"), Object::from("Foo"))),
+            iter.next()
+        );
     }
 }

@@ -86,6 +86,7 @@ impl String {
             Vec::from_raw_parts(self.data as *mut u8, self.size, self.size)
         };
         // Forget the string to avoid running the destructor.
+        // TODO: use ManuallyDrop?
         mem::forget(self);
         vec
     }

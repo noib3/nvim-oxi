@@ -199,7 +199,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 }
 
 struct SeqDeserializer {
-    iter: nvim_types::ArrayIter,
+    iter: nvim_types::ArrayIterator,
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
@@ -222,7 +222,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: nvim_types::DictIter,
+    iter: nvim_types::DictIterator,
     obj: Option<Object>,
 }
 

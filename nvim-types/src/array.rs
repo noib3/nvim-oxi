@@ -23,25 +23,26 @@ impl Array {
 }
 
 impl IntoIterator for Array {
-    type IntoIter = ArrayIter;
-    type Item = <ArrayIter as Iterator>::Item;
+    type IntoIter = ArrayIterator;
+    type Item = <ArrayIterator as Iterator>::Item;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
+        // Wrap `self` in `ManuallyDrop` to avoid running destructor.
         let arr = ManuallyDrop::new(self);
         let start = arr.items.as_ptr();
         let end = unsafe { start.add(arr.len()) };
 
-        ArrayIter { start, end }
+        ArrayIterator { start, end }
     }
 }
 
-pub struct ArrayIter {
+pub struct ArrayIterator {
     start: *const Object,
     end: *const Object,
 }
 
-impl Iterator for ArrayIter {
+impl Iterator for ArrayIterator {
     type Item = Object;
 
     #[inline]
@@ -65,11 +66,20 @@ impl Iterator for ArrayIter {
     }
 }
 
-// TODO: implement `Drop` for `ArrayIter`.
-
-impl ExactSizeIterator for ArrayIter {
+impl ExactSizeIterator for ArrayIterator {
     fn len(&self) -> usize {
         unsafe { self.end.offset_from(self.start) as usize }
+    }
+}
+
+impl Drop for ArrayIterator {
+    fn drop(&mut self) {
+        while self.start != self.end {
+            unsafe {
+                ptr::drop_in_place(self.start as *mut Object);
+                self.start = self.start.offset(1);
+            }
+        }
     }
 }
 
@@ -82,7 +92,6 @@ where
             .map(Object::from)
             .filter(Object::is_some)
             .collect::<Vec<Object>>()
-            // TODO: collect directly into self
             .into()
     }
 }
@@ -100,5 +109,13 @@ mod tests {
         assert_eq!(Some(Object::from("Bar")), iter.next());
         assert_eq!(Some(Object::from("Baz")), iter.next());
         assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn drop_iter_halfway() {
+        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
+
+        let mut iter = array.into_iter();
+        assert_eq!(Some(Object::from("Foo")), iter.next());
     }
 }
