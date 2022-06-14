@@ -2,14 +2,28 @@ use nvim_types::{
     Array,
     Dictionary,
     Error as NvimError,
+    Integer,
     Object,
     String as NvimString,
 };
 
 use super::ffi::global::*;
-use crate::{api::Buffer, object::FromObject, Result};
+use super::opts::CreateCommandOpts;
+use super::types::Mode;
+use crate::{
+    api::Buffer,
+    lua::LUA_INTERNAL_CALL,
+    object::{FromObject, ToObject},
+    Result,
+};
 
-// chan_send
+/// Binding to `nvim_chan_send`
+pub fn chan_send(chan: impl Into<Integer>, data: &str) -> Result<()> {
+    let mut err = NvimError::new();
+    let data = NvimString::from(data);
+    unsafe { nvim_chan_send(chan.into(), data.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_create_buf`.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
@@ -18,17 +32,77 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     err.into_err_or_else(|| handle.into())
 }
 
-// create_user_command
+/// Binding to `nvim_create_user_command`
+pub fn create_user_command<Value>(
+    name: &str,
+    command: Value,
+    opts: &CreateCommandOpts,
+) -> Result<()>
+where
+    Value: ToObject,
+{
+    let name = NvimString::from(name);
+    let command = command.to_obj()?;
+    let opts: Dictionary = todo!();
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_create_user_command(
+            name.non_owning(),
+            command.non_owning(),
+            &opts.non_owning() as *const nvim_types::NonOwning<Dictionary>
+                as *const Dictionary,
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
-// del_current_line
+/// Binding to `nvim_del_current_line`
+pub fn del_current_line() -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_del_current_line(&mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// del_keymap
+/// Binding to `nvim_del_keymap`
+pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
+    let mode = NvimString::from(mode);
+    let lhs = NvimString::from(lhs);
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_del_keymap(
+            LUA_INTERNAL_CALL,
+            mode.non_owning(),
+            lhs.non_owning(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
-// del_mark
+/// Binding to `nvim_del_mark`
+pub fn del_mark(name: char) -> Result<bool> {
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    let res = unsafe { nvim_del_mark(name.non_owning(), &mut err) };
+    err.into_err_or_else(|| res)
+}
 
-// del_user_command
+/// Binding to `nvim_del_user_command`
+pub fn del_user_command(name: &str) -> Result<()> {
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    unsafe { nvim_del_user_command(name.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// del_var
+/// Binding to `nvim_del_var`
+pub fn del_var(name: &str) -> Result<()> {
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    unsafe { nvim_del_var(name.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_echo`.
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
@@ -55,13 +129,24 @@ where
     err.into_err_or_else(|| ())
 }
 
-// err_write
+/// Binding to `nvim_err_write`
+pub fn err_write(str: &str) {
+    unsafe { nvim_err_write(NvimString::from(str).non_owning()) }
+}
 
-// err_writeln
+/// Binding to `nvim_err_writeln`
+pub fn err_writeln(str: &str) {
+    unsafe { nvim_err_writeln(NvimString::from(str).non_owning()) }
+}
 
 // eval_statusline
 
-// feedkeys
+/// Binding to `nvim_feedkeys`
+pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
+    let keys = NvimString::from(keys);
+    let mode = NvimString::from(mode);
+    unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
+}
 
 // get_all_options_info
 
@@ -69,7 +154,13 @@ where
 
 // get_chan_info
 
-// get_color_by_name
+/// Binding to `nvim_get_color_by_name`
+pub fn get_color_by_name(name: &str) -> u32 {
+    let name = NvimString::from(name);
+    let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
+    // TODO: don't panic
+    color.try_into().expect("invalid argument")
+}
 
 // get_color_map
 
@@ -130,7 +221,16 @@ where
     err.into_err_or_flatten(|| Value::from_obj(obj))
 }
 
-// get_vvar
+/// Binding to `nvim_get_vvar`
+pub fn get_vvar<Value>(name: &str) -> Result<Value>
+where
+    Value: FromObject,
+{
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_vvar(name.non_owning(), &mut err) };
+    err.into_err_or_flatten(|| Value::from_obj(obj))
+}
 
 // input
 
@@ -193,8 +293,28 @@ pub fn replace_termcodes<Str: Into<NvimString>>(
 
 // set_option_value
 
-// set_var
+/// Binding to `nvim_set_var`
+pub fn set_var<Value>(name: &str, value: Value) -> Result<()>
+where
+    Value: ToObject,
+{
+    let name = NvimString::from(name);
+    let value = value.to_obj()?;
+    let mut err = NvimError::new();
+    unsafe { nvim_set_var(name.non_owning(), value.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// set_vvar
+/// Binding to `nvim_set_vvar`
+pub fn set_vvar<Value>(name: &str, value: Value) -> Result<()>
+where
+    Value: ToObject,
+{
+    let name = NvimString::from(name);
+    let value = value.to_obj()?;
+    let mut err = NvimError::new();
+    unsafe { nvim_set_vvar(name.non_owning(), value.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 // strwidth

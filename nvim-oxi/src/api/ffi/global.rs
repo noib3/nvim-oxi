@@ -80,7 +80,7 @@ extern "C" {
     pub(crate) fn nvim_eval_statusline(
         str: NonOwning<String>,
         opts: *const Dictionary,
-        errr: *mut Error,
+        err: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L235
