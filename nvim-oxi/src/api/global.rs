@@ -8,8 +8,8 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use super::opts::CreateCommandOpts;
-use super::types::Mode;
+use super::opts::{CreateCommandOpts, EvalStatuslineOpts};
+use super::types::{Mode, StatuslineInfos};
 use crate::{
     api::Buffer,
     lua::LUA_INTERNAL_CALL,
@@ -150,7 +150,20 @@ pub fn err_writeln(str: &str) {
     unsafe { nvim_err_writeln(NvimString::from(str).non_owning()) }
 }
 
-// eval_statusline
+/// Binding to `nvim_eval_statusline`.
+///
+/// Evaluates a string to be displayed in the statusline.
+pub fn eval_statusline(
+    str: &str,
+    opts: EvalStatuslineOpts,
+) -> Result<StatuslineInfos> {
+    let str = NvimString::from(str);
+    let mut err = NvimError::new();
+    let dict = unsafe {
+        nvim_eval_statusline(str.non_owning(), &opts.into(), &mut err)
+    };
+    err.into_err_or_flatten(|| StatuslineInfos::from_obj(dict.into()))
+}
 
 /// Binding to `nvim_feedkeys`
 pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {

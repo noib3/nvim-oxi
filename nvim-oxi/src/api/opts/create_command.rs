@@ -95,7 +95,6 @@ impl CreateCommandOptsBuilder {
 // `/build/src/nvim/auto/keysets_defs.generated.h`.
 #[allow(non_camel_case_types)]
 #[repr(C)]
-#[derive(Default, Debug)]
 pub(crate) struct KeyDict_user_command {
     addr: Object,
     bang: Object,

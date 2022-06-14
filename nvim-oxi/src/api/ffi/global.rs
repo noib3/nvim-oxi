@@ -13,7 +13,7 @@ use nvim_types::{
     WinHandle,
 };
 
-use crate::api::opts::KeyDict_user_command;
+use crate::api::opts::{KeyDict_eval_statusline, KeyDict_user_command};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1231
@@ -81,8 +81,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2290
     pub(crate) fn nvim_eval_statusline(
         str: NonOwning<String>,
-        // TODO
-        opts: *const Dictionary,
+        opts: *const KeyDict_eval_statusline,
         err: *mut Error,
     ) -> Dictionary;
 
