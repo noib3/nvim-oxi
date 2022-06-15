@@ -203,7 +203,15 @@ pub fn get_color_by_name(name: &str) -> u32 {
     color.try_into().expect("invalid argument")
 }
 
-// get_color_map
+/// Binding to `nvim_get_color_map`.
+///
+/// Returns an iterator over tuples representing color names and 24-bit RGB
+/// values (e.g. 65535).
+pub fn get_color_map() -> impl Iterator<Item = (String, u32)> {
+    unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
+        (String::try_from(k).unwrap(), u32::try_from(v).unwrap())
+    })
+}
 
 // get_commands
 
