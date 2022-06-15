@@ -1,3 +1,5 @@
+mod channel_infos;
+mod client_infos;
 mod command_addr;
 mod command_args;
 mod command_complete;
@@ -12,6 +14,14 @@ mod option_infos;
 mod split_modifier;
 mod statusline_infos;
 
+pub use channel_infos::{ChannelInfos, ChannelMode, ChannelStream};
+pub use client_infos::{
+    ClientInfos,
+    ClientMethod,
+    ClientMethodNArgs,
+    ClientType,
+    ClientVersion,
+};
 pub use command_addr::CommandAddr;
 pub use command_args::CommandArgs;
 pub use command_complete::CommandComplete;

@@ -26,7 +26,7 @@ pub struct OptionInfos {
     pub global_local: bool,
 
     /// Channel id where the option was set (`0` for local).
-    pub last_set_chan: u64,
+    pub last_set_chan: u32,
 
     /// The line number where the option was set.
     pub last_set_linenr: usize,
@@ -143,7 +143,7 @@ impl<'de> de::Deserialize<'de> for OptionDefault {
             type Value = OptionDefault;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("a boolean, a number of a string")
+                f.write_str("a boolean, a number or a string")
             }
 
             fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>

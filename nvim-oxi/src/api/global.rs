@@ -9,7 +9,7 @@ use nvim_types::{
 
 use super::ffi::global::*;
 use super::opts::{CreateCommandOpts, EvalStatuslineOpts};
-use super::types::{Mode, OptionInfos, StatuslineInfos};
+use super::types::{ChannelInfos, Mode, OptionInfos, StatuslineInfos};
 use crate::{
     api::Buffer,
     lua::LUA_INTERNAL_CALL,
@@ -145,7 +145,7 @@ pub fn err_write(str: &str) {
 /// Binding to `nvim_err_writeln`.
 ///
 /// Writes a message to the Neovim error buffer. Appends a newline (`"\n"`), so
-/// the buffer is flused and displayed.
+/// the buffer is flushed and displayed.
 pub fn err_writeln(str: &str) {
     unsafe { nvim_err_writeln(NvimString::from(str).non_owning()) }
 }
@@ -183,7 +183,14 @@ pub fn get_all_options_info() -> Result<impl Iterator<Item = OptionInfos>> {
     })
 }
 
-// get_chan_info
+/// Binding to `nvim_get_chan_info`.
+///
+/// Gets information about a channel.
+pub fn get_chan_info(chan: impl Into<Integer>) -> Result<ChannelInfos> {
+    let mut err = NvimError::new();
+    let infos = unsafe { nvim_get_chan_info(chan.into(), &mut err) };
+    err.into_err_or_flatten(|| ChannelInfos::from_obj(infos.into()))
+}
 
 /// Binding to `nvim_get_color_by_name`.
 ///
