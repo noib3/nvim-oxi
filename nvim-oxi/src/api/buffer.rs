@@ -191,7 +191,7 @@ impl Buffer {
     /// Returns an iterator over the buffer-local `CommandInfos`.
     pub fn get_commands(
         &self,
-        opts: &GetCommandsOpts,
+        opts: GetCommandsOpts,
     ) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
         let cmds =

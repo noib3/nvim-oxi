@@ -8,8 +8,14 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use super::opts::{CreateCommandOpts, EvalStatuslineOpts};
-use super::types::{ChannelInfos, Mode, OptionInfos, StatuslineInfos};
+use super::opts::{CreateCommandOpts, EvalStatuslineOpts, GetCommandsOpts};
+use super::types::{
+    ChannelInfos,
+    CommandInfos,
+    Mode,
+    OptionInfos,
+    StatuslineInfos,
+};
 use crate::{
     api::Buffer,
     lua::LUA_INTERNAL_CALL,
@@ -213,7 +219,19 @@ pub fn get_color_map() -> impl Iterator<Item = (String, u32)> {
     })
 }
 
-// get_commands
+/// Binding to `nvim_get_commands`.
+///
+/// Returns an iterator over the infos of the global ex commands. Only
+/// user-defined commands are returned, not builtin ones.
+pub fn get_commands(
+    opts: GetCommandsOpts,
+) -> Result<impl Iterator<Item = CommandInfos>> {
+    let mut err = NvimError::new();
+    let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
+    err.into_err_or_else(|| {
+        cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
+    })
+}
 
 // get_context
 
