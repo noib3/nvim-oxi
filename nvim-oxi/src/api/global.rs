@@ -243,7 +243,14 @@ pub fn get_current_buf() -> Buffer {
     unsafe { nvim_get_current_buf() }.into()
 }
 
-// get_current_line
+/// Binding to `nvim_get_current_line`.
+///
+/// Gets the current line in the current bufferr.
+pub fn get_current_line() -> Result<String> {
+    let mut err = NvimError::new();
+    let str = unsafe { nvim_get_current_line(&mut err) };
+    err.into_err_or_flatten(|| str.try_into().map_err(crate::Error::from))
+}
 
 // get_current_tabpage
 
