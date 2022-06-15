@@ -1,7 +1,5 @@
-use std::fmt;
-
 use nvim_types::Object;
-use serde::{de, Deserialize};
+use serde::Deserialize;
 
 use crate::object::{self, FromObject};
 
@@ -84,7 +82,8 @@ impl OptionScope {
 }
 
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[serde(untagged)]
 pub enum OptionDefault {
     Boolean(bool),
     Number(i64),
@@ -129,45 +128,5 @@ impl OptionDefault {
     #[inline]
     pub const fn is_string(&self) -> bool {
         matches!(self, OptionDefault::String(_))
-    }
-}
-
-impl<'de> de::Deserialize<'de> for OptionDefault {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        struct OptionDefaultVisitor;
-
-        impl<'de> de::Visitor<'de> for OptionDefaultVisitor {
-            type Value = OptionDefault;
-
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("a boolean, a number or a string")
-            }
-
-            fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Self::Value::Boolean(v))
-            }
-
-            fn visit_i64<E>(self, n: i64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Self::Value::Number(n))
-            }
-
-            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Self::Value::String(s.to_owned()))
-            }
-        }
-
-        deserializer.deserialize_str(OptionDefaultVisitor)
     }
 }
