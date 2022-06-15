@@ -9,7 +9,7 @@ use nvim_types::{
 
 use super::ffi::global::*;
 use super::opts::{CreateCommandOpts, EvalStatuslineOpts};
-use super::types::{Mode, StatuslineInfos};
+use super::types::{Mode, OptionInfos, StatuslineInfos};
 use crate::{
     api::Buffer,
     lua::LUA_INTERNAL_CALL,
@@ -172,9 +172,16 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
     unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
 }
 
-// get_all_options_info
-
-// get_api_info
+/// Binding to `nvim_get_all_options_info`.
+///
+/// Gets the option information for all options.
+pub fn get_all_options_info() -> Result<impl Iterator<Item = OptionInfos>> {
+    let mut err = NvimError::new();
+    let infos = unsafe { nvim_get_all_options_info(&mut err) };
+    err.into_err_or_else(|| {
+        infos.into_iter().flat_map(|(_, optinf)| OptionInfos::from_obj(optinf))
+    })
+}
 
 // get_chan_info
 

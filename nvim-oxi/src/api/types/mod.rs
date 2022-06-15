@@ -8,6 +8,7 @@ mod command_range;
 mod highlight_infos;
 mod keymap_infos;
 mod mode;
+mod option_infos;
 mod split_modifier;
 mod statusline_infos;
 
@@ -21,5 +22,6 @@ pub use command_range::CommandRange;
 pub use highlight_infos::HighlightInfos;
 pub use keymap_infos::KeymapInfos;
 pub use mode::Mode;
+pub use option_infos::{OptionDefault, OptionInfos, OptionScope};
 pub use split_modifier::SplitModifier;
 pub use statusline_infos::StatuslineInfos;
