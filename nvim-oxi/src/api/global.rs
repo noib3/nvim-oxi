@@ -289,7 +289,14 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HlAttrs> {
     err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
 }
 
-// get_hl_id_by_name
+/// Binding to `nvim_get_hl_id_by_name`.
+///
+/// Gets a highlight definition by name.
+pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
+    let name = NvimString::from(name);
+    let id = unsafe { nvim_get_hl_id_by_name(name.non_owning()) };
+    id.try_into().map_err(crate::Error::from)
+}
 
 // get_keymap
 
