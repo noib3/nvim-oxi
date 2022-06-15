@@ -279,7 +279,15 @@ pub fn get_hl_by_id(hl_id: impl Into<Integer>, rgb: bool) -> Result<HlAttrs> {
     err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
 }
 
-// get_hl_by_name
+/// Binding to `nvim_get_hl_by_name`.
+///
+/// Gets a highlight definition by name.
+pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HlAttrs> {
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    let hl = unsafe { nvim_get_hl_by_name(name.non_owning(), rgb, &mut err) };
+    err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
+}
 
 // get_hl_id_by_name
 
