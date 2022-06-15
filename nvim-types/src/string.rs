@@ -10,6 +10,8 @@ use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
+#[cfg(feature = "serde")]
+use serde::de;
 
 use crate::NonOwning;
 
@@ -211,6 +213,40 @@ impl TryFrom<String> for StdString {
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         StdString::from_utf8(s.into_bytes())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> de::Deserialize<'de> for String {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        struct StringVisitor;
+
+        impl<'de> de::Visitor<'de> for StringVisitor {
+            type Value = String;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("either a string of a byte vector")
+            }
+
+            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(String::from_bytes(b.to_owned()))
+            }
+
+            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(String::from(s))
+            }
+        }
+
+        deserializer.deserialize_str(StringVisitor)
     }
 }
 

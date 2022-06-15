@@ -8,14 +8,8 @@ use nvim_types::{
 };
 
 use super::ffi::global::*;
-use super::opts::{CreateCommandOpts, EvalStatuslineOpts, GetCommandsOpts};
-use super::types::{
-    ChannelInfos,
-    CommandInfos,
-    Mode,
-    OptionInfos,
-    StatuslineInfos,
-};
+use super::opts::*;
+use super::types::*;
 use crate::{
     api::Buffer,
     lua::LUA_INTERNAL_CALL,
@@ -233,7 +227,14 @@ pub fn get_commands(
     })
 }
 
-// get_context
+/// Binding to `nvim_get_context`.
+///
+/// Returns a snapshot of the current editor state.
+pub fn get_context(opts: GetContextOpts) -> Result<EditorContext> {
+    let mut err = NvimError::new();
+    let ctx = unsafe { nvim_get_context(&opts.into(), &mut err) };
+    err.into_err_or_flatten(|| EditorContext::from_obj(ctx.into()))
+}
 
 /// Binding to `nvim_get_current_buf`.
 ///
@@ -261,6 +262,7 @@ pub fn get_current_buf() -> Buffer {
 /// Binding to `nvim_get_mode`.
 pub fn get_mode() -> Dictionary {
     unsafe { nvim_get_mode() }
+    // TODO
     // (
     //     dict.get("mode").expect("`mode` key is present"),
     //     dict.get("blocking").expect("`blocking` key is present"),

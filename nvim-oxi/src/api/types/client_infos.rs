@@ -93,9 +93,9 @@ impl<'de> de::Deserialize<'de> for ClientMethodNArgs {
     where
         D: de::Deserializer<'de>,
     {
-        struct ClientNArgsVisitor;
+        struct ClientMethodNArgsVisitor;
 
-        impl<'de> de::Visitor<'de> for ClientNArgsVisitor {
+        impl<'de> de::Visitor<'de> for ClientMethodNArgsVisitor {
             type Value = ClientMethodNArgs;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -136,6 +136,6 @@ impl<'de> de::Deserialize<'de> for ClientMethodNArgs {
             }
         }
 
-        deserializer.deserialize_str(ClientNArgsVisitor)
+        deserializer.deserialize_str(ClientMethodNArgsVisitor)
     }
 }

@@ -13,11 +13,7 @@ use nvim_types::{
     WinHandle,
 };
 
-use crate::api::opts::{
-    KeyDict_eval_statusline,
-    KeyDict_get_commands,
-    KeyDict_user_command,
-};
+use crate::api::opts::*;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1231
@@ -119,8 +115,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1440
     pub(crate) fn nvim_get_context(
-        // TODO
-        opts: *const Dictionary,
+        opts: *const KeyDict_context,
         error: *mut Error,
     ) -> Dictionary;
 
