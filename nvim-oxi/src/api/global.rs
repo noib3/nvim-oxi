@@ -5,6 +5,8 @@ use nvim_types::{
     Integer,
     Object,
     String as NvimString,
+    TabHandle,
+    WinHandle,
 };
 
 use super::ffi::global::*;
@@ -252,9 +254,21 @@ pub fn get_current_line() -> Result<String> {
     err.into_err_or_flatten(|| str.try_into().map_err(crate::Error::from))
 }
 
-// get_current_tabpage
+/// Binding to `nvim_get_current_tabpage`.
+///
+/// Gets the current tabpage.
+pub fn get_current_tabpage() -> TabHandle {
+    // TODO: return `Tab` once that's implemented.
+    unsafe { nvim_get_current_tabpage() }
+}
 
-// get_current_win
+/// Binding to `nvim_get_current_win`.
+///
+/// Gets the current window.
+pub fn get_current_win() -> WinHandle {
+    // TODO: return `Window` once that's implemented.
+    unsafe { nvim_get_current_win() }
+}
 
 // get_hl_by_id
 
