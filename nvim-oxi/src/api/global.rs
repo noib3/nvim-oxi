@@ -270,7 +270,14 @@ pub fn get_current_win() -> WinHandle {
     unsafe { nvim_get_current_win() }
 }
 
-// get_hl_by_id
+/// Binding to `nvim_get_hl_by_id`.
+///
+/// Gets a highlight definition by id.
+pub fn get_hl_by_id(hl_id: impl Into<Integer>, rgb: bool) -> Result<HlAttrs> {
+    let mut err = NvimError::new();
+    let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
+    err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
+}
 
 // get_hl_by_name
 
