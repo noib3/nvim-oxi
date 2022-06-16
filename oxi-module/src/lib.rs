@@ -27,7 +27,8 @@ pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
         unsafe extern "C" fn #lua_module(
             state: *mut ::nvim_oxi::lua::lua_State,
         ) -> ::std::os::raw::c_int {
-            ::nvim_oxi::lua::module_entrypoint(state, #module_name)
+            let module_name: fn() -> ::nvim_oxi::Result<()> = #module_name;
+            ::nvim_oxi::lua::module_entrypoint(state, module_name)
         }
     };
 
