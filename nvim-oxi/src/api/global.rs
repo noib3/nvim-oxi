@@ -446,7 +446,15 @@ where
     err.into_err_or_flatten(|| Value::from_obj(obj))
 }
 
-// input
+/// Binding to `nvim_input`.
+///
+/// Queues raw user-input. Unlike `crate::api::nvim_feedkeys` this uses a
+/// low-level input buffer and the call is non-blocking.
+pub fn input(keys: impl Into<NvimString>) -> Result<usize> {
+    unsafe { nvim_input(keys.into().non_owning()) }
+        .try_into()
+        .map_err(crate::Error::from)
+}
 
 // input_mouse
 
