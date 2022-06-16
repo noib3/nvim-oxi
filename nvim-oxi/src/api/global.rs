@@ -379,7 +379,14 @@ where
     err.into_err_or_flatten(|| V::from_obj(obj))
 }
 
-// get_proc
+/// Binding to `nvim_get_proc`.
+///
+/// Gets informations about a process with a given `pid`.
+pub fn get_proc(pid: impl Into<Integer>) -> Result<ProcInfos> {
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_proc(pid.into(), &mut err) };
+    err.into_err_or_flatten(|| ProcInfos::from_obj(obj))
+}
 
 // get_proc_children
 

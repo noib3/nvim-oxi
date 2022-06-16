@@ -15,6 +15,7 @@ mod hl_attrs;
 mod keymap_infos;
 mod mode;
 mod option_infos;
+mod proc_infos;
 mod split_modifier;
 mod statusline_infos;
 
@@ -35,5 +36,6 @@ pub use hl_attrs::*;
 pub use keymap_infos::*;
 pub use mode::*;
 pub use option_infos::*;
+pub use proc_infos::*;
 pub use split_modifier::*;
 pub use statusline_infos::*;
