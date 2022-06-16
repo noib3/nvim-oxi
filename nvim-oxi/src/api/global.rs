@@ -335,13 +335,11 @@ pub fn get_mark(
 }
 
 /// Binding to `nvim_get_mode`.
-pub fn get_mode() -> Dictionary {
-    unsafe { nvim_get_mode() }
-    // TODO
-    // (
-    //     dict.get("mode").expect("`mode` key is present"),
-    //     dict.get("blocking").expect("`blocking` key is present"),
-    // )
+///
+/// Gets the current mode. The `blocking` field of `GotMode` is `true` if
+/// Neovim is waiting for input.
+pub fn get_mode() -> Result<GotMode> {
+    GotMode::from_obj(unsafe { nvim_get_mode() }.into())
 }
 
 // get_option
