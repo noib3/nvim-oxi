@@ -388,7 +388,16 @@ pub fn get_proc(pid: impl Into<Integer>) -> Result<ProcInfos> {
     err.into_err_or_flatten(|| ProcInfos::from_obj(obj))
 }
 
-// get_proc_children
+/// Binding to `nvim_get_proc_children`.
+///
+/// Gets the immediate children of process `pid`.
+pub fn get_proc_children(
+    pid: impl Into<Integer>,
+) -> Result<impl Iterator<Item = u32>> {
+    let mut err = NvimError::new();
+    let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
+    err.into_err_or_else(|| procs.into_iter().flat_map(u32::try_from))
+}
 
 // get_runtime_file
 
