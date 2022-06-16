@@ -167,7 +167,7 @@ pub fn eval_statusline(
     err.into_err_or_flatten(|| StatuslineInfos::from_obj(dict.into()))
 }
 
-/// Binding to `nvim_feedkeys`
+/// Binding to `nvim_feedkeys`.
 pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
     let keys = NvimString::from(keys);
     let mode = NvimString::from(mode);
@@ -298,7 +298,15 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
     id.try_into().map_err(crate::Error::from)
 }
 
-// get_keymap
+/// Binding to `nvim_get_keymap`.
+///
+/// Returns an iterator over the global mapping definitions.
+pub fn get_keymap(mode: Mode) -> impl Iterator<Item = KeymapInfos> {
+    let mode = NvimString::from(mode);
+    unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
+        .into_iter()
+        .flat_map(KeymapInfos::from_obj)
+}
 
 // get_mark
 
