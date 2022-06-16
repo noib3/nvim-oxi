@@ -351,7 +351,14 @@ pub fn get_option<V: FromObject>(name: impl Into<NvimString>) -> Result<V> {
     err.into_err_or_flatten(|| V::from_obj(obj))
 }
 
-// get_option_info
+/// Binding to `nvim_get_option_info`.
+///
+/// Gets all the informations related to an option.
+pub fn get_option_info(name: impl Into<NvimString>) -> Result<OptionInfos> {
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_option(name.into().non_owning(), &mut err) };
+    err.into_err_or_flatten(|| OptionInfos::from_obj(obj))
+}
 
 // get_option_value
 

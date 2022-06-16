@@ -3,9 +3,8 @@ use serde::Deserialize;
 
 use crate::object::{self, FromObject};
 
-/// Returned by `crate::api::get_all_options_info`. Unlike in the Lua api the
-/// `type` field is omitted because it's included in the definition of
-/// `default`.
+/// Informations related to an option. Unlike in the Lua API, the `type` field
+/// is omitted because it's included in the definition of `default`.
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct OptionInfos {
