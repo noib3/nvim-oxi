@@ -33,13 +33,13 @@ where
     err.into_err_or_flatten(|| Value::from_obj(output))
 }
 
-// TODO: accept tuple for args
-pub fn call_function<Ret>(func: &str, args: Vec<Object>) -> Result<Ret>
+pub fn call_function<Args, Ret>(func: &str, args: Args) -> Result<Ret>
 where
+    Args: Into<Array>,
     Ret: FromObject,
 {
     let func = NvimString::from(func);
-    let args = Array::from(args);
+    let args = args.into();
     let mut err = Error::new();
     let output = unsafe {
         nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
