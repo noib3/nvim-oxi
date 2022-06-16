@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use nvim_types::{
     Array,
     Dictionary,
@@ -399,7 +401,24 @@ pub fn get_proc_children(
     err.into_err_or_else(|| procs.into_iter().flat_map(u32::try_from))
 }
 
-// get_runtime_file
+/// Binding to `nvim_get_runtime_file`.
+///
+/// Returns an iterator over all the files matching `name` in the runtime path.
+pub fn get_runtime_file(
+    name: impl Into<NvimString>,
+    get_all: bool,
+) -> Result<impl Iterator<Item = PathBuf>> {
+    let mut err = NvimError::new();
+    let files = unsafe {
+        nvim_get_runtime_file(name.into().non_owning(), get_all, &mut err)
+    };
+    err.into_err_or_else(|| {
+        files
+            .into_iter()
+            .flat_map(NvimString::try_from)
+            .flat_map(PathBuf::try_from)
+    })
+}
 
 /// Binding to `nvim_get_var`.
 ///
