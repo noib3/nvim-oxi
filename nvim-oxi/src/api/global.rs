@@ -456,7 +456,31 @@ pub fn input(keys: impl Into<NvimString>) -> Result<usize> {
         .map_err(crate::Error::from)
 }
 
-// input_mouse
+/// Binding to `nvim_input_mouse`.
+///
+/// Send mouse event from GUI. The call is non-blocking.
+pub fn input_mouse(
+    button: impl Into<NvimString>,
+    action: impl Into<NvimString>,
+    modifier: impl Into<NvimString>,
+    grid: u32,
+    row: usize,
+    col: usize,
+) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_input_mouse(
+            button.into().non_owning(),
+            action.into().non_owning(),
+            modifier.into().non_owning(),
+            grid.into(),
+            row.try_into()?,
+            col.try_into()?,
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 // list_bufs
 
