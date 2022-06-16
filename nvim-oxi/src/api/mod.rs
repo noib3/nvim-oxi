@@ -1,3 +1,4 @@
+mod api_call;
 mod autocmd;
 mod buffer;
 mod extmark;
@@ -20,3 +21,5 @@ pub use ui::*;
 pub use vimscript::*;
 pub use win_config::*;
 pub use window::*;
+
+use api_call::api_call;

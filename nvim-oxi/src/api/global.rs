@@ -1,14 +1,17 @@
 use nvim_types::{
     Array,
+    BufHandle,
     Dictionary,
     Error as NvimError,
     Integer,
+    NonOwning,
     Object,
     String as NvimString,
     TabHandle,
     WinHandle,
 };
 
+use super::api_call;
 use super::ffi::global::*;
 use super::opts::*;
 use super::types::*;
@@ -21,19 +24,31 @@ use crate::{
 
 /// Binding to `nvim_chan_send`.
 pub fn chan_send(chan: impl Into<Integer>, data: &str) -> Result<()> {
-    let mut err = NvimError::new();
-    let data = NvimString::from(data);
-    unsafe { nvim_chan_send(chan.into(), data.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1231
+    api_call! {
+        #[handle_error(err)]
+        nvim_chan_send(
+            chan: Integer,
+            data: NonOwning<NvimString>,
+            err: *mut NvimError,
+        )
+    }
 }
 
 /// Binding to `nvim_create_buf`.
 ///
 /// Creates a new, empty, unnamed buffer.
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
-    let mut err = NvimError::new();
-    let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
-    err.into_err_or_else(|| handle.into())
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1057
+    let handle = api_call! {
+        #[handle_error(err)]
+        nvim_create_buf(
+            is_listed: bool,
+            is_scratch: bool,
+            err: *mut NvimError,
+        ) -> BufHandle
+    }?;
+    Ok(Buffer::from(handle))
 }
 
 /// Binding to `nvim_create_user_command`.
@@ -68,18 +83,17 @@ pub fn del_current_line() -> Result<()> {
 
 /// Binding to `nvim_del_keymap`.
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
-    let mode = NvimString::from(mode);
-    let lhs = NvimString::from(lhs);
-    let mut err = NvimError::new();
-    unsafe {
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1645
+    api_call! {
+        #[handle_error(err)]
+        #[lua_internal_call(channel_id)]
         nvim_del_keymap(
-            LUA_INTERNAL_CALL,
-            mode.non_owning(),
-            lhs.non_owning(),
-            &mut err,
+            channel_id: u64,
+            mode: NonOwning<NvimString>,
+            lhs: NonOwning<NvimString>,
+            err: *mut NvimError,
         )
-    };
-    err.into_err_or_else(|| ())
+    }
 }
 
 /// Binding to `nvim_del_mark`.
@@ -141,7 +155,10 @@ where
 /// (`"\n"`); the message gets buffered and won't be displayed until a linefeed
 /// is written.
 pub fn err_write(str: &str) {
-    unsafe { nvim_err_write(NvimString::from(str).non_owning()) }
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L938
+    api_call! {
+        nvim_err_write(str: NonOwning<NvimString>)
+    }
 }
 
 /// Binding to `nvim_err_writeln`.
@@ -149,7 +166,10 @@ pub fn err_write(str: &str) {
 /// Writes a message to the Neovim error buffer. Appends a newline (`"\n"`), so
 /// the buffer is flushed and displayed.
 pub fn err_writeln(str: &str) {
-    unsafe { nvim_err_writeln(NvimString::from(str).non_owning()) }
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L949
+    api_call! {
+        nvim_err_writeln(str: NonOwning<NvimString>)
+    }
 }
 
 /// Binding to `nvim_eval_statusline`.
@@ -169,9 +189,14 @@ pub fn eval_statusline(
 
 /// Binding to `nvim_feedkeys`.
 pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
-    let keys = NvimString::from(keys);
-    let mode = NvimString::from(mode);
-    unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L235
+    api_call! {
+        nvim_feedkeys(
+            keys: NonOwning<NvimString>,
+            mode: NonOwning<NvimString>,
+            escape_ks: bool,
+        )
+    }
 }
 
 /// Binding to `nvim_get_all_options_info`.
@@ -199,10 +224,12 @@ pub fn get_chan_info(chan: impl Into<Integer>) -> Result<ChannelInfos> {
 /// Returns the 24-bit RGB value of a `crate::api::get_color_map` color name or
 /// "#rrggbb" hexadecimal string.
 pub fn get_color_by_name(name: &str) -> u32 {
-    let name = NvimString::from(name);
-    let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
-    // TODO: don't panic
-    color.try_into().expect("invalid argument")
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1477
+    api_call! {
+        nvim_get_color_by_name(name: NonOwning<NvimString>) -> Integer
+    }
+    .try_into()
+    .expect("invalid argument")
 }
 
 /// Binding to `nvim_get_color_map`.
