@@ -360,7 +360,24 @@ pub fn get_option_info(name: impl Into<NvimString>) -> Result<OptionInfos> {
     err.into_err_or_flatten(|| OptionInfos::from_obj(obj))
 }
 
-// get_option_value
+/// Binding to `nvim_get_option_value`.
+///
+/// Gets the local value of an option if it exists, or the global value
+/// otherwise. Local values always correspond to the current buffer or window.
+///
+/// To get a buffer-local orr window-local option for a specific buffer of
+/// window consider using `Buffer::get_option` or `Window::get_option` instead.
+pub fn get_option_value<N, V>(name: N, opts: GetOptionValueOpts) -> Result<V>
+where
+    V: FromObject,
+    N: Into<NvimString>,
+{
+    let mut err = NvimError::new();
+    let obj = unsafe {
+        nvim_get_option_value(name.into().non_owning(), &opts.into(), &mut err)
+    };
+    err.into_err_or_flatten(|| V::from_obj(obj))
+}
 
 // get_proc
 

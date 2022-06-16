@@ -179,8 +179,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L700
     pub(crate) fn nvim_get_option_value(
         name: NonOwning<String>,
-        // TODO
-        opts: *const Dictionary,
+        opts: *const KeyDict_option,
         err: *mut Error,
     ) -> Object;
 
