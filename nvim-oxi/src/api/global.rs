@@ -342,7 +342,14 @@ pub fn get_mode() -> Result<GotMode> {
     GotMode::from_obj(unsafe { nvim_get_mode() }.into())
 }
 
-// get_option
+/// Binding to `nvim_get_option`.
+///
+/// Gets the value of a global option.
+pub fn get_option<V: FromObject>(name: impl Into<NvimString>) -> Result<V> {
+    let mut err = NvimError::new();
+    let obj = unsafe { nvim_get_option(name.into().non_owning(), &mut err) };
+    err.into_err_or_flatten(|| V::from_obj(obj))
+}
 
 // get_option_info
 
