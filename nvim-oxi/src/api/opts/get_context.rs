@@ -1,6 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::Object;
-use nvim_types::{Array, String as NvimString};
+use nvim_types::{Array, Object, String as NvimString};
 
 use crate::api::types::ContextType;
 

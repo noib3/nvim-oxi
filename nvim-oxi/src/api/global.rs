@@ -308,7 +308,31 @@ pub fn get_keymap(mode: Mode) -> impl Iterator<Item = KeymapInfos> {
         .flat_map(KeymapInfos::from_obj)
 }
 
-// get_mark
+/// Binding to `nvim_get_mark`.
+///
+/// Returns a tuple `(row, col, buffer, buffername)` representing the position
+/// of the named mark. Marks are (1,0)-indexed.
+pub fn get_mark(
+    name: char,
+    opts: GetMarkOpts,
+) -> Result<(usize, usize, Buffer, String)> {
+    let name = NvimString::from(name);
+    let opts = Dictionary::from(opts);
+    let mut err = NvimError::new();
+    let mark = unsafe {
+        nvim_get_mark(name.non_owning(), opts.non_owning(), &mut err)
+    };
+    err.into_err_or_flatten(|| {
+        let mut iter = mark.into_iter();
+        let row = iter.next().expect("row is present").try_into()?;
+        let col = iter.next().expect("col is present").try_into()?;
+        let buffer: i32 =
+            iter.next().expect("buffer is present").try_into()?;
+        let buffername =
+            iter.next().expect("buffername is present").try_into()?;
+        Ok((row, col, buffer.into(), buffername))
+    })
+}
 
 /// Binding to `nvim_get_mode`.
 pub fn get_mode() -> Dictionary {
