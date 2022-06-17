@@ -69,6 +69,9 @@ pub fn del_current_line() -> Result<()> {
 }
 
 /// Binding to `nvim_del_keymap`.
+///
+/// Unmaps a global mapping for the given mode. To unmap a buffer-local mapping
+/// user `Buffer::del_keymap` instead.
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mode = NvimString::from(mode);
     let lhs = NvimString::from(lhs);
@@ -694,7 +697,32 @@ pub fn set_hl(
     err.into_err_or_else(|| ())
 }
 
-// set_keymap
+/// Binding to `nvim_set_keymap`.
+///
+/// Sets a global mapping for the given mode. To set a buffer-local mapping use
+/// `Buffer::set_keymap` instead.
+pub fn set_keymap(
+    mode: Mode,
+    lhs: &str,
+    rhs: Option<&str>,
+    opts: &SetKeymapOpts,
+) -> Result<()> {
+    let mode = NvimString::from(mode);
+    let lhs = NvimString::from(lhs);
+    let rhs = NvimString::from(rhs.unwrap_or_default());
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_set_keymap(
+            LUA_INTERNAL_CALL,
+            mode.non_owning(),
+            lhs.non_owning(),
+            rhs.non_owning(),
+            &opts.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_set_option`.
 ///
@@ -718,7 +746,7 @@ pub fn set_option<V: ToObject>(
 /// Binding to `nvim_set_option_value`.
 ///
 /// Sets the value of an option. The behaviour of this function matches that of
-/// |:set|: for global-local options, both the global and local value are set
+/// `:set`: for global-local options, both the global and local value are set
 /// unless otherwise specified with `opts.scope`.
 pub fn set_option_value<N, V>(
     name: N,

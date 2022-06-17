@@ -336,8 +336,7 @@ extern "C" {
         mode: NonOwning<String>,
         lhs: NonOwning<String>,
         rhs: NonOwning<String>,
-        // TODO
-        opts: *const Dictionary,
+        opts: *const KeyDict_keymap,
         err: *mut Error,
     );
 

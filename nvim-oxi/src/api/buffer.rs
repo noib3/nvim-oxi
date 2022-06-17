@@ -384,10 +384,10 @@ impl Buffer {
         rhs: Option<&str>,
         opts: &SetKeymapOpts,
     ) -> Result<()> {
-        let mut err = NvimError::new();
         let mode = NvimString::from(mode);
         let lhs = NvimString::from(lhs);
         let rhs = NvimString::from(rhs.unwrap_or_default());
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_keymap(
                 LUA_INTERNAL_CALL,
@@ -418,10 +418,8 @@ impl Buffer {
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
+        let rpl = replacement.into_iter().map(Into::into).collect::<Array>();
         let mut err = NvimError::new();
-        let replacement =
-            replacement.into_iter().map(|line| line.into()).collect::<Array>();
-
         unsafe {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
@@ -429,7 +427,7 @@ impl Buffer {
                 start.into(),
                 end.into(),
                 strict_indexing,
-                replacement.non_owning(),
+                rpl.non_owning(),
                 &mut err,
             )
         };
