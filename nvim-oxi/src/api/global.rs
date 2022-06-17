@@ -260,7 +260,7 @@ pub fn get_current_line() -> Result<String> {
 ///
 /// Gets the current tabpage.
 pub fn get_current_tabpage() -> TabHandle {
-    // TODO: return `Tab` once that's implemented.
+    // TODO: return `TabPage` once that's implemented.
     unsafe { nvim_get_current_tabpage() }
 }
 
@@ -482,18 +482,31 @@ pub fn input_mouse(
     err.into_err_or_else(|| ())
 }
 
-// list_bufs
+/// Binding to `nvim_list_bufs`.
+///
+/// Gets the current list of `Buffer`s, including unlisted (unloaded/deleted)
+/// buffers (like `:ls!`). Use `crate::api::Buffer::is_loaded` to check if a
+/// buffer is loaded.
+pub fn list_bufs() -> impl Iterator<Item = Buffer> {
+    unsafe { nvim_list_bufs() }.into_iter().flat_map(Buffer::from_obj)
+}
 
 /// Binding to `nvim_list_chans`.
 ///
 /// Returns an iterator over the informations about all the open channels.
 pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
-    unsafe { nvim_list_uis() }.into_iter().flat_map(ChannelInfos::from_obj)
+    unsafe { nvim_list_chans() }.into_iter().flat_map(ChannelInfos::from_obj)
 }
 
 // list_runtime_paths
 
-// list_tabpages
+/// Binding to `nvim_list_bufs`.
+///
+/// Gets the current list of `Tabpage`s.
+pub fn list_tabpages() -> impl Iterator<Item = TabHandle> {
+    // TODO: return `Tabpage`s once they are implemented
+    unsafe { nvim_list_tabpages() }.into_iter().flat_map(TabHandle::try_from)
+}
 
 /// Binding to `nvim_list_uis`.
 ///
@@ -502,7 +515,13 @@ pub fn list_uis() -> impl Iterator<Item = UiInfos> {
     unsafe { nvim_list_uis() }.into_iter().flat_map(UiInfos::from_obj)
 }
 
-// list_wins
+/// Binding to `nvim_list_wins`.
+///
+/// Gets the current list of `Window`s.
+pub fn list_wins() -> impl Iterator<Item = WinHandle> {
+    // TODO: return `Window`s once they are implemented
+    unsafe { nvim_list_wins() }.into_iter().flat_map(WinHandle::try_from)
+}
 
 /// Binding to `nvim_load_context`.
 ///
