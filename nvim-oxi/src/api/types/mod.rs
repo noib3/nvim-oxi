@@ -16,6 +16,7 @@ mod keymap_infos;
 mod mode;
 mod option_infos;
 mod proc_infos;
+mod register_type;
 mod split_modifier;
 mod statusline_infos;
 
@@ -37,5 +38,6 @@ pub use keymap_infos::*;
 pub use mode::*;
 pub use option_infos::*;
 pub use proc_infos::*;
+pub use register_type::*;
 pub use split_modifier::*;
 pub use statusline_infos::*;

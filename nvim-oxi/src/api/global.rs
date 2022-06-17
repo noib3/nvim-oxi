@@ -504,7 +504,33 @@ pub fn input_mouse(
 
 // paste
 
-// put
+/// Binding to `nvim_put`.
+///
+/// Puts text at cursor, in any mode.
+pub fn put<Line, Lines>(
+    lines: Lines,
+    reg_type: RegisterType,
+    after: bool,
+    follow: bool,
+) -> Result<()>
+where
+    Line: Into<NvimString>,
+    Lines: Iterator<Item = Line>,
+{
+    let lines = lines.into_iter().map(Into::into).collect::<Array>();
+    let reg_type = NvimString::from(reg_type);
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_put(
+            lines.non_owning(),
+            reg_type.non_owning(),
+            after,
+            follow,
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_replace_termcodes`.
 ///

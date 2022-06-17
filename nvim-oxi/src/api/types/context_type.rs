@@ -3,6 +3,7 @@ use serde::Serialize;
 
 use crate::object;
 
+#[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize)]
 pub enum ContextType {
     #[serde(rename = "bufs")]
