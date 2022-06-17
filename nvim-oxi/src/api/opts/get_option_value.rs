@@ -1,25 +1,33 @@
 use derive_builder::Builder;
-use nvim_types::{Object, String as NvimString};
+use nvim_types::{Object, String as NvimString, WinHandle};
 use serde::Serialize;
 
+use crate::api::Buffer;
 use crate::object;
 
-/// Options passed to `crate::api::get_option_value`.
+/// Options passed to `crate::api::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
-pub struct GetOptionValueOpts {
+pub struct OptionValueOpts {
+    #[builder(setter(into, strip_option))]
     scope: Option<OptionScope>,
+
+    #[builder(setter(into, strip_option))]
+    window: Option<WinHandle>,
+
+    #[builder(setter(into, strip_option))]
+    buffer: Option<Buffer>,
 }
 
-impl GetOptionValueOpts {
+impl OptionValueOpts {
     #[inline(always)]
-    pub fn builder() -> GetOptionValueOptsBuilder {
-        GetOptionValueOptsBuilder::default()
+    pub fn builder() -> OptionValueOptsBuilder {
+        OptionValueOptsBuilder::default()
     }
 }
 
-impl GetOptionValueOptsBuilder {
-    pub fn build(&mut self) -> GetOptionValueOpts {
+impl OptionValueOptsBuilder {
+    pub fn build(&mut self) -> OptionValueOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
@@ -48,11 +56,11 @@ pub(crate) struct KeyDict_option {
     scope: Object,
 }
 
-impl From<GetOptionValueOpts> for KeyDict_option {
-    fn from(opts: GetOptionValueOpts) -> Self {
+impl From<OptionValueOpts> for KeyDict_option {
+    fn from(opts: OptionValueOpts) -> Self {
         Self {
-            buf: Object::nil(),
-            win: Object::nil(),
+            buf: opts.buffer.map(|buf| buf.0).into(),
+            win: opts.window.map(WinHandle::from).into(),
             scope: opts.scope.map(NvimString::from).into(),
         }
     }

@@ -369,7 +369,7 @@ pub fn get_option_info(name: impl Into<NvimString>) -> Result<OptionInfos> {
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
 /// window consider using `Buffer::get_option` or `Window::get_option` instead.
-pub fn get_option_value<N, V>(name: N, opts: GetOptionValueOpts) -> Result<V>
+pub fn get_option_value<N, V>(name: N, opts: OptionValueOpts) -> Result<V>
 where
     V: FromObject,
     N: Into<NvimString>,
@@ -677,7 +677,31 @@ pub fn select_popupmenu_item(
 
 // set_option
 
-// set_option_value
+/// Binding to `nvim_set_option_value`.
+///
+/// Sets the value of an option. The behaviour of this function matches that of
+/// |:set|: for global-local options, both the global and local value are set
+/// unless otherwise specified with `opts.scope`.
+pub fn set_option_value<N, V>(
+    name: N,
+    value: V,
+    opts: OptionValueOpts,
+) -> Result<()>
+where
+    N: Into<NvimString>,
+    V: ToObject,
+{
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_set_option_value(
+            name.into().non_owning(),
+            value.to_obj()?.non_owning(),
+            &opts.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_set_var`.
 ///

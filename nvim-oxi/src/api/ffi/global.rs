@@ -353,8 +353,7 @@ extern "C" {
     pub(crate) fn nvim_set_option_value(
         name: NonOwning<String>,
         value: NonOwning<Object>,
-        // TODO
-        opts: *const Dictionary,
+        opts: *const KeyDict_option,
         err: *mut Error,
     );
 
