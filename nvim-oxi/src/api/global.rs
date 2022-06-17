@@ -275,20 +275,23 @@ pub fn get_current_win() -> WinHandle {
 /// Binding to `nvim_get_hl_by_id`.
 ///
 /// Gets a highlight definition by id.
-pub fn get_hl_by_id(hl_id: impl Into<Integer>, rgb: bool) -> Result<HlAttrs> {
+pub fn get_hl_by_id(
+    hl_id: impl Into<Integer>,
+    rgb: bool,
+) -> Result<HighlightInfos> {
     let mut err = NvimError::new();
     let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
-    err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
+    err.into_err_or_flatten(|| HighlightInfos::from_obj(hl.into()))
 }
 
 /// Binding to `nvim_get_hl_by_name`.
 ///
 /// Gets a highlight definition by name.
-pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HlAttrs> {
+pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = NvimString::from(name);
     let mut err = NvimError::new();
     let hl = unsafe { nvim_get_hl_by_name(name.non_owning(), rgb, &mut err) };
-    err.into_err_or_flatten(|| HlAttrs::from_obj(hl.into()))
+    err.into_err_or_flatten(|| HighlightInfos::from_obj(hl.into()))
 }
 
 /// Binding to `nvim_get_hl_id_by_name`.
@@ -671,7 +674,25 @@ pub fn select_popupmenu_item(
 
 // set_current_win
 
-// set_hl
+/// Binding to `nvim_set_hl`.
+///
+/// Sets a highlight group.
+pub fn set_hl(
+    ns_id: u32,
+    name: impl Into<NvimString>,
+    opts: &SetHighlightOpts,
+) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_set_hl(
+            ns_id as Integer,
+            name.into().non_owning(),
+            &opts.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 // set_keymap
 

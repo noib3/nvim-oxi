@@ -326,7 +326,7 @@ extern "C" {
     pub(crate) fn nvim_set_hl(
         ns_id: Integer,
         name: NonOwning<String>,
-        val: *const Dictionary,
+        val: *const KeyDict_highlight,
         err: *mut Error,
     );
 

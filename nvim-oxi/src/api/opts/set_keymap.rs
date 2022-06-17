@@ -55,7 +55,6 @@ impl SetKeymapOptsBuilder {
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
-#[derive(Default, Debug)]
 pub(crate) struct KeyDict_keymap {
     callback: Object,
     desc: Object,

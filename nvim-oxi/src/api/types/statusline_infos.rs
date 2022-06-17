@@ -1,7 +1,7 @@
 use nvim_types::Object;
 use serde::Deserialize;
 
-use super::HighlightInfos;
+use super::StatuslineHighlightInfos;
 use crate::object::{self, FromObject};
 
 /// Object returned from a call to `crate::api::eval_statusline`.
@@ -14,7 +14,7 @@ pub struct StatuslineInfos {
     /// Vector of highlight informations for the statusline. Only included if
     /// the `highlights` field of `crate::api::opts::EvalStatuslineOpts` was
     /// set to `true`.
-    pub highlights: Option<Vec<HighlightInfos>>,
+    pub highlights: Option<Vec<StatuslineHighlightInfos>>,
 
     /// Characters that will be displayed in the statusline.
     pub str: String,
