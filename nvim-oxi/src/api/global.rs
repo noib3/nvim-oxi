@@ -494,7 +494,13 @@ pub fn input_mouse(
 
 // list_wins
 
-// load_context
+/// Binding to `nvim_load_context`.
+///
+/// Sets the current editor state from the given `EditorContext`.
+pub fn load_context(ctx: EditorContext) {
+    let ctx = Dictionary::from(ctx);
+    let _ = unsafe { nvim_load_context(ctx.non_owning()) };
+}
 
 /// Binding to `nvim_notify`.
 pub fn notify(
