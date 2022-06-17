@@ -498,7 +498,19 @@ pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
     unsafe { nvim_list_chans() }.into_iter().flat_map(ChannelInfos::from_obj)
 }
 
-// list_runtime_paths
+/// Binding to `nvim_list_runtime_paths`.
+///
+/// Gets the paths contained in Neovim's runtimepath.
+pub fn list_runtime_paths() -> Result<impl Iterator<Item = PathBuf>> {
+    let mut err = NvimError::new();
+    let paths = unsafe { nvim_list_runtime_paths(&mut err) };
+    err.into_err_or_else(|| {
+        paths
+            .into_iter()
+            .flat_map(NvimString::try_from)
+            .flat_map(PathBuf::try_from)
+    })
+}
 
 /// Binding to `nvim_list_bufs`.
 ///
