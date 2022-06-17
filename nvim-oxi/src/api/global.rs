@@ -496,7 +496,24 @@ pub fn input_mouse(
 
 // load_context
 
-// notify
+/// Binding to `nvim_notify`.
+pub fn notify(
+    msg: impl Into<NvimString>,
+    log_level: LogLevel,
+    opts: NotifyOpts,
+) -> Result<()> {
+    let opts = Dictionary::from(opts);
+    let mut err = NvimError::new();
+    let _ = unsafe {
+        nvim_notify(
+            msg.into().non_owning(),
+            log_level as Integer,
+            opts.non_owning(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_open_term`.
 ///

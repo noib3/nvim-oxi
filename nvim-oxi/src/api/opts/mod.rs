@@ -6,6 +6,7 @@ mod get_commands;
 mod get_context;
 mod get_mark;
 mod get_option_value;
+mod notify;
 mod open_term;
 mod set_keymap;
 
@@ -17,5 +18,6 @@ pub use get_commands::*;
 pub use get_context::*;
 pub use get_mark::*;
 pub use get_option_value::*;
+pub use notify::*;
 pub use open_term::*;
 pub use set_keymap::*;
