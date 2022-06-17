@@ -638,7 +638,28 @@ pub fn replace_termcodes<Codes: Into<NvimString>>(
     }
 }
 
-// select_popupmenu_item
+/// Binding to `nvim_select_popupmenu_item`.
+///
+/// Selects an item in the completion popupmenu.
+pub fn select_popupmenu_item(
+    item: usize,
+    insert: bool,
+    finish: bool,
+    opts: SelectPopupMenuItemOpts,
+) -> Result<()> {
+    let opts = Dictionary::from(opts);
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_select_popupmenu_item(
+            item.try_into()?,
+            insert,
+            finish,
+            opts.non_owning(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 // set_current_buf
 

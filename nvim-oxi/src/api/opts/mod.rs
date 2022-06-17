@@ -8,6 +8,7 @@ mod get_mark;
 mod get_option_value;
 mod notify;
 mod open_term;
+mod select_popup_menu_item;
 mod set_keymap;
 
 pub use buf_attach::*;
@@ -20,4 +21,5 @@ pub use get_mark::*;
 pub use get_option_value::*;
 pub use notify::*;
 pub use open_term::*;
+pub use select_popup_menu_item::*;
 pub use set_keymap::*;
