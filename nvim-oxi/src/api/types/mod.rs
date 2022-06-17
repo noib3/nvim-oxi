@@ -21,6 +21,7 @@ mod proc_infos;
 mod register_type;
 mod split_modifier;
 mod statusline_infos;
+mod ui_infos;
 
 pub use channel_infos::*;
 pub use client_infos::*;
@@ -45,3 +46,4 @@ pub use proc_infos::*;
 pub use register_type::*;
 pub use split_modifier::*;
 pub use statusline_infos::*;
+pub use ui_infos::*;

@@ -490,7 +490,12 @@ pub fn input_mouse(
 
 // list_tabpages
 
-// list_uis
+/// Binding to `nvim_list_uis`.
+///
+/// Returns an iterator over the informations about all the attached UIs.
+pub fn list_uis() -> impl Iterator<Item = UiInfos> {
+    unsafe { nvim_list_uis() }.into_iter().flat_map(UiInfos::from_obj)
+}
 
 // list_wins
 
