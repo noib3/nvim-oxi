@@ -500,7 +500,13 @@ pub fn input_mouse(
 
 // open_term
 
-// out_write
+/// Binding to `nvim_out_write`.
+///
+/// Writes a message to the Vim output buffer, without appending a "\n". The
+/// message is buffered and won't be displayed until a linefeed is written.
+pub fn out_write(str: impl Into<NvimString>) {
+    unsafe { nvim_out_write(str.into().non_owning()) }
+}
 
 /// Binding to `nvim_paste`.
 pub fn paste(
