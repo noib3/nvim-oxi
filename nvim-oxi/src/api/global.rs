@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use nvim_types::{
     Array,
@@ -667,15 +667,59 @@ pub fn select_popupmenu_item(
     err.into_err_or_else(|| ())
 }
 
-// set_current_buf
+/// Binding to `nvim_set_current_buf`.
+///
+/// Sets the current buffer.
+pub fn set_current_buf(buf: Buffer) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_set_current_buf(buf.0, &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// set_current_dir
+/// Binding to `nvim_set_current_dir`.
+///
+/// Changes the global working directory.
+pub fn set_current_dir<P>(dir: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let dir = NvimString::from(dir.as_ref().to_owned());
+    let mut err = NvimError::new();
+    unsafe { nvim_set_current_dir(dir.non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// set_current_line
+/// Binding to `nvim_set_current_line`.
+///
+/// Sets the current line.
+pub fn set_current_line<L>(line: L) -> Result<()>
+where
+    L: Into<NvimString>,
+{
+    let mut err = NvimError::new();
+    unsafe { nvim_set_current_line(line.into().non_owning(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// set_current_tapage
+/// Binding to `nvim_set_current_tabpage`.
+///
+/// Sets the current tabpage.
+pub fn set_current_tabpage(tabpg: TabHandle) -> Result<()> {
+    // TODO: use `TabPage` once it's implemented.
+    let mut err = NvimError::new();
+    unsafe { nvim_set_current_tabpage(tabpg, &mut err) };
+    err.into_err_or_else(|| ())
+}
 
-// set_current_win
+/// Binding to `nvim_set_current_win`.
+///
+/// Sets the current window.
+pub fn set_current_win(win: WinHandle) -> Result<()> {
+    // TODO: use `Window` once it's implemented.
+    let mut err = NvimError::new();
+    unsafe { nvim_set_current_win(win, &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_set_hl`.
 ///

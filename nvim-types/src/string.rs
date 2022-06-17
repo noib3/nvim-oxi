@@ -164,6 +164,13 @@ impl From<Vec<u8>> for String {
     }
 }
 
+impl From<PathBuf> for String {
+    #[inline]
+    fn from(path: PathBuf) -> Self {
+        path.display().to_string().into()
+    }
+}
+
 #[cfg(not(windows))]
 impl From<String> for PathBuf {
     #[inline]
