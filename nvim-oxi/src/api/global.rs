@@ -502,7 +502,18 @@ pub fn input_mouse(
 
 // out_write
 
-// paste
+/// Binding to `nvim_paste`.
+pub fn paste(
+    data: impl Into<NvimString>,
+    crlf: bool,
+    phase: PastePhase,
+) -> Result<bool> {
+    let mut err = NvimError::new();
+    let go_on = unsafe {
+        nvim_paste(data.into().non_owning(), crlf, phase as Integer, &mut err)
+    };
+    err.into_err_or_else(|| go_on)
+}
 
 /// Binding to `nvim_put`.
 ///
