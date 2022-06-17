@@ -675,7 +675,24 @@ pub fn select_popupmenu_item(
 
 // set_keymap
 
-// set_option
+/// Binding to `nvim_set_option`.
+///
+/// Sets the global value of an option.
+pub fn set_option<V: ToObject>(
+    name: impl Into<NvimString>,
+    value: V,
+) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_set_option(
+            LUA_INTERNAL_CALL,
+            name.into().non_owning(),
+            value.to_obj()?.non_owning(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_set_option_value`.
 ///
