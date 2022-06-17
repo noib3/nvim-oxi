@@ -498,7 +498,16 @@ pub fn input_mouse(
 
 // notify
 
-// open_term
+/// Binding to `nvim_open_term`.
+///
+/// Opens a terminal instance in a buffer.
+pub fn open_term(buffer: Buffer, opts: OpenTermOpts) -> Result<u32> {
+    let opts = Dictionary::from(opts);
+    let mut err = NvimError::new();
+    let chan_id =
+        unsafe { nvim_open_term(buffer.0, opts.non_owning(), &mut err) };
+    err.into_err_or_else(|| chan_id.try_into().expect("always positive"))
+}
 
 /// Binding to `nvim_out_write`.
 ///

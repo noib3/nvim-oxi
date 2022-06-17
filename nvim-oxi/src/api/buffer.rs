@@ -20,7 +20,7 @@ use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Buffer(BufHandle);
+pub struct Buffer(pub(crate) BufHandle);
 
 impl fmt::Debug for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
