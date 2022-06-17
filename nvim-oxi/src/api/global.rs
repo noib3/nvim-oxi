@@ -484,7 +484,12 @@ pub fn input_mouse(
 
 // list_bufs
 
-// list_chans
+/// Binding to `nvim_list_chans`.
+///
+/// Returns an iterator over the informations about all the open channels.
+pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
+    unsafe { nvim_list_uis() }.into_iter().flat_map(ChannelInfos::from_obj)
+}
 
 // list_runtime_paths
 
