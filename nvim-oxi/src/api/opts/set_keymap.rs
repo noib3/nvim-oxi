@@ -56,27 +56,27 @@ impl SetKeymapOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_keymap {
-    callback: Object,
     desc: Object,
     expr: Object,
-    noremap: Object,
-    nowait: Object,
     script: Object,
     silent: Object,
     unique: Object,
+    nowait: Object,
+    noremap: Object,
+    callback: Object,
 }
 
 impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap {
     fn from(opts: &SetKeymapOpts) -> Self {
         Self {
-            callback: opts.callback.clone().into(),
             desc: opts.desc.clone().into(),
             expr: opts.expr.into(),
-            noremap: opts.noremap.into(),
-            nowait: opts.nowait.into(),
             script: opts.script.into(),
             silent: opts.silent.into(),
             unique: opts.unique.into(),
+            nowait: opts.nowait.into(),
+            noremap: opts.noremap.into(),
+            callback: opts.callback.clone().into(),
         }
     }
 }

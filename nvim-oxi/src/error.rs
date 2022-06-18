@@ -4,7 +4,7 @@ use serde::{de, ser};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Eq, PartialEq)]
 pub enum Error {
     #[error(transparent)]
     NvimError(#[from] nvim_types::Error),

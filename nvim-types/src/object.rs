@@ -374,6 +374,27 @@ pub enum FromObjectError {
     },
 }
 
+impl PartialEq<Self> for FromObjectError {
+    fn eq(&self, other: &Self) -> bool {
+        use FromObjectError::*;
+        match (self, other) {
+            (
+                Primitive { expected: e1, actual: a1 },
+                Primitive { expected: e2, actual: a2 },
+            ) => (e1 == e2) && (a1 == a2),
+
+            (
+                Secondary { primitive: p1, into: i1, source: _ },
+                Secondary { primitive: p2, into: i2, source: _ },
+            ) => (p1 == p2) && (i1 == i2),
+
+            _ => false,
+        }
+    }
+}
+
+impl Eq for FromObjectError {}
+
 impl FromObjectError {
     pub fn secondary<E, T>(primitive: ObjectType, err: E) -> Self
     where

@@ -378,7 +378,7 @@ impl Buffer {
     ///
     /// Sets a buffer-local mapping for the given mode.
     pub fn set_keymap(
-        &self,
+        &mut self,
         mode: Mode,
         lhs: &str,
         rhs: Option<&str>,
@@ -444,6 +444,7 @@ impl Buffer {
         line: usize,
         col: usize,
     ) -> Result<bool> {
+        // TODO: map false to `Err`
         let mut err = NvimError::new();
         let name = NvimString::from(name);
         let mark_was_set = unsafe {

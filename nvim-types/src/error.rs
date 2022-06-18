@@ -6,7 +6,7 @@ use std::result::Result as StdResult;
 use libc::c_char;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
-#[derive(thiserror::Error)]
+#[derive(thiserror::Error, Eq, PartialEq)]
 #[repr(C)]
 pub struct Error {
     r#type: ErrorType,
@@ -15,6 +15,7 @@ pub struct Error {
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
 #[allow(dead_code, non_camel_case_types)]
+#[derive(Eq, PartialEq)]
 #[repr(C)]
 pub enum ErrorType {
     kErrorTypeNone = -1,

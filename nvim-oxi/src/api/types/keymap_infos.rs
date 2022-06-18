@@ -29,6 +29,7 @@ pub struct KeymapInfos {
     #[serde(deserialize_with = "utils::bool_from_int")]
     nowait: bool,
 
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     rhs: Option<String>,
 
     #[serde(deserialize_with = "utils::bool_from_int")]

@@ -13,6 +13,9 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::buffer::call();
         api::buffer::create_user_command();
         api::buffer::get_changedtick();
+        api::buffer::get_name();
+        api::buffer::set_get_del_keymap();
+        api::buffer::set_get_del_mark();
         api::buffer::set_lines();
         api::buffer::set_option();
         api::buffer::set_var();

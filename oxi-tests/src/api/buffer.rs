@@ -22,7 +22,7 @@ pub fn attach() {
 pub fn call() {
     let buf = Buffer::current();
     let res = buf.call(|_| Ok(()));
-    assert!(res.is_ok());
+    assert_eq!(Ok(()), res);
 }
 
 pub fn create_user_command() {
@@ -30,13 +30,49 @@ pub fn create_user_command() {
     let opts = CreateCommandOpts::builder().build();
 
     let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
-    assert!(res.is_ok());
+    assert_eq!(Ok(()), res);
     // TODO: `api::nvim_command("Foo")`
 
     let cb = LuaFun::from_fn(|_args: CommandArgs| Ok(()));
     let res = buf.create_user_command("Bar", cb, &opts);
-    assert!(res.is_ok());
+    assert_eq!(Ok(()), res);
     // TODO: `api::nvim_command("Foo")`
+}
+
+pub fn set_get_del_keymap() {
+    let mut buf = Buffer::current();
+
+    let opts = SetKeymapOpts::builder()
+        .callback(|_| Ok(()))
+        .desc("does nothing")
+        .expr(true)
+        .build();
+
+    let res = buf.set_keymap(Mode::Insert, "a", None, &opts);
+    assert_eq!(Ok(()), res);
+
+    let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();
+    assert_eq!(1, keymaps.len());
+
+    let res = buf.del_keymap(Mode::Insert, "a");
+    assert_eq!(Ok(()), res);
+}
+
+pub fn set_get_del_mark() {
+    let mut buf = Buffer::current();
+
+    let res = buf.set_mark('a', 1, 0);
+    assert_eq!(Ok(true), res);
+
+    assert_eq!((1, 0), buf.get_mark('a').unwrap());
+
+    let res = buf.del_mark('a');
+    assert_eq!(Ok(true), res);
+}
+
+pub fn get_name() {
+    let buf = Buffer::current();
+    assert_eq!("", buf.get_name().unwrap().display().to_string());
 }
 
 pub fn get_changedtick() {
@@ -48,7 +84,7 @@ pub fn set_lines() {
     let mut buf = api::create_buf(true, false).unwrap();
     assert!(buf.set_lines(0, 0, false, ["foo", "bar", "baz"]).is_ok());
     let opts = BufDeleteOpts::builder().force(true).unload(true).build();
-    assert!(buf.delete(opts).is_ok());
+    assert_eq!(Ok(()), buf.delete(opts));
 }
 
 pub fn set_option() {
