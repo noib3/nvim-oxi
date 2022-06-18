@@ -96,35 +96,35 @@ impl CreateCommandOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_user_command {
+    bar: Object,
     addr: Object,
     bang: Object,
-    bar: Object,
-    complete: Object,
-    count: Object,
     desc: Object,
+    count: Object,
     force: Object,
-    keepscript: Object,
     nargs: Object,
-    preview: Object,
     range: Object,
+    preview: Object,
+    complete: Object,
     register_: Object,
+    keepscript: Object,
 }
 
 impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command {
     fn from(opts: &CreateCommandOpts) -> Self {
         Self {
+            bar: opts.bar.into(),
             addr: opts.addr.clone().into(),
             bang: opts.bang.into(),
-            bar: opts.bar.into(),
-            complete: opts.complete.clone().into(),
-            count: opts.count.into(),
             desc: opts.desc.clone().into(),
+            count: opts.count.into(),
             force: opts.force.into(),
-            keepscript: opts.keepscript.into(),
             nargs: opts.nargs.clone().into(),
-            preview: opts.preview.clone().into(),
             range: opts.range.clone().into(),
+            preview: opts.preview.clone().into(),
+            complete: opts.complete.clone().into(),
             register_: opts.register.into(),
+            keepscript: opts.keepscript.into(),
         }
     }
 }

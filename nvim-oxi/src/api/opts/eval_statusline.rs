@@ -41,23 +41,23 @@ impl EvalStatuslineOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_eval_statusline {
-    fillchar: Object,
-    highlights: Object,
-    maxwidth: Object,
-    use_tabline: Object,
-    use_winbar: Object,
     winid: Object,
+    fillchar: Object,
+    maxwidth: Object,
+    highlights: Object,
+    use_winbar: Object,
+    use_tabline: Object,
 }
 
 impl From<EvalStatuslineOpts> for KeyDict_eval_statusline {
     fn from(opts: EvalStatuslineOpts) -> Self {
         Self {
-            fillchar: opts.fillchar.into(),
-            highlights: opts.highlights.into(),
-            maxwidth: opts.maxwidth.into(),
-            use_tabline: opts.use_tabline.into(),
-            use_winbar: opts.use_winbar.into(),
             winid: opts.winid.into(),
+            fillchar: opts.fillchar.into(),
+            maxwidth: opts.maxwidth.into(),
+            highlights: opts.highlights.into(),
+            use_winbar: opts.use_winbar.into(),
+            use_tabline: opts.use_tabline.into(),
         }
     }
 }
