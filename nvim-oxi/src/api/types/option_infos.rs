@@ -29,7 +29,7 @@ pub struct OptionInfos {
     pub last_set_linenr: usize,
 
     /// Last set script id (if any).
-    pub last_set_sid: u32,
+    pub last_set_sid: i32,
 
     /// Name of the option (like `"filetype"`).
     pub name: String,

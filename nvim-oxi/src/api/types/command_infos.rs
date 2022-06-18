@@ -22,7 +22,7 @@ pub struct CommandInfos {
     pub nargs: Option<CommandNArgs>,
     pub range: Option<CommandRange>,
     pub register: bool,
-    pub script_id: u32,
+    pub script_id: i32,
 }
 
 impl FromObject for CommandInfos {

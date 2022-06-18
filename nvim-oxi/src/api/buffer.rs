@@ -65,6 +65,7 @@ impl Buffer {
         send_buffer: bool,
         opts: BufAttachOpts,
     ) -> Result<bool> {
+        // TODO: map false to `Err`
         let mut err = NvimError::new();
         let opts = Dictionary::from(opts);
         let has_attached = unsafe {
@@ -100,7 +101,7 @@ impl Buffer {
     ///
     /// Creates a new buffer-local user command.
     pub fn create_user_command(
-        &self,
+        &mut self,
         name: &str,
         command: impl ToObject,
         opts: &CreateCommandOpts,
@@ -318,6 +319,7 @@ impl Buffer {
         end_col: usize,
     ) -> Result<impl Iterator<Item = NvimString>> {
         let mut err = NvimError::new();
+        // TODO: this should be an opt
         let dict = Dictionary::new();
         let lines = unsafe {
             nvim_buf_get_text(
@@ -406,15 +408,14 @@ impl Buffer {
     ///
     /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
     /// end-exclusive.
-    pub fn set_lines<Int, Line, Lines>(
+    pub fn set_lines<Line, Lines>(
         &mut self,
-        start: Int,
-        end: Int,
+        start: usize,
+        end: usize,
         strict_indexing: bool,
         replacement: Lines,
     ) -> Result<()>
     where
-        Int: Into<Integer>,
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
@@ -424,8 +425,8 @@ impl Buffer {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start.into(),
-                end.into(),
+                start.try_into()?,
+                end.try_into()?,
                 strict_indexing,
                 rpl.non_owning(),
                 &mut err,
