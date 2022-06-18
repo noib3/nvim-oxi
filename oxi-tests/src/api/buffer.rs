@@ -100,7 +100,9 @@ pub fn set_get_name() {
     assert_eq!(
         "foo",
         buf.get_name().unwrap().file_name().unwrap().to_string_lossy()
-    )
+    );
+
+    assert_eq!(Ok(()), buf.set_name(""));
 }
 
 pub fn get_changedtick() {
