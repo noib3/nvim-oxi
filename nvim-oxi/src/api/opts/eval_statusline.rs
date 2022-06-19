@@ -5,22 +5,30 @@ use nvim_types::Object;
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct EvalStatuslineOpts {
+    /// Character used to fill blank spaces in the statusline.
     #[builder(setter(strip_option))]
     fillchar: Option<char>,
 
+    /// Return statuline informations from `api::eval_statusline`.
     #[builder(setter(strip_option))]
     highlights: Option<bool>,
 
+    /// Maximum width for the statusline.
     #[builder(setter(into, strip_option))]
     maxwidth: Option<u32>,
 
+    /// Evaluate the tabline instead of the statusline. When `true` the `winid`
+    /// field is ignored. Mutually exclusive with `use_winbar`.
     #[builder(setter(strip_option))]
     use_tabline: Option<bool>,
 
+    /// Evaluate the winbar instead of the statusline. Mutually exclusive with
+    /// `use_tabline`.
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
     // TODO: accept an `api::Window` here once that's implemented.
+    /// Window id of the window to use as context for the statusline.
     #[builder(setter(into, strip_option))]
     winid: Option<u32>,
 }

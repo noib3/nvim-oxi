@@ -46,17 +46,21 @@ pub fn create_del_user_command() {
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
 }
 
-pub fn set_get_del_var() {
-    let mut buf = Buffer::current();
-    buf.set_var("foo", 42).unwrap();
-    assert_eq!(Ok(42), buf.get_var("foo"));
-    assert_eq!(Ok(()), buf.del_var("foo"));
+pub fn get_changedtick() {
+    let buf = Buffer::current();
+    assert!(buf.get_changedtick().is_ok());
 }
 
 pub fn loaded_n_valid() {
     let buf = Buffer::current();
     assert!(buf.is_loaded());
     assert!(buf.is_valid());
+}
+
+pub fn new_buf_delete() {
+    let buf = api::create_buf(true, false).unwrap();
+    let opts = BufDeleteOpts::builder().build();
+    assert_eq!(Ok(()), buf.delete(opts));
 }
 
 pub fn set_get_del_keymap() {
@@ -78,38 +82,6 @@ pub fn set_get_del_keymap() {
     assert_eq!(Ok(()), res);
 }
 
-pub fn set_get_del_mark() {
-    let mut buf = Buffer::current();
-
-    let res = buf.set_mark('a', 1, 0);
-    assert_eq!(Ok(true), res);
-
-    assert_eq!((1, 0), buf.get_mark('a').unwrap());
-
-    let res = buf.del_mark('a');
-    assert_eq!(Ok(true), res);
-}
-
-pub fn set_get_name() {
-    let mut buf = Buffer::current();
-
-    assert_eq!("", buf.get_name().unwrap().display().to_string());
-
-    assert_eq!(Ok(()), buf.set_name("foo"));
-
-    assert_eq!(
-        "foo",
-        buf.get_name().unwrap().file_name().unwrap().to_string_lossy()
-    );
-
-    assert_eq!(Ok(()), buf.set_name(""));
-}
-
-pub fn get_changedtick() {
-    let buf = Buffer::current();
-    assert!(buf.get_changedtick().is_ok());
-}
-
 pub fn set_get_del_lines() {
     let mut buf = Buffer::current();
 
@@ -127,14 +99,16 @@ pub fn set_get_del_lines() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-pub fn set_get_option() {
+pub fn set_get_del_mark() {
     let mut buf = Buffer::current();
 
-    buf.set_option("modified", true).unwrap();
-    assert!(buf.get_option::<bool>("modified").unwrap());
+    let res = buf.set_mark('a', 1, 0);
+    assert_eq!(Ok(true), res);
 
-    buf.set_option("modified", false).unwrap();
-    assert!(!buf.get_option::<bool>("modified").unwrap());
+    assert_eq!((1, 0), buf.get_mark('a').unwrap());
+
+    let res = buf.del_mark('a');
+    assert_eq!(Ok(true), res);
 }
 
 pub fn set_get_del_text() {
@@ -176,8 +150,34 @@ pub fn set_get_del_text() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-pub fn new_buf_delete() {
-    let buf = api::create_buf(true, false).unwrap();
-    let opts = BufDeleteOpts::builder().build();
-    assert_eq!(Ok(()), buf.delete(opts));
+pub fn set_get_del_var() {
+    let mut buf = Buffer::current();
+    buf.set_var("foo", 42).unwrap();
+    assert_eq!(Ok(42), buf.get_var("foo"));
+    assert_eq!(Ok(()), buf.del_var("foo"));
+}
+
+pub fn set_get_name() {
+    let mut buf = Buffer::current();
+
+    assert_eq!("", buf.get_name().unwrap().display().to_string());
+
+    assert_eq!(Ok(()), buf.set_name("foo"));
+
+    assert_eq!(
+        "foo",
+        buf.get_name().unwrap().file_name().unwrap().to_string_lossy()
+    );
+
+    assert_eq!(Ok(()), buf.set_name(""));
+}
+
+pub fn set_get_option() {
+    let mut buf = Buffer::current();
+
+    buf.set_option("modified", true).unwrap();
+    assert!(buf.get_option::<bool>("modified").unwrap());
+
+    buf.set_option("modified", false).unwrap();
+    assert!(!buf.get_option::<bool>("modified").unwrap());
 }

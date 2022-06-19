@@ -25,7 +25,9 @@ fn liboxi_tests() -> nvim::Result<()> {
 
         api::global::chan_send_fail();
         api::global::create_del_user_command();
+        api::global::eval_statusline();
         api::global::get_mode();
+        api::global::get_options();
         api::global::set_get_del_current_line();
         api::global::set_get_del_keymap();
         api::global::set_get_del_mark();
