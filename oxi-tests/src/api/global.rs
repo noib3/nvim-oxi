@@ -33,6 +33,30 @@ pub fn eval_statusline() {
     assert_eq!(Ok("foo".into()), res.map(|infos| infos.str));
 }
 
+pub fn get_chan_info() {
+    let res = api::get_chan_info(0);
+    assert!(res.is_err());
+}
+
+pub fn get_colors() {
+    let colors = api::get_color_map().collect::<Vec<_>>();
+    assert_le!(0, colors.len());
+    let (name, color) = colors.into_iter().next().unwrap();
+    assert_eq!(color, api::get_color_by_name(&name));
+}
+
+pub fn get_context() {
+    let opts = GetContextOpts::builder().build();
+    let res = api::get_context(opts);
+    assert!(res.is_ok());
+}
+
+pub fn get_highlights() {
+    let (name, _) = api::get_color_map().next().unwrap();
+    let id = api::get_hl_id_by_name(&*name).unwrap();
+    assert_eq!(api::get_hl_by_id(id, true), api::get_hl_by_name(&name, true));
+}
+
 pub fn get_mode() {
     let got_mode = api::get_mode().unwrap();
     assert_eq!(Mode::Normal, got_mode.mode);
@@ -89,4 +113,16 @@ pub fn set_get_del_var() {
     api::set_var("foo", 42).unwrap();
     assert_eq!(Ok(42), api::get_var("foo"));
     assert_eq!(Ok(()), api::del_var("foo"));
+}
+
+pub fn set_get_option() {
+    api::set_option("modified", true).unwrap();
+    assert!(api::get_option::<_, bool>("modified").unwrap());
+
+    api::set_option("modified", false).unwrap();
+    assert!(!api::get_option::<_, bool>("modified").unwrap());
+}
+
+pub fn strwidth() {
+    assert_eq!(Ok(2), api::strwidth("｜"));
 }

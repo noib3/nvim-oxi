@@ -10,27 +10,27 @@ use crate::object::{self, FromObject};
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct EditorContext {
     #[builder(setter(custom))]
-    #[serde(rename = "bufs")]
+    #[serde(default, rename = "bufs")]
     bufferlist: Vec<NvimString>,
 
     #[builder(setter(custom))]
-    #[serde(rename = "gvars")]
+    #[serde(default, rename = "gvars")]
     global_vars: Vec<NvimString>,
 
     #[builder(setter(custom))]
-    #[serde(rename = "funcs")]
+    #[serde(default, rename = "funcs")]
     global_and_script_local_funcs: Vec<NvimString>,
 
     #[builder(setter(custom))]
-    #[serde(rename = "jumps")]
+    #[serde(default, rename = "jumps")]
     jumplist: Vec<NvimString>,
 
     #[builder(setter(custom))]
-    #[serde(rename = "regs")]
+    #[serde(default, rename = "regs")]
     registers: Vec<NvimString>,
 
     #[builder(setter(custom))]
-    #[serde(rename = "sfuncs")]
+    #[serde(default, rename = "sfuncs")]
     script_local_funcs: Vec<NvimString>,
 }
 

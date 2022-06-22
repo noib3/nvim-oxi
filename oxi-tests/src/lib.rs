@@ -26,12 +26,18 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::global::chan_send_fail();
         api::global::create_del_user_command();
         api::global::eval_statusline();
+        api::global::get_chan_info();
+        api::global::get_colors();
+        api::global::get_context();
+        api::global::get_highlights();
         api::global::get_mode();
         api::global::get_options();
         api::global::set_get_del_current_line();
         api::global::set_get_del_keymap();
         api::global::set_get_del_mark();
         api::global::set_get_del_var();
+        api::global::set_get_option();
+        api::global::strwidth();
     });
 
     process::exit(match result {

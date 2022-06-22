@@ -278,10 +278,7 @@ pub fn get_current_win() -> WinHandle {
 /// Binding to `nvim_get_hl_by_id`.
 ///
 /// Gets a highlight definition by id.
-pub fn get_hl_by_id(
-    hl_id: impl Into<Integer>,
-    rgb: bool,
-) -> Result<HighlightInfos> {
+pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = NvimError::new();
     let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
     err.into_err_or_flatten(|| HighlightInfos::from_obj(hl.into()))
@@ -300,9 +297,11 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
 /// Binding to `nvim_get_hl_id_by_name`.
 ///
 /// Gets a highlight definition by name.
-pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
-    let name = NvimString::from(name);
-    let id = unsafe { nvim_get_hl_id_by_name(name.non_owning()) };
+pub fn get_hl_id_by_name<S>(name: S) -> Result<u32>
+where
+    S: Into<NvimString>,
+{
+    let id = unsafe { nvim_get_hl_id_by_name(name.into().non_owning()) };
     id.try_into().map_err(crate::Error::from)
 }
 
@@ -353,10 +352,14 @@ pub fn get_mode() -> Result<GotMode> {
 /// Binding to `nvim_get_option`.
 ///
 /// Gets the value of a global option.
-pub fn get_option<V: FromObject>(name: impl Into<NvimString>) -> Result<V> {
+pub fn get_option<S, R>(name: S) -> Result<R>
+where
+    S: Into<NvimString>,
+    R: FromObject,
+{
     let mut err = NvimError::new();
     let obj = unsafe { nvim_get_option(name.into().non_owning(), &mut err) };
-    err.into_err_or_flatten(|| V::from_obj(obj))
+    err.into_err_or_flatten(|| R::from_obj(obj))
 }
 
 /// Binding to `nvim_get_option_info`.
