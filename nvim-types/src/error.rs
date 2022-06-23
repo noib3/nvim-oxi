@@ -38,14 +38,14 @@ impl Default for Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.msg.is_null() {
-            write!(f, "{:?}", unsafe { CStr::from_ptr(self.msg) })
+            fmt::Debug::fmt(unsafe { CStr::from_ptr(self.msg) }, f)
         } else {
             use ErrorType::*;
             let msg = match self.r#type {

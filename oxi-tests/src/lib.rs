@@ -9,6 +9,10 @@ use nvim_oxi as nvim;
 #[nvim::module]
 fn liboxi_tests() -> nvim::Result<()> {
     let result = panic::catch_unwind(|| {
+        api::autocmd::set_del_augroup_by_id();
+        api::autocmd::set_del_augroup_by_name();
+        api::autocmd::set_del_autocmd();
+
         api::buffer::attach();
         api::buffer::call();
         api::buffer::create_del_user_command();
