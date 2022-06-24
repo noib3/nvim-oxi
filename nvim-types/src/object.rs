@@ -290,7 +290,7 @@ impl From<StdString> for Object {
     }
 }
 
-impl<'a> From<&'a str> for Object {
+impl From<&str> for Object {
     #[inline(always)]
     fn from(s: &str) -> Self {
         NvimString::from(s).into()
@@ -324,13 +324,13 @@ where
     }
 }
 
-impl<'a, T> From<Cow<'a, T>> for Object
+impl<T> From<Cow<'_, T>> for Object
 where
     T: Clone,
     Object: From<T>,
 {
     #[inline(always)]
-    fn from(moo: Cow<'a, T>) -> Self {
+    fn from(moo: Cow<'_, T>) -> Self {
         moo.into_owned().into()
     }
 }

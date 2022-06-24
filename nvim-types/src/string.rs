@@ -136,9 +136,9 @@ impl From<StdString> for String {
     }
 }
 
-impl<'a> From<&'a str> for String {
+impl From<&str> for String {
     #[inline]
-    fn from(str: &'a str) -> Self {
+    fn from(str: &str) -> Self {
         Self::from_bytes(str.as_bytes().to_owned())
     }
 }
@@ -150,9 +150,9 @@ impl From<char> for String {
     }
 }
 
-impl<'a> From<Cow<'a, str>> for String {
+impl From<Cow<'_, str>> for String {
     #[inline]
-    fn from(moo: Cow<'a, str>) -> Self {
+    fn from(moo: Cow<'_, str>) -> Self {
         moo.into_owned().into()
     }
 }
@@ -201,9 +201,9 @@ impl PartialEq<str> for String {
     }
 }
 
-impl<'a> PartialEq<&'a str> for String {
+impl PartialEq<&str> for String {
     #[inline]
-    fn eq(&self, other: &&'a str) -> bool {
+    fn eq(&self, other: &&str) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }

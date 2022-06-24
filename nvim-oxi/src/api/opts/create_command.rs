@@ -110,7 +110,7 @@ pub(crate) struct KeyDict_user_command {
     keepscript: Object,
 }
 
-impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command {
+impl From<&CreateCommandOpts> for KeyDict_user_command {
     fn from(opts: &CreateCommandOpts) -> Self {
         Self {
             bar: opts.bar.into(),

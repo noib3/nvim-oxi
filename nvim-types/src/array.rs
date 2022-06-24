@@ -27,6 +27,19 @@ impl IntoIterator for Array {
     }
 }
 
+impl<T> FromIterator<T> for Array
+where
+    Object: From<T>,
+{
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        iter.into_iter()
+            .map(Object::from)
+            .filter(Object::is_some)
+            .collect::<Vec<Object>>()
+            .into()
+    }
+}
+
 pub struct ArrayIterator {
     start: *const Object,
     end: *const Object,
@@ -70,19 +83,6 @@ impl Drop for ArrayIterator {
                 self.start = self.start.offset(1);
             }
         }
-    }
-}
-
-impl<T> FromIterator<T> for Array
-where
-    Object: From<T>,
-{
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        iter.into_iter()
-            .map(Object::from)
-            .filter(Object::is_some)
-            .collect::<Vec<Object>>()
-            .into()
     }
 }
 

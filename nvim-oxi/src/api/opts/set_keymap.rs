@@ -66,7 +66,7 @@ pub(crate) struct KeyDict_keymap {
     callback: Object,
 }
 
-impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap {
+impl From<&SetKeymapOpts> for KeyDict_keymap {
     fn from(opts: &SetKeymapOpts) -> Self {
         Self {
             desc: opts.desc.clone().into(),

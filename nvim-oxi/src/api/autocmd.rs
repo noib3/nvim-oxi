@@ -7,7 +7,22 @@ use nvim_types::{
 };
 
 use super::ffi::autocmd::*;
-use crate::Result;
+use super::opts::*;
+use super::types::*;
+use crate::{
+    lua::LUA_INTERNAL_CALL,
+    object::{FromObject, ToObject},
+    Result,
+};
+
+/// Binding to `nvim_clear_autocmds`.
+///
+/// Clears all the autocommands matched by at least one of the fields of
+pub fn clear_autocmds(opts: ClearAutocmdsOpts) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe { nvim_clear_autocmds(&opts.into(), &mut err) };
+    err.into_err_or_else(|| ())
+}
 
 /// Binding to `nvim_del_augroup_by_id`.
 ///

@@ -1,5 +1,6 @@
 mod buf_attach;
 mod buf_delete;
+mod clear_autocmds;
 mod create_command;
 mod eval_statusline;
 mod get_commands;
@@ -14,6 +15,7 @@ mod set_keymap;
 
 pub use buf_attach::*;
 pub use buf_delete::*;
+pub use clear_autocmds::*;
 pub use create_command::*;
 pub use eval_statusline::*;
 pub use get_commands::*;

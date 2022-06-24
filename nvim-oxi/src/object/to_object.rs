@@ -50,13 +50,13 @@ impl_bigint!(u128);
 impl_bigint!(isize);
 impl_bigint!(usize);
 
-impl<'a> ToObject for &'a str {
+impl ToObject for &str {
     fn to_obj(self) -> Result<Object> {
         Ok(NvimString::from(self).into())
     }
 }
 
-impl<'a> ToObject for std::borrow::Cow<'a, str> {
+impl ToObject for std::borrow::Cow<'_, str> {
     fn to_obj(self) -> Result<Object> {
         Ok(NvimString::from(self).into())
     }
@@ -84,7 +84,7 @@ where
     }
 }
 
-// Damn I wish I could do this.
+// // Damn I wish I could do this.
 //
 // macro_rules! impl_closure {
 //     ($fn_trait:ident, $from_fn:ident) => {
@@ -100,7 +100,7 @@ where
 //         }
 //     };
 // }
-
+//
 // impl_closure!(Fn, from_fn);
 // impl_closure!(FnMut, from_fn_mut);
 // impl_closure!(FnOnce, from_fn_once);
