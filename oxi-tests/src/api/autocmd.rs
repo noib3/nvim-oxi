@@ -31,7 +31,16 @@ pub fn clear_autocmds_buffer_n_patterns() {
         .build();
 
     assert!(api::clear_autocmds(opts).is_err());
-    // assert_eq!()
+}
+
+pub fn create_augroup() {
+    let opts = CreateAugroupOpts::builder().build();
+    let id = api::create_augroup("Foo", opts).expect("create_augroup failed");
+
+    let opts = CreateAugroupOpts::builder().clear(false).build();
+    let got = api::create_augroup("Foo", opts);
+
+    assert_eq!(Ok(id), got);
 }
 
 pub fn set_del_augroup_by_id() {

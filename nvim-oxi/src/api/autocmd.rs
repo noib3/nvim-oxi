@@ -24,6 +24,24 @@ pub fn clear_autocmds(opts: ClearAutocmdsOpts) -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
+/// Binding to `nvim_create_augroup`.
+///
+/// Creates a new autocommand group or gets an existing one. To get the id of
+/// an existing augroup set the `clear` field of `opts` to `false`.
+pub fn create_augroup(name: &str, opts: CreateAugroupOpts) -> Result<u32> {
+    let name = NvimString::from(name);
+    let mut err = NvimError::new();
+    let id = unsafe {
+        nvim_create_augroup(
+            LUA_INTERNAL_CALL,
+            name.non_owning(),
+            &opts.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| id.try_into().expect("always positive"))
+}
+
 /// Binding to `nvim_del_augroup_by_id`.
 ///
 /// Deletes an autocommand group by id.

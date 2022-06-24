@@ -1,6 +1,6 @@
 use nvim_types::{Array, Error, Integer, NonOwning, Object, String};
 
-use crate::api::opts::KeyDict_clear_autocmds;
+use crate::api::opts::{KeyDict_clear_autocmds, KeyDict_create_augroup};
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L621
@@ -9,13 +9,13 @@ extern "C" {
         err: *mut Error,
     );
 
-    // // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L701
-    // pub(crate) fn nvim_create_augroup(
-    //     channel_id: u64,
-    //     name: NonOwning<String>,
-    //     opts: KeyDict_create_augroup,
-    //     err: *mut Error,
-    // ) -> Integer;
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L701
+    pub(crate) fn nvim_create_augroup(
+        channel_id: u64,
+        name: NonOwning<String>,
+        opts: *const KeyDict_create_augroup,
+        err: *mut Error,
+    ) -> Integer;
 
     // // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L439
     // pub(crate) fn nvim_create_autocmd(
