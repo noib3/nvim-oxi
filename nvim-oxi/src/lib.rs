@@ -2,6 +2,12 @@
 //!
 //! The `nvim-oxi` crate ...
 
+#![deny(future_incompatible)]
+#![deny(nonstandard_style)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![doc = include_str!("../../README.md")]
+#![warn(missing_docs)]
+
 pub mod api;
 mod error;
 #[doc(hidden)]
