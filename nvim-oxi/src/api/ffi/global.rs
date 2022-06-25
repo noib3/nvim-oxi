@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use nvim_types::{
     Array,
     BufHandle,

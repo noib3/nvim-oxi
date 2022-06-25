@@ -365,10 +365,11 @@ where
 /// Binding to `nvim_get_option_info`.
 ///
 /// Gets all the informations related to an option.
-pub fn get_option_info(name: impl Into<NvimString>) -> Result<OptionInfos> {
+pub fn get_option_info(name: &str) -> Result<OptionInfos> {
+    let name = NvimString::from(name);
     let mut err = NvimError::new();
-    let obj = unsafe { nvim_get_option(name.into().non_owning(), &mut err) };
-    err.into_err_or_flatten(|| OptionInfos::from_obj(obj))
+    let obj = unsafe { nvim_get_option_info(name.non_owning(), &mut err) };
+    err.into_err_or_flatten(|| OptionInfos::from_obj(obj.into()))
 }
 
 /// Binding to `nvim_get_option_value`.
