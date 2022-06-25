@@ -4,6 +4,7 @@ use crate::api::opts::{
     KeyDict_clear_autocmds,
     KeyDict_create_augroup,
     KeyDict_create_autocmd,
+    KeyDict_exec_autocmds,
 };
 
 extern "C" {
@@ -41,12 +42,12 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L588
     pub(crate) fn nvim_del_autocmd(id: Integer, err: *mut Error);
 
-    // // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L777
-    // pub(crate) fn nvim_exec_autocmds(
-    //     event: NonOwning<Object>,
-    //     opts: KeyDict_exec_autocmds,
-    //     err: *mut Error,
-    // );
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L777
+    pub(crate) fn nvim_exec_autocmds(
+        event: NonOwning<Object>,
+        opts: *const KeyDict_exec_autocmds,
+        err: *mut Error,
+    );
 
     // // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L77
     // pub(crate) fn nvim_get_autocmds(

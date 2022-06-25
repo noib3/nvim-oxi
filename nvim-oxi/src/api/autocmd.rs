@@ -9,11 +9,7 @@ use nvim_types::{
 use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
-use crate::{
-    lua::LUA_INTERNAL_CALL,
-    object::{FromObject, ToObject},
-    Result,
-};
+use crate::{lua::LUA_INTERNAL_CALL, Result};
 
 /// Binding to `nvim_clear_autocmds`.
 ///
@@ -87,5 +83,19 @@ pub fn del_augroup_by_name(name: &str) -> Result<()> {
 pub fn del_autocmd(id: u32) -> Result<()> {
     let mut err = NvimError::new();
     unsafe { nvim_del_autocmd(id as Integer, &mut err) };
+    err.into_err_or_else(|| ())
+}
+
+/// Binding to `nvim_exec_autocmds`.
+///
+/// Executes all the autocommands associated with the given events matching
+/// `opts`.
+pub fn exec_autocmds<'a, I>(events: I, opts: &ExecAutocmdsOpts) -> Result<()>
+where
+    I: IntoIterator<Item = &'a str>,
+{
+    let events = Object::from(Array::from_iter(events));
+    let mut err = NvimError::new();
+    unsafe { nvim_exec_autocmds(events.non_owning(), &opts.into(), &mut err) };
     err.into_err_or_else(|| ())
 }

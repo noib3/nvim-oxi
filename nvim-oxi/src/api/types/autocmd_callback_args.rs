@@ -34,6 +34,7 @@ pub struct AutocmdCallbackArgs {
     pub file: PathBuf,
 
     /// Arbitrary data passed to `api::exec_autocmds`.
+    #[serde(default)]
     // TODO: what to put here?
     pub data: (),
 }
