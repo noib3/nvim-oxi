@@ -39,6 +39,8 @@ impl ExecAutocmdsOptsBuilder {
     where
         I: IntoIterator<Item = &'a str>,
     {
+        // TODO: change to `NvimString` if
+        // https://github.com/neovim/neovim/issues/19089 doesn't get addressed.
         self.patterns = Some(Array::from_iter(patterns).into());
         self
     }
