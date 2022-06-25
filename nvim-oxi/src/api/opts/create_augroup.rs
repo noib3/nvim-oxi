@@ -1,13 +1,11 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Object, String as NvimString};
-
-use crate::api::Buffer;
+use nvim_types::Object;
 
 /// Options passed to `crate::api::create_augroup`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct CreateAugroupOpts {
-    ///
+    /// Whether to clear existing commands if the group already exists.
     #[builder(setter(strip_option))]
     clear: Option<bool>,
 }

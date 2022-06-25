@@ -1,4 +1,5 @@
 mod autocmd_callback_args;
+mod autocmd_infos;
 mod channel_infos;
 mod client_infos;
 mod command_addr;
@@ -25,6 +26,7 @@ mod statusline_infos;
 mod ui_infos;
 
 pub use autocmd_callback_args::*;
+pub use autocmd_infos::*;
 pub use channel_infos::*;
 pub use client_infos::*;
 pub use command_addr::*;

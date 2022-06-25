@@ -5,6 +5,7 @@ use crate::api::opts::{
     KeyDict_create_augroup,
     KeyDict_create_autocmd,
     KeyDict_exec_autocmds,
+    KeyDict_get_autocmds,
 };
 
 extern "C" {
@@ -49,9 +50,9 @@ extern "C" {
         err: *mut Error,
     );
 
-    // // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L77
-    // pub(crate) fn nvim_get_autocmds(
-    //     opts: KeyDict_get_autocmds,
-    //     err: *mut Error,
-    // ) -> Array;
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L77
+    pub(crate) fn nvim_get_autocmds(
+        opts: *const KeyDict_get_autocmds,
+        err: *mut Error,
+    ) -> Array;
 }

@@ -6,20 +6,20 @@ use crate::api::Buffer;
 /// Options passed to `crate::api::clear_autocmds`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
-pub struct ClearAutocmdsOpts {
-    /// Only clear the autocommands local to a specific `Buffer`. Cannot be
-    /// used together with `patterns`.
+pub struct GetAutocmdsOpts {
+    /// Get the autocommands local to a specific `Buffer`. Cannot be used
+    /// together with `patterns`.
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
-    /// Clear all the autocommands triggered by one or more of the specified
+    /// Get all the autocommands triggered by one or more of the specified
     /// events.
     #[builder(setter(custom))]
     events: Object,
 
-    /// Only clear the autocommands belonging to a specific augroup. The
+    /// Only get the autocommands belonging to a specific augroup. The
     /// augroup can be specified by both id and name.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(into))]
     group: Object,
 
     /// Only get the autocommands that match specific patterns. For example, if
@@ -30,10 +30,10 @@ pub struct ClearAutocmdsOpts {
     patterns: Object,
 }
 
-impl ClearAutocmdsOpts {
+impl GetAutocmdsOpts {
     #[inline(always)]
-    pub fn builder() -> ClearAutocmdsOptsBuilder {
-        ClearAutocmdsOptsBuilder::default()
+    pub fn builder() -> GetAutocmdsOptsBuilder {
+        GetAutocmdsOptsBuilder::default()
     }
 }
 
@@ -49,26 +49,26 @@ macro_rules! string_or_table {
     };
 }
 
-impl ClearAutocmdsOptsBuilder {
+impl GetAutocmdsOptsBuilder {
     string_or_table!(events);
     string_or_table!(patterns);
 
-    pub fn build(&mut self) -> ClearAutocmdsOpts {
+    pub fn build(&mut self) -> GetAutocmdsOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_clear_autocmds<'a> {
+pub(crate) struct KeyDict_get_autocmds<'a> {
     event: NonOwning<'a, Object>,
     group: NonOwning<'a, Object>,
     buffer: Object,
     pattern: NonOwning<'a, Object>,
 }
 
-impl<'a> From<&'a ClearAutocmdsOpts> for KeyDict_clear_autocmds<'a> {
-    fn from(opts: &'a ClearAutocmdsOpts) -> Self {
+impl<'a> From<&'a GetAutocmdsOpts> for KeyDict_get_autocmds<'a> {
+    fn from(opts: &'a GetAutocmdsOpts) -> Self {
         Self {
             event: opts.events.non_owning(),
             group: opts.group.non_owning(),

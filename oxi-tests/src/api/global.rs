@@ -40,7 +40,8 @@ pub fn get_chan_info() {
 
 pub fn get_colors() {
     let colors = api::get_color_map().collect::<Vec<_>>();
-    assert_le!(0, colors.len());
+    assert_lt!(0, colors.len());
+
     let (name, color) = colors.into_iter().next().unwrap();
     assert_eq!(color, api::get_color_by_name(&name));
 }

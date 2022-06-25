@@ -1,13 +1,14 @@
+use all_asserts::*;
 use nvim_oxi::api::opts::*;
 use nvim_oxi::api::{self, Buffer};
 // use nvim_oxi::opts::*;
 
 pub fn clear_autocmds_current_buf() {
     let opts = ClearAutocmdsOpts::builder().buffer(0).build();
-    assert_eq!(Ok(()), api::clear_autocmds(opts));
+    assert_eq!(Ok(()), api::clear_autocmds(&opts));
 
     let opts = ClearAutocmdsOpts::builder().buffer(Buffer::current()).build();
-    assert_eq!(Ok(()), api::clear_autocmds(opts));
+    assert_eq!(Ok(()), api::clear_autocmds(&opts));
 }
 
 pub fn clear_autocmds_events() {
@@ -15,7 +16,7 @@ pub fn clear_autocmds_events() {
         .events(["BufFilePre", "BufFilePost"])
         .build();
 
-    assert_eq!(Ok(()), api::clear_autocmds(opts));
+    assert_eq!(Ok(()), api::clear_autocmds(&opts));
 
     let opts = ClearAutocmdsOpts::builder()
         .events(vec![
@@ -24,7 +25,7 @@ pub fn clear_autocmds_events() {
         ])
         .build();
 
-    assert_eq!(Ok(()), api::clear_autocmds(opts));
+    assert_eq!(Ok(()), api::clear_autocmds(&opts));
 }
 
 pub fn clear_autocmds_buffer_n_patterns() {
@@ -34,7 +35,7 @@ pub fn clear_autocmds_buffer_n_patterns() {
         .build();
 
     assert!(
-        api::clear_autocmds(opts).is_err(),
+        api::clear_autocmds(&opts).is_err(),
         "specifying both `buffer` and `patterns` shouldn't be allowed"
     );
 }
@@ -100,7 +101,14 @@ pub fn exec_autocmds() {
 
     let res = api::exec_autocmds(["BufAdd"], &opts);
     assert_eq!(Ok(()), res);
+    // `i` should still be equal to 1 since `once` was set to `true`.
     assert_eq!(1, *i.try_borrow().unwrap());
+}
+
+pub fn get_autocmds() {
+    let opts = GetAutocmdsOpts::builder().build();
+    let autocmds = api::get_autocmds(&opts).expect("couldn't get autocmds");
+    assert_lt!(0, autocmds.collect::<Vec<_>>().len());
 }
 
 pub fn set_del_augroup_by_id() {

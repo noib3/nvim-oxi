@@ -9,12 +9,13 @@ use nvim_types::{
 use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
+use crate::object::FromObject;
 use crate::{lua::LUA_INTERNAL_CALL, Result};
 
 /// Binding to `nvim_clear_autocmds`.
 ///
 /// Clears all the autocommands matched by at least one of the fields of
-pub fn clear_autocmds(opts: ClearAutocmdsOpts) -> Result<()> {
+pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     let mut err = NvimError::new();
     unsafe { nvim_clear_autocmds(&opts.into(), &mut err) };
     err.into_err_or_else(|| ())
@@ -98,4 +99,17 @@ where
     let mut err = NvimError::new();
     unsafe { nvim_exec_autocmds(events.non_owning(), &opts.into(), &mut err) };
     err.into_err_or_else(|| ())
+}
+
+/// Binding to `nvim_get_autocmds`.
+///
+/// Gets all the autocommands that match `opts`. When multiple patterns or
+/// events are provided, it will find all the autocommands that match any
+/// combination of them.
+pub fn get_autocmds(
+    opts: &GetAutocmdsOpts,
+) -> Result<impl Iterator<Item = AutocmdInfos>> {
+    let mut err = NvimError::new();
+    let infos = unsafe { nvim_get_autocmds(&opts.into(), &mut err) };
+    err.into_err_or_else(|| infos.into_iter().flat_map(AutocmdInfos::from_obj))
 }
