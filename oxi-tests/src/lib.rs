@@ -13,9 +13,11 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::autocmd::clear_autocmds_current_buf();
         api::autocmd::clear_autocmds_events();
         api::autocmd::create_augroup();
+        api::autocmd::create_autocmd();
+        api::autocmd::create_autocmd_buffer_n_patterns();
         api::autocmd::set_del_augroup_by_id();
         api::autocmd::set_del_augroup_by_name();
-        api::autocmd::set_del_autocmd();
+        api::autocmd::set_exec_del_autocmd();
 
         api::buffer::attach();
         api::buffer::call();

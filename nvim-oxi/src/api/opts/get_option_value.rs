@@ -59,7 +59,7 @@ pub(crate) struct KeyDict_option {
 impl From<OptionValueOpts> for KeyDict_option {
     fn from(opts: OptionValueOpts) -> Self {
         Self {
-            buf: opts.buffer.map(|buf| buf.0).into(),
+            buf: opts.buffer.into(),
             win: opts.window.map(WinHandle::from).into(),
             scope: opts.scope.map(NvimString::from).into(),
         }

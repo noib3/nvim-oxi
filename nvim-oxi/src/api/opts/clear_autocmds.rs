@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Object, String as NvimString};
+use nvim_types::{Array, Object};
 
 use crate::api::Buffer;
 
@@ -19,7 +19,7 @@ pub struct ClearAutocmdsOpts {
 
     /// Only clear the autocommands belonging to a specific augroup. The
     /// augroup can be specified by both id and name.
-    #[builder(setter(custom))]
+    #[builder(setter(into, strip_option))]
     group: Option<Object>,
 
     /// Only clear the autocommands that match a specific pattern(s). For
@@ -39,13 +39,12 @@ impl ClearAutocmdsOpts {
 
 macro_rules! string_or_table {
     ($fn_name:ident) => {
-        pub fn $fn_name<S, I>(&mut self, iter: I) -> &mut Self
+        pub fn $fn_name<'a, I>(&mut self, iter: I) -> &mut Self
         where
-            S: Into<NvimString>,
-            I: IntoIterator<Item = S>,
+            I: IntoIterator<Item = &'a str>,
         {
             self.$fn_name = Some(Some(
-                iter.into_iter().map(Into::into).collect::<Array>().into(),
+                iter.into_iter().map(Object::from).collect::<Array>().into(),
             ));
             self
         }
@@ -55,11 +54,6 @@ macro_rules! string_or_table {
 impl ClearAutocmdsOptsBuilder {
     string_or_table!(events);
     string_or_table!(patterns);
-
-    pub fn group<G: Into<Object>>(&mut self, group: G) -> &mut Self {
-        self.group = Some(Some(group.into()));
-        self
-    }
 
     pub fn build(&mut self) -> ClearAutocmdsOpts {
         self.fallible_build().expect("never fails, all fields have defaults")

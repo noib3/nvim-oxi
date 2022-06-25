@@ -36,7 +36,13 @@ impl fmt::Display for Buffer {
 
 impl<H: Into<BufHandle>> From<H> for Buffer {
     fn from(handle: H) -> Self {
-        Buffer(handle.into())
+        Self(handle.into())
+    }
+}
+
+impl From<Buffer> for Object {
+    fn from(buf: Buffer) -> Self {
+        buf.0.into()
     }
 }
 
@@ -45,12 +51,6 @@ impl FromObject for Buffer {
         Ok(BufHandle::try_from(obj)?.into())
     }
 }
-
-// impl ToObject for Buffer {
-//     fn to_obj(self) -> Result<Object> {
-//         Ok(self.0.into())
-//     }
-// }
 
 impl Buffer {
     /// Shorthand for `nvim_oxi::api::get_current_buf`.

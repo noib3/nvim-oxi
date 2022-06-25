@@ -18,7 +18,10 @@ pub fn clear_autocmds_events() {
     assert_eq!(Ok(()), api::clear_autocmds(opts));
 
     let opts = ClearAutocmdsOpts::builder()
-        .events(vec![String::from("CompleteDone"), String::from("CursorHold")])
+        .events(vec![
+            String::from("CompleteDone").as_ref(),
+            String::from("CursorHold").as_ref(),
+        ])
         .build();
 
     assert_eq!(Ok(()), api::clear_autocmds(opts));
@@ -30,7 +33,10 @@ pub fn clear_autocmds_buffer_n_patterns() {
         .patterns(["*.py", "*.ts"])
         .build();
 
-    assert!(api::clear_autocmds(opts).is_err());
+    assert!(
+        api::clear_autocmds(opts).is_err(),
+        "specifying both `buffer` and `patterns` shouldn't be allowed"
+    );
 }
 
 pub fn create_augroup() {
@@ -43,20 +49,48 @@ pub fn create_augroup() {
     assert_eq!(Ok(id), got);
 }
 
+pub fn create_autocmd() {
+    let opts = CreateAutocmdOpts::builder()
+        .buffer(0)
+        .desc("Does nothing, in the current buffer")
+        .callback(|_args| Ok(false))
+        .build();
+
+    let id = api::create_autocmd(["VimEnter"], opts);
+    assert!(id.is_ok(), "{id:?}");
+}
+
+pub fn create_autocmd_buffer_n_patterns() {
+    let opts = CreateAutocmdOpts::builder()
+        .command("echo 'hi there'")
+        .buffer(0)
+        .patterns(["*.py", "*.ts"])
+        .build();
+
+    let id = api::create_autocmd(["VimEnter"], opts);
+    assert!(id.is_err(), "{id:?}");
+}
+
 pub fn set_del_augroup_by_id() {
-    // // TODO
-    // let id = todo!();
-    // assert_eq!(Ok(()), api::del_augroup_by_id(id));
+    let opts = CreateAugroupOpts::builder().build();
+    let id = api::create_augroup("Foo", opts).expect("create_augroup failed");
+    assert_eq!(Ok(()), api::del_augroup_by_id(id));
 }
 
 pub fn set_del_augroup_by_name() {
-    // // TODO
-    // let name = todo!();
-    // assert_eq!(Ok(()), api::del_augroup_by_name(name));
+    let opts = CreateAugroupOpts::builder().build();
+    let _ = api::create_augroup("Foo", opts).expect("create_augroup failed");
+    assert_eq!(Ok(()), api::del_augroup_by_name("Foo"));
 }
 
-pub fn set_del_autocmd() {
-    // // TODO
-    // let id = todo!();
-    // assert_eq!(Ok(()), api::del_autocmd(id));
+pub fn set_exec_del_autocmd() {
+    let opts =
+        CreateAutocmdOpts::builder().callback(|_args| Ok(false)).build();
+
+    let id = api::create_autocmd(["BufAdd, BufDelete"], opts)
+        .expect("create_autocmd failed");
+
+    // TODO: exec autocmd
+
+    assert_eq!(Ok(()), api::del_autocmd(id));
 }

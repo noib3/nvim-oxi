@@ -42,6 +42,26 @@ pub fn create_augroup(name: &str, opts: CreateAugroupOpts) -> Result<u32> {
     err.into_err_or_else(|| id.try_into().expect("always positive"))
 }
 
+/// Binding to `nvim_create_autocmd`.
+///
+/// Creates a new autocommand.
+pub fn create_autocmd<'a, I>(events: I, opts: CreateAutocmdOpts) -> Result<u32>
+where
+    I: IntoIterator<Item = &'a str>,
+{
+    let events = Object::from(Array::from_iter(events));
+    let mut err = NvimError::new();
+    let id = unsafe {
+        nvim_create_autocmd(
+            LUA_INTERNAL_CALL,
+            events.non_owning(),
+            &opts.into(),
+            &mut err,
+        )
+    };
+    err.into_err_or_else(|| id.try_into().expect("always positive"))
+}
+
 /// Binding to `nvim_del_augroup_by_id`.
 ///
 /// Deletes an autocommand group by id.
