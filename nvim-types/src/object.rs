@@ -337,7 +337,7 @@ where
 
 impl<T> FromIterator<T> for Object
 where
-    Object: From<T>,
+    T: Into<Object>,
 {
     #[inline(always)]
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {

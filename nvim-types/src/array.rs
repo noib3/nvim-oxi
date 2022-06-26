@@ -29,11 +29,11 @@ impl IntoIterator for Array {
 
 impl<T> FromIterator<T> for Array
 where
-    Object: From<T>,
+    T: Into<Object>,
 {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         iter.into_iter()
-            .map(Object::from)
+            .map(Into::into)
             .filter(Object::is_some)
             .collect::<Vec<Object>>()
             .into()

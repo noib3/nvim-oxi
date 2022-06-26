@@ -9,7 +9,7 @@ use nvim_types::{
     String,
 };
 
-// use crate::api::opts::KeyDict_set_extmark;
+use crate::api::opts::KeyDict_set_extmark;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L863
@@ -65,9 +65,9 @@ extern "C" {
         ns_id: Integer,
         line: Integer,
         col: Integer,
-        // opts: *const KeyDict_set_extmark,
+        opts: *const KeyDict_set_extmark,
         err: *mut Error,
-    ) -> Array;
+    ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L45
     pub(crate) fn nvim_create_namespace(name: NonOwning<String>) -> Integer;

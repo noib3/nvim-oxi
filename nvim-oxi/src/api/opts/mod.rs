@@ -15,6 +15,7 @@ mod highlight;
 mod notify;
 mod open_term;
 mod select_popup_menu_item;
+mod set_extmark;
 mod set_keymap;
 
 pub use buf_attach::*;
@@ -34,4 +35,5 @@ pub use highlight::*;
 pub use notify::*;
 pub use open_term::*;
 pub use select_popup_menu_item::*;
+pub use set_extmark::*;
 pub use set_keymap::*;

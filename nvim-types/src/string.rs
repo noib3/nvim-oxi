@@ -114,6 +114,12 @@ impl fmt::Debug for String {
     }
 }
 
+impl Default for String {
+    fn default() -> Self {
+        Self { data: std::ptr::null_mut(), size: 0 }
+    }
+}
+
 impl Clone for String {
     fn clone(&self) -> Self {
         Self::from_bytes(self.as_bytes().to_owned())

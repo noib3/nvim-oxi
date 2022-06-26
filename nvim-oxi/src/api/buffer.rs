@@ -12,7 +12,7 @@ use nvim_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::ffi::{buffer::*, extmark::*};
+use super::ffi::buffer::*;
 use super::opts::*;
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
@@ -57,72 +57,6 @@ impl Buffer {
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_buf()
-    }
-
-    /// Binding to `nvim_buf_add_highlight`.
-    ///
-    /// Adds a highlight to the buffer. `line`, `col_start` and `col_end` are
-    /// all 0-indexed. You can also pass `-1` to `col_end` to highlight to end
-    /// of line.
-    pub fn add_highlight<I, L, S, E>(
-        &mut self,
-        ns_id: I,
-        hl_group: &str,
-        line: L,
-        col_start: S,
-        col_end: E,
-    ) -> Result<i64>
-    where
-        I: Into<Integer>,
-        L: Into<Integer>,
-        S: Into<Integer>,
-        E: Into<Integer>,
-    {
-        let hl_group = NvimString::from(hl_group);
-        let mut err = NvimError::new();
-        let ns_id = unsafe {
-            nvim_buf_add_highlight(
-                self.0,
-                ns_id.into(),
-                hl_group.non_owning(),
-                line.into(),
-                col_start.into(),
-                col_end.into(),
-                &mut err,
-            )
-        };
-        err.into_err_or_else(|| ns_id)
-    }
-
-    /// Binding to `nvim_buf_clear_namespace`.
-    ///
-    /// Clears namespaced objects like highlights, extmarks, or virtual text
-    /// from a region.
-    ///
-    /// Lines are 0-indexed. It's possible to clear the namespace in the entire
-    /// buffer by specifying `line_start = 0` and `line_end = -1`.
-    pub fn clear_namespace<I, S, E>(
-        &mut self,
-        ns_id: I,
-        line_start: S,
-        line_end: E,
-    ) -> Result<()>
-    where
-        I: Into<Integer>,
-        S: Into<Integer>,
-        E: Into<Integer>,
-    {
-        let mut err = NvimError::new();
-        unsafe {
-            nvim_buf_clear_namespace(
-                self.0,
-                ns_id.into(),
-                line_start.into(),
-                line_end.into(),
-                &mut err,
-            )
-        };
-        err.into_err_or_else(|| ())
     }
 
     /// Binding to `nvim_buf_attach`.
