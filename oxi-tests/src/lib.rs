@@ -35,6 +35,9 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::buffer::set_get_name();
         api::buffer::set_get_option();
 
+        api::extmark::add_highlight();
+        api::extmark::clear_namespace();
+
         api::global::chan_send_fail();
         api::global::create_del_user_command();
         api::global::eval_statusline();
