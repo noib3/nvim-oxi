@@ -1,5 +1,7 @@
 use nvim_oxi::{
-    api::{self, opts::*, types::*, Buffer},
+    api::{self, Buffer},
+    opts::*,
+    types::*,
     LuaFun,
 };
 

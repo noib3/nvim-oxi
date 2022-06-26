@@ -14,7 +14,13 @@ mod error;
 pub mod lua;
 mod macros;
 pub mod object;
+pub mod opts {
+    pub use crate::api::opts::*;
+}
 mod toplevel;
+pub mod types {
+    pub use crate::api::types::*;
+}
 
 pub use error::{Error, Result};
 pub use lua::LuaFun;

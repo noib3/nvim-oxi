@@ -1,7 +1,6 @@
 use all_asserts::*;
-use nvim_oxi::api::opts::*;
 use nvim_oxi::api::{self, Buffer};
-// use nvim_oxi::opts::*;
+use nvim_oxi::opts::*;
 
 pub fn clear_autocmds_current_buf() {
     let opts = ClearAutocmdsOpts::builder().buffer(0).build();

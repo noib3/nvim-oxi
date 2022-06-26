@@ -1,7 +1,8 @@
-use all_asserts::*;
-use nvim_oxi::api::opts::*;
-use nvim_oxi::api::types::*;
-use nvim_oxi::api::{self, Buffer};
+use nvim_oxi::{
+    api::{self, Buffer},
+    opts::*,
+    types::*,
+};
 
 pub fn add_highlight() {
     let mut buf = Buffer::current();
