@@ -15,3 +15,15 @@ pub fn create_namespace(name: &str) -> u32 {
         .try_into()
         .expect("always positive")
 }
+
+/// Binding to `nvim_get_namespaces`.
+///
+/// Returns an iterator over all the existing, non-anonymous namespace names
+/// and ids tuples `(name, id)`.
+pub fn get_namespaces() -> impl Iterator<Item = (String, u32)> {
+    unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
+        let k = k.try_into().expect("namespace name is valid UTF-8");
+        let v = v.try_into().expect("namespace id is positive");
+        (k, v)
+    })
+}

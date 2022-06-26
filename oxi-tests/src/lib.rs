@@ -37,6 +37,7 @@ fn liboxi_tests() -> nvim::Result<()> {
 
         api::extmark::add_highlight();
         api::extmark::clear_namespace();
+        api::extmark::get_namespaces();
 
         api::global::chan_send_fail();
         api::global::create_del_user_command();

@@ -15,3 +15,13 @@ pub fn clear_namespace() {
     let res = buf.clear_namespace(id, 0, -1);
     assert_eq!(Ok(()), res);
 }
+
+pub fn get_namespaces() {
+    let id = api::create_namespace("Foo");
+
+    let out = api::get_namespaces()
+        .find_map(|(name, id)| (name == "Foo").then(|| id))
+        .unwrap();
+
+    assert_eq!(id, out);
+}
