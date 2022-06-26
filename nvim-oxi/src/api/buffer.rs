@@ -12,7 +12,7 @@ use nvim_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::ffi::buffer::*;
+use super::ffi::{buffer::*, extmark::*};
 use super::opts::*;
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
@@ -57,6 +57,33 @@ impl Buffer {
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_buf()
+    }
+
+    /// Binding to `nvim_buf_add_highlight`.
+    ///
+    /// Adds a highlight to the buffer.
+    pub fn add_highlight(
+        &mut self,
+        ns_id: i64,
+        hl_group: &str,
+        line: usize,
+        col_start: usize,
+        col_end: usize,
+    ) -> Result<i64> {
+        let hl_group = NvimString::from(hl_group);
+        let mut err = NvimError::new();
+        let ns_id = unsafe {
+            nvim_buf_add_highlight(
+                self.0,
+                ns_id,
+                hl_group.non_owning(),
+                line as Integer,
+                col_start as Integer,
+                col_end as Integer,
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| ns_id)
     }
 
     /// Binding to `nvim_buf_attach`.
