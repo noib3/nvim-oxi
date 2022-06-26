@@ -86,6 +86,26 @@ impl Buffer {
         err.into_err_or_else(|| ns_id)
     }
 
+    /// Binding to `nvim_buf_clear_namespace`.
+    ///
+    /// Clears namespaced objects like highlights, extmarks, or virtual text
+    /// from a region.
+    ///
+    /// Lines are 0-indexed. It's possible to clear the namespace in the entire
+    /// buffer by specifying `start = 0` and `end = -1`.
+    pub fn clear_namespace(
+        &mut self,
+        ns_id: i64,
+        start: i64,
+        end: i64,
+    ) -> Result<()> {
+        let mut err = NvimError::new();
+        unsafe {
+            nvim_buf_clear_namespace(self.0, ns_id, start, end, &mut err)
+        };
+        err.into_err_or_else(|| ())
+    }
+
     /// Binding to `nvim_buf_attach`.
     pub fn attach(
         &self,
