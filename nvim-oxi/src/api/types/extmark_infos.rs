@@ -53,7 +53,7 @@ pub struct ExtmarkInfos {
     pub virt_lines_leftcol: Option<bool>,
 
     #[serde(default)]
-    pub priority: Option<bool>,
+    pub priority: Option<u32>,
 }
 
 impl FromObject for ExtmarkInfos {

@@ -4,18 +4,16 @@ use serde::Deserialize;
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 /// Controls the positioning of the virtual text associated to an extmark.
+#[serde(rename_all(deserialize = "snake_case"))]
 pub enum ExtmarkVirtTextPosition {
     /// Right after the EOL character (default).
-    #[serde(rename(deserialize = "eol"))]
     Eol,
 
     /// Display over the specified column, without shifting the underlying
     /// text.
-    #[serde(rename(deserialize = "overlay"))]
     Overlay,
 
     /// Display right aligned in the window.
-    #[serde(rename(deserialize = "right_align"))]
     RightAlign,
 }
 
