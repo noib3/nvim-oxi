@@ -38,6 +38,7 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::extmark::add_highlight();
         api::extmark::clear_namespace();
         api::extmark::get_namespaces();
+        api::extmark::set_decoration_provider();
         api::extmark::set_extmark();
 
         api::global::chan_send_fail();

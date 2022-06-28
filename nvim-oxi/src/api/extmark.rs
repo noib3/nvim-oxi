@@ -125,3 +125,17 @@ pub fn get_namespaces() -> impl Iterator<Item = (String, u32)> {
         (k, v)
     })
 }
+
+/// Binding to `nvim_set_decoration_provider`.
+///
+/// Sets or changes a decoration provider for a namespace.
+pub fn set_decoration_provider(
+    ns_id: u32,
+    opts: DecorationProviderOpts,
+) -> Result<()> {
+    let mut err = NvimError::new();
+    unsafe {
+        nvim_set_decoration_provider(ns_id as Integer, opts.into(), &mut err)
+    };
+    err.into_err_or_else(|| ())
+}

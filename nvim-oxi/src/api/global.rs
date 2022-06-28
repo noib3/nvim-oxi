@@ -460,6 +460,8 @@ where
 ///
 /// Queues raw user-input. Unlike `crate::api::nvim_feedkeys` this uses a
 /// low-level input buffer and the call is non-blocking.
+///
+/// Returns the number of bytes written to the buffer.
 pub fn input(keys: impl Into<NvimString>) -> Result<usize> {
     unsafe { nvim_input(keys.into().non_owning()) }
         .try_into()

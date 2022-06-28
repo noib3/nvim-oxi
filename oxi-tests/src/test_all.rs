@@ -47,7 +47,7 @@ fn test_all() {
     setup(&root);
 
     let out = Command::new("nvim")
-        .args(["-u", "NONE", "--headless"])
+        .args(["-u", "NONE"])
         .args(["-c", &format!("set rtp+={}", root.display())])
         .args(["-c", "lua require(\"liboxi_tests\")"])
         .args(["+quit"])

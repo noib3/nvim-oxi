@@ -80,5 +80,5 @@ extern "C" {
         ns_id: Integer,
         opts: Dictionary,
         err: *mut Error,
-    ) -> Object;
+    );
 }

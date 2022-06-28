@@ -28,6 +28,45 @@ pub fn get_namespaces() {
     assert_eq!(id, out);
 }
 
+pub fn set_decoration_provider() {
+    use nvim_oxi::print;
+
+    let id = api::create_namespace("Foo");
+
+    let opts = DecorationProviderOpts::builder()
+        .on_start(|args| {
+            print!("{args:?}");
+            Ok(true)
+        })
+        .on_buf(|args| {
+            print!("{args:?}");
+            Ok(())
+        })
+        .on_win(|args| {
+            print!("{args:?}");
+            Ok(true)
+        })
+        .on_line(|args| {
+            print!("{args:?}");
+            Ok(())
+        })
+        .on_end(|args| {
+            print!("{args:?}");
+            Ok(())
+        })
+        .build();
+
+    let res = api::set_decoration_provider(id, opts);
+    assert_eq!(Ok(()), res);
+
+    // TODO: I don't think the callbacks are getting triggered. If they were
+    // `print!`'s output would be written to stdout, causing `test_all` to
+    // fail.
+
+    let bytes_written = api::input("ifoo<Esc>");
+    assert!(bytes_written.is_ok(), "{bytes_written:?}");
+}
+
 pub fn set_extmark() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
