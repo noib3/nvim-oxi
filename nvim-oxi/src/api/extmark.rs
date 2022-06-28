@@ -72,6 +72,27 @@ impl super::Buffer {
         err.into_err_or_else(|| ())
     }
 
+    /// Binding to `nvim_buf_del_extmark`.
+    ///
+    /// Removes an extmark from the buffer.
+    pub fn del_extmark(
+        &mut self,
+        ns_id: u32,
+        extmark_id: u32,
+    ) -> Result<bool> {
+        // TODO: convert false to Err
+        let mut err = NvimError::new();
+        let was_found = unsafe {
+            nvim_buf_del_extmark(
+                self.0,
+                ns_id as Integer,
+                extmark_id as Integer,
+                &mut err,
+            )
+        };
+        err.into_err_or_else(|| was_found)
+    }
+
     /// Binding to `nvim_buf_set_extmark`.
     ///
     /// Creates or updates an extmark. Both `line` and `col` are 0-indexed.

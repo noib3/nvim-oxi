@@ -67,9 +67,9 @@ pub fn set_decoration_provider() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-pub fn set_extmark() {
+pub fn set_del_extmark() {
     let mut buf = Buffer::current();
-    let id = api::create_namespace("Foo");
+    let ns_id = api::create_namespace("Foo");
 
     let opts = SetExtmarkOpts::builder()
         .conceal(Some('a'))
@@ -87,7 +87,12 @@ pub fn set_extmark() {
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
-    let res = buf.set_extmark(id, 0, 0, &opts);
+    let res = buf.set_extmark(ns_id, 0, 0, &opts);
+    assert!(res.is_ok(), "{res:?}");
+
+    let extmark_id = res.unwrap();
+    let res = buf.del_extmark(ns_id, extmark_id);
 
     assert!(res.is_ok(), "{res:?}");
+    assert!(res.unwrap(), "extmark id not found");
 }
