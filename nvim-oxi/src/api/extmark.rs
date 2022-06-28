@@ -1,8 +1,9 @@
-use nvim_types::{Error as NvimError, Integer, String as NvimString};
+use nvim_types::{Array, Error as NvimError, Integer, String as NvimString};
 
 use super::ffi::extmark::*;
 use super::opts::*;
 use super::types::*;
+use crate::object::FromObject;
 use crate::Result;
 
 impl super::Buffer {
@@ -80,8 +81,8 @@ impl super::Buffer {
         ns_id: u32,
         extmark_id: u32,
     ) -> Result<bool> {
-        // TODO: convert false to Err
         let mut err = NvimError::new();
+        // TODO: convert false to Err
         let was_found = unsafe {
             nvim_buf_del_extmark(
                 self.0,
@@ -91,6 +92,73 @@ impl super::Buffer {
             )
         };
         err.into_err_or_else(|| was_found)
+    }
+
+    /// Binding to `nvim_buf_get_extmark_by_id`.
+    ///
+    /// Returns the 0-indexed `(row, col)` tuple representing the position of
+    /// an extmark.
+    pub fn get_extmark_by_id(
+        &self,
+        ns_id: u32,
+        extmark_id: u32,
+        opts: GetExtmarkByIdOpts,
+    ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
+        let mut err = NvimError::new();
+        // TODO: convert empty array to Err
+        let tuple = unsafe {
+            nvim_buf_get_extmark_by_id(
+                self.0,
+                ns_id as Integer,
+                extmark_id as Integer,
+                opts.into(),
+                &mut err,
+            )
+        };
+        err.into_err_or_flatten(move || {
+            let mut iter = tuple.into_iter();
+            let row = iter.next().expect("row is present").try_into()?;
+            let col = iter.next().expect("col is present").try_into()?;
+            let infos = iter.next().map(ExtmarkInfos::from_obj).transpose()?;
+            Ok((row, col, infos))
+        })
+    }
+
+    /// Bindings to `nvim_buf_get_extmarks`.
+    ///
+    /// Gets all the extmarks in a buffer region specified by start and end
+    /// positions. Returns an iterator over `(extmark_id, row, col)` tuples in
+    /// "traversal order".
+    pub fn get_extmarks(
+        &self,
+        ns_id: u32,
+        start: ExtmarkPosition,
+        end: ExtmarkPosition,
+        opts: GetExtmarksOpts,
+    ) -> Result<impl Iterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>>
+    {
+        let mut err = NvimError::new();
+        let extmarks = unsafe {
+            nvim_buf_get_extmarks(
+                self.0,
+                ns_id as Integer,
+                start.into(),
+                end.into(),
+                opts.into(),
+                &mut err,
+            )
+        };
+        err.into_err_or_else(move || {
+            extmarks.into_iter().flat_map(|tuple| {
+                let mut iter = Array::try_from(tuple).unwrap().into_iter();
+                let id = iter.next().expect("id is present").try_into()?;
+                let row = iter.next().expect("row is present").try_into()?;
+                let col = iter.next().expect("col is present").try_into()?;
+                let infos =
+                    iter.next().map(ExtmarkInfos::from_obj).transpose()?;
+                Ok::<_, crate::Error>((id, row, col, infos))
+            })
+        })
     }
 
     /// Binding to `nvim_buf_set_extmark`.

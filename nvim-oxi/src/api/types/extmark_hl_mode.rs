@@ -1,9 +1,11 @@
 use nvim_types::String as NvimString;
+use serde::Deserialize;
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 /// Controls how the highlights of a virtual text associated to an extmark are
 /// combined with the highlights of the text.
+#[serde(rename(deserialize = "lowercase"))]
 pub enum ExtmarkHlMode {
     /// Only show the virtual text's highlight (default).
     Replace,
