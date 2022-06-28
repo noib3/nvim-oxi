@@ -19,7 +19,8 @@ pub fn attach() {
     let has_attached = buf.attach(false, opts).expect("attach failed");
     assert!(has_attached);
 
-    // TODO: enter chars to trigger callbacks.
+    let bytes_written = api::input("ifoo<Esc>");
+    assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
 pub fn call() {
