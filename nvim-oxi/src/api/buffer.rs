@@ -340,8 +340,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_get_var`.
     ///
-    /// Gets a buffer-scoped (b:) variable. Fails if the specified type
-    /// couldn't be deserialized from the returned object.
+    /// Gets a buffer-scoped (b:) variable.
     pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
         Value: FromObject,
