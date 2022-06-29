@@ -7,7 +7,6 @@ use nvim_types::{
     Integer,
     Object,
     String as NvimString,
-    TabHandle,
     WinHandle,
 };
 
@@ -15,7 +14,7 @@ use super::ffi::global::*;
 use super::opts::*;
 use super::types::*;
 use crate::{
-    api::Buffer,
+    api::{Buffer, TabPage},
     lua::LUA_INTERNAL_CALL,
     object::{FromObject, ToObject},
     Result,
@@ -262,9 +261,9 @@ pub fn get_current_line() -> Result<String> {
 /// Binding to `nvim_get_current_tabpage`.
 ///
 /// Gets the current tabpage.
-pub fn get_current_tabpage() -> TabHandle {
+pub fn get_current_tabpage() -> TabPage {
     // TODO: return `TabPage` once that's implemented.
-    unsafe { nvim_get_current_tabpage() }
+    unsafe { nvim_get_current_tabpage() }.into()
 }
 
 /// Binding to `nvim_get_current_win`.
@@ -527,9 +526,8 @@ pub fn list_runtime_paths() -> Result<impl Iterator<Item = PathBuf>> {
 /// Binding to `nvim_list_bufs`.
 ///
 /// Gets the current list of `Tabpage`s.
-pub fn list_tabpages() -> impl Iterator<Item = TabHandle> {
-    // TODO: return `Tabpage`s once they are implemented
-    unsafe { nvim_list_tabpages() }.into_iter().flat_map(TabHandle::try_from)
+pub fn list_tabpages() -> impl Iterator<Item = TabPage> {
+    unsafe { nvim_list_tabpages() }.into_iter().flat_map(TabPage::from_obj)
 }
 
 /// Binding to `nvim_list_uis`.
@@ -710,10 +708,9 @@ where
 /// Binding to `nvim_set_current_tabpage`.
 ///
 /// Sets the current tabpage.
-pub fn set_current_tabpage(tabpg: TabHandle) -> Result<()> {
-    // TODO: use `TabPage` once it's implemented.
+pub fn set_current_tabpage(tabpage: TabPage) -> Result<()> {
     let mut err = NvimError::new();
-    unsafe { nvim_set_current_tabpage(tabpg, &mut err) };
+    unsafe { nvim_set_current_tabpage(tabpage.0, &mut err) };
     err.into_err_or_else(|| ())
 }
 

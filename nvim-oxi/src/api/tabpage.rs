@@ -47,6 +47,12 @@ impl FromObject for TabPage {
 }
 
 impl TabPage {
+    /// Shorthand for `nvim_oxi::api::get_current_tabpage`.
+    #[inline(always)]
+    pub fn current() -> Self {
+        crate::api::get_current_tabpage()
+    }
+
     /// Binding to `nvim_tabpage_del_var`.
     ///
     /// Removes a tab-scoped (t:) variable.
@@ -57,7 +63,7 @@ impl TabPage {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_tabpage_del_var`.
+    /// Binding to `nvim_tabpage_get_number`.
     ///
     /// Gets the tabpage number.
     pub fn get_number(&self) -> Result<usize> {
@@ -81,7 +87,7 @@ impl TabPage {
         err.into_err_or_flatten(|| Value::from_obj(obj))
     }
 
-    /// Binding to `nvim_tabpage_get_var`.
+    /// Binding to `nvim_tabpage_get_win`.
     ///
     /// Gets the current window in a tabpage.
     // TODO: return `Window` when that's implemented
@@ -98,15 +104,17 @@ impl TabPage {
         unsafe { nvim_tabpage_is_valid(self.0) }
     }
 
-    /// Binding to `nvim_tabpage_get_var`.
+    /// Binding to `nvim_tabpage_list_wins`.
     ///
     /// Gets the windows in a tabpage.
     // TODO: return `Window` when that's implemented
     pub fn list_wins(&self) -> Result<impl Iterator<Item = WinHandle>> {
         let mut err = NvimError::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
-        err.into_err_or_else(move || {
-            list.into_iter().flat_map(WinHandle::try_from)
+        err.into_err_or_else(|| {
+            list.into_iter().map(|win| {
+                WinHandle::try_from(win).expect("object is a window handle")
+            })
         })
     }
 
