@@ -14,7 +14,7 @@ use super::ffi::global::*;
 use super::opts::*;
 use super::types::*;
 use crate::{
-    api::{Buffer, TabPage},
+    api::{Buffer, TabPage, Window},
     lua::LUA_INTERNAL_CALL,
     object::{FromObject, ToObject},
     Result,
@@ -262,16 +262,14 @@ pub fn get_current_line() -> Result<String> {
 ///
 /// Gets the current tabpage.
 pub fn get_current_tabpage() -> TabPage {
-    // TODO: return `TabPage` once that's implemented.
     unsafe { nvim_get_current_tabpage() }.into()
 }
 
 /// Binding to `nvim_get_current_win`.
 ///
 /// Gets the current window.
-pub fn get_current_win() -> WinHandle {
-    // TODO: return `Window` once that's implemented.
-    unsafe { nvim_get_current_win() }
+pub fn get_current_win() -> Window {
+    unsafe { nvim_get_current_win() }.into()
 }
 
 /// Binding to `nvim_get_hl_by_id`.

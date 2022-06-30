@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
 use std::mem::ManuallyDrop;
+use std::ops::Deref;
 use std::result::Result as StdResult;
 use std::string::String as StdString;
 
@@ -126,6 +127,23 @@ impl fmt::Debug for Object {
             .field("type", &self.r#type)
             .field("data", data)
             .finish()
+    }
+}
+
+impl fmt::Display for Object {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let inner: &dyn fmt::Display = match self.r#type {
+            kObjectTypeNil => &"()",
+            kObjectTypeBoolean => unsafe { &self.data.boolean },
+            kObjectTypeInteger => unsafe { &self.data.integer },
+            kObjectTypeFloat => unsafe { &self.data.float },
+            kObjectTypeString => unsafe { self.data.string.deref() },
+            kObjectTypeArray => unsafe { self.data.array.deref() },
+            kObjectTypeDictionary => unsafe { self.data.dictionary.deref() },
+            kObjectTypeLuaRef => unsafe { &self.data.luaref },
+        };
+
+        f.debug_tuple("Object").field(&inner.to_string()).finish()
     }
 }
 

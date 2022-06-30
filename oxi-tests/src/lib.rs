@@ -58,10 +58,17 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::global::set_get_option();
         api::global::strwidth();
 
-        api::tabpage::get_list_wins();
         api::tabpage::get_number();
         api::tabpage::is_valid();
         api::tabpage::set_get_del_var();
+
+        api::win_config::open_win_basic_config();
+        api::win_config::open_win_empty_config();
+        api::win_config::open_win_full_config();
+        api::win_config::set_config();
+
+        //
+        api::tabpage::get_list_wins();
     });
 
     process::exit(match result {

@@ -1,7 +1,7 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::ops::{Deref, Index};
+use std::ops::{Deref, DerefMut, Index};
 use std::ptr::NonNull;
 use std::slice::{self, SliceIndex};
 
@@ -37,6 +37,11 @@ impl<T> Collection<T> {
     #[inline]
     pub(crate) fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.items.as_ptr(), self.size) }
+    }
+
+    #[inline]
+    pub(crate) fn as_mut_slice(&self) -> &mut [T] {
+        unsafe { slice::from_raw_parts_mut(self.items.as_ptr(), self.size) }
     }
 
     #[inline]
@@ -84,16 +89,22 @@ impl<T> Deref for Collection<T> {
     }
 }
 
-impl<I, T> Index<I> for Collection<T>
-where
-    I: SliceIndex<[T]>,
-{
-    type Output = <I as SliceIndex<[T]>>::Output;
-
-    fn index(&self, index: I) -> &Self::Output {
-        self.deref().index(index)
+impl<T> DerefMut for Collection<T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
     }
 }
+
+// impl<I, T> Index<I> for Collection<T>
+// where
+//     I: SliceIndex<[T]>,
+// {
+//     type Output = <I as SliceIndex<[T]>>::Output;
+
+// fn index(&self, index: I) -> &Self::Output {
+//     self.deref().index(index)
+// }
+// }
 
 impl<T> From<Vec<T>> for Collection<T> {
     #[inline]

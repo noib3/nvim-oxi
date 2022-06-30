@@ -12,6 +12,12 @@ impl fmt::Debug for Array {
     }
 }
 
+impl fmt::Display for Array {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list().entries(self.iter().map(ToString::to_string)).finish()
+    }
+}
+
 impl IntoIterator for Array {
     type IntoIter = ArrayIterator;
     type Item = <ArrayIterator as Iterator>::Item;

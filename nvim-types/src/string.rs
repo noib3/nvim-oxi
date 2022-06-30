@@ -27,7 +27,7 @@ use crate::NonOwning;
 /// for how a C string gets converted into a Neovim string.
 ///
 /// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
-#[derive(Eq)]
+#[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
     pub data: *mut c_char,
@@ -111,6 +111,12 @@ impl fmt::Debug for String {
             .field("data", &self.to_string_lossy())
             .field("size", &self.size)
             .finish()
+    }
+}
+
+impl fmt::Display for String {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.to_string_lossy().to_owned())
     }
 }
 

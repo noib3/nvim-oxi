@@ -24,6 +24,12 @@ impl fmt::Debug for KeyValuePair {
     }
 }
 
+impl fmt::Display for KeyValuePair {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.key, self.value)
+    }
+}
+
 impl<K, V> From<(K, V)> for KeyValuePair
 where
     K: Into<String>,
@@ -34,11 +40,55 @@ where
     }
 }
 
+impl Dictionary {
+    pub fn get<Q>(&self, query: &Q) -> Option<&Object>
+    where
+        String: PartialEq<Q>,
+    {
+        self.iter().find_map(|pair| (&pair.key == query).then(|| &pair.value))
+    }
+
+    pub fn get_mut<Q>(&mut self, query: &Q) -> Option<&mut Object>
+    where
+        String: PartialEq<Q>,
+    {
+        self.iter_mut()
+            .find_map(|pair| (&pair.key == query).then(|| &mut pair.value))
+    }
+}
+
 impl fmt::Debug for Dictionary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_map()
             .entries(self.iter().map(|pair| (&pair.key, &pair.value)))
             .finish()
+    }
+}
+
+impl fmt::Display for Dictionary {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_map()
+            .entries(
+                self.iter().map(|pair| {
+                    (pair.key.to_string(), pair.value.to_string())
+                }),
+            )
+            .finish()
+    }
+}
+
+impl<S: Into<String>> std::ops::Index<S> for Dictionary {
+    type Output = Object;
+
+    fn index(&self, index: S) -> &Self::Output {
+        self.get(&index.into()).unwrap()
+        // self.deref().index(index.into())
+    }
+}
+
+impl<S: Into<String>> std::ops::IndexMut<S> for Dictionary {
+    fn index_mut(&mut self, index: S) -> &mut Self::Output {
+        self.get_mut(&index.into()).unwrap()
     }
 }
 
