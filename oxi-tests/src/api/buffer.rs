@@ -33,14 +33,14 @@ pub fn create_del_user_command() {
     let mut buf = Buffer::current();
     let opts = CreateCommandOpts::builder().build();
 
-    let res = buf.create_user_command("Foo", ":lua print('foo')", &opts);
+    let res = buf.create_user_command("Foo", ":", &opts);
     assert_eq!(Ok(()), res);
-    // TODO: `api::nvim_command("Foo")`
+    api::command("Foo").unwrap();
 
     let cb = LuaFun::from_fn(|_args: CommandArgs| Ok(()));
     let res = buf.create_user_command("Bar", cb, &opts);
     assert_eq!(Ok(()), res);
-    // TODO: `api::nvim_command("Bar")`
+    api::command("Bar").unwrap();
 
     let opts = GetCommandsOpts::builder().build();
     assert_eq!(2, buf.get_commands(opts).unwrap().collect::<Vec<_>>().len());

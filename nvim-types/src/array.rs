@@ -121,7 +121,7 @@ macro_rules! impl_from_tuple {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
             #[allow(non_snake_case)]
             fn from(($($ty,)*): ($($ty,)*)) -> Self {
-                vec![$($ty.into(),)*].into()
+                Self::from_iter([$($ty.into(),)*])
             }
         }
     };

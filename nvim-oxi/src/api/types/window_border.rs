@@ -43,7 +43,7 @@ pub enum WindowBorder {
     ),
 
     /// Use this if you're a control freak and want to specify every single
-    /// corner and edge characters individually. The first character sets the
+    /// corner and edge character individually. The first character sets the
     /// top-left corner, the second one the top edge, the third the top-right
     /// corner and so on.
     Anal(
