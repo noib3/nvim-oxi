@@ -2,15 +2,38 @@ use nvim_types::{Array, Error, String as NvimString};
 
 use super::ffi::vimscript::*;
 use crate::lua::LUA_INTERNAL_CALL;
-use crate::object::FromObject;
+use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-// nvim_call_dict_function
+/// Binding to `nvim_call_dict_function`.
+///
+/// Calls a VimL dictionary function with the given arguments, returning the
+/// result of the funtion call.
+pub fn call_dict_function<D, A, R>(dict: D, func: &str, args: A) -> Result<R>
+where
+    D: ToObject,
+    A: Into<Array>,
+    R: FromObject,
+{
+    let dict = dict.to_obj()?;
+    let func = NvimString::from(func);
+    let args = args.into();
+    let mut err = Error::new();
+    let res = unsafe {
+        nvim_call_dict_function(
+            dict.non_owning(),
+            func.non_owning(),
+            args.non_owning(),
+            &mut err,
+        )
+    };
+    err.into_err_or_flatten(|| R::from_obj(res))
+}
 
 /// Binding to `nvim_call_function`.
 ///
-/// Calls a VimL function with the given arguments. Returns the result of the
-/// function call.
+/// Calls a VimL function with the given arguments, returning the result of the
+/// funtion call.
 pub fn call_function<A, R>(func: &str, args: A) -> Result<R>
 where
     A: Into<Array>,

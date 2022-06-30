@@ -1,6 +1,6 @@
 use std::string::String as StdString;
 
-use nvim_types::{Array, Object, String as NvimString};
+use nvim_types::{Array, Dictionary, Object, String as NvimString};
 
 use crate::lua;
 use crate::Result;
@@ -122,3 +122,27 @@ macro_rules! impl_boxed_closure {
 impl_boxed_closure!(Fn, from_fn);
 impl_boxed_closure!(FnMut, from_fn_mut);
 impl_boxed_closure!(FnOnce, from_fn_once);
+
+// impl<K, V, I> ToObject for I
+// where
+//     K: Into<NvimString>,
+//     V: ToObject,
+//     I: IntoIterator<Item = (NvimString, V)>,
+// {
+//     fn to_obj(iter: I) -> Object {
+//         todo!()
+//     }
+// }
+
+impl<K, V> ToObject for std::collections::HashMap<K, V>
+where
+    K: Into<NvimString>,
+    V: ToObject,
+{
+    fn to_obj(self) -> Result<Object> {
+        self.into_iter()
+            .map(|(k, v)| Ok((k, v.to_obj()?)))
+            .collect::<Result<Dictionary>>()
+            .map(Into::into)
+    }
+}

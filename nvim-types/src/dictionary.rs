@@ -157,12 +157,12 @@ impl Drop for DictIterator {
 
 impl<K, V> FromIterator<(K, V)> for Dictionary
 where
-    String: From<K>,
-    Object: From<V>,
+    K: Into<String>,
+    V: Into<Object>,
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
         iter.into_iter()
-            .map(|(k, v)| (k, Object::from(v)))
+            .map(|(k, v)| (k, v.into()))
             .filter(|(_, obj)| obj.is_some())
             .map(KeyValuePair::from)
             .collect::<Vec<KeyValuePair>>()

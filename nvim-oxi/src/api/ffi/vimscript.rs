@@ -11,7 +11,7 @@ use nvim_types::{
 extern "C" {
     // https://github.com/neovim/neovim/blob/mastert/src/nvim/api/vimscript.c#L248
     pub(crate) fn nvim_call_dict_function(
-        dict: Object,
+        dict: NonOwning<Object>,
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
         err: *mut Error,
