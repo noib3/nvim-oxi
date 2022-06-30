@@ -20,7 +20,7 @@ use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Buffer(BufHandle);
+pub struct Buffer(pub(crate) BufHandle);
 
 impl fmt::Debug for Buffer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -36,7 +36,13 @@ impl fmt::Display for Buffer {
 
 impl<H: Into<BufHandle>> From<H> for Buffer {
     fn from(handle: H) -> Self {
-        Buffer(handle.into())
+        Self(handle.into())
+    }
+}
+
+impl From<Buffer> for Object {
+    fn from(buf: Buffer) -> Self {
+        buf.0.into()
     }
 }
 
@@ -45,12 +51,6 @@ impl FromObject for Buffer {
         Ok(BufHandle::try_from(obj)?.into())
     }
 }
-
-// impl ToObject for Buffer {
-//     fn to_obj(self) -> Result<Object> {
-//         Ok(self.0.into())
-//     }
-// }
 
 impl Buffer {
     /// Shorthand for `nvim_oxi::api::get_current_buf`.
@@ -65,6 +65,7 @@ impl Buffer {
         send_buffer: bool,
         opts: BufAttachOpts,
     ) -> Result<bool> {
+        // TODO: map false to `Err`
         let mut err = NvimError::new();
         let opts = Dictionary::from(opts);
         let has_attached = unsafe {
@@ -100,7 +101,7 @@ impl Buffer {
     ///
     /// Creates a new buffer-local user command.
     pub fn create_user_command(
-        &self,
+        &mut self,
         name: &str,
         command: impl ToObject,
         opts: &CreateCommandOpts,
@@ -191,7 +192,7 @@ impl Buffer {
     /// Returns an iterator over the buffer-local `CommandInfos`.
     pub fn get_commands(
         &self,
-        opts: &GetCommandsOpts,
+        opts: GetCommandsOpts,
     ) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
         let cmds =
@@ -318,6 +319,7 @@ impl Buffer {
         end_col: usize,
     ) -> Result<impl Iterator<Item = NvimString>> {
         let mut err = NvimError::new();
+        // TODO: this should be an opt
         let dict = Dictionary::new();
         let lines = unsafe {
             nvim_buf_get_text(
@@ -338,8 +340,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_get_var`.
     ///
-    /// Gets a buffer-scoped (b:) variable. Fails if the specified type
-    /// couldn't be deserialized from the returned object.
+    /// Gets a buffer-scoped (b:) variable.
     pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
         Value: FromObject,
@@ -378,16 +379,16 @@ impl Buffer {
     ///
     /// Sets a buffer-local mapping for the given mode.
     pub fn set_keymap(
-        &self,
+        &mut self,
         mode: Mode,
         lhs: &str,
         rhs: Option<&str>,
         opts: &SetKeymapOpts,
     ) -> Result<()> {
-        let mut err = NvimError::new();
         let mode = NvimString::from(mode);
         let lhs = NvimString::from(lhs);
         let rhs = NvimString::from(rhs.unwrap_or_default());
+        let mut err = NvimError::new();
         unsafe {
             nvim_buf_set_keymap(
                 LUA_INTERNAL_CALL,
@@ -406,30 +407,27 @@ impl Buffer {
     ///
     /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
     /// end-exclusive.
-    pub fn set_lines<Int, Line, Lines>(
+    pub fn set_lines<Line, Lines>(
         &mut self,
-        start: Int,
-        end: Int,
+        start: usize,
+        end: usize,
         strict_indexing: bool,
         replacement: Lines,
     ) -> Result<()>
     where
-        Int: Into<Integer>,
         Line: Into<NvimString>,
         Lines: IntoIterator<Item = Line>,
     {
+        let rpl = replacement.into_iter().map(Into::into).collect::<Array>();
         let mut err = NvimError::new();
-        let replacement =
-            replacement.into_iter().map(|line| line.into()).collect::<Array>();
-
         unsafe {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start.into(),
-                end.into(),
+                start.try_into()?,
+                end.try_into()?,
                 strict_indexing,
-                replacement.non_owning(),
+                rpl.non_owning(),
                 &mut err,
             )
         };
@@ -446,6 +444,7 @@ impl Buffer {
         line: usize,
         col: usize,
     ) -> Result<bool> {
+        // TODO: map false to `Err`
         let mut err = NvimError::new();
         let name = NvimString::from(name);
         let mark_was_set = unsafe {

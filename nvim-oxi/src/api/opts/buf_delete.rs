@@ -1,12 +1,15 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `Buffer::get_commands`.
+/// Options passed to `Buffer::delete`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufDeleteOpts {
-    force: bool,
-    unload: bool,
+    #[builder(setter(strip_option))]
+    force: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    unload: Option<bool>,
 }
 
 impl BufDeleteOpts {

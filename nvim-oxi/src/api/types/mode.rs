@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::object;
 
-/// TODO: docs
+#[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Mode {
     #[serde(rename = "c")]

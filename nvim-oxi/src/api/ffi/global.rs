@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use nvim_types::{
     Array,
     BufHandle,
@@ -12,6 +10,8 @@ use nvim_types::{
     TabHandle,
     WinHandle,
 };
+
+use crate::api::opts::*;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1231
@@ -32,7 +32,7 @@ extern "C" {
     pub(crate) fn nvim_create_user_command(
         name: NonOwning<String>,
         command: NonOwning<Object>,
-        opts: *const Dictionary,
+        opts: *const KeyDict_user_command,
         err: *mut Error,
     );
 
@@ -79,8 +79,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2290
     pub(crate) fn nvim_eval_statusline(
         str: NonOwning<String>,
-        opts: *const Dictionary,
-        errr: *mut Error,
+        opts: *const KeyDict_eval_statusline,
+        err: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L235
@@ -107,13 +107,13 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1589
     pub(crate) fn nvim_get_commands(
-        opts: *const Dictionary,
+        opts: *const KeyDict_get_commands,
         error: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1440
     pub(crate) fn nvim_get_context(
-        opts: *const Dictionary,
+        opts: *const KeyDict_context,
         error: *mut Error,
     ) -> Dictionary;
 
@@ -177,7 +177,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L700
     pub(crate) fn nvim_get_option_value(
         name: NonOwning<String>,
-        opts: *const Dictionary,
+        opts: *const KeyDict_option,
         err: *mut Error,
     ) -> Object;
 
@@ -324,7 +324,7 @@ extern "C" {
     pub(crate) fn nvim_set_hl(
         ns_id: Integer,
         name: NonOwning<String>,
-        val: *const Dictionary,
+        val: *const KeyDict_highlight,
         err: *mut Error,
     );
 
@@ -334,7 +334,7 @@ extern "C" {
         mode: NonOwning<String>,
         lhs: NonOwning<String>,
         rhs: NonOwning<String>,
-        opts: *const Dictionary,
+        opts: *const KeyDict_keymap,
         err: *mut Error,
     );
 
@@ -350,7 +350,7 @@ extern "C" {
     pub(crate) fn nvim_set_option_value(
         name: NonOwning<String>,
         value: NonOwning<Object>,
-        opts: *const Dictionary,
+        opts: *const KeyDict_option,
         err: *mut Error,
     );
 

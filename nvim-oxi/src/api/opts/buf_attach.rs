@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
-use crate::api::buffer::Buffer;
+use crate::api::Buffer;
 use crate::lua::LuaFun;
 
 /// Arguments passed to the function registered to `on_lines`.

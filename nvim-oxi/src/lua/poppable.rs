@@ -1,11 +1,12 @@
 use libc::c_int;
 use nvim_types::{Error as NvimError, Object};
 
-use super::ffi::{lua_State, lua_settop};
+use super::{ffi::lua_State, lua::grow_stack};
 use crate::object::FromObject;
 use crate::Result;
 
 extern "C" {
+    // https://github.com/neovim/neovim/blob/master/src/nvim/lua/converter.c#L1048
     fn nlua_pop_Object(
         lstate: *const lua_State,
         r#ref: bool,
@@ -41,7 +42,7 @@ where
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        lua_settop(lstate, Self::N);
+        grow_stack(lstate, Self::N);
         A::from_obj(Object::pop(lstate)?)
     }
 }
@@ -56,7 +57,7 @@ macro_rules! impl_tuple {
             #[allow(non_snake_case)]
             #[inline]
             unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-                lua_settop(lstate, Self::N);
+                grow_stack(lstate, Self::N);
                 pop_reverse!(lstate, $($name)*);
                 Ok(($($name,)*))
             }

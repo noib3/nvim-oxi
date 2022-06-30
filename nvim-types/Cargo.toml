@@ -10,4 +10,5 @@ publish = false
 
 [dependencies]
 libc = "0.2"
+serde = { version = "1.0", optional = true }
 thiserror = "1.0"

@@ -8,4 +8,5 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
+all_asserts = "2.3"
 nvim-oxi = { path = "../nvim-oxi" }

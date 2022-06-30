@@ -1,11 +1,13 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::ops::{Deref, Index};
+use std::ops::{Deref, DerefMut, Index};
 use std::ptr::NonNull;
 use std::slice::{self, SliceIndex};
 
 use libc::size_t;
+
+use crate::NonOwning;
 
 #[repr(C)]
 pub struct Collection<T> {
@@ -38,12 +40,23 @@ impl<T> Collection<T> {
     }
 
     #[inline]
+    pub(crate) fn as_mut_slice(&self) -> &mut [T] {
+        unsafe { slice::from_raw_parts_mut(self.items.as_ptr(), self.size) }
+    }
+
+    #[inline]
     pub(crate) unsafe fn from_raw_parts(
         ptr: *mut T,
         size: usize,
         capacity: usize,
     ) -> Self {
         Self { items: NonNull::new_unchecked(ptr), size, capacity }
+    }
+
+    /// Make a non-owning version of this `Collection`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
     }
 }
 
@@ -61,6 +74,13 @@ impl<T> Drop for Collection<T> {
     }
 }
 
+impl<T: PartialEq> PartialEq for Collection<T> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
 impl<T> Deref for Collection<T> {
     type Target = [T];
 
@@ -69,16 +89,22 @@ impl<T> Deref for Collection<T> {
     }
 }
 
-impl<I, T> Index<I> for Collection<T>
-where
-    I: SliceIndex<[T]>,
-{
-    type Output = <I as SliceIndex<[T]>>::Output;
-
-    fn index(&self, index: I) -> &Self::Output {
-        self.deref().index(index)
+impl<T> DerefMut for Collection<T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
     }
 }
+
+// impl<I, T> Index<I> for Collection<T>
+// where
+//     I: SliceIndex<[T]>,
+// {
+//     type Output = <I as SliceIndex<[T]>>::Output;
+
+// fn index(&self, index: I) -> &Self::Output {
+//     self.deref().index(index)
+// }
+// }
 
 impl<T> From<Vec<T>> for Collection<T> {
     #[inline]
