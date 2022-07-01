@@ -1,13 +1,9 @@
 use std::fmt;
 
-use nvim_types::{
-    Error as NvimError,
-    Object,
-    String as NvimString,
-    WinHandle,
-};
+use nvim_types::{self as types, Array, Integer, Object, WinHandle};
 use serde::{Deserialize, Serialize};
 
+use super::ffi::window::*;
 use crate::object::FromObject;
 use crate::Result;
 
@@ -49,5 +45,30 @@ impl Window {
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_win()
+    }
+
+    /// Binding to `nvim_win_get_cursor`.
+    ///
+    /// Gets the (1,0)-indexed cursor position in the window.
+    pub fn get_cursor(&self) -> Result<(usize, usize)> {
+        let mut err = types::Error::new();
+        let arr = unsafe { nvim_win_get_cursor(self.0, &mut err) };
+        err.into_err_or_flatten(|| {
+            let mut iter = arr.into_iter();
+            let line = iter.next().unwrap().try_into()?;
+            let col = iter.next().unwrap().try_into()?;
+            Ok((line, col))
+        })
+    }
+
+    /// Binding to `nvim_win_set_cursor`.
+    ///
+    /// Sets the (1,0)-indexed cursor in the window. This will scroll the
+    /// window even if it not the current one.
+    pub fn set_cursor(&mut self, line: usize, col: usize) -> Result<()> {
+        let mut err = types::Error::new();
+        let pos = Array::from_iter([line as Integer, col as Integer]);
+        unsafe { nvim_win_set_cursor(self.0, pos.non_owning(), &mut err) };
+        err.into_err_or_else(|| ())
     }
 }
