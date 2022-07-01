@@ -70,7 +70,7 @@ pub fn get_namespaces() {
     let id = api::create_namespace("Foo");
 
     let out = api::get_namespaces()
-        .find_map(|(name, id)| (name == "Foo").then(|| id))
+        .find_map(|(name, id)| (name == "Foo").then_some(id))
         .unwrap();
 
     assert_eq!(id, out);

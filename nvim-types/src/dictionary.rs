@@ -45,7 +45,8 @@ impl Dictionary {
     where
         String: PartialEq<Q>,
     {
-        self.iter().find_map(|pair| (&pair.key == query).then(|| &pair.value))
+        self.iter()
+            .find_map(|pair| (&pair.key == query).then_some(&pair.value))
     }
 
     pub fn get_mut<Q>(&mut self, query: &Q) -> Option<&mut Object>
@@ -53,7 +54,7 @@ impl Dictionary {
         String: PartialEq<Q>,
     {
         self.iter_mut()
-            .find_map(|pair| (&pair.key == query).then(|| &mut pair.value))
+            .find_map(|pair| (&pair.key == query).then_some(&mut pair.value))
     }
 }
 

@@ -63,7 +63,7 @@ pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
         output
             .into_string()
             .map_err(From::from)
-            .map(|output| (!output.is_empty()).then(|| output))
+            .map(|output| (!output.is_empty()).then_some(output))
     })
 }
 

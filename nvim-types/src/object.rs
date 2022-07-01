@@ -433,7 +433,7 @@ impl TryFrom<Object> for () {
     type Error = FromObjectError;
 
     fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-        (matches!(obj.r#type, kObjectTypeNil)).then(|| ()).ok_or_else(|| {
+        (matches!(obj.r#type, kObjectTypeNil)).then_some(()).ok_or_else(|| {
             Primitive { expected: kObjectTypeNil, actual: obj.r#type }
         })
     }
@@ -447,7 +447,7 @@ macro_rules! try_from_copy {
 
             fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
                 (matches!(obj.r#type, $variant))
-                    .then(|| unsafe { obj.data.$data })
+                    .then_some(unsafe { obj.data.$data })
                     .ok_or_else(|| Primitive {
                         expected: $variant,
                         actual: obj.r#type,
@@ -470,7 +470,7 @@ macro_rules! try_from_man_drop {
             fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
                 let ty = obj.r#type;
                 (matches!(ty, ObjectType::$variant))
-                    .then(|| unsafe { obj.$into_inner() })
+                    .then_some(unsafe { obj.$into_inner() })
                     .ok_or_else(|| FromObjectError::Primitive {
                         expected: ObjectType::$variant,
                         actual: ty,
