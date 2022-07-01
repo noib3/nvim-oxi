@@ -33,8 +33,8 @@ impl<H: Into<WinHandle>> From<H> for Window {
 }
 
 impl From<Window> for Object {
-    fn from(buf: Window) -> Self {
-        buf.0.into()
+    fn from(win: Window) -> Self {
+        win.0.into()
     }
 }
 

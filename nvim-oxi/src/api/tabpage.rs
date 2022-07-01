@@ -35,8 +35,8 @@ impl<H: Into<TabHandle>> From<H> for TabPage {
 }
 
 impl From<TabPage> for Object {
-    fn from(buf: TabPage) -> Self {
-        buf.0.into()
+    fn from(tabpage: TabPage) -> Self {
+        tabpage.0.into()
     }
 }
 
@@ -97,7 +97,7 @@ impl TabPage {
         err.into_err_or_else(|| handle)
     }
 
-    /// Binding to `nvim_buf_is_valid`.
+    /// Binding to `nvim_tabpage_is_valid`.
     ///
     /// Checks if a tabpage is valid.
     pub fn is_valid(&self) -> bool {
