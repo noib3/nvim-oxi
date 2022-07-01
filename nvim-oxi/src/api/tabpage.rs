@@ -75,16 +75,16 @@ impl TabPage {
     /// Binding to `nvim_tabpage_get_var`.
     ///
     /// Gets a tab-scoped (t:) variable.
-    pub fn get_var<Value>(&self, name: &str) -> Result<Value>
+    pub fn get_var<V>(&self, name: &str) -> Result<V>
     where
-        Value: FromObject,
+        V: FromObject,
     {
         let mut err = NvimError::new();
         let name = NvimString::from(name);
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Value::from_obj(obj))
+        err.into_err_or_flatten(|| V::from_obj(obj))
     }
 
     /// Binding to `nvim_tabpage_get_win`.

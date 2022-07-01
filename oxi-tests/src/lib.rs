@@ -77,6 +77,7 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::win_config::set_config();
 
         api::window::set_get_cursor();
+        api::window::set_get_del_var();
 
         //
         api::tabpage::get_list_wins();
