@@ -1,6 +1,8 @@
-use nvim_types::{Array, Error, String as NvimString};
+use nvim_types::{Array, Dictionary, Error, String as NvimString};
 
 use super::ffi::vimscript::*;
+use super::opts::*;
+use super::types::*;
 use crate::lua::LUA_INTERNAL_CALL;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
@@ -48,7 +50,22 @@ where
     err.into_err_or_flatten(|| R::from_obj(res))
 }
 
-// nvim_cmd
+/// Binding to `nvim_cmd`.
+///
+/// Executes an Ex command. Unlike `crare::api::command` it takes a structured
+/// `CmdInfos` object instead of a string.
+pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
+    let mut err = Error::new();
+    let output = unsafe {
+        nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
+    };
+    err.into_err_or_flatten(|| {
+        output
+            .into_string()
+            .map_err(From::from)
+            .map(|output| (!output.is_empty()).then(|| output))
+    })
+}
 
 /// Binding to `nvim_command`.
 ///
@@ -87,10 +104,41 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
         output
             .into_string()
             .map_err(From::from)
-            .map(|output| (!output.is_empty()).then(|| output))
+            .map(|output| (!output.is_empty()).then_some(output))
     })
 }
 
-// nvim_parse_cmd
+/// Binding to `nvim_parse_cmd`.
+///
+/// Parses the command line.
+pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
+    let src = NvimString::from(src);
+    let opts = Dictionary::from(opts);
+    let mut err = Error::new();
+    let dict = unsafe {
+        nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
+    };
+    err.into_err_or_flatten(|| CmdInfos::from_obj(dict.into()))
+}
 
-// nvim_parse_expression
+///// Binding to `nvim_parse_expression`.
+/////
+///// Parses a VimL expression.
+//pub fn parse_expression(
+//    expr: &str,
+//    flags: &str,
+//    include_highlight: bool,
+//) -> ParsedVimLExpression {
+//    let expr = NvimString::from(expr);
+//    let flags = NvimString::from(flags);
+//    let mut err = Error::new();
+//    let dict = unsafe {
+//        nvim_parse_expression(
+//            expr.non_owning(),
+//            flags.non_owning(),
+//            include_highlight,
+//            &mut err,
+//        )
+//    };
+//    err.into_err_or_flatten(|| ParsedVimLExpression::from_obj(dict.into()))
+//}

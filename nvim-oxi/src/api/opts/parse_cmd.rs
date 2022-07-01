@@ -5,23 +5,23 @@ use nvim_types::Dictionary;
 /// future use and doesn't have any methods.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
-pub struct GetMarkOpts {}
+pub struct ParseCmdOpts {}
 
-impl GetMarkOpts {
+impl ParseCmdOpts {
     #[inline(always)]
-    pub fn builder() -> GetMarkOptsBuilder {
-        GetMarkOptsBuilder::default()
+    pub fn builder() -> ParseCmdOptsBuilder {
+        ParseCmdOptsBuilder::default()
     }
 }
 
-impl GetMarkOptsBuilder {
-    pub fn build(&mut self) -> GetMarkOpts {
+impl ParseCmdOptsBuilder {
+    pub fn build(&mut self) -> ParseCmdOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
 }
 
-impl From<GetMarkOpts> for Dictionary {
-    fn from(_: GetMarkOpts) -> Self {
+impl From<&ParseCmdOpts> for Dictionary {
+    fn from(_: &ParseCmdOpts) -> Self {
         Dictionary::new()
     }
 }

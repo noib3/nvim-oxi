@@ -7,7 +7,6 @@ use super::WindowBorderSide;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-// TODO: custom deserialize
 pub enum WindowBorder {
     /// No border.
     None,

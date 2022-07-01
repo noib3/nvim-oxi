@@ -63,9 +63,12 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::tabpage::set_get_del_var();
 
         // api::vimscript::call_function();
+        // api::vimscript::cmd_basic();
+        api::vimscript::cmd_no_output();
         api::vimscript::command();
         api::vimscript::eval();
         api::vimscript::exec();
+        api::vimscript::parse_cmd_basic();
 
         api::win_config::open_win_basic_config();
         api::win_config::open_win_empty_config();
