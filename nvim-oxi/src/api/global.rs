@@ -255,7 +255,7 @@ pub fn get_current_buf() -> Buffer {
 pub fn get_current_line() -> Result<String> {
     let mut err = NvimError::new();
     let str = unsafe { nvim_get_current_line(&mut err) };
-    err.into_err_or_flatten(|| str.try_into().map_err(crate::Error::from))
+    err.into_err_or_flatten(|| str.try_into().map_err(From::from))
 }
 
 /// Binding to `nvim_get_current_tabpage`.
@@ -299,7 +299,7 @@ where
     S: Into<NvimString>,
 {
     let id = unsafe { nvim_get_hl_id_by_name(name.into().non_owning()) };
-    id.try_into().map_err(crate::Error::from)
+    id.try_into().map_err(From::from)
 }
 
 /// Binding to `nvim_get_keymap`.
@@ -462,7 +462,7 @@ where
 pub fn input(keys: impl Into<NvimString>) -> Result<usize> {
     unsafe { nvim_input(keys.into().non_owning()) }
         .try_into()
-        .map_err(crate::Error::from)
+        .map_err(From::from)
 }
 
 /// Binding to `nvim_input_mouse`.

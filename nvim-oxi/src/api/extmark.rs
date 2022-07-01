@@ -1,4 +1,10 @@
-use nvim_types::{Array, Error as NvimError, Integer, String as NvimString};
+use nvim_types::{
+    Array,
+    Dictionary,
+    Error as NvimError,
+    Integer,
+    String as NvimString,
+};
 
 use super::ffi::extmark::*;
 use super::opts::*;
@@ -104,6 +110,7 @@ impl super::Buffer {
         extmark_id: u32,
         opts: GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
+        let opts = Dictionary::from(opts);
         let mut err = NvimError::new();
         // TODO: convert empty array to Err
         let tuple = unsafe {
@@ -111,7 +118,7 @@ impl super::Buffer {
                 self.0,
                 ns_id as Integer,
                 extmark_id as Integer,
-                opts.into(),
+                opts.non_owning(),
                 &mut err,
             )
         };
@@ -137,6 +144,7 @@ impl super::Buffer {
         opts: GetExtmarksOpts,
     ) -> Result<impl Iterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>>
     {
+        let opts = Dictionary::from(opts);
         let mut err = NvimError::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
@@ -144,7 +152,7 @@ impl super::Buffer {
                 ns_id as Integer,
                 start.into(),
                 end.into(),
-                opts.into(),
+                opts.non_owning(),
                 &mut err,
             )
         };
@@ -222,9 +230,14 @@ pub fn set_decoration_provider(
     ns_id: u32,
     opts: DecorationProviderOpts,
 ) -> Result<()> {
+    let opts = Dictionary::from(opts);
     let mut err = NvimError::new();
     unsafe {
-        nvim_set_decoration_provider(ns_id as Integer, opts.into(), &mut err)
+        nvim_set_decoration_provider(
+            ns_id as Integer,
+            opts.non_owning(),
+            &mut err,
+        )
     };
     err.into_err_or_else(|| ())
 }

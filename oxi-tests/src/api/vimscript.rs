@@ -82,3 +82,134 @@ pub fn parse_cmd_basic() {
     assert_eq!(None, infos.nextcmd);
     assert_eq!(Some(CmdRange::None), infos.range);
 }
+
+pub fn parse_expression_basic() {
+    let res = api::parse_expression("lua print('a')", "", true);
+    assert!(res.is_ok(), "{res:?}");
+
+    // `ast` from
+    //
+    // ```
+    // :lua =vim.api.nvim_parse_expression("lua print('a')", "", true)
+    // ```
+    //
+    // is:
+    //
+    // ```lua
+    // ast = {
+    //   children = { {
+    //     ident = "lua",
+    //     len = 3,
+    //     scope = 0,
+    //     start = { 0, 0 },
+    //     type = "PlainIdentifier"
+    //   }, {
+    //     children = { {
+    //         ident = "print",
+    //         len = 6,
+    //         scope = 0,
+    //         start = { 0, 3 },
+    //         type = "PlainIdentifier"
+    //       }, {
+    //         len = 3,
+    //         start = { 0, 10 },
+    //         svalue = "a",
+    //         type = "SingleQuotedString"
+    //       } },
+    //     len = 1,
+    //     start = { 0, 9 },
+    //     type = "Call"
+    //   } },
+    //   len = 0,
+    //   start = { 0, 3 },
+    //   type = "OpMissing"
+    // }
+    // ```
+
+    let ParsedVimLExpression { ast, error, highlight, len, .. } = res.unwrap();
+
+    let ast = ast.expect("ast is set");
+    assert_eq!(2, ast.children.len());
+    assert_eq!((0, 3), ast.start);
+    assert_eq!(0, ast.len);
+    assert_eq!(VimLAstNode::OpMissing, ast.ty);
+
+    let mut iter = ast.children.into_iter();
+    let leaf1 = iter.next().unwrap();
+    let node = iter.next().unwrap();
+
+    assert!(
+        leaf1.children.is_empty(),
+        "tree has {} elements",
+        leaf1.children.len()
+    );
+    assert_eq!((0, 0), leaf1.start);
+    assert_eq!(3, leaf1.len);
+    assert_eq!(
+        VimLAstNode::PlainIdentifier {
+            ident: "lua".into(),
+            scope: ExprVarScope::Missing
+        },
+        leaf1.ty
+    );
+
+    // BUG: why is it not deserializing the second leaf? Using a `Vec` instead
+    // of a `BTreeSet` for the `children` field of `VimLExpressionAst` fixes
+    // it.
+    // assert_eq!(2, node.children.len()); // fails with `right = 1`
+    assert_eq!((0, 9), node.start);
+    assert_eq!(1, node.len);
+    assert_eq!(VimLAstNode::Call, node.ty);
+
+    let mut iter = node.children.into_iter();
+    let leaf2 = iter.next().unwrap();
+    // Commented out bc of bug above.
+    //
+    // let leaf3 = iter.next().unwrap();
+
+    assert!(
+        leaf2.children.is_empty(),
+        "tree has {} elements",
+        leaf2.children.len()
+    );
+    assert_eq!((0, 3), leaf2.start);
+    assert_eq!(6, leaf2.len);
+    assert_eq!(
+        VimLAstNode::PlainIdentifier {
+            ident: "print".into(),
+            scope: ExprVarScope::Missing
+        },
+        leaf2.ty
+    );
+
+    // Commented out bc of bug above.
+    //
+    // assert!(
+    //     leaf3.children.is_empty(),
+    //     "tree has {} elements",
+    //     leaf3.children.len()
+    // );
+    // assert_eq!((0, 10), leaf3.start);
+    // assert_eq!(3, leaf3.len);
+    // assert_eq!(VimLAstNode::SingleQuotedString("a".into()), leaf3.ty);
+
+    let error = error.expect("error is set");
+    assert_eq!("print('a')", error.arg);
+    assert_eq!("E15: Missing operator: %.*s", error.message);
+
+    assert_eq!(
+        vec![
+            (0, 0, 3, "NvimIdentifierName".into()),
+            (0, 3, 4, "NvimInvalidSpacing".into()),
+            (0, 4, 9, "NvimIdentifierName".into()),
+            (0, 9, 10, "NvimCallingParenthesis".into()),
+            (0, 10, 11, "NvimSingleQuote".into()),
+            (0, 11, 12, "NvimSingleQuotedBody".into()),
+            (0, 12, 13, "NvimSingleQuote".into()),
+            (0, 13, 14, "NvimCallingParenthesis".into()),
+        ],
+        highlight
+    );
+
+    assert_eq!(14, len);
+}

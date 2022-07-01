@@ -121,24 +121,25 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     err.into_err_or_flatten(|| CmdInfos::from_obj(dict.into()))
 }
 
-///// Binding to `nvim_parse_expression`.
-/////
-///// Parses a VimL expression.
-//pub fn parse_expression(
-//    expr: &str,
-//    flags: &str,
-//    include_highlight: bool,
-//) -> ParsedVimLExpression {
-//    let expr = NvimString::from(expr);
-//    let flags = NvimString::from(flags);
-//    let mut err = Error::new();
-//    let dict = unsafe {
-//        nvim_parse_expression(
-//            expr.non_owning(),
-//            flags.non_owning(),
-//            include_highlight,
-//            &mut err,
-//        )
-//    };
-//    err.into_err_or_flatten(|| ParsedVimLExpression::from_obj(dict.into()))
-//}
+/// Binding to `nvim_parse_expression`.
+///
+/// Parses a VimL expression.
+pub fn parse_expression(
+    expr: &str,
+    flags: &str,
+    include_highlight: bool,
+) -> Result<ParsedVimLExpression> {
+    let expr = NvimString::from(expr);
+    let flags = NvimString::from(flags);
+    let mut err = Error::new();
+    let dict = unsafe {
+        nvim_parse_expression(
+            expr.non_owning(),
+            flags.non_owning(),
+            include_highlight,
+            &mut err,
+        )
+    };
+    // crate::print!("{dict:?}");
+    err.into_err_or_flatten(|| ParsedVimLExpression::from_obj(dict.into()))
+}

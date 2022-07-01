@@ -69,6 +69,7 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::vimscript::eval();
         api::vimscript::exec();
         api::vimscript::parse_cmd_basic();
+        api::vimscript::parse_expression_basic();
 
         api::win_config::open_win_basic_config();
         api::win_config::open_win_empty_config();

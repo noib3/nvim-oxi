@@ -1,9 +1,9 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::ops::{Deref, DerefMut, Index};
+use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
-use std::slice::{self, SliceIndex};
+use std::slice;
 
 use libc::size_t;
 

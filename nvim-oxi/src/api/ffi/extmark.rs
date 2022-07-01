@@ -45,7 +45,7 @@ extern "C" {
         buf: BufHandle,
         ns_id: Integer,
         id: Integer,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Array;
 
@@ -55,7 +55,7 @@ extern "C" {
         ns_id: Integer,
         start: Object,
         end: Object,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     ) -> Array;
 
@@ -78,7 +78,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L987
     pub(crate) fn nvim_set_decoration_provider(
         ns_id: Integer,
-        opts: Dictionary,
+        opts: NonOwning<Dictionary>,
         err: *mut Error,
     );
 }
