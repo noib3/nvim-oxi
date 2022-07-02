@@ -7,4 +7,4 @@ macro_rules! cstr {
     };
 }
 
-pub use cstr;
+pub(crate) use cstr;
