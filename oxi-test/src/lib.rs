@@ -30,8 +30,7 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #[test]
         fn #test_name() {
-            use std::path::PathBuf;
-            use std::process::Command;
+            use ::std::fs;
 
             #[cfg(all(unix, not(target_os = "macos")))]
             mod consts {
@@ -60,7 +59,7 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                     concat!("__", stringify!(#test_name), ".dll");
             }
 
-            let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let root = ::std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
             let from_path = root
                 .join("target")
@@ -77,13 +76,24 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 )
             }
 
+            // Create the `lua` directory.
             if !to_path.parent().unwrap().exists() {
-                std::fs::create_dir(to_path.parent().unwrap()).unwrap();
+                // It might happen that another test created the `lua`
+                // directory between the if above returning `true` and the
+                // following call to `create_dir`.
+                if let Err(err) =
+                    ::std::fs::create_dir(to_path.parent().unwrap())
+                {
+                    match err.kind() {
+                        ::std::io::ErrorKind::AlreadyExists => {},
+                        _ => panic!("{:?}", err),
+                    }
+                }
             }
 
-            std::fs::copy(&from_path, &to_path).unwrap();
+            ::std::fs::copy(&from_path, &to_path).unwrap();
 
-            let out = Command::new("nvim")
+            let out = ::std::process::Command::new("nvim")
                 .args(["-u", "NONE", "--headless"])
                 .args(["-c", &format!("set rtp+={}", root.display())])
                 .args([
@@ -99,11 +109,6 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 // Remove the last 2 lines from stderr for a cleaner error msg.
                 let lines = stderr.lines().collect::<Vec<_>>();
                 let len = lines.len();
-                // let stderr = if len >= 2 {
-                //     lines[..lines.len() - 2].join("\n")
-                // } else {
-                //     lines.join("\n")
-                // };
                 let stderr = &lines[..lines.len() - 2].join("\n");
                 // The first 31 bytes are `thread '<unnamed>' panicked at `
                 let (_, stderr) = stderr.split_at(31);
