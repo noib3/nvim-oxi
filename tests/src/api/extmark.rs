@@ -33,7 +33,7 @@ fn get_extmarks() {
         .end_row(0)
         .hl_group("Bar")
         .hl_mode(ExtmarkHlMode::Combine)
-        // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
+        .virt_lines([("foo", "Foo"), ("bar", "Bar")])
         .virt_text([("foo", ["Foo", "Bar"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
@@ -137,7 +137,7 @@ fn set_get_del_extmark() {
         // both `opts = {virt_text={"foo", "Foo"}}`
         // and `opts = {virt_text={"foo", {"Foo", "Bar"}}}`
         // cause problems. Open issue upstream
-        // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
+        .virt_lines([("foo", "Foo"), ("bar", "Bar")])
         .virt_text([("foo", ["Foo", "Bar"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();

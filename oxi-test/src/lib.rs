@@ -16,6 +16,12 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as syn::ItemFn);
 
     let syn::ItemFn { sig, block, .. } = item;
+
+    // TODO: here we'd need to append something like the module path of the
+    // call site to `test_name` to avoid collisions between equally named tests
+    // across different modules. Unfortunately that doesn't seem to be possible
+    // yet?
+    // See https://www.reddit.com/r/rust/comments/a3fgp6/procmacro_determining_the_callers_module_path/
     let test_name = sig.ident;
     let test_body = block;
 

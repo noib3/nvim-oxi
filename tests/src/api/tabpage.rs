@@ -12,12 +12,12 @@ fn get_list_wins() {
     assert!(all_wins.is_ok(), "{all_wins:?}");
     let all_wins = all_wins.unwrap();
 
-    // assert_eq!(1, all_wins.len());
+    assert_eq!(1, all_wins.len());
     assert_eq!(win, all_wins.into_iter().next().unwrap());
 }
 
 #[oxi::test]
-fn get_number() {
+fn tabpage_get_number() {
     assert_eq!(Ok(1), TabPage::current().get_number())
 }
 
@@ -26,10 +26,10 @@ fn is_valid() {
     assert!(TabPage::current().is_valid());
 }
 
-// #[oxi::test]
-// fn set_get_del_var() {
-//     let mut tab = TabPage::current();
-//     tab.set_var("foo", 42).unwrap();
-//     assert_eq!(Ok(42), tab.get_var("foo"));
-//     assert_eq!(Ok(()), tab.del_var("foo"));
-// }
+#[oxi::test]
+fn tabpage_set_get_del_var() {
+    let mut tab = TabPage::current();
+    tab.set_var("foo", 42).unwrap();
+    assert_eq!(Ok(42), tab.get_var("foo"));
+    assert_eq!(Ok(()), tab.del_var("foo"));
+}

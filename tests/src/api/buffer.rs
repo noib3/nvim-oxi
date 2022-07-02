@@ -26,14 +26,14 @@ fn attach() {
 }
 
 #[oxi::test]
-fn call() {
+fn buf_call() {
     let buf = Buffer::current();
     let res = buf.call(|_| Ok(()));
     assert_eq!(Ok(()), res);
 }
 
 #[oxi::test]
-fn create_del_user_command() {
+fn buf_create_del_user_command() {
     let mut buf = Buffer::current();
     let opts = CreateCommandOpts::builder().build();
 
@@ -74,7 +74,7 @@ fn new_buf_delete() {
 }
 
 #[oxi::test]
-fn set_get_del_keymap() {
+fn buf_set_get_del_keymap() {
     let mut buf = Buffer::current();
 
     let opts = SetKeymapOpts::builder()
@@ -112,7 +112,7 @@ fn set_get_del_lines() {
 }
 
 #[oxi::test]
-fn set_get_del_mark() {
+fn buf_set_get_del_mark() {
     let mut buf = Buffer::current();
 
     let res = buf.set_mark('a', 1, 0);
@@ -165,7 +165,7 @@ fn set_get_del_text() {
 }
 
 #[oxi::test]
-fn set_get_del_var() {
+fn buf_set_get_del_var() {
     let mut buf = Buffer::current();
     buf.set_var("foo", 42).unwrap();
     assert_eq!(Ok(42), buf.get_var("foo"));
@@ -189,7 +189,7 @@ fn set_get_name() {
 }
 
 #[oxi::test]
-fn set_get_option() {
+fn buf_set_get_option() {
     let mut buf = Buffer::current();
 
     buf.set_option("modified", true).unwrap();

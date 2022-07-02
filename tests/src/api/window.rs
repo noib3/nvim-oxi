@@ -4,12 +4,12 @@ use nvim_oxi::{
     types::*,
 };
 
-// #[oxi::test]
-// fn call() {
-//     let win = Window::current();
-//     let res = win.call(|_| Ok(()));
-//     assert_eq!(Ok(()), res);
-// }
+#[oxi::test]
+fn win_call() {
+    let win = Window::current();
+    let res = win.call(|_| Ok(()));
+    assert_eq!(Ok(()), res);
+}
 
 #[oxi::test]
 fn close_hide() {
@@ -28,10 +28,10 @@ fn close_hide() {
     assert_eq!(Ok(()), win.hide());
 }
 
-// #[oxi::test]
-// fn get_number() {
-//     assert_eq!(Ok(1), Window::current().get_number());
-// }
+#[oxi::test]
+fn win_get_number() {
+    assert_eq!(Ok(1), Window::current().get_number());
+}
 
 #[oxi::test]
 fn get_position() {
@@ -101,10 +101,10 @@ fn set_get_cursor() {
     assert_eq!(Ok((1, 0)), win.get_cursor());
 }
 
-// #[oxi::test]
-// fn set_get_del_var() {
-//     let mut win = Window::current();
-//     win.set_var("foo", 42).unwrap();
-//     assert_eq!(Ok(42), win.get_var("foo"));
-//     assert_eq!(Ok(()), win.del_var("foo"));
-// }
+#[oxi::test]
+fn win_set_get_del_var() {
+    let mut win = Window::current();
+    win.set_var("foo", 42).unwrap();
+    assert_eq!(Ok(42), win.get_var("foo"));
+    assert_eq!(Ok(()), win.del_var("foo"));
+}
