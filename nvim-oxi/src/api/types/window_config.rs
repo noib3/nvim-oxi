@@ -126,6 +126,10 @@ impl From<&WindowConfig> for KeyDict_float_config {
             _ => Object::nil(),
         };
 
+        // crate::print!("bufpos: {:?}, {}", bufpos, unsafe {
+        //     bufpos.data.array.size
+        // });
+
         Self {
             col: config.col.into(),
             row: config.row.into(),

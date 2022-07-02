@@ -1,15 +1,18 @@
 use nvim_oxi::{
+    self as oxi,
     api::{self, Buffer, TabPage, Window},
     types::*,
 };
 
-pub fn call() {
-    let win = Window::current();
-    let res = win.call(|_| Ok(()));
-    assert_eq!(Ok(()), res);
-}
+// #[oxi::test]
+// fn call() {
+//     let win = Window::current();
+//     let res = win.call(|_| Ok(()));
+//     assert_eq!(Ok(()), res);
+// }
 
-pub fn close_hide() {
+#[oxi::test]
+fn close_hide() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
         .height(10u8)
@@ -25,15 +28,18 @@ pub fn close_hide() {
     assert_eq!(Ok(()), win.hide());
 }
 
-pub fn get_number() {
-    assert_eq!(Ok(1), Window::current().get_number());
-}
+// #[oxi::test]
+// fn get_number() {
+//     assert_eq!(Ok(1), Window::current().get_number());
+// }
 
-pub fn get_position() {
+#[oxi::test]
+fn get_position() {
     assert_eq!(Ok((1, 0)), Window::current().get_position());
 }
 
-pub fn get_set_buf() {
+#[oxi::test]
+fn get_set_buf() {
     let mut win = Window::current();
 
     assert_eq!(Ok(Buffer::current()), win.get_buf());
@@ -50,7 +56,8 @@ pub fn get_set_buf() {
     assert_eq!(Ok(()), res);
 }
 
-pub fn get_set_height_width() {
+#[oxi::test]
+fn get_set_height_width() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
         .height(10u8)
@@ -68,15 +75,16 @@ pub fn get_set_height_width() {
     assert_eq!(Ok(()), win.set_width(10u8));
 
     assert_eq!(5, win.get_height().unwrap());
-    // TODO: this should fail
-    assert_eq!(9, win.get_width().unwrap());
+    assert_eq!(10, win.get_width().unwrap());
 }
 
-pub fn get_tabpage() {
+#[oxi::test]
+fn get_tabpage() {
     assert_eq!(Ok(TabPage::current()), Window::current().get_tabpage())
 }
 
-pub fn set_get_cursor() {
+#[oxi::test]
+fn set_get_cursor() {
     let mut buf = Buffer::current();
     buf.set_lines(0, 1, true, ["foo"]).unwrap();
 
@@ -93,9 +101,10 @@ pub fn set_get_cursor() {
     assert_eq!(Ok((1, 0)), win.get_cursor());
 }
 
-pub fn set_get_del_var() {
-    let mut win = Window::current();
-    win.set_var("foo", 42).unwrap();
-    assert_eq!(Ok(42), win.get_var("foo"));
-    assert_eq!(Ok(()), win.del_var("foo"));
-}
+// #[oxi::test]
+// fn set_get_del_var() {
+//     let mut win = Window::current();
+//     win.set_var("foo", 42).unwrap();
+//     assert_eq!(Ok(42), win.get_var("foo"));
+//     assert_eq!(Ok(()), win.del_var("foo"));
+// }

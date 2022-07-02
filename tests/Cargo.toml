@@ -1,5 +1,5 @@
 [package]
-name = "oxi-tests"
+name = "tests"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 all_asserts = "2.3"
-nvim-oxi = { path = "../nvim-oxi" }
+nvim-oxi = { path = "../nvim-oxi", features = ["test"] }

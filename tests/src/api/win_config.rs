@@ -1,9 +1,11 @@
 use nvim_oxi::{
+    self as oxi,
     api::{self, Buffer, Window},
     types::*,
 };
 
-pub fn open_win_empty_config() {
+#[oxi::test]
+fn open_win_empty_config() {
     let buf = Buffer::current();
     let config = WindowConfig::builder().build();
     let res = api::open_win(buf, false, &config);
@@ -13,7 +15,8 @@ pub fn open_win_empty_config() {
     );
 }
 
-pub fn open_win_basic_config() {
+#[oxi::test]
+fn open_win_basic_config() {
     let buf = api::create_buf(true, true).unwrap();
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
@@ -39,7 +42,8 @@ pub fn open_win_basic_config() {
     assert_eq!(config.col, got.col);
 }
 
-pub fn open_win_full_config() {
+#[oxi::test]
+fn open_win_full_config() {
     let buf = api::create_buf(true, true).unwrap();
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Window(Window::current()))
@@ -82,7 +86,8 @@ pub fn open_win_full_config() {
     assert_eq!(config.border, got.border);
 }
 
-pub fn set_config() {
+#[oxi::test]
+fn set_config() {
     let buf = api::create_buf(true, true).unwrap();
 
     let initial = WindowConfig::builder()

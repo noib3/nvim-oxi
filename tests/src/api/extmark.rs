@@ -1,24 +1,28 @@
 use nvim_oxi::{
+    self as oxi,
     api::{self, Buffer},
     opts::*,
     types::*,
 };
 
-pub fn add_highlight() {
+#[oxi::test]
+fn add_highlight() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
     let res = buf.add_highlight(id, "Normal", 0, 0, 1);
     assert!(res.is_ok(), "{res:?}");
 }
 
-pub fn clear_namespace() {
+#[oxi::test]
+fn clear_namespace() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
     let res = buf.clear_namespace(id, 0, -1);
     assert_eq!(Ok(()), res);
 }
 
-pub fn get_extmarks() {
+#[oxi::test]
+fn get_extmarks() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
 
@@ -66,7 +70,8 @@ pub fn get_extmarks() {
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
 
-pub fn get_namespaces() {
+#[oxi::test]
+fn get_namespaces() {
     let id = api::create_namespace("Foo");
 
     let out = api::get_namespaces()
@@ -76,7 +81,8 @@ pub fn get_namespaces() {
     assert_eq!(id, out);
 }
 
-pub fn set_decoration_provider() {
+#[oxi::test]
+fn set_decoration_provider() {
     use nvim_oxi::print;
 
     let id = api::create_namespace("Foo");
@@ -115,7 +121,8 @@ pub fn set_decoration_provider() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-pub fn set_get_del_extmark() {
+#[oxi::test]
+fn set_get_del_extmark() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
 

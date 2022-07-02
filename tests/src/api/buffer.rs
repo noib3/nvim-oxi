@@ -1,11 +1,13 @@
 use nvim_oxi::{
+    self as oxi,
     api::{self, Buffer},
     opts::*,
     types::*,
     LuaFun,
 };
 
-pub fn attach() {
+#[oxi::test]
+fn attach() {
     let buf = Buffer::current();
 
     let opts = BufAttachOpts::builder()
@@ -23,13 +25,15 @@ pub fn attach() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-pub fn call() {
+#[oxi::test]
+fn call() {
     let buf = Buffer::current();
     let res = buf.call(|_| Ok(()));
     assert_eq!(Ok(()), res);
 }
 
-pub fn create_del_user_command() {
+#[oxi::test]
+fn create_del_user_command() {
     let mut buf = Buffer::current();
     let opts = CreateCommandOpts::builder().build();
 
@@ -49,24 +53,28 @@ pub fn create_del_user_command() {
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
 }
 
-pub fn get_changedtick() {
+#[oxi::test]
+fn get_changedtick() {
     let buf = Buffer::current();
     assert!(buf.get_changedtick().is_ok());
 }
 
-pub fn loaded_n_valid() {
+#[oxi::test]
+fn loaded_n_valid() {
     let buf = Buffer::current();
     assert!(buf.is_loaded());
     assert!(buf.is_valid());
 }
 
-pub fn new_buf_delete() {
+#[oxi::test]
+fn new_buf_delete() {
     let buf = api::create_buf(true, false).unwrap();
     let opts = BufDeleteOpts::builder().build();
     assert_eq!(Ok(()), buf.delete(&opts));
 }
 
-pub fn set_get_del_keymap() {
+#[oxi::test]
+fn set_get_del_keymap() {
     let mut buf = Buffer::current();
 
     let opts = SetKeymapOpts::builder()
@@ -85,7 +93,8 @@ pub fn set_get_del_keymap() {
     assert_eq!(Ok(()), res);
 }
 
-pub fn set_get_del_lines() {
+#[oxi::test]
+fn set_get_del_lines() {
     let mut buf = Buffer::current();
 
     assert_eq!(Ok(()), buf.set_lines(0, 0, true, ["foo", "bar", "baz"]));
@@ -102,7 +111,8 @@ pub fn set_get_del_lines() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-pub fn set_get_del_mark() {
+#[oxi::test]
+fn set_get_del_mark() {
     let mut buf = Buffer::current();
 
     let res = buf.set_mark('a', 1, 0);
@@ -114,7 +124,8 @@ pub fn set_get_del_mark() {
     assert_eq!(Ok(true), res);
 }
 
-pub fn set_get_del_text() {
+#[oxi::test]
+fn set_get_del_text() {
     let mut buf = Buffer::current();
 
     assert_eq!(Ok(()), buf.set_text(0, 0, 0, 0, ["foo", "bar", "baz"]));
@@ -153,14 +164,16 @@ pub fn set_get_del_text() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-pub fn set_get_del_var() {
+#[oxi::test]
+fn set_get_del_var() {
     let mut buf = Buffer::current();
     buf.set_var("foo", 42).unwrap();
     assert_eq!(Ok(42), buf.get_var("foo"));
     assert_eq!(Ok(()), buf.del_var("foo"));
 }
 
-pub fn set_get_name() {
+#[oxi::test]
+fn set_get_name() {
     let mut buf = Buffer::current();
 
     assert_eq!("", buf.get_name().unwrap().display().to_string());
@@ -175,7 +188,8 @@ pub fn set_get_name() {
     assert_eq!(Ok(()), buf.set_name(""));
 }
 
-pub fn set_get_option() {
+#[oxi::test]
+fn set_get_option() {
     let mut buf = Buffer::current();
 
     buf.set_option("modified", true).unwrap();

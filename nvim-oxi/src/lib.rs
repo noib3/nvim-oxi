@@ -25,4 +25,6 @@ pub use error::{Error, Result};
 pub use lua::LuaFun;
 pub use nvim_types::{Object, String};
 pub use oxi_module::oxi_module as module;
+#[cfg(feature = "test")]
+pub use oxi_test::oxi_test as test;
 pub use toplevel::{nprint as print, *};

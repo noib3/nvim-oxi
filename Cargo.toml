@@ -3,6 +3,7 @@ members = [
   "nvim-oxi",
   "nvim-types",
   "oxi-module",
+  "oxi-test",
 ]
 
 default-members = [
@@ -10,4 +11,4 @@ default-members = [
   "nvim-types",
 ]
 
-exclude = ["oxi-tests"]
+exclude = ["tests"]

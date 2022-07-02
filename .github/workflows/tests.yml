@@ -11,17 +11,20 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         with:
             neovim: true
-      - name: Install latest stable Rustc
+      - name: Install latest stable `rustc`
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-      - name: Build library
-        run: cargo build -vv
-        working-directory: oxi-tests
-      - name: Run tests
-        run: cargo test -vv
-        working-directory: oxi-tests
+      - name: Run unit tests
+        run: cargo test
+        working-directory: .
+      - name: Build the `tests` crate
+        run: cargo build --release
+        working-directory: ./tests
+      - name: Run integration tests
+        run: cargo test
+        working-directory: ./tests
   linux:
     runs-on: ubuntu-latest
     steps:
@@ -30,17 +33,20 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         with:
             neovim: true
-      - name: Install latest stable Rustc
+      - name: Install latest stable `rustc`
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-      - name: Build library
-        run: cargo build -vv
-        working-directory: oxi-tests
-      - name: Run tests
-        run: cargo test -vv
-        working-directory: oxi-tests
+      - name: Run unit tests
+        run: cargo test
+        working-directory: .
+      - name: Build the `tests` crate
+        run: cargo build --release
+        working-directory: ./tests
+      - name: Run integration tests
+        run: cargo test
+        working-directory: ./tests
   macos:
     runs-on: macos-latest
     steps:
@@ -49,14 +55,17 @@ jobs:
         uses: rhysd/action-setup-vim@v1
         with:
             neovim: true
-      - name: Install latest stable Rustc
+      - name: Install latest stable `rustc`
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-      - name: Build library
-        run: cargo build -vv
-        working-directory: oxi-tests
-      - name: Run tests
-        run: cargo test -vv
-        working-directory: oxi-tests
+      - name: Run unit tests
+        run: cargo test
+        working-directory: .
+      - name: Build the `tests` crate
+        run: cargo build --release
+        working-directory: ./tests
+      - name: Run integration tests
+        run: cargo test
+        working-directory: ./tests
