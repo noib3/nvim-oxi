@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, NonOwning, Object, String as NvimString};
+use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
@@ -125,57 +125,57 @@ impl SetExtmarkOptsBuilder {
     /// character if provided, otherwise it defaults to `hl-Conceal`.
     pub fn conceal(&mut self, char: Option<char>) -> &mut Self {
         self.conceal =
-            Some(char.map(NvimString::from).unwrap_or_default().into());
+            Some(char.map(nvim::String::from).unwrap_or_default().into());
         self
     }
 
     /// Name of the highlight group used to highlight the line when the cursor
     /// is on the same line as the mark and `cursorline` is enabled.
     pub fn cursorline_hl_group(&mut self, hl_group: &str) -> &mut Self {
-        self.cursorline_hl_group = Some(NvimString::from(hl_group).into());
+        self.cursorline_hl_group = Some(nvim::String::from(hl_group).into());
         self
     }
 
     /// Name of the highlight group used to highlight this mark.
     pub fn hl_group(&mut self, hl_group: &str) -> &mut Self {
-        self.hl_group = Some(NvimString::from(hl_group).into());
+        self.hl_group = Some(nvim::String::from(hl_group).into());
         self
     }
 
     /// Controls how highlights are combined with the highlights of the text.
     pub fn hl_mode(&mut self, hl_mode: ExtmarkHlMode) -> &mut Self {
-        self.hl_mode = Some(NvimString::from(hl_mode).into());
+        self.hl_mode = Some(nvim::String::from(hl_mode).into());
         self
     }
 
     /// Name of the highlight group used to highlight the whole line.
     pub fn line_hl_group(&mut self, hl_group: &str) -> &mut Self {
-        self.line_hl_group = Some(NvimString::from(hl_group).into());
+        self.line_hl_group = Some(nvim::String::from(hl_group).into());
         self
     }
 
     /// Name of the highlight group used to highlight the number column.
     pub fn number_hl_group(&mut self, hl_group: &str) -> &mut Self {
-        self.number_hl_group = Some(NvimString::from(hl_group).into());
+        self.number_hl_group = Some(nvim::String::from(hl_group).into());
         self
     }
 
     /// Name of the highlight group used to highlight the sign column text.
     pub fn sign_hl_group(&mut self, hl_group: &str) -> &mut Self {
-        self.sign_hl_group = Some(NvimString::from(hl_group).into());
+        self.sign_hl_group = Some(nvim::String::from(hl_group).into());
         self
     }
 
     /// Text to display in the sign column. Should take up 1-2 display cells.
     pub fn sign_text(&mut self, text: &str) -> &mut Self {
-        self.sign_text = Some(NvimString::from(text).into());
+        self.sign_text = Some(nvim::String::from(text).into());
         self
     }
 
     /// Virtual lines to add next to the mark.
     pub fn virt_lines<Txt, Hl, Cnk>(&mut self, chunks: Cnk) -> &mut Self
     where
-        Txt: Into<NvimString>,
+        Txt: Into<nvim::String>,
         Hl: Into<Object>,
         Cnk: IntoIterator<Item = (Txt, Hl)>,
     {
@@ -199,7 +199,7 @@ impl SetExtmarkOptsBuilder {
     /// `api::get_hl_id_by_name`.
     pub fn virt_text<Txt, Hl, Hls, Cnk>(&mut self, chunks: Cnk) -> &mut Self
     where
-        Txt: Into<NvimString>,
+        Txt: Into<nvim::String>,
         Hl: Into<Object>,
         Hls: IntoIterator<Item = Hl>,
         Cnk: IntoIterator<Item = (Txt, Hls)>,
@@ -222,7 +222,7 @@ impl SetExtmarkOptsBuilder {
         &mut self,
         pos: ExtmarkVirtTextPosition,
     ) -> &mut Self {
-        self.virt_text_pos = Some(NvimString::from(pos).into());
+        self.virt_text_pos = Some(nvim::String::from(pos).into());
         self
     }
 

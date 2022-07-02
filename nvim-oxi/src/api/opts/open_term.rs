@@ -1,14 +1,14 @@
 use derive_builder::Builder;
-use nvim_types::{Dictionary, Object, String as NvimString};
+use nvim_types::{self as nvim, Dictionary, Object};
 
 use crate::api::Buffer;
 use crate::lua::LuaFun;
 
 pub type OnInputArgs = (
-    String,     // the string literal `"input"`
-    u32,        // channel_id
-    Buffer,     // buffer
-    NvimString, // data input
+    String,       // the string literal `"input"`
+    u32,          // channel_id
+    Buffer,       // buffer
+    nvim::String, // data input
 );
 
 /// Options passed to `crate::api::open_term`.

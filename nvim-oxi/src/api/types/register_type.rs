@@ -1,4 +1,4 @@
-use nvim_types::String as NvimString;
+use nvim_types as nvim;
 use serde::{Serialize, Serializer};
 
 use crate::object;
@@ -34,7 +34,7 @@ where
     )
 }
 
-impl From<RegisterType> for NvimString {
+impl From<RegisterType> for nvim::String {
     fn from(reg_type: RegisterType) -> Self {
         reg_type
             .serialize(object::Serializer)

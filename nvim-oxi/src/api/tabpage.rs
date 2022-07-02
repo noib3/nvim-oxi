@@ -1,12 +1,6 @@
 use std::fmt;
 
-use nvim_types::{
-    Error as NvimError,
-    Object,
-    String as NvimString,
-    TabHandle,
-    WinHandle,
-};
+use nvim_types::{self as nvim, Object, TabHandle, WinHandle};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::tabpage::*;
@@ -57,8 +51,8 @@ impl TabPage {
     ///
     /// Removes a tab-scoped (t:) variable.
     pub fn del_var(&mut self, name: &str) -> Result<()> {
-        let mut err = NvimError::new();
-        let name = NvimString::from(name);
+        let mut err = nvim::Error::new();
+        let name = nvim::String::from(name);
         unsafe { nvim_tabpage_del_var(self.0, name.non_owning(), &mut err) };
         err.into_err_or_else(|| ())
     }
@@ -67,7 +61,7 @@ impl TabPage {
     ///
     /// Gets the tabpage number.
     pub fn get_number(&self) -> Result<usize> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let number = unsafe { nvim_tabpage_get_number(self.0, &mut err) };
         err.into_err_or_else(|| number.try_into().expect("always positive"))
     }
@@ -79,8 +73,8 @@ impl TabPage {
     where
         V: FromObject,
     {
-        let mut err = NvimError::new();
-        let name = NvimString::from(name);
+        let mut err = nvim::Error::new();
+        let name = nvim::String::from(name);
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
@@ -92,7 +86,7 @@ impl TabPage {
     /// Gets the current window in a tabpage.
     // TODO: return `Window` when that's implemented
     pub fn get_win(&self) -> Result<WinHandle> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let handle = unsafe { nvim_tabpage_get_win(self.0, &mut err) };
         err.into_err_or_else(|| handle)
     }
@@ -109,7 +103,7 @@ impl TabPage {
     /// Gets the windows in a tabpage.
     // TODO: return `Window` when that's implemented
     pub fn list_wins(&self) -> Result<impl Iterator<Item = WinHandle>> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
         err.into_err_or_else(|| {
             list.into_iter().map(|win| {
@@ -122,8 +116,8 @@ impl TabPage {
     ///
     /// Sets a tab-scoped (t:) variable.
     pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
-        let mut err = NvimError::new();
-        let name = NvimString::from(name);
+        let mut err = nvim::Error::new();
+        let name = nvim::String::from(name);
         unsafe {
             nvim_tabpage_set_var(
                 self.0,

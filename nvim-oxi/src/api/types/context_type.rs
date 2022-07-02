@@ -1,4 +1,4 @@
-use nvim_types::String as NvimString;
+use nvim_types as nvim;
 use serde::Serialize;
 
 use crate::object;
@@ -25,7 +25,7 @@ pub enum ContextType {
     ScriptLocalFuncs,
 }
 
-impl From<ContextType> for NvimString {
+impl From<ContextType> for nvim::String {
     fn from(ctx: ContextType) -> Self {
         ctx.serialize(object::Serializer)
             .expect("`ContextType` is serializable")

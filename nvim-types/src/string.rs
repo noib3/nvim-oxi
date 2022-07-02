@@ -119,7 +119,7 @@ impl String {
 
 impl fmt::Debug for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("NvimString")
+        f.debug_struct("String")
             .field("data", &self.to_string_lossy())
             .field("size", &self.size)
             .finish()

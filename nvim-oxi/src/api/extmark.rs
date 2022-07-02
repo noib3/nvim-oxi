@@ -1,10 +1,4 @@
-use nvim_types::{
-    Array,
-    Dictionary,
-    Error as NvimError,
-    Integer,
-    String as NvimString,
-};
+use nvim_types::{self as nvim, Array, Dictionary, Integer};
 
 use super::ffi::extmark::*;
 use super::opts::*;
@@ -32,8 +26,8 @@ impl super::Buffer {
         S: Into<Integer>,
         E: Into<Integer>,
     {
-        let hl_group = NvimString::from(hl_group);
-        let mut err = NvimError::new();
+        let hl_group = nvim::String::from(hl_group);
+        let mut err = nvim::Error::new();
         let ns_id = unsafe {
             nvim_buf_add_highlight(
                 self.0,
@@ -66,7 +60,7 @@ impl super::Buffer {
         S: Into<Integer>,
         E: Into<Integer>,
     {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_clear_namespace(
                 self.0,
@@ -87,7 +81,7 @@ impl super::Buffer {
         ns_id: u32,
         extmark_id: u32,
     ) -> Result<bool> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         // TODO: convert false to Err
         let was_found = unsafe {
             nvim_buf_del_extmark(
@@ -111,7 +105,7 @@ impl super::Buffer {
         opts: &GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
         let opts = Dictionary::from(opts);
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         // TODO: convert empty array to Err
         let tuple = unsafe {
             nvim_buf_get_extmark_by_id(
@@ -145,7 +139,7 @@ impl super::Buffer {
     ) -> Result<impl Iterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>>
     {
         let opts = Dictionary::from(opts);
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
                 self.0,
@@ -191,7 +185,7 @@ impl super::Buffer {
         L: Into<Integer>,
         C: Into<Integer>,
     {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let id = unsafe {
             nvim_buf_set_extmark(
                 self.0,
@@ -211,7 +205,7 @@ impl super::Buffer {
 /// Creates a new namespace or gets the id of an existing one. If `name`
 /// matches an existing namespace the associated id is returned.
 pub fn create_namespace(name: &str) -> u32 {
-    let name = NvimString::from(name);
+    let name = nvim::String::from(name);
     unsafe { nvim_create_namespace(name.non_owning()) }
         .try_into()
         .expect("always positive")
@@ -237,7 +231,7 @@ pub fn set_decoration_provider(
     opts: &DecorationProviderOpts,
 ) -> Result<()> {
     let opts = Dictionary::from(opts);
-    let mut err = NvimError::new();
+    let mut err = nvim::Error::new();
     unsafe {
         nvim_set_decoration_provider(
             ns_id as Integer,

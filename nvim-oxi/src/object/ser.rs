@@ -1,4 +1,4 @@
-use nvim_types::{Object, ObjectData, ObjectType, String as NvimString};
+use nvim_types::{self as nvim, Object, ObjectData, ObjectType};
 use serde::ser;
 
 use crate::Result;
@@ -85,7 +85,7 @@ impl ser::Serializer for Serializer {
 
     #[inline]
     fn serialize_bytes(self, value: &[u8]) -> Result<Self::Ok> {
-        Ok(NvimString::from_bytes(value.to_owned()).into())
+        Ok(nvim::String::from_bytes(value.to_owned()).into())
     }
 
     #[inline]
@@ -241,8 +241,8 @@ serialize_seq!(SerializeTupleStruct, serialize_field);
 serialize_seq!(SerializeTupleVariant, serialize_field);
 
 pub struct SerializeMap {
-    key: Option<NvimString>,
-    pairs: Vec<(NvimString, Object)>,
+    key: Option<nvim::String>,
+    pairs: Vec<(nvim::String, Object)>,
 }
 
 impl ser::SerializeMap for SerializeMap {

@@ -1,4 +1,4 @@
-use nvim_types::String as NvimString;
+use nvim_types as nvim;
 use serde::Deserialize;
 
 #[non_exhaustive]
@@ -17,7 +17,7 @@ pub enum ExtmarkVirtTextPosition {
     RightAlign,
 }
 
-impl From<ExtmarkVirtTextPosition> for NvimString {
+impl From<ExtmarkVirtTextPosition> for nvim::String {
     fn from(pos: ExtmarkVirtTextPosition) -> Self {
         use ExtmarkVirtTextPosition::*;
 

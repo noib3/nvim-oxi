@@ -183,7 +183,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Dictionary, Object, String as NvimString};
+    use super::{Dictionary, Object, String};
 
     #[test]
     fn iter_basic() {
@@ -195,15 +195,15 @@ mod tests {
 
         let mut iter = dict.into_iter();
         assert_eq!(
-            Some((NvimString::from("foo"), Object::from("Foo"))),
+            Some((String::from("foo"), Object::from("Foo"))),
             iter.next()
         );
         assert_eq!(
-            Some((NvimString::from("bar"), Object::from("Bar"))),
+            Some((String::from("bar"), Object::from("Bar"))),
             iter.next()
         );
         assert_eq!(
-            Some((NvimString::from("baz"), Object::from("Baz"))),
+            Some((String::from("baz"), Object::from("Baz"))),
             iter.next()
         );
         assert_eq!(None, iter.next());
@@ -219,7 +219,7 @@ mod tests {
 
         let mut iter = dict.into_iter();
         assert_eq!(
-            Some((NvimString::from("foo"), Object::from("Foo"))),
+            Some((String::from("foo"), Object::from("Foo"))),
             iter.next()
         );
     }

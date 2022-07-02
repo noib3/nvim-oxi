@@ -1,4 +1,4 @@
-use nvim_types::{Array, Dictionary, Error, String as NvimString};
+use nvim_types::{self as nvim, Array, Dictionary};
 
 use super::ffi::vimscript::*;
 use super::opts::*;
@@ -18,9 +18,9 @@ where
     R: FromObject,
 {
     let dict = dict.to_obj()?;
-    let func = NvimString::from(func);
+    let func = nvim::String::from(func);
     let args = args.into();
-    let mut err = Error::new();
+    let mut err = nvim::Error::new();
     let res = unsafe {
         nvim_call_dict_function(
             dict.non_owning(),
@@ -41,9 +41,9 @@ where
     A: Into<Array>,
     R: FromObject,
 {
-    let func = NvimString::from(func);
+    let func = nvim::String::from(func);
     let args = args.into();
-    let mut err = Error::new();
+    let mut err = nvim::Error::new();
     let res = unsafe {
         nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
     };
@@ -55,7 +55,7 @@ where
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
 pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
-    let mut err = Error::new();
+    let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
     };
@@ -71,8 +71,8 @@ pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
 ///
 /// Executes an Ex command.
 pub fn command(command: &str) -> Result<()> {
-    let command = NvimString::from(command);
-    let mut err = Error::new();
+    let command = nvim::String::from(command);
+    let mut err = nvim::Error::new();
     unsafe { nvim_command(command.non_owning(), &mut err) };
     err.into_err_or_else(|| ())
 }
@@ -84,8 +84,8 @@ pub fn eval<V>(expr: &str) -> Result<V>
 where
     V: FromObject,
 {
-    let expr = NvimString::from(expr);
-    let mut err = Error::new();
+    let expr = nvim::String::from(expr);
+    let mut err = nvim::Error::new();
     let output = unsafe { nvim_eval(expr.non_owning(), &mut err) };
     err.into_err_or_flatten(|| V::from_obj(output))
 }
@@ -95,8 +95,8 @@ where
 /// Executes a multiline block of Ex commands. If `output` is true the
 /// output is captured and returned.
 pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
-    let src = NvimString::from(src);
-    let mut err = Error::new();
+    let src = nvim::String::from(src);
+    let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output.into(), &mut err)
     };
@@ -112,9 +112,9 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 ///
 /// Parses the command line.
 pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
-    let src = NvimString::from(src);
+    let src = nvim::String::from(src);
     let opts = Dictionary::from(opts);
-    let mut err = Error::new();
+    let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
     };
@@ -129,9 +129,9 @@ pub fn parse_expression(
     flags: &str,
     include_highlight: bool,
 ) -> Result<ParsedVimLExpression> {
-    let expr = NvimString::from(expr);
-    let flags = NvimString::from(flags);
-    let mut err = Error::new();
+    let expr = nvim::String::from(expr);
+    let flags = nvim::String::from(flags);
+    let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_expression(
             expr.non_owning(),

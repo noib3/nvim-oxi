@@ -1,4 +1,4 @@
-use nvim_types::String as NvimString;
+use nvim_types as nvim;
 use serde::Deserialize;
 
 #[non_exhaustive]
@@ -17,7 +17,7 @@ pub enum ExtmarkHlMode {
     Blend,
 }
 
-impl From<ExtmarkHlMode> for NvimString {
+impl From<ExtmarkHlMode> for nvim::String {
     fn from(mode: ExtmarkHlMode) -> Self {
         use ExtmarkHlMode::*;
 

@@ -1,4 +1,4 @@
-use nvim_types::String as NvimString;
+use nvim_types as nvim;
 use serde::{Deserialize, Serialize};
 
 use crate::object;
@@ -63,7 +63,7 @@ impl Mode {
     is_mode!(is_visual_select, VisualSelect);
 }
 
-impl From<Mode> for NvimString {
+impl From<Mode> for nvim::String {
     fn from(mode: Mode) -> Self {
         mode.serialize(object::Serializer)
             .expect("`Mode` is serializable")

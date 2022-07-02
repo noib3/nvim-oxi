@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Dictionary, Object, String as NvimString};
+use nvim_types::{self as nvim, Array, Dictionary, Object};
 use serde::Deserialize;
 
 use crate::object::{self, FromObject};
@@ -11,27 +11,27 @@ use crate::object::{self, FromObject};
 pub struct EditorContext {
     #[builder(setter(custom))]
     #[serde(default, rename = "bufs")]
-    bufferlist: Vec<NvimString>,
+    bufferlist: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "gvars")]
-    global_vars: Vec<NvimString>,
+    global_vars: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "funcs")]
-    global_and_script_local_funcs: Vec<NvimString>,
+    global_and_script_local_funcs: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "jumps")]
-    jumplist: Vec<NvimString>,
+    jumplist: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "regs")]
-    registers: Vec<NvimString>,
+    registers: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "sfuncs")]
-    script_local_funcs: Vec<NvimString>,
+    script_local_funcs: Vec<nvim::String>,
 }
 
 impl EditorContext {
@@ -45,7 +45,7 @@ macro_rules! strvec_setter {
     ($name:ident) => {
         pub fn $name<Line, Lines>(&mut self, lines: Lines) -> &mut Self
         where
-            Line: Into<NvimString>,
+            Line: Into<nvim::String>,
             Lines: IntoIterator<Item = Line>,
         {
             self.$name =
