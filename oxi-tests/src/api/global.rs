@@ -23,7 +23,7 @@ pub fn create_del_user_command() {
     // TODO: `api::nvim_command("Bar")`
 
     let opts = GetCommandsOpts::builder().build();
-    assert_eq!(2, api::get_commands(opts).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(2, api::get_commands(&opts).unwrap().collect::<Vec<_>>().len());
 
     assert_eq!(Ok(()), api::del_user_command("Foo"));
     assert_eq!(Ok(()), api::del_user_command("Bar"));
@@ -31,7 +31,7 @@ pub fn create_del_user_command() {
 
 pub fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
-    let res = api::eval_statusline("foo", opts);
+    let res = api::eval_statusline("foo", &opts);
     assert_eq!(Ok("foo".into()), res.map(|infos| infos.str));
 }
 
@@ -50,7 +50,7 @@ pub fn get_colors() {
 
 pub fn get_context() {
     let opts = GetContextOpts::builder().build();
-    let res = api::get_context(opts);
+    let res = api::get_context(&opts);
     assert!(res.is_ok());
 }
 
@@ -106,7 +106,7 @@ pub fn set_get_del_mark() {
     assert_eq!(Ok(true), res);
 
     let opts = GetMarkOpts::builder().build();
-    assert_eq!((1, 0, buf, "".into()), api::get_mark('A', opts).unwrap());
+    assert_eq!((1, 0, buf, "".into()), api::get_mark('A', &opts).unwrap());
 
     let res = api::del_mark('A');
     assert_eq!(Ok(true), res);

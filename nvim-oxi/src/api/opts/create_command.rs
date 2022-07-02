@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Integer, Object, String as NvimString};
+use nvim_types::{self as nvim, Integer, NonOwning, Object};
 
 use crate::api::types::{
     CommandAddr,
@@ -17,7 +17,7 @@ use crate::object::ToObject;
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct CreateCommandOpts {
     #[builder(setter(custom))]
-    addr: Option<Object>,
+    addr: Object,
 
     #[builder(setter(strip_option))]
     bang: Option<bool>,
@@ -26,13 +26,13 @@ pub struct CreateCommandOpts {
     bar: Option<bool>,
 
     #[builder(setter(custom))]
-    complete: Option<Object>,
+    complete: Object,
 
     #[builder(setter(into, strip_option))]
     count: Option<Integer>,
 
-    #[builder(setter(into, strip_option))]
-    desc: Option<NvimString>,
+    #[builder(setter(custom))]
+    desc: Object,
 
     #[builder(setter(strip_option))]
     force: Option<bool>,
@@ -41,13 +41,13 @@ pub struct CreateCommandOpts {
     keepscript: Option<bool>,
 
     #[builder(setter(custom))]
-    nargs: Option<Object>,
+    nargs: Object,
 
     #[builder(setter(custom))]
-    preview: Option<Object>,
+    preview: Object,
 
     #[builder(setter(custom))]
-    range: Option<Object>,
+    range: Object,
 
     #[builder(setter(strip_option))]
     register: Option<bool>,
@@ -63,7 +63,7 @@ impl CreateCommandOpts {
 macro_rules! object_setter {
     ($name:ident, $args:ident) => {
         pub fn $name(&mut self, $name: $args) -> &mut Self {
-            self.$name = Some(Some($name.to_obj().unwrap()));
+            self.$name = Some($name.to_obj().unwrap());
             self
         }
     };
@@ -75,6 +75,11 @@ impl CreateCommandOptsBuilder {
     object_setter!(range, CommandRange);
     object_setter!(complete, CommandComplete);
 
+    pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
+        self.desc = Some(desc.into().into());
+        self
+    }
+
     pub fn preview<F>(&mut self, f: F) -> &mut Self
     where
         F: FnMut(
@@ -82,7 +87,7 @@ impl CreateCommandOptsBuilder {
             ) -> crate::Result<u8>
             + 'static,
     {
-        self.preview = Some(Some(LuaFun::from_fn_mut(f).into()));
+        self.preview = Some(LuaFun::from_fn_mut(f).into());
         self
     }
 
@@ -95,34 +100,34 @@ impl CreateCommandOptsBuilder {
 // `/build/src/nvim/auto/keysets_defs.generated.h`.
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_user_command {
+pub(crate) struct KeyDict_user_command<'a> {
     bar: Object,
-    addr: Object,
+    addr: NonOwning<'a, Object>,
     bang: Object,
-    desc: Object,
+    desc: NonOwning<'a, Object>,
     count: Object,
     force: Object,
-    nargs: Object,
-    range: Object,
-    preview: Object,
-    complete: Object,
+    nargs: NonOwning<'a, Object>,
+    range: NonOwning<'a, Object>,
+    preview: NonOwning<'a, Object>,
+    complete: NonOwning<'a, Object>,
     register_: Object,
     keepscript: Object,
 }
 
-impl From<&CreateCommandOpts> for KeyDict_user_command {
-    fn from(opts: &CreateCommandOpts) -> Self {
+impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command<'a> {
+    fn from(opts: &'a CreateCommandOpts) -> Self {
         Self {
             bar: opts.bar.into(),
-            addr: opts.addr.clone().into(),
+            addr: opts.addr.non_owning(),
             bang: opts.bang.into(),
-            desc: opts.desc.clone().into(),
+            desc: opts.desc.non_owning(),
             count: opts.count.into(),
             force: opts.force.into(),
-            nargs: opts.nargs.clone().into(),
-            range: opts.range.clone().into(),
-            preview: opts.preview.clone().into(),
-            complete: opts.complete.clone().into(),
+            nargs: opts.nargs.non_owning(),
+            range: opts.range.non_owning(),
+            preview: opts.preview.non_owning(),
+            complete: opts.complete.non_owning(),
             register_: opts.register.into(),
             keepscript: opts.keepscript.into(),
         }

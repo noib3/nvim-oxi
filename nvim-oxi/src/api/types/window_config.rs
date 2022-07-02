@@ -87,6 +87,12 @@ impl WindowConfigBuilder {
     }
 }
 
+impl FromObject for WindowConfig {
+    fn from_obj(obj: Object) -> crate::Result<Self> {
+        Self::deserialize(object::Deserializer::new(obj))
+    }
+}
+
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_float_config {
@@ -136,11 +142,5 @@ impl From<&WindowConfig> for KeyDict_float_config {
             focusable: config.focusable.into(),
             noautocmd: config.noautocmd.into(),
         }
-    }
-}
-
-impl FromObject for WindowConfig {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
     }
 }

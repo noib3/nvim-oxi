@@ -20,8 +20,8 @@ impl SelectPopupMenuItemOptsBuilder {
     }
 }
 
-impl From<SelectPopupMenuItemOpts> for Dictionary {
-    fn from(_: SelectPopupMenuItemOpts) -> Self {
+impl From<&SelectPopupMenuItemOpts> for Dictionary {
+    fn from(_: &SelectPopupMenuItemOpts) -> Self {
         Dictionary::new()
     }
 }

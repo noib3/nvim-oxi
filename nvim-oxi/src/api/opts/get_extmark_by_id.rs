@@ -23,8 +23,8 @@ impl GetExtmarkByIdOptsBuilder {
     }
 }
 
-impl From<GetExtmarkByIdOpts> for Dictionary {
-    fn from(opts: GetExtmarkByIdOpts) -> Self {
+impl From<&GetExtmarkByIdOpts> for Dictionary {
+    fn from(opts: &GetExtmarkByIdOpts) -> Self {
         Self::from_iter([("details", opts.details)])
     }
 }

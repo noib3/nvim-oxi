@@ -20,8 +20,8 @@ impl NotifyOptsBuilder {
     }
 }
 
-impl From<NotifyOpts> for Dictionary {
-    fn from(_: NotifyOpts) -> Self {
+impl From<&NotifyOpts> for Dictionary {
+    fn from(_: &NotifyOpts) -> Self {
         Dictionary::new()
     }
 }

@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Object};
+use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::{AutocmdCallbackArgs, ShouldDeleteAutocmd};
 use crate::api::Buffer;
@@ -15,22 +15,23 @@ pub struct CreateAutocmdOpts {
     buffer: Option<Buffer>,
 
     /// Description of the autocommand.
-    #[builder(setter(into, strip_option))]
-    desc: Option<String>,
+    #[builder(setter(custom))]
+    desc: Object,
 
     /// Callback to execute when the autocommand is triggered. Cannot be used
     /// together with `command`.
     #[builder(setter(custom))]
-    callback: Option<Object>,
+    callback: Object,
 
     /// Vim command to execute when the autocommand is triggered. Cannot be
-    /// used together with `callback`>
-    #[builder(setter(into, strip_option))]
-    command: Option<String>,
+    /// used together with `callback`.
+    #[builder(setter(custom))]
+    command: Object,
 
     /// The autocommand group name or id to match against.
-    #[builder(setter(into, strip_option))]
-    group: Option<Object>,
+    // TODO: accept either string or int
+    #[builder(setter(into))]
+    group: Object,
 
     /// Run nested autocommands.
     #[builder(setter(strip_option))]
@@ -42,7 +43,7 @@ pub struct CreateAutocmdOpts {
 
     /// Patterns to match against.
     #[builder(setter(custom))]
-    patterns: Option<Object>,
+    patterns: Object,
 }
 
 impl CreateAutocmdOpts {
@@ -57,7 +58,17 @@ impl CreateAutocmdOptsBuilder {
     where
         F: FnMut(AutocmdCallbackArgs) -> Result<ShouldDeleteAutocmd> + 'static,
     {
-        self.callback = Some(Some(LuaFun::from_fn_mut(callback).into()));
+        self.callback = Some(LuaFun::from_fn_mut(callback).into());
+        self
+    }
+
+    pub fn command(&mut self, command: impl Into<nvim::String>) -> &mut Self {
+        self.command = Some(command.into().into());
+        self
+    }
+
+    pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
+        self.desc = Some(desc.into().into());
         self
     }
 
@@ -65,7 +76,7 @@ impl CreateAutocmdOptsBuilder {
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.patterns = Some(Some(Array::from_iter(patterns).into()));
+        self.patterns = Some(Array::from_iter(patterns).into());
         self
     }
 
@@ -76,28 +87,28 @@ impl CreateAutocmdOptsBuilder {
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_create_autocmd {
-    desc: Object,
+pub(crate) struct KeyDict_create_autocmd<'a> {
+    desc: NonOwning<'a, Object>,
     once: Object,
-    group: Object,
+    group: NonOwning<'a, Object>,
     buffer: Object,
     nested: Object,
-    command: Object,
-    pattern: Object,
-    callback: Object,
+    command: NonOwning<'a, Object>,
+    pattern: NonOwning<'a, Object>,
+    callback: NonOwning<'a, Object>,
 }
 
-impl From<CreateAutocmdOpts> for KeyDict_create_autocmd {
-    fn from(opts: CreateAutocmdOpts) -> Self {
+impl<'a> From<&'a CreateAutocmdOpts> for KeyDict_create_autocmd<'a> {
+    fn from(opts: &'a CreateAutocmdOpts) -> Self {
         Self {
-            desc: opts.desc.into(),
+            desc: opts.desc.non_owning(),
             once: opts.once.into(),
-            group: opts.group.into(),
+            group: opts.group.non_owning(),
             buffer: opts.buffer.into(),
             nested: opts.nested.into(),
-            command: opts.command.into(),
-            pattern: opts.patterns.into(),
-            callback: opts.callback.into(),
+            command: opts.command.non_owning(),
+            pattern: opts.patterns.non_owning(),
+            callback: opts.callback.non_owning(),
         }
     }
 }

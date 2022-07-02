@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Object, String as NvimString};
+use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::ContextType;
 
@@ -8,7 +8,7 @@ use crate::api::types::ContextType;
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetContextOpts {
     #[builder(setter(custom))]
-    types: Option<Vec<NvimString>>,
+    types: Object,
 }
 
 impl GetContextOpts {
@@ -23,7 +23,13 @@ impl GetContextOptsBuilder {
         &mut self,
         types: T,
     ) -> &mut Self {
-        self.types = Some(Some(types.into_iter().map(Into::into).collect()));
+        self.types = Some(
+            types
+                .into_iter()
+                .map(nvim::String::from)
+                .collect::<Array>()
+                .into(),
+        );
         self
     }
 
@@ -35,12 +41,12 @@ impl GetContextOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 #[derive(Default, Debug)]
-pub(crate) struct KeyDict_context {
-    types: Object,
+pub(crate) struct KeyDict_context<'a> {
+    types: NonOwning<'a, Object>,
 }
 
-impl From<GetContextOpts> for KeyDict_context {
-    fn from(opts: GetContextOpts) -> Self {
-        Self { types: opts.types.map(Array::from_iter).into() }
+impl<'a> From<&'a GetContextOpts> for KeyDict_context<'a> {
+    fn from(opts: &'a GetContextOpts) -> Self {
+        Self { types: opts.types.non_owning() }
     }
 }

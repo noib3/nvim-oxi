@@ -1,19 +1,19 @@
 use derive_builder::Builder;
-use nvim_types::{Object, String as NvimString, WinHandle};
+use nvim_types::{self as nvim, NonOwning, Object};
 use serde::Serialize;
 
-use crate::api::Buffer;
+use crate::api::{Buffer, Window};
 use crate::object;
 
 /// Options passed to `crate::api::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
-    #[builder(setter(into, strip_option))]
-    scope: Option<OptionScope>,
+    #[builder(setter(custom))]
+    scope: Object,
 
     #[builder(setter(into, strip_option))]
-    window: Option<WinHandle>,
+    window: Option<Window>,
 
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
@@ -27,6 +27,11 @@ impl OptionValueOpts {
 }
 
 impl OptionValueOptsBuilder {
+    pub fn scope(&mut self, scope: OptionScope) -> &mut Self {
+        self.scope = Some(nvim::String::from(scope).into());
+        self
+    }
+
     pub fn build(&mut self) -> OptionValueOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
@@ -39,7 +44,7 @@ pub enum OptionScope {
     Local,
 }
 
-impl From<OptionScope> for NvimString {
+impl From<OptionScope> for nvim::String {
     fn from(ctx: OptionScope) -> Self {
         ctx.serialize(object::Serializer)
             .expect("`OptionScope` is serializable")
@@ -50,18 +55,18 @@ impl From<OptionScope> for NvimString {
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_option {
+pub(crate) struct KeyDict_option<'a> {
     buf: Object,
     win: Object,
-    scope: Object,
+    scope: NonOwning<'a, Object>,
 }
 
-impl From<OptionValueOpts> for KeyDict_option {
-    fn from(opts: OptionValueOpts) -> Self {
+impl<'a> From<&'a OptionValueOpts> for KeyDict_option<'a> {
+    fn from(opts: &'a OptionValueOpts) -> Self {
         Self {
             buf: opts.buffer.into(),
-            win: opts.window.map(WinHandle::from).into(),
-            scope: opts.scope.map(NvimString::from).into(),
+            win: opts.window.into(),
+            scope: opts.scope.non_owning(),
         }
     }
 }

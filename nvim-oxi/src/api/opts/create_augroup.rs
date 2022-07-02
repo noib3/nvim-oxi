@@ -29,8 +29,8 @@ pub(crate) struct KeyDict_create_augroup {
     clear: Object,
 }
 
-impl From<CreateAugroupOpts> for KeyDict_create_augroup {
-    fn from(opts: CreateAugroupOpts) -> Self {
+impl From<&CreateAugroupOpts> for KeyDict_create_augroup {
+    fn from(opts: &CreateAugroupOpts) -> Self {
         Self { clear: opts.clear.into() }
     }
 }

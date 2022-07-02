@@ -108,7 +108,7 @@ impl super::Buffer {
         &self,
         ns_id: u32,
         extmark_id: u32,
-        opts: GetExtmarkByIdOpts,
+        opts: &GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
         let opts = Dictionary::from(opts);
         let mut err = NvimError::new();
@@ -141,7 +141,7 @@ impl super::Buffer {
         ns_id: u32,
         start: ExtmarkPosition,
         end: ExtmarkPosition,
-        opts: GetExtmarksOpts,
+        opts: &GetExtmarksOpts,
     ) -> Result<impl Iterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>>
     {
         let opts = Dictionary::from(opts);
@@ -228,7 +228,7 @@ pub fn get_namespaces() -> impl Iterator<Item = (String, u32)> {
 /// Sets or changes a decoration provider for a namespace.
 pub fn set_decoration_provider(
     ns_id: u32,
-    opts: DecorationProviderOpts,
+    opts: &DecorationProviderOpts,
 ) -> Result<()> {
     let opts = Dictionary::from(opts);
     let mut err = NvimError::new();

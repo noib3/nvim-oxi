@@ -25,7 +25,7 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
 ///
 /// Creates a new autocommand group or gets an existing one. To get the id of
 /// an existing augroup set the `clear` field of `opts` to `false`.
-pub fn create_augroup(name: &str, opts: CreateAugroupOpts) -> Result<u32> {
+pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
     let name = NvimString::from(name);
     let mut err = NvimError::new();
     let id = unsafe {
@@ -42,7 +42,10 @@ pub fn create_augroup(name: &str, opts: CreateAugroupOpts) -> Result<u32> {
 /// Binding to `nvim_create_autocmd`.
 ///
 /// Creates a new autocommand.
-pub fn create_autocmd<'a, I>(events: I, opts: CreateAutocmdOpts) -> Result<u32>
+pub fn create_autocmd<'a, I>(
+    events: I,
+    opts: &CreateAutocmdOpts,
+) -> Result<u32>
 where
     I: IntoIterator<Item = &'a str>,
 {

@@ -1,17 +1,17 @@
 use derive_builder::Builder;
-use nvim_types::{Object, String as NvimString};
+use nvim_types::{self as nvim, NonOwning, Object};
 
 use crate::lua::LuaFun;
 
 /// Options passed to `Buffer::set_keymap`.
-#[derive(Clone, Debug, Default, Builder)]
+#[derive(Clone, Debug, Default, PartialEq, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetKeymapOpts {
     #[builder(setter(custom))]
-    callback: Option<LuaFun<(), ()>>,
+    callback: Object,
 
-    #[builder(setter(into, strip_option))]
-    desc: Option<NvimString>,
+    #[builder(setter(custom))]
+    desc: Object,
 
     #[builder(setter(strip_option))]
     expr: Option<bool>,
@@ -44,7 +44,12 @@ impl SetKeymapOptsBuilder {
     where
         F: FnMut(()) -> crate::Result<()> + 'static,
     {
-        self.callback = Some(Some(LuaFun::from_fn_mut(fun)));
+        self.callback = Some(LuaFun::from_fn_mut(fun).into());
+        self
+    }
+
+    pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
+        self.desc = Some(desc.into().into());
         self
     }
 
@@ -55,28 +60,28 @@ impl SetKeymapOptsBuilder {
 
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_keymap {
-    desc: Object,
+pub(crate) struct KeyDict_keymap<'a> {
+    desc: NonOwning<'a, Object>,
     expr: Object,
     script: Object,
     silent: Object,
     unique: Object,
     nowait: Object,
     noremap: Object,
-    callback: Object,
+    callback: NonOwning<'a, Object>,
 }
 
-impl From<&SetKeymapOpts> for KeyDict_keymap {
-    fn from(opts: &SetKeymapOpts) -> Self {
+impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap<'a> {
+    fn from(opts: &'a SetKeymapOpts) -> Self {
         Self {
-            desc: opts.desc.clone().into(),
+            desc: opts.desc.non_owning(),
             expr: opts.expr.into(),
             script: opts.script.into(),
             silent: opts.silent.into(),
             unique: opts.unique.into(),
             nowait: opts.nowait.into(),
             noremap: opts.noremap.into(),
-            callback: opts.callback.clone().into(),
+            callback: opts.callback.non_owning(),
         }
     }
 }

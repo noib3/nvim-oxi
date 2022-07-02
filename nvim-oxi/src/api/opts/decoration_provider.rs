@@ -101,14 +101,14 @@ impl DecorationProviderOptsBuilder {
     }
 }
 
-impl From<DecorationProviderOpts> for Dictionary {
-    fn from(opts: DecorationProviderOpts) -> Self {
+impl From<&DecorationProviderOpts> for Dictionary {
+    fn from(opts: &DecorationProviderOpts) -> Self {
         Self::from_iter([
-            ("on_start", opts.on_start),
-            ("on_buf", opts.on_buf),
-            ("on_win", opts.on_win),
-            ("on_line", opts.on_line),
-            ("on_end", opts.on_end),
+            ("on_start", opts.on_start.clone()),
+            ("on_buf", opts.on_buf.clone()),
+            ("on_win", opts.on_win.clone()),
+            ("on_line", opts.on_line.clone()),
+            ("on_end", opts.on_end.clone()),
         ])
     }
 }

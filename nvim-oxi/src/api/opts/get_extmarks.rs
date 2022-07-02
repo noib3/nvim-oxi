@@ -27,8 +27,8 @@ impl GetExtmarksOptsBuilder {
     }
 }
 
-impl From<GetExtmarksOpts> for Dictionary {
-    fn from(opts: GetExtmarksOpts) -> Self {
+impl From<&GetExtmarksOpts> for Dictionary {
+    fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([
             ("limits", Object::from(opts.limits)),
             ("details", opts.details.into()),

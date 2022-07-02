@@ -57,8 +57,8 @@ pub(crate) struct KeyDict_eval_statusline {
     use_tabline: Object,
 }
 
-impl From<EvalStatuslineOpts> for KeyDict_eval_statusline {
-    fn from(opts: EvalStatuslineOpts) -> Self {
+impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
+    fn from(opts: &EvalStatuslineOpts) -> Self {
         Self {
             winid: opts.winid.into(),
             fillchar: opts.fillchar.into(),

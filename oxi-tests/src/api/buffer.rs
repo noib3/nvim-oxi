@@ -16,7 +16,7 @@ pub fn attach() {
         .on_changedtick(|_args| Ok(false))
         .build();
 
-    let has_attached = buf.attach(false, opts).expect("attach failed");
+    let has_attached = buf.attach(false, &opts).expect("attach failed");
     assert!(has_attached);
 
     let bytes_written = api::input("ifoo<Esc>");
@@ -43,7 +43,7 @@ pub fn create_del_user_command() {
     api::command("Bar").unwrap();
 
     let opts = GetCommandsOpts::builder().build();
-    assert_eq!(2, buf.get_commands(opts).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(2, buf.get_commands(&opts).unwrap().collect::<Vec<_>>().len());
 
     assert_eq!(Ok(()), buf.del_user_command("Foo"));
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
@@ -63,7 +63,7 @@ pub fn loaded_n_valid() {
 pub fn new_buf_delete() {
     let buf = api::create_buf(true, false).unwrap();
     let opts = BufDeleteOpts::builder().build();
-    assert_eq!(Ok(()), buf.delete(opts));
+    assert_eq!(Ok(()), buf.delete(&opts));
 }
 
 pub fn set_get_del_keymap() {

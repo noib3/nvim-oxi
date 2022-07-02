@@ -41,7 +41,7 @@ pub fn get_extmarks() {
     let opts = GetExtmarksOpts::builder().details(true).build();
 
     let res = buf
-        .get_extmarks(ns_id, start, end, opts)
+        .get_extmarks(ns_id, start, end, &opts)
         .map(|iter| iter.collect::<Vec<_>>());
     assert!(res.is_ok(), "{res:?}");
 
@@ -104,7 +104,7 @@ pub fn set_decoration_provider() {
         })
         .build();
 
-    let res = api::set_decoration_provider(id, opts);
+    let res = api::set_decoration_provider(id, &opts);
     assert_eq!(Ok(()), res);
 
     // TODO: I don't think the callbacks are getting triggered. If they were
@@ -141,7 +141,7 @@ pub fn set_get_del_extmark() {
     let extmark_id = res.unwrap();
 
     let opts = GetExtmarkByIdOpts::builder().details(true).build();
-    let got = buf.get_extmark_by_id(ns_id, extmark_id, opts);
+    let got = buf.get_extmark_by_id(ns_id, extmark_id, &opts);
     assert!(got.is_ok(), "{got:?}");
 
     let (row, col, infos) = got.unwrap();

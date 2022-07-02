@@ -161,7 +161,7 @@ pub fn err_writeln(str: &str) {
 /// Evaluates a string to be displayed in the statusline.
 pub fn eval_statusline(
     str: &str,
-    opts: EvalStatuslineOpts,
+    opts: &EvalStatuslineOpts,
 ) -> Result<StatuslineInfos> {
     let str = NvimString::from(str);
     let mut err = NvimError::new();
@@ -224,7 +224,7 @@ pub fn get_color_map() -> impl Iterator<Item = (String, u32)> {
 /// Returns an iterator over the infos of the global ex commands. Only
 /// user-defined commands are returned, not builtin ones.
 pub fn get_commands(
-    opts: GetCommandsOpts,
+    opts: &GetCommandsOpts,
 ) -> Result<impl Iterator<Item = CommandInfos>> {
     let mut err = NvimError::new();
     let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
@@ -236,7 +236,7 @@ pub fn get_commands(
 /// Binding to `nvim_get_context`.
 ///
 /// Returns a snapshot of the current editor state.
-pub fn get_context(opts: GetContextOpts) -> Result<EditorContext> {
+pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let mut err = NvimError::new();
     let ctx = unsafe { nvim_get_context(&opts.into(), &mut err) };
     err.into_err_or_flatten(|| EditorContext::from_obj(ctx.into()))
@@ -318,7 +318,7 @@ pub fn get_keymap(mode: Mode) -> impl Iterator<Item = KeymapInfos> {
 /// of the named mark. Marks are (1,0)-indexed.
 pub fn get_mark(
     name: char,
-    opts: GetMarkOpts,
+    opts: &GetMarkOpts,
 ) -> Result<(usize, usize, Buffer, String)> {
     let name = NvimString::from(name);
     let opts = Dictionary::from(opts);
@@ -376,7 +376,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
 /// window consider using `Buffer::get_option` or `Window::get_option` instead.
-pub fn get_option_value<N, V>(name: N, opts: OptionValueOpts) -> Result<V>
+pub fn get_option_value<N, V>(name: N, opts: &OptionValueOpts) -> Result<V>
 where
     V: FromObject,
     N: Into<NvimString>,
@@ -555,7 +555,7 @@ pub fn load_context(ctx: EditorContext) {
 pub fn notify(
     msg: impl Into<NvimString>,
     log_level: LogLevel,
-    opts: NotifyOpts,
+    opts: &NotifyOpts,
 ) -> Result<()> {
     let opts = Dictionary::from(opts);
     let mut err = NvimError::new();
@@ -573,7 +573,7 @@ pub fn notify(
 /// Binding to `nvim_open_term`.
 ///
 /// Opens a terminal instance in a buffer.
-pub fn open_term(buffer: Buffer, opts: OpenTermOpts) -> Result<u32> {
+pub fn open_term(buffer: Buffer, opts: &OpenTermOpts) -> Result<u32> {
     let opts = Dictionary::from(opts);
     let mut err = NvimError::new();
     let chan_id =
@@ -653,7 +653,7 @@ pub fn select_popupmenu_item(
     item: usize,
     insert: bool,
     finish: bool,
-    opts: SelectPopupMenuItemOpts,
+    opts: &SelectPopupMenuItemOpts,
 ) -> Result<()> {
     let opts = Dictionary::from(opts);
     let mut err = NvimError::new();
@@ -796,7 +796,7 @@ pub fn set_option<V: ToObject>(
 pub fn set_option_value<N, V>(
     name: N,
     value: V,
-    opts: OptionValueOpts,
+    opts: &OptionValueOpts,
 ) -> Result<()>
 where
     N: Into<NvimString>,

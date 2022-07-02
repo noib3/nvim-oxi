@@ -25,8 +25,8 @@ impl BufDeleteOptsBuilder {
     }
 }
 
-impl From<BufDeleteOpts> for Dictionary {
-    fn from(opts: BufDeleteOpts) -> Self {
+impl From<&BufDeleteOpts> for Dictionary {
+    fn from(opts: &BufDeleteOpts) -> Self {
         Self::from_iter([("force", opts.force), ("unload", opts.unload)])
     }
 }

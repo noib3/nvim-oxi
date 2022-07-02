@@ -63,7 +63,7 @@ impl Buffer {
     pub fn attach(
         &self,
         send_buffer: bool,
-        opts: BufAttachOpts,
+        opts: &BufAttachOpts,
     ) -> Result<bool> {
         // TODO: map false to `Err`
         let mut err = NvimError::new();
@@ -173,7 +173,7 @@ impl Buffer {
     }
 
     // Binding to `nvim_buf_delete`.
-    pub fn delete(self, opts: BufDeleteOpts) -> Result<()> {
+    pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
         let mut err = NvimError::new();
         let opts = Dictionary::from(opts);
         unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
@@ -192,7 +192,7 @@ impl Buffer {
     /// Returns an iterator over the buffer-local `CommandInfos`.
     pub fn get_commands(
         &self,
-        opts: GetCommandsOpts,
+        opts: &GetCommandsOpts,
     ) -> Result<impl Iterator<Item = CommandInfos>> {
         let mut err = NvimError::new();
         let cmds =

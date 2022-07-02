@@ -16,7 +16,7 @@ pub type OnInputArgs = (
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OpenTermOpts {
     #[builder(setter(custom))]
-    on_input: Option<LuaFun<OnInputArgs, ()>>,
+    on_input: Object,
 }
 
 impl OpenTermOpts {
@@ -31,7 +31,7 @@ impl OpenTermOptsBuilder {
     where
         F: FnMut(OnInputArgs) -> crate::Result<()> + 'static,
     {
-        self.on_input = Some(Some(LuaFun::from_fn_mut(fun)));
+        self.on_input = Some(LuaFun::from_fn_mut(fun).into());
         self
     }
 
@@ -40,8 +40,8 @@ impl OpenTermOptsBuilder {
     }
 }
 
-impl From<OpenTermOpts> for Dictionary {
-    fn from(opts: OpenTermOpts) -> Self {
-        Self::from_iter([("on_input", Object::from(opts.on_input))])
+impl From<&OpenTermOpts> for Dictionary {
+    fn from(opts: &OpenTermOpts) -> Self {
+        Self::from_iter([("on_input", opts.on_input.clone())])
     }
 }

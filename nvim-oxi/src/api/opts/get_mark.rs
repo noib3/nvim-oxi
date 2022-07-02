@@ -20,8 +20,8 @@ impl GetMarkOptsBuilder {
     }
 }
 
-impl From<GetMarkOpts> for Dictionary {
-    fn from(_: GetMarkOpts) -> Self {
+impl From<&GetMarkOpts> for Dictionary {
+    fn from(_: &GetMarkOpts) -> Self {
         Dictionary::new()
     }
 }
