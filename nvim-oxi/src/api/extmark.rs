@@ -157,14 +157,20 @@ impl super::Buffer {
             )
         };
         err.into_err_or_else(move || {
-            extmarks.into_iter().flat_map(|tuple| {
+            extmarks.into_iter().map(|tuple| {
                 let mut iter = Array::try_from(tuple).unwrap().into_iter();
-                let id = iter.next().expect("id is present").try_into()?;
-                let row = iter.next().expect("row is present").try_into()?;
-                let col = iter.next().expect("col is present").try_into()?;
-                let infos =
-                    iter.next().map(ExtmarkInfos::from_obj).transpose()?;
-                Ok::<_, crate::Error>((id, row, col, infos))
+                let id =
+                    iter.next().expect("id is present").try_into().unwrap();
+                let row =
+                    iter.next().expect("row is present").try_into().unwrap();
+                let col =
+                    iter.next().expect("col is present").try_into().unwrap();
+                let infos = iter
+                    .next()
+                    .map(ExtmarkInfos::from_obj)
+                    .transpose()
+                    .unwrap();
+                (id, row, col, infos)
             })
         })
     }

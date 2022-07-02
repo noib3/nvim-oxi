@@ -114,5 +114,7 @@ pub fn get_autocmds(
 ) -> Result<impl Iterator<Item = AutocmdInfos>> {
     let mut err = NvimError::new();
     let infos = unsafe { nvim_get_autocmds(&opts.into(), &mut err) };
-    err.into_err_or_else(|| infos.into_iter().flat_map(AutocmdInfos::from_obj))
+    err.into_err_or_else(|| {
+        infos.into_iter().map(|obj| AutocmdInfos::from_obj(obj).unwrap())
+    })
 }

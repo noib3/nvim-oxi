@@ -198,7 +198,8 @@ impl Buffer {
         let cmds =
             unsafe { nvim_buf_get_commands(self.0, &opts.into(), &mut err) };
         err.into_err_or_else(|| {
-            cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
+            cmds.into_iter()
+                .map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
         })
     }
 
@@ -220,7 +221,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            maps.into_iter().flat_map(KeymapInfos::from_obj)
+            maps.into_iter().map(|obj| KeymapInfos::from_obj(obj).unwrap())
         })
     }
 
@@ -248,7 +249,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().flat_map(NvimString::try_from)
+            lines.into_iter().map(|line| NvimString::try_from(line).unwrap())
         })
     }
 
@@ -334,7 +335,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().flat_map(NvimString::try_from)
+            lines.into_iter().map(|line| NvimString::try_from(line).unwrap())
         })
     }
 

@@ -185,7 +185,9 @@ pub fn get_all_options_info() -> Result<impl Iterator<Item = OptionInfos>> {
     let mut err = NvimError::new();
     let infos = unsafe { nvim_get_all_options_info(&mut err) };
     err.into_err_or_else(|| {
-        infos.into_iter().flat_map(|(_, optinf)| OptionInfos::from_obj(optinf))
+        infos
+            .into_iter()
+            .map(|(_, optinf)| OptionInfos::from_obj(optinf).unwrap())
     })
 }
 
@@ -229,7 +231,7 @@ pub fn get_commands(
     let mut err = NvimError::new();
     let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
     err.into_err_or_else(|| {
-        cmds.into_iter().flat_map(|(_, cmd)| CommandInfos::from_obj(cmd))
+        cmds.into_iter().map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
     })
 }
 
@@ -309,7 +311,7 @@ pub fn get_keymap(mode: Mode) -> impl Iterator<Item = KeymapInfos> {
     let mode = NvimString::from(mode);
     unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
         .into_iter()
-        .flat_map(KeymapInfos::from_obj)
+        .map(|obj| KeymapInfos::from_obj(obj).unwrap())
 }
 
 /// Binding to `nvim_get_mark`.
@@ -405,7 +407,9 @@ pub fn get_proc_children(
 ) -> Result<impl Iterator<Item = u32>> {
     let mut err = NvimError::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
-    err.into_err_or_else(|| procs.into_iter().flat_map(u32::try_from))
+    err.into_err_or_else(|| {
+        procs.into_iter().map(|obj| u32::try_from(obj).unwrap())
+    })
 }
 
 /// Binding to `nvim_get_runtime_file`.
@@ -422,8 +426,8 @@ pub fn get_runtime_file(
     err.into_err_or_else(|| {
         files
             .into_iter()
-            .flat_map(NvimString::try_from)
-            .flat_map(PathBuf::try_from)
+            .map(|obj| NvimString::try_from(obj).unwrap())
+            .filter_map(|str| PathBuf::try_from(str).ok())
     })
 }
 
@@ -497,14 +501,18 @@ pub fn input_mouse(
 /// buffers (like `:ls!`). Use `crate::api::Buffer::is_loaded` to check if a
 /// buffer is loaded.
 pub fn list_bufs() -> impl Iterator<Item = Buffer> {
-    unsafe { nvim_list_bufs() }.into_iter().flat_map(Buffer::from_obj)
+    unsafe { nvim_list_bufs() }
+        .into_iter()
+        .map(|obj| Buffer::from_obj(obj).unwrap())
 }
 
 /// Binding to `nvim_list_chans`.
 ///
 /// Returns an iterator over the informations about all the open channels.
 pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
-    unsafe { nvim_list_chans() }.into_iter().flat_map(ChannelInfos::from_obj)
+    unsafe { nvim_list_chans() }
+        .into_iter()
+        .map(|obj| ChannelInfos::from_obj(obj).unwrap())
 }
 
 /// Binding to `nvim_list_runtime_paths`.
@@ -516,8 +524,8 @@ pub fn list_runtime_paths() -> Result<impl Iterator<Item = PathBuf>> {
     err.into_err_or_else(|| {
         paths
             .into_iter()
-            .flat_map(NvimString::try_from)
-            .flat_map(PathBuf::try_from)
+            .map(|obj| NvimString::try_from(obj).unwrap())
+            .filter_map(|str| PathBuf::try_from(str).ok())
     })
 }
 
