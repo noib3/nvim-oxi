@@ -58,6 +58,7 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::global::set_get_option();
         api::global::strwidth();
 
+        api::tabpage::get_list_wins();
         api::tabpage::get_number();
         api::tabpage::is_valid();
         api::tabpage::set_get_del_var();
@@ -77,12 +78,14 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::win_config::set_config();
 
         api::window::call();
+        api::window::close_hide();
+        api::window::get_number();
         api::window::get_position();
+        api::window::get_set_buf();
+        api::window::get_set_height_width(); // TODO: this should fail
+        api::window::get_tabpage();
         api::window::set_get_cursor();
         api::window::set_get_del_var();
-
-        //
-        api::tabpage::get_list_wins();
     });
 
     process::exit(match result {

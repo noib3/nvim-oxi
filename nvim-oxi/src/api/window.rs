@@ -69,8 +69,7 @@ impl Window {
     /// Binding to `nvim_win_close`.
     ///
     /// Closes the window. When allowed when `textlock` is active.
-    // TODO: take owned `self`?
-    pub fn close(&mut self, force: bool) -> Result<()> {
+    pub fn close(self, force: bool) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_close(self.0, force, &mut err) };
         err.into_err_or_else(|| ())
@@ -176,8 +175,7 @@ impl Window {
     /// Binding to `nvim_win_hide`.
     ///
     /// Closes the window and hides the buffer it contains.
-    // TODO: take owned `self`?
-    pub fn hide(&mut self) -> Result<()> {
+    pub fn hide(self) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_hide(self.0, &mut err) };
         err.into_err_or_else(|| ())
