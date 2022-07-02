@@ -71,6 +71,20 @@ impl Window {
         })
     }
 
+    /// Binding to `nvim_win_get_position`.
+    ///
+    /// Gets the window position in display cells.
+    pub fn get_position(&self) -> Result<(usize, usize)> {
+        let mut err = nvim::Error::new();
+        let arr = unsafe { nvim_win_get_position(self.0, &mut err) };
+        err.into_err_or_flatten(|| {
+            let mut iter = arr.into_iter();
+            let line = iter.next().unwrap().try_into()?;
+            let col = iter.next().unwrap().try_into()?;
+            Ok((line, col))
+        })
+    }
+
     /// Binding to `nvim_win_get_var`.
     ///
     /// Gets a window-scoped (w:) variable.

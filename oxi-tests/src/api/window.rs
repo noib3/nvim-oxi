@@ -1,5 +1,9 @@
 use nvim_oxi::api::{Buffer, Window};
 
+pub fn get_position() {
+    assert_eq!(Ok((1, 0)), Window::current().get_position());
+}
+
 pub fn set_get_cursor() {
     let mut buf = Buffer::current();
     buf.set_lines(0, 1, true, ["foo"]).unwrap();
