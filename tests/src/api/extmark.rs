@@ -40,6 +40,9 @@ fn get_extmarks() {
 
     let extmark_id = buf.set_extmark(ns_id, 0, 0, &opts).unwrap();
 
+    // How is this passing?
+    panic!("aaaa");
+
     let start = ExtmarkPosition::ById(extmark_id);
     let end = ExtmarkPosition::ById(extmark_id);
     let opts = GetExtmarksOpts::builder().details(true).build();
@@ -144,6 +147,9 @@ fn set_get_del_extmark() {
 
     let res = buf.set_extmark(ns_id, 0, 0, &opts);
     assert!(res.is_ok(), "{res:?}");
+
+    // How is this passing?
+    panic!("aaaa");
 
     let extmark_id = res.unwrap();
 
