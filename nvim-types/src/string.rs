@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
+use std::mem::ManuallyDrop;
 #[cfg(target_family = "unix")]
 use std::os::unix::ffi::OsStrExt;
 #[cfg(target_family = "windows")]
@@ -9,6 +10,10 @@ use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
+#[cfg(feature = "serde")]
+use serde::de;
+
+use crate::NonOwning;
 
 /// Neovim's `String`s:
 ///   - are null-terminated;
@@ -22,7 +27,7 @@ use libc::{c_char, size_t};
 /// for how a C string gets converted into a Neovim string.
 ///
 /// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
-#[derive(Eq)]
+#[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
     pub data: *mut c_char,
@@ -30,7 +35,7 @@ pub struct String {
 }
 
 impl String {
-    /// TODO: docs
+    /// Creates a [`String`] from a byte vector.
     #[inline]
     pub fn from_bytes(mut vec: Vec<u8>) -> Self {
         vec.reserve_exact(1);
@@ -42,19 +47,21 @@ impl String {
         Self { data, size }
     }
 
-    /// TODO: docs
+    /// Returns `true` if the `String` has a length of zero, and `false`
+    /// otherwise.
     #[inline]
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    /// TODO: docs
+    /// Returns the byte length of the `String`, *not* including the final null
+    /// byte.
     #[inline]
     pub const fn len(&self) -> usize {
         self.size
     }
 
-    /// TODO: docs
+    /// Returns a byte slice of this `String`'s contents.
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         if self.data.is_null() {
@@ -64,38 +71,49 @@ impl String {
         }
     }
 
-    /// TODO: docs
+    /// Returns a string slice of this `String`'s contents. Fails if it doesn't
+    /// contain a valid UTF-8 byte sequence.
     #[inline]
     pub fn as_str(&self) -> Result<&str, str::Utf8Error> {
         str::from_utf8(self.as_bytes())
     }
 
-    /// TODO: docs
+    /// Converts the `String` into Rust's `std::string::String`. If it already
+    /// holds a valid UTF-8 byte sequence no allocation is made. If it doesn't
+    /// the `String` is copied and all invalid sequences are replaced with `�`.
     #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
         StdString::from_utf8_lossy(self.as_bytes())
     }
 
-    /// Converts an `NvimString` into a byte vector, consuming the string.
+    /// Converts the `String` into a byte vector, consuming it.
     #[inline]
     pub fn into_bytes(self) -> Vec<u8> {
-        unsafe {
-            if self.data.is_null() {
-                Vec::new()
-            } else {
+        if self.data.is_null() {
+            Vec::new()
+        } else {
+            unsafe {
+                let mdrop = ManuallyDrop::new(self);
                 Vec::from_raw_parts(
-                    self.data.cast::<u8>(),
-                    self.size,
-                    self.size,
+                    mdrop.data as *mut u8,
+                    mdrop.size,
+                    mdrop.size,
                 )
             }
         }
     }
 
-    /// TODO: docs
+    /// Converts the `String` into Rust's `std::string::String`, consuming it.
+    /// Fails if it doesn't contain a valid UTF-8 byte sequence.
     #[inline]
     pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
         StdString::from_utf8(self.into_bytes())
+    }
+
+    /// Makes a non-owning version of this `String`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, String> {
+        NonOwning::new(Self { ..*self })
     }
 }
 
@@ -108,9 +126,30 @@ impl fmt::Debug for String {
     }
 }
 
+impl fmt::Display for String {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.to_string_lossy().to_owned())
+    }
+}
+
+impl Default for String {
+    fn default() -> Self {
+        Self { data: std::ptr::null_mut(), size: 0 }
+    }
+}
+
 impl Clone for String {
     fn clone(&self) -> Self {
         Self::from_bytes(self.as_bytes().to_owned())
+    }
+}
+
+impl Drop for String {
+    fn drop(&mut self) {
+        // One extra for null terminator.
+        let _ = unsafe {
+            Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
+        };
     }
 }
 
@@ -121,9 +160,9 @@ impl From<StdString> for String {
     }
 }
 
-impl<'a> From<&'a str> for String {
+impl From<&str> for String {
     #[inline]
-    fn from(str: &'a str) -> Self {
+    fn from(str: &str) -> Self {
         Self::from_bytes(str.as_bytes().to_owned())
     }
 }
@@ -135,10 +174,24 @@ impl From<char> for String {
     }
 }
 
-impl<'a> From<Cow<'a, str>> for String {
+impl From<Cow<'_, str>> for String {
     #[inline]
-    fn from(moo: Cow<'a, str>) -> Self {
+    fn from(moo: Cow<'_, str>) -> Self {
         moo.into_owned().into()
+    }
+}
+
+impl From<Vec<u8>> for String {
+    #[inline]
+    fn from(vec: Vec<u8>) -> Self {
+        Self::from_bytes(vec)
+    }
+}
+
+impl From<PathBuf> for String {
+    #[inline]
+    fn from(path: PathBuf) -> Self {
+        path.display().to_string().into()
     }
 }
 
@@ -172,9 +225,9 @@ impl PartialEq<str> for String {
     }
 }
 
-impl<'a> PartialEq<&'a str> for String {
+impl PartialEq<&str> for String {
     #[inline]
-    fn eq(&self, other: &&'a str) -> bool {
+    fn eq(&self, other: &&str) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
@@ -191,6 +244,40 @@ impl TryFrom<String> for StdString {
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         StdString::from_utf8(s.into_bytes())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> de::Deserialize<'de> for String {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        struct StringVisitor;
+
+        impl<'de> de::Visitor<'de> for StringVisitor {
+            type Value = String;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("either a string of a byte vector")
+            }
+
+            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(String::from_bytes(b.to_owned()))
+            }
+
+            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(String::from(s))
+            }
+        }
+
+        deserializer.deserialize_str(StringVisitor)
     }
 }
 

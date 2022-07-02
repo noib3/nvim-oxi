@@ -1,4 +1,3 @@
-use std::mem::ManuallyDrop;
 use std::string::String as StdString;
 
 use nvim_types::{Object, ObjectType};
@@ -39,8 +38,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             kObjectTypeInteger => visitor.visit_i64(unsafe { data.integer }),
             kObjectTypeFloat => visitor.visit_f64(unsafe { data.float }),
             kObjectTypeString => {
-                let string =
-                    ManuallyDrop::into_inner(unsafe { self.obj.data.string });
+                let string = unsafe { self.obj.into_string_unchecked() };
                 match string.as_str() {
                     Ok(str) => visitor.visit_str(str),
                     _ => visitor.visit_bytes(string.as_bytes()),
@@ -84,10 +82,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         use ObjectType::*;
         let (variant, obj) = match self.obj.r#type {
             kObjectTypeDictionary => {
-                let mut iter = ManuallyDrop::into_inner(unsafe {
-                    self.obj.data.dictionary
-                })
-                .into_iter();
+                let mut iter =
+                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
 
                 let (variant, value) = match iter.len() {
                     1 => iter.next().expect("checked length"),
@@ -103,8 +99,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             },
 
             kObjectTypeString => (
-                ManuallyDrop::into_inner(unsafe { self.obj.data.string })
-                    .into_string()?,
+                unsafe { self.obj.into_string_unchecked() }.into_string()?,
                 None,
             ),
 
@@ -123,8 +118,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         match self.obj.r#type {
             kObjectTypeArray => {
                 let iter =
-                    ManuallyDrop::into_inner(unsafe { self.obj.data.array })
-                        .into_iter();
+                    unsafe { self.obj.into_array_unchecked() }.into_iter();
                 let mut deserializer = SeqDeserializer { iter };
                 visitor.visit_seq(&mut deserializer)
             },
@@ -165,10 +159,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         use ObjectType::*;
         match self.obj.r#type {
             kObjectTypeDictionary => {
-                let iter = ManuallyDrop::into_inner(unsafe {
-                    self.obj.data.dictionary
-                })
-                .into_iter();
+                let iter =
+                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
                 let mut deserializer = MapDeserializer { iter, obj: None };
                 visitor.visit_map(&mut deserializer)
             },
@@ -207,7 +199,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 }
 
 struct SeqDeserializer {
-    iter: nvim_types::ArrayIter,
+    iter: nvim_types::ArrayIterator,
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
@@ -230,7 +222,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: nvim_types::DictIter,
+    iter: nvim_types::DictIterator,
     obj: Option<Object>,
 }
 
@@ -352,6 +344,108 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
                 de::Unexpected::NewtypeVariant,
                 &"unit variant",
             )),
+        }
+    }
+}
+
+pub(crate) mod utils {
+    //! Utility functions for deserializing values coming from Neovim.
+
+    use serde::de::{self, Deserialize, Deserializer, IntoDeserializer};
+
+    pub(crate) fn bool_from_int<'de, D>(
+        deserializer: D,
+    ) -> Result<bool, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        match u8::deserialize(deserializer)? {
+            0 => Ok(false),
+            1 => Ok(true),
+
+            other => Err(de::Error::invalid_value(
+                de::Unexpected::Unsigned(other as u64),
+                &"zero or one",
+            )),
+        }
+    }
+
+    pub(crate) fn char_from_string<'de, D>(
+        deserializer: D,
+    ) -> Result<Option<char>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let str = String::deserialize(deserializer)?;
+        match str.len() {
+            0 => Ok(None),
+            1 => Ok(str.chars().next()),
+            other => Err(de::Error::invalid_length(
+                other,
+                &"empty string or string with a single character",
+            )),
+        }
+    }
+
+    pub(crate) fn empty_string_is_none<'de, D, T>(
+        deserializer: D,
+    ) -> Result<Option<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+        T: Deserialize<'de>,
+    {
+        let str = Option::<String>::deserialize(deserializer)?;
+
+        match str {
+            None => Ok(None),
+            Some(s) if s.is_empty() => Ok(None),
+            Some(s) => T::deserialize(s.into_deserializer()).map(Some),
+        }
+    }
+
+    pub(crate) fn minus_one_is_none<'de, D, T>(
+        deserializer: D,
+    ) -> Result<Option<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+        T: Deserialize<'de>,
+    {
+        let num = i64::deserialize(deserializer)?;
+
+        match num {
+            -1 => Ok(None),
+            n => T::deserialize(n.into_deserializer()).map(Some),
+        }
+    }
+
+    pub(crate) fn none_literal_is_none<'de, D, T>(
+        deserializer: D,
+    ) -> Result<Option<T>, D::Error>
+    where
+        D: de::Deserializer<'de>,
+        T: Deserialize<'de>,
+    {
+        let str = Option::<String>::deserialize(deserializer)?;
+
+        match str {
+            None => Ok(None),
+            Some(s) if s == "none" => Ok(None),
+            Some(s) => T::deserialize(s.into_deserializer()).map(Some),
+        }
+    }
+
+    pub(crate) fn zero_is_none<'de, D, T>(
+        deserializer: D,
+    ) -> Result<Option<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+        T: Deserialize<'de>,
+    {
+        let num = i64::deserialize(deserializer)?;
+
+        match num {
+            0 => Ok(None),
+            n => T::deserialize(n.into_deserializer()).map(Some),
         }
     }
 }

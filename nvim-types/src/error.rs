@@ -6,7 +6,7 @@ use std::result::Result as StdResult;
 use libc::c_char;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
-#[derive(thiserror::Error)]
+#[derive(thiserror::Error, Eq, PartialEq)]
 #[repr(C)]
 pub struct Error {
     r#type: ErrorType,
@@ -15,6 +15,7 @@ pub struct Error {
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
 #[allow(dead_code, non_camel_case_types)]
+#[derive(Eq, PartialEq)]
 #[repr(C)]
 pub enum ErrorType {
     kErrorTypeNone = -1,
@@ -37,14 +38,14 @@ impl Default for Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if !self.msg.is_null() {
-            write!(f, "{:?}", unsafe { CStr::from_ptr(self.msg) })
+            fmt::Debug::fmt(unsafe { CStr::from_ptr(self.msg) }, f)
         } else {
             use ErrorType::*;
             let msg = match self.r#type {

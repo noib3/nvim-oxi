@@ -2,6 +2,7 @@ mod array;
 mod collection;
 mod dictionary;
 mod error;
+mod non_owning;
 mod object;
 mod string;
 
@@ -9,6 +10,7 @@ pub use array::*;
 pub use collection::*;
 pub use dictionary::*;
 pub use error::*;
+pub use non_owning::*;
 pub use object::*;
 pub use string::*;
 

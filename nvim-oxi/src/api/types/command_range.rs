@@ -9,14 +9,19 @@ use crate::object::{self, ToObject};
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize)]
 pub enum CommandRange {
-    #[serde(rename(deserialize = "."), serialize_with = "serialize_as_true")]
+    #[serde(serialize_with = "serialize_as_true")]
     CurrentLine,
 
     #[serde(rename = "%")]
     WholeFile,
 
-    #[serde(deserialize_with = "parse_string")]
     Count(u32),
+}
+
+impl ToObject for CommandRange {
+    fn to_obj(self) -> crate::Result<Object> {
+        self.serialize(object::Serializer)
+    }
 }
 
 impl<'de> de::Deserialize<'de> for CommandRange {
@@ -64,10 +69,4 @@ where
     S: ser::Serializer,
 {
     serializer.serialize_bool(true)
-}
-
-impl ToObject for CommandRange {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
-    }
 }

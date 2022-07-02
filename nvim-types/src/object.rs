@@ -2,17 +2,19 @@ use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
 use std::mem::ManuallyDrop;
+use std::ops::Deref;
 use std::result::Result as StdResult;
 use std::string::String as StdString;
 
 use crate::{
-    array::Array,
-    dictionary::Dictionary,
-    string::String as NvimString,
+    Array,
     Boolean,
+    Dictionary,
     Float,
     Integer,
     LuaRef,
+    NonOwning,
+    String as NvimString,
 };
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
@@ -68,6 +70,37 @@ impl Object {
     pub const fn is_some(&self) -> bool {
         !self.is_nil()
     }
+
+    /// Make a non-owning version of this `Object`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        // Using ptr::read, because can't copy the union.
+        unsafe { NonOwning::new(std::ptr::read(self)) }
+    }
+
+    /// Extracts the inner `String` from the object, without checking that the
+    /// object actually represents a `String`.
+    #[inline]
+    pub unsafe fn into_string_unchecked(self) -> NvimString {
+        let str = ManuallyDrop::new(self);
+        NvimString { ..*str.data.string }
+    }
+
+    /// Extracts the inner `Array` from the object, without checking that the
+    /// object actually represents an `Array`.
+    #[inline]
+    pub unsafe fn into_array_unchecked(self) -> Array {
+        let array = ManuallyDrop::new(self);
+        Array { ..*array.data.array }
+    }
+
+    /// Extracts the inner `Dictionary` from the object, without checking that
+    /// the object actually represents a `Dictionary`.
+    #[inline]
+    pub unsafe fn into_dict_unchecked(self) -> Dictionary {
+        let dict = ManuallyDrop::new(self);
+        Dictionary { ..*dict.data.dictionary }
+    }
 }
 
 impl Default for Object {
@@ -94,6 +127,23 @@ impl fmt::Debug for Object {
             .field("type", &self.r#type)
             .field("data", data)
             .finish()
+    }
+}
+
+impl fmt::Display for Object {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let inner: &dyn fmt::Display = match self.r#type {
+            kObjectTypeNil => &"()",
+            kObjectTypeBoolean => unsafe { &self.data.boolean },
+            kObjectTypeInteger => unsafe { &self.data.integer },
+            kObjectTypeFloat => unsafe { &self.data.float },
+            kObjectTypeString => unsafe { self.data.string.deref() },
+            kObjectTypeArray => unsafe { self.data.array.deref() },
+            kObjectTypeDictionary => unsafe { self.data.dictionary.deref() },
+            kObjectTypeLuaRef => unsafe { &self.data.luaref },
+        };
+
+        f.debug_tuple("Object").field(&inner.to_string()).finish()
     }
 }
 
@@ -135,26 +185,51 @@ impl Clone for Object {
     }
 }
 
-// impl Drop for Object {
-//     fn drop(&mut self) {
-//         use ObjectType::*;
-//         match self.r#type {
-//             kObjectTypeString => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.string)
-//             },
+impl Drop for Object {
+    fn drop(&mut self) {
+        use ObjectType::*;
+        match self.r#type {
+            kObjectTypeString => unsafe {
+                ManuallyDrop::drop(&mut self.data.string)
+            },
 
-//             kObjectTypeArray => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.array)
-//             },
+            kObjectTypeArray => unsafe {
+                ManuallyDrop::drop(&mut self.data.array)
+            },
 
-//             kObjectTypeDictionary => unsafe {
-//                 ManuallyDrop::drop(&mut self.data.dictionary)
-//             },
+            kObjectTypeDictionary => unsafe {
+                ManuallyDrop::drop(&mut self.data.dictionary)
+            },
 
-//             _ => {},
-//         }
-//     }
-// }
+            _ => {},
+        }
+    }
+}
+
+impl PartialEq<Self> for Object {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        if self.r#type != other.r#type {
+            return false;
+        };
+
+        let (lhs, rhs) = (&self.data, &other.data);
+
+        unsafe {
+            use ObjectType::*;
+            match self.r#type {
+                kObjectTypeNil => true,
+                kObjectTypeBoolean => lhs.boolean == rhs.boolean,
+                kObjectTypeInteger => lhs.boolean == rhs.boolean,
+                kObjectTypeFloat => lhs.float == rhs.float,
+                kObjectTypeString => lhs.string == rhs.string,
+                kObjectTypeArray => lhs.array == rhs.array,
+                kObjectTypeDictionary => lhs.dictionary == rhs.dictionary,
+                kObjectTypeLuaRef => lhs.luaref == rhs.luaref,
+            }
+        }
+    }
+}
 
 impl From<()> for Object {
     fn from(_: ()) -> Self {
@@ -233,7 +308,7 @@ impl From<StdString> for Object {
     }
 }
 
-impl<'a> From<&'a str> for Object {
+impl From<&str> for Object {
     #[inline(always)]
     fn from(s: &str) -> Self {
         NvimString::from(s).into()
@@ -267,20 +342,20 @@ where
     }
 }
 
-impl<'a, T> From<Cow<'a, T>> for Object
+impl<T> From<Cow<'_, T>> for Object
 where
     T: Clone,
     Object: From<T>,
 {
     #[inline(always)]
-    fn from(moo: Cow<'a, T>) -> Self {
+    fn from(moo: Cow<'_, T>) -> Self {
         moo.into_owned().into()
     }
 }
 
 impl<T> FromIterator<T> for Object
 where
-    Object: From<T>,
+    T: Into<Object>,
 {
     #[inline(always)]
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
@@ -317,6 +392,27 @@ pub enum FromObjectError {
     },
 }
 
+impl PartialEq<Self> for FromObjectError {
+    fn eq(&self, other: &Self) -> bool {
+        use FromObjectError::*;
+        match (self, other) {
+            (
+                Primitive { expected: e1, actual: a1 },
+                Primitive { expected: e2, actual: a2 },
+            ) => (e1 == e2) && (a1 == a2),
+
+            (
+                Secondary { primitive: p1, into: i1, source: _ },
+                Secondary { primitive: p2, into: i2, source: _ },
+            ) => (p1 == p2) && (i1 == i2),
+
+            _ => false,
+        }
+    }
+}
+
+impl Eq for FromObjectError {}
+
 impl FromObjectError {
     pub fn secondary<E, T>(primitive: ObjectType, err: E) -> Self
     where
@@ -337,7 +433,7 @@ impl TryFrom<Object> for () {
     type Error = FromObjectError;
 
     fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-        (matches!(obj.r#type, kObjectTypeNil)).then(|| ()).ok_or_else(|| {
+        (matches!(obj.r#type, kObjectTypeNil)).then_some(()).ok_or_else(|| {
             Primitive { expected: kObjectTypeNil, actual: obj.r#type }
         })
     }
@@ -351,7 +447,7 @@ macro_rules! try_from_copy {
 
             fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
                 (matches!(obj.r#type, $variant))
-                    .then(|| unsafe { obj.data.$data })
+                    .then_some(unsafe { obj.data.$data })
                     .ok_or_else(|| Primitive {
                         expected: $variant,
                         actual: obj.r#type,
@@ -367,16 +463,14 @@ try_from_copy!(Float, kObjectTypeFloat, float);
 
 /// Implements `TryFrom<Object>` for primitive `ManuallyDrop` types.
 macro_rules! try_from_man_drop {
-    ($type:ident, $variant:ident, $data:ident) => {
+    ($type:ident, $variant:ident, $into_inner:ident) => {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
             fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
                 let ty = obj.r#type;
                 (matches!(ty, ObjectType::$variant))
-                    .then(|| unsafe {
-                        ManuallyDrop::into_inner(obj.data.$data)
-                    })
+                    .then_some(unsafe { obj.$into_inner() })
                     .ok_or_else(|| FromObjectError::Primitive {
                         expected: ObjectType::$variant,
                         actual: ty,
@@ -386,9 +480,9 @@ macro_rules! try_from_man_drop {
     };
 }
 
-try_from_man_drop!(NvimString, kObjectTypeString, string);
-try_from_man_drop!(Array, kObjectTypeArray, array);
-try_from_man_drop!(Dictionary, kObjectTypeDictionary, dictionary);
+try_from_man_drop!(NvimString, kObjectTypeString, into_string_unchecked);
+try_from_man_drop!(Array, kObjectTypeArray, into_array_unchecked);
+try_from_man_drop!(Dictionary, kObjectTypeDictionary, into_dict_unchecked);
 
 /// Implements `TryFrom<Object>` for a type that implements `TryFrom<{prim}>`,
 /// where `{prim}` is one of the primitive data types.
@@ -419,3 +513,17 @@ try_from_prim!(Integer, isize, kObjectTypeInteger);
 try_from_prim!(Integer, usize, kObjectTypeInteger);
 
 try_from_prim!(NvimString, StdString, kObjectTypeString);
+
+#[cfg(test)]
+mod tests {
+    use super::{Object, StdString};
+
+    #[test]
+    fn std_string_to_obj_and_back() {
+        let str = StdString::from("foo");
+        let obj = Object::from(str.clone());
+        let str_again = StdString::try_from(obj);
+        assert!(str_again.is_ok());
+        assert_eq!(str, str_again.unwrap());
+    }
+}

@@ -6,6 +6,7 @@ use crate::lua::LuaFun;
 use crate::object::{self, FromObject};
 use crate::Result;
 
+#[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandInfos {
     pub addr: Option<CommandAddr>,
@@ -21,7 +22,7 @@ pub struct CommandInfos {
     pub nargs: Option<CommandNArgs>,
     pub range: Option<CommandRange>,
     pub register: bool,
-    pub script_id: u32,
+    pub script_id: i32,
 }
 
 impl FromObject for CommandInfos {

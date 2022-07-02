@@ -29,7 +29,7 @@ pub(crate) struct KeyDict_get_commands {
     builtin: Object,
 }
 
-impl<'a> From<&'a GetCommandsOpts> for KeyDict_get_commands {
+impl From<&GetCommandsOpts> for KeyDict_get_commands {
     fn from(opts: &GetCommandsOpts) -> Self {
         Self { builtin: opts.builtin.into() }
     }

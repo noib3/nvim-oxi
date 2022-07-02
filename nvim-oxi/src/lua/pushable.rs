@@ -1,5 +1,3 @@
-use std::mem::ManuallyDrop;
-
 use libc::{c_char, c_int};
 use nvim_types::Object;
 
@@ -32,7 +30,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeString => {
-                let string = ManuallyDrop::into_inner(self.data.string);
+                let string = self.into_string_unchecked();
                 lua_pushlstring(
                     lstate,
                     string.data as *const c_char,
@@ -41,7 +39,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeArray => {
-                let array = ManuallyDrop::into_inner(self.data.array);
+                let array = self.into_array_unchecked();
                 lua_createtable(lstate, array.len().try_into()?, 0);
 
                 for (i, obj) in array.into_iter().enumerate() {
@@ -51,7 +49,7 @@ impl ObjectExt for Object {
             },
 
             kObjectTypeDictionary => {
-                let dict = ManuallyDrop::into_inner(self.data.dictionary);
+                let dict = self.into_dict_unchecked();
                 lua_createtable(lstate, 0, dict.len().try_into()?);
 
                 for (key, value) in dict {

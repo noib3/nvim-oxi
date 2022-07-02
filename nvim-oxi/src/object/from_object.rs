@@ -14,7 +14,7 @@ macro_rules! impl_try_from {
         impl FromObject for $type {
             #[inline(always)]
             fn from_obj(obj: Object) -> Result<Self> {
-                Self::try_from(obj).map_err(crate::Error::from)
+                Self::try_from(obj).map_err(From::from)
             }
         }
     };

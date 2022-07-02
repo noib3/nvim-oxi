@@ -4,7 +4,7 @@ use serde::{de, ser};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Eq, PartialEq)]
 pub enum Error {
     #[error(transparent)]
     NvimError(#[from] nvim_types::Error),
@@ -14,9 +14,6 @@ pub enum Error {
 
     #[error(transparent)]
     BadUtf8Error(#[from] std::string::FromUtf8Error),
-
-    #[error(transparent)]
-    NulByteStringError(#[from] std::ffi::NulError),
 
     #[error(transparent)]
     IntError(#[from] std::num::TryFromIntError),
@@ -31,7 +28,13 @@ pub enum Error {
     LuaFunMutRecursiveCallback,
 
     #[error("FnOnce called more than once")]
-    LuaFunOnceMoreThanOnceCallback,
+    LuaFunOnceMoreThanOnce,
+
+    #[error("Lua runtime error: {0}")]
+    LuaRuntimeError(String),
+
+    #[error("Lua memory error: {0}")]
+    LuaMemoryError(String),
 }
 
 impl ser::Error for Error {

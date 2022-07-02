@@ -1,10 +1,12 @@
 //! This module contains functionality common to both `Array`s and
 //! `Dictionary`s.
 
-use std::ops::{Deref, Index};
-use std::slice::{self, SliceIndex};
+use std::ops::{Deref, DerefMut};
+use std::slice;
 
 use libc::size_t;
+
+use crate::NonOwning;
 
 #[repr(C)]
 pub struct Collection<T> {
@@ -41,6 +43,11 @@ impl<T> Collection<T> {
     }
 
     #[inline]
+    pub(crate) fn as_mut_slice(&self) -> &mut [T] {
+        unsafe { slice::from_raw_parts_mut(self.items.as_ptr(), self.size) }
+    }
+
+    #[inline]
     pub(crate) unsafe fn from_raw_parts(
         ptr: *mut T,
         size: usize,
@@ -48,11 +55,32 @@ impl<T> Collection<T> {
     ) -> Self {
         Self { items: ptr, size, capacity }
     }
+
+    /// Make a non-owning version of this `Collection`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        NonOwning::new(Self { ..*self })
+    }
 }
 
 impl<T: Clone> Clone for Collection<T> {
     fn clone(&self) -> Self {
         self.as_slice().to_owned().into()
+    }
+}
+
+impl<T> Drop for Collection<T> {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            Vec::from_raw_parts(self.items.as_ptr(), self.size, self.size)
+        };
+    }
+}
+
+impl<T: PartialEq> PartialEq for Collection<T> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
     }
 }
 
@@ -64,16 +92,22 @@ impl<T> Deref for Collection<T> {
     }
 }
 
-impl<I, T> Index<I> for Collection<T>
-where
-    I: SliceIndex<[T]>,
-{
-    type Output = <I as SliceIndex<[T]>>::Output;
-
-    fn index(&self, index: I) -> &Self::Output {
-        self.deref().index(index)
+impl<T> DerefMut for Collection<T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.as_mut_slice()
     }
 }
+
+// impl<I, T> Index<I> for Collection<T>
+// where
+//     I: SliceIndex<[T]>,
+// {
+//     type Output = <I as SliceIndex<[T]>>::Output;
+
+// fn index(&self, index: I) -> &Self::Output {
+//     self.deref().index(index)
+// }
+// }
 
 impl<T> From<Vec<T>> for Collection<T> {
     #[inline]

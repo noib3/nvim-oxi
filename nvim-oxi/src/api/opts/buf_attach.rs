@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
-use crate::api::buffer::Buffer;
+use crate::api::Buffer;
 use crate::lua::LuaFun;
 
 /// Arguments passed to the function registered to `on_lines`.
@@ -61,19 +61,19 @@ pub type ShouldDetach = bool;
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
-    on_lines: Option<LuaFun<OnLinesArgs, ShouldDetach>>,
+    on_lines: Object,
 
     #[builder(setter(custom))]
-    on_bytes: Option<LuaFun<OnBytesArgs, ShouldDetach>>,
+    on_bytes: Object,
 
     #[builder(setter(custom))]
-    on_changedtick: Option<LuaFun<OnChangedtickArgs, ShouldDetach>>,
+    on_changedtick: Object,
 
     #[builder(setter(custom))]
-    on_detach: Option<LuaFun<OnDetachArgs, ShouldDetach>>,
+    on_detach: Object,
 
     #[builder(setter(custom))]
-    on_reload: Option<LuaFun<OnReloadArgs, ShouldDetach>>,
+    on_reload: Object,
 
     utf_sizes: bool,
     preview: bool,
@@ -92,7 +92,7 @@ macro_rules! lua_fn_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(Some(LuaFun::from_fn_mut(fun)));
+            self.$name = Some(LuaFun::from_fn_mut(fun).into());
             self
         }
     };
@@ -110,14 +110,15 @@ impl BufAttachOptsBuilder {
     }
 }
 
-impl From<BufAttachOpts> for Dictionary {
-    fn from(opts: BufAttachOpts) -> Self {
+impl From<&BufAttachOpts> for Dictionary {
+    fn from(opts: &BufAttachOpts) -> Self {
+        // TODO: don't clone
         Self::from_iter([
-            ("on_lines", Object::from(opts.on_lines)),
-            ("on_bytes", opts.on_bytes.into()),
-            ("on_changedtick", opts.on_changedtick.into()),
-            ("on_detach", opts.on_detach.into()),
-            ("on_reload", opts.on_reload.into()),
+            ("on_lines", opts.on_lines.clone()),
+            ("on_bytes", opts.on_bytes.clone()),
+            ("on_changedtick", opts.on_changedtick.clone()),
+            ("on_detach", opts.on_detach.clone()),
+            ("on_reload", opts.on_reload.clone()),
             ("utf_sizes", opts.utf_sizes.into()),
             ("preview", opts.preview.into()),
         ])
