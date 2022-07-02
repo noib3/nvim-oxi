@@ -14,7 +14,11 @@ use nvim_types::{
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L410
-    pub(crate) fn nvim_win_call(win: WinHandle, fun: LuaRef, err: *mut Error);
+    pub(crate) fn nvim_win_call(
+        win: WinHandle,
+        fun: LuaRef,
+        err: *mut Error,
+    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L374
     pub(crate) fn nvim_win_close(

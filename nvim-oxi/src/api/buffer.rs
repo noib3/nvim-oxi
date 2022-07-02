@@ -82,7 +82,7 @@ impl Buffer {
 
     /// Binding to `nvim_buf_call`.
     ///
-    /// Calls a closure with the buffer as the temporary current buffer.
+    /// Calls a function with this buffer as the temporary current buffer.
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
         R: ToObject + FromObject,

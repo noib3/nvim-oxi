@@ -1,5 +1,11 @@
 use nvim_oxi::api::{Buffer, Window};
 
+pub fn call() {
+    let win = Window::current();
+    let res = win.call(|_| Ok(()));
+    assert_eq!(Ok(()), res);
+}
+
 pub fn get_position() {
     assert_eq!(Ok((1, 0)), Window::current().get_position());
 }

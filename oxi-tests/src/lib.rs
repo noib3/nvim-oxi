@@ -76,6 +76,7 @@ fn liboxi_tests() -> nvim::Result<()> {
         api::win_config::open_win_full_config();
         api::win_config::set_config();
 
+        api::window::call();
         api::window::get_position();
         api::window::set_get_cursor();
         api::window::set_get_del_var();

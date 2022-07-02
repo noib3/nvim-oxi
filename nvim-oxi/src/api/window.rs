@@ -4,6 +4,7 @@ use nvim_types::{self as nvim, Array, Integer, Object, WinHandle};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::window::*;
+use crate::lua::LuaFun;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -45,6 +46,23 @@ impl Window {
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_win()
+    }
+
+    /// Binding to `nvim_win_call`.
+    ///
+    /// Calls a function with this window as the temporary current window.
+    pub fn call<R, F>(&self, fun: F) -> Result<R>
+    where
+        R: ToObject + FromObject,
+        F: FnOnce(()) -> Result<R> + 'static,
+    {
+        let fun = LuaFun::from_fn_once(fun);
+        let mut err = nvim::Error::new();
+        let obj = unsafe { nvim_win_call(self.0, fun.0, &mut err) };
+        err.into_err_or_flatten(move || {
+            fun.unref();
+            R::from_obj(obj)
+        })
     }
 
     /// Binding to `nvim_win_del_var`.
