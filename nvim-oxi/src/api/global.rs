@@ -1,13 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use nvim_types::{
-    self as nvim,
-    Array,
-    Dictionary,
-    Integer,
-    Object,
-    WinHandle,
-};
+use nvim_types::{self as nvim, Array, Dictionary, Integer, Object};
 
 use super::ffi::global::*;
 use super::opts::*;
@@ -545,9 +538,10 @@ pub fn list_uis() -> impl Iterator<Item = UiInfos> {
 /// Binding to `nvim_list_wins`.
 ///
 /// Gets the current list of `Window`s.
-pub fn list_wins() -> impl Iterator<Item = WinHandle> {
-    // TODO: return `Window`s once they are implemented
-    unsafe { nvim_list_wins() }.into_iter().flat_map(WinHandle::try_from)
+pub fn list_wins() -> impl Iterator<Item = Window> {
+    unsafe { nvim_list_wins() }
+        .into_iter()
+        .map(|obj| Window::from_obj(obj).unwrap())
 }
 
 /// Binding to `nvim_load_context`.
@@ -722,10 +716,9 @@ pub fn set_current_tabpage(tabpage: TabPage) -> Result<()> {
 /// Binding to `nvim_set_current_win`.
 ///
 /// Sets the current window.
-pub fn set_current_win(win: WinHandle) -> Result<()> {
-    // TODO: use `Window` once it's implemented.
+pub fn set_current_win(win: Window) -> Result<()> {
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_current_win(win, &mut err) };
+    unsafe { nvim_set_current_win(win.0, &mut err) };
     err.into_err_or_else(|| ())
 }
 

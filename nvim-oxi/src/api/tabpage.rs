@@ -1,9 +1,10 @@
 use std::fmt;
 
-use nvim_types::{self as nvim, Object, TabHandle, WinHandle};
+use nvim_types::{self as nvim, Object, TabHandle};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::tabpage::*;
+use super::Window;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -84,11 +85,10 @@ impl TabPage {
     /// Binding to `nvim_tabpage_get_win`.
     ///
     /// Gets the current window in a tabpage.
-    // TODO: return `Window` when that's implemented
-    pub fn get_win(&self) -> Result<WinHandle> {
+    pub fn get_win(&self) -> Result<Window> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_tabpage_get_win(self.0, &mut err) };
-        err.into_err_or_else(|| handle)
+        err.into_err_or_else(|| handle.into())
     }
 
     /// Binding to `nvim_tabpage_is_valid`.
@@ -101,14 +101,11 @@ impl TabPage {
     /// Binding to `nvim_tabpage_list_wins`.
     ///
     /// Gets the windows in a tabpage.
-    // TODO: return `Window` when that's implemented
-    pub fn list_wins(&self) -> Result<impl Iterator<Item = WinHandle>> {
+    pub fn list_wins(&self) -> Result<impl Iterator<Item = Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
         err.into_err_or_else(|| {
-            list.into_iter().map(|win| {
-                WinHandle::try_from(win).expect("object is a window handle")
-            })
+            list.into_iter().map(|obj| Window::from_obj(obj).unwrap())
         })
     }
 

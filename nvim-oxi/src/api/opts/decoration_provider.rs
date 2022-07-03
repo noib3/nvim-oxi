@@ -1,7 +1,7 @@
 use derive_builder::Builder;
-use nvim_types::{Dictionary, Object, WinHandle};
+use nvim_types::{Dictionary, Object};
 
-use crate::api::Buffer;
+use crate::api::{Buffer, Window};
 use crate::lua::LuaFun;
 
 /// Arguments passed to the function registered to `on_start`.
@@ -21,19 +21,19 @@ pub type OnBufArgs = (
 
 /// Arguments passed to the function registered to `on_win`.
 pub type OnWinArgs = (
-    String,    // the string literal "win"
-    WinHandle, // window. TODO: change to `Window`
-    Buffer,    // buffer
-    u32,       // topline
-    u32,       // botline guess
+    String, // the string literal "win"
+    Window, // window
+    Buffer, // buffer
+    u32,    // topline
+    u32,    // botline guess
 );
 
 /// Arguments passed to the function registered to `on_line`.
 pub type OnLineArgs = (
-    String,    // the string literal "win"
-    WinHandle, // window. TODO: change to `Window`
-    Buffer,    // buffer
-    usize,     // row
+    String, // the string literal "win"
+    Window, // window
+    Buffer, // buffer
+    usize,  // row
 );
 
 /// Arguments passed to the function registered to `on_reload`.

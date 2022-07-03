@@ -1,6 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::Object;
 
+use crate::api::Window;
+
 /// Options passed to `crate::api::eval_statusline`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
@@ -27,10 +29,9 @@ pub struct EvalStatuslineOpts {
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
-    // TODO: accept an `api::Window` here once that's implemented.
     /// Window id of the window to use as context for the statusline.
     #[builder(setter(into, strip_option))]
-    winid: Option<u32>,
+    winid: Option<Window>,
 }
 
 impl EvalStatuslineOpts {
