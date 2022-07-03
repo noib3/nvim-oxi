@@ -1,4 +1,5 @@
 [workspace]
+
 members = [
   "nvim-oxi",
   "nvim-types",
@@ -6,9 +7,7 @@ members = [
   "oxi-test",
 ]
 
-default-members = [
-  "nvim-oxi",
-  "nvim-types",
+exclude = [
+  "examples",
+  "tests",
 ]
-
-exclude = ["tests"]
