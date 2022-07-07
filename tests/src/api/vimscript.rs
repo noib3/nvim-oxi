@@ -6,6 +6,7 @@ use nvim_oxi::{self as oxi, api, opts::*, types::*};
 //     assert_eq!(Ok(7), res);
 // }
 
+#[cfg(feature = "nightly")]
 #[oxi::test]
 fn cmd_basic() {
     let opts = CmdOpts::builder().output(true).build();
@@ -13,6 +14,7 @@ fn cmd_basic() {
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
+#[cfg(feature = "nightly")]
 #[oxi::test]
 fn cmd_no_output() {
     let opts = CmdOpts::builder().output(false).build();

@@ -57,7 +57,7 @@ fn get_extmarks() {
 
     let (id, row, col, infos) = extmarks.into_iter().next().unwrap();
 
-    assert!(infos.is_some(), "no information where returned");
+    assert!(infos.is_some(), "no informations were returned");
     let infos = infos.unwrap();
 
     assert_eq!(extmark_id, id);
@@ -160,7 +160,7 @@ fn set_get_del_extmark() {
     let (row, col, infos) = got.unwrap();
     assert_eq!((row, col), (0, 0));
 
-    assert!(infos.is_some(), "no information where returned");
+    assert!(infos.is_some(), "no informations were returned");
 
     let infos = infos.unwrap();
     assert_eq!(Some(true), infos.end_right_gravity);

@@ -54,6 +54,7 @@ where
 ///
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
+#[cfg(feature = "nightly")]
 pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
     let mut err = nvim::Error::new();
     let output = unsafe {
