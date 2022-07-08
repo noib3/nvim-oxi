@@ -140,24 +140,13 @@ fn set_get_del_text() {
 
     assert_eq!(Ok(()), buf.set_text::<String, _>(0, 0, 2, 3, []));
 
-    // Please someone explain to me how these two give different lengths
-    // because evidently I'm too fucking retarded to get it.
-    assert_eq!(
-        0,
-        buf.get_text(0, 0, 0, 1)
-            .unwrap()
-            .map(String::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap()
-            .len()
-    );
-
     assert_eq!(
         1,
         buf.get_text(0, 0, 0, 1)
             .unwrap()
             .map(String::try_from)
-            .collect::<Vec<Result<_, _>>>()
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
             .len()
     );
 

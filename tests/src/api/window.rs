@@ -35,7 +35,7 @@ fn win_get_number() {
 
 #[oxi::test]
 fn get_position() {
-    assert_eq!(Ok((1, 0)), Window::current().get_position());
+    assert_eq!(Ok((0, 0)), Window::current().get_position());
 }
 
 #[oxi::test]

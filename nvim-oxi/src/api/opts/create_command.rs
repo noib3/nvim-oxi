@@ -43,6 +43,7 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     nargs: Object,
 
+    #[cfg(feature = "nightly")]
     #[builder(setter(custom))]
     preview: Object,
 
@@ -80,6 +81,7 @@ impl CreateCommandOptsBuilder {
         self
     }
 
+    #[cfg(feature = "nightly")]
     pub fn preview<F>(&mut self, f: F) -> &mut Self
     where
         F: FnMut(
@@ -109,6 +111,7 @@ pub(crate) struct KeyDict_user_command<'a> {
     force: Object,
     nargs: NonOwning<'a, Object>,
     range: NonOwning<'a, Object>,
+    #[cfg(feature = "nightly")]
     preview: NonOwning<'a, Object>,
     complete: NonOwning<'a, Object>,
     register_: Object,
@@ -126,6 +129,7 @@ impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command<'a> {
             force: opts.force.into(),
             nargs: opts.nargs.non_owning(),
             range: opts.range.non_owning(),
+            #[cfg(feature = "nightly")]
             preview: opts.preview.non_owning(),
             complete: opts.complete.non_owning(),
             register_: opts.register.into(),

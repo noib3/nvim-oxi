@@ -92,30 +92,6 @@ impl Drop for ArrayIterator {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{Array, Object};
-
-    #[test]
-    fn iter_basic() {
-        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
-
-        let mut iter = array.into_iter();
-        assert_eq!(Some(Object::from("Foo")), iter.next());
-        assert_eq!(Some(Object::from("Bar")), iter.next());
-        assert_eq!(Some(Object::from("Baz")), iter.next());
-        assert_eq!(None, iter.next());
-    }
-
-    #[test]
-    fn drop_iter_halfway() {
-        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
-
-        let mut iter = array.into_iter();
-        assert_eq!(Some(Object::from("Foo")), iter.next());
-    }
-}
-
 macro_rules! impl_from_tuple {
     ($($ty:ident),*) => {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
@@ -143,3 +119,34 @@ impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
 impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
 impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn iter_basic() {
+        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
+
+        let mut iter = array.into_iter();
+        assert_eq!(Some(Object::from("Foo")), iter.next());
+        assert_eq!(Some(Object::from("Bar")), iter.next());
+        assert_eq!(Some(Object::from("Baz")), iter.next());
+        assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn drop_iter_halfway() {
+        let array = Array::from_iter(["Foo", "Bar", "Baz"]);
+
+        let mut iter = array.into_iter();
+        assert_eq!(Some(Object::from("Foo")), iter.next());
+    }
+
+    #[test]
+    fn empty_array() {
+        let empty = Array { size: 0, capacity: 0, items: ptr::null_mut() };
+        let vec = empty.into_iter().collect::<Vec<_>>();
+        assert_eq!(0, vec.len());
+    }
+}

@@ -13,6 +13,7 @@ pub struct ExecAutocmdsOpts {
     buffer: Option<Buffer>,
 
     // TODO: what to put here?
+    #[cfg(feature = "nightly")]
     data: (),
 
     /// The autocommand group name or id to match against.
@@ -51,9 +52,11 @@ impl ExecAutocmdsOptsBuilder {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Debug)]
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
-    data: Object,
+    #[cfg(feature = "nightly")]
+    data: Object, // not present in 0.7.2
     group: NonOwning<'a, Object>,
     buffer: Object,
     pattern: NonOwning<'a, Object>,
@@ -63,6 +66,7 @@ pub(crate) struct KeyDict_exec_autocmds<'a> {
 impl<'a> From<&'a ExecAutocmdsOpts> for KeyDict_exec_autocmds<'a> {
     fn from(opts: &'a ExecAutocmdsOpts) -> KeyDict_exec_autocmds<'a> {
         Self {
+            #[cfg(feature = "nightly")]
             data: opts.data.into(),
             group: opts.group.non_owning(),
             buffer: opts.buffer.into(),

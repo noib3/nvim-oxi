@@ -26,6 +26,7 @@ pub struct EvalStatuslineOpts {
 
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// `use_tabline`.
+    #[cfg(feature = "nightly")]
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
@@ -54,7 +55,8 @@ pub(crate) struct KeyDict_eval_statusline {
     fillchar: Object,
     maxwidth: Object,
     highlights: Object,
-    use_winbar: Object,
+    #[cfg(feature = "nightly")]
+    use_winbar: Object, // not present in 0.7.2
     use_tabline: Object,
 }
 
@@ -65,6 +67,7 @@ impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
             fillchar: opts.fillchar.into(),
             maxwidth: opts.maxwidth.into(),
             highlights: opts.highlights.into(),
+            #[cfg(feature = "nightly")]
             use_winbar: opts.use_winbar.into(),
             use_tabline: opts.use_tabline.into(),
         }

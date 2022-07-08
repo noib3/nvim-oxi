@@ -12,9 +12,11 @@ pub struct OptionValueOpts {
     #[builder(setter(custom))]
     scope: Object,
 
+    #[cfg(feature = "nightly")]
     #[builder(setter(into, strip_option))]
     window: Option<Window>,
 
+    #[cfg(feature = "nightly")]
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 }
@@ -56,7 +58,9 @@ impl From<OptionScope> for nvim::String {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_option<'a> {
+    #[cfg(feature = "nightly")]
     buf: Object,
+    #[cfg(feature = "nightly")]
     win: Object,
     scope: NonOwning<'a, Object>,
 }
@@ -64,7 +68,9 @@ pub(crate) struct KeyDict_option<'a> {
 impl<'a> From<&'a OptionValueOpts> for KeyDict_option<'a> {
     fn from(opts: &'a OptionValueOpts) -> Self {
         Self {
+            #[cfg(feature = "nightly")]
             buf: opts.buffer.into(),
+            #[cfg(feature = "nightly")]
             win: opts.window.into(),
             scope: opts.scope.non_owning(),
         }

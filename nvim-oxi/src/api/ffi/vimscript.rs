@@ -51,6 +51,7 @@ extern "C" {
     ) -> String;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/command.c#L77
+    #[cfg(feature = "nightly")]
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,
         opts: NonOwning<Dictionary>,

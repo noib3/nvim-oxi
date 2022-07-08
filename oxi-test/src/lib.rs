@@ -91,7 +91,11 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
             }
 
-            ::std::fs::copy(&from_path, &to_path).unwrap();
+            #[cfg(target_family = "unix")]
+            ::std::os::unix::fs::symlink(&from_path, &to_path).unwrap();
+
+            #[cfg(target_family = "windows")]
+            ::std::os::windows::fs::symlink_file(&from_path, &to_path).unwrap();
 
             let out = ::std::process::Command::new("nvim")
                 .args(["-u", "NONE", "--headless"])

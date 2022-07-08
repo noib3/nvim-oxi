@@ -78,6 +78,7 @@ pub struct SetExtmarkOpts {
 
     /// Whether the mark should be drawn by an external UI. When `true` the UI
     /// will receive `win_extmark` events.
+    #[cfg(feature = "nightly")]
     #[builder(setter(into, strip_option))]
     ui_watched: Option<bool>,
 
@@ -248,6 +249,7 @@ pub(crate) struct KeyDict_set_extmark<'a> {
     ephemeral: Object,
     sign_text: NonOwning<'a, Object>,
     virt_text: NonOwning<'a, Object>,
+    #[cfg(feature = "nightly")]
     ui_watched: Object,
     virt_lines: NonOwning<'a, Object>,
     line_hl_group: NonOwning<'a, Object>,
@@ -279,6 +281,7 @@ impl<'a> From<&'a SetExtmarkOpts> for KeyDict_set_extmark<'a> {
             ephemeral: opts.ephemeral.into(),
             sign_text: opts.sign_text.non_owning(),
             virt_text: opts.virt_text.non_owning(),
+            #[cfg(feature = "nightly")]
             ui_watched: opts.ui_watched.into(),
             virt_lines: opts.virt_lines.non_owning(),
             line_hl_group: opts.line_hl_group.non_owning(),

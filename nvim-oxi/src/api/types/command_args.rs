@@ -1,7 +1,6 @@
 use nvim_types::Object;
 use serde::Deserialize;
 
-use super::CommandModifiers;
 use crate::object::{self, de::utils, FromObject};
 
 /// Arguments passed to callbacks registered with
@@ -12,21 +11,18 @@ use crate::object::{self, de::utils, FromObject};
 pub struct CommandArgs {
     #[serde(deserialize_with = "utils::empty_string_is_none")]
     pub args: Option<String>,
-
     pub bang: bool,
     pub count: i32,
     pub fargs: Vec<String>,
     pub line1: usize,
     pub line2: usize,
     pub range: usize,
-
     #[serde(rename = "reg", deserialize_with = "utils::empty_string_is_none")]
     pub register: Option<String>,
-
     #[serde(deserialize_with = "utils::empty_string_is_none")]
     pub mods: Option<String>,
-
-    pub smods: CommandModifiers,
+    #[cfg(feature = "nightly")]
+    pub smods: super::CommandModifiers,
 }
 
 impl FromObject for CommandArgs {
