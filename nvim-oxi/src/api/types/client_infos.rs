@@ -8,23 +8,23 @@ use serde::{de, Deserialize, Serialize};
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 /// Informations about a remote RPC client.
 pub struct ClientInfos {
-    /// Short name for the connected client.
-    pub name: String,
-
-    /// Describes the client version.
-    pub version: ClientVersion,
-
-    /// Advertised type of remote client.
-    pub r#type: ClientType,
-
-    /// Builtin methods in the client, where map keys represent method names.
-    pub methods: HashMap<String, ClientMethod>,
-
     /// Arbitrary map of informal client properties. Suggested keys:
     ///  - "website": client homepage URL (e.g. GitHub repository);
     ///  - "license": license description ("Apache 2", "GPLv3", "MIT", …);
     ///  - "logo": URI or path to image.
     pub attributes: HashMap<String, String>,
+
+    /// Builtin methods in the client, where map keys represent method names.
+    pub methods: HashMap<String, ClientMethod>,
+
+    /// Short name for the connected client.
+    pub name: String,
+
+    /// Advertised type of remote client.
+    pub r#type: ClientType,
+
+    /// Describes the client version.
+    pub version: ClientVersion,
 }
 
 #[non_exhaustive]

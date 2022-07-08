@@ -12,31 +12,31 @@ pub type ShouldDeleteAutocmd = bool;
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct AutocmdCallbackArgs {
-    /// The `id` of the autocommand.
-    pub id: u32,
+    /// The `Buffer` specified by `<abuf>`.
+    #[serde(rename = "buf")]
+    pub buffer: Buffer,
+
+    /// Arbitrary data passed to `api::exec_autocmds`.
+    #[serde(default)]
+    // TODO: what to put here?
+    pub data: (),
 
     /// The name of the event that triggered the autocommand.
     pub event: String,
+
+    /// The expanded value of `<afile>`.
+    pub file: PathBuf,
 
     /// The `id` of the autocommand group that the autocommand belongs to, if
     /// any.
     #[serde(default)]
     pub group: Option<u32>,
 
+    /// The `id` of the autocommand.
+    pub id: u32,
+
     /// The expanded value of `<amatch>`.
     pub r#match: String,
-
-    /// The `Buffer` specified by `<abuf>`.
-    #[serde(rename = "buf")]
-    pub buffer: Buffer,
-
-    /// The expanded value of `<afile>`.
-    pub file: PathBuf,
-
-    /// Arbitrary data passed to `api::exec_autocmds`.
-    #[serde(default)]
-    // TODO: what to put here?
-    pub data: (),
 }
 
 impl FromObject for AutocmdCallbackArgs {

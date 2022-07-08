@@ -5,13 +5,13 @@ use nvim_types::{Dictionary, Object};
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetExtmarksOpts {
-    /// Maximum number of extmarks to return.
-    #[builder(setter(into, strip_option))]
-    limits: Option<u32>,
-
     /// Whether to include the extmark's `ExtmarkInfos` in the returned tuple.
     #[builder(setter(strip_option))]
     details: Option<bool>,
+
+    /// Maximum number of extmarks to return.
+    #[builder(setter(into, strip_option))]
+    limits: Option<u32>,
 }
 
 impl GetExtmarksOpts {
@@ -30,8 +30,8 @@ impl GetExtmarksOptsBuilder {
 impl From<&GetExtmarksOpts> for Dictionary {
     fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([
-            ("limits", Object::from(opts.limits)),
             ("details", opts.details.into()),
+            ("limits", Object::from(opts.limits)),
         ])
     }
 }

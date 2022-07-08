@@ -2,23 +2,22 @@ use derive_builder::Builder;
 use nvim_types::{self as nvim, NonOwning, Object};
 use serde::Serialize;
 
-use crate::api::{Buffer, Window};
 use crate::object;
 
 /// Options passed to `crate::api::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
+    #[cfg(feature = "nightly")]
+    #[builder(setter(into, strip_option))]
+    buffer: Option<crate::api::Buffer>,
+
     #[builder(setter(custom))]
     scope: Object,
 
     #[cfg(feature = "nightly")]
     #[builder(setter(into, strip_option))]
-    window: Option<Window>,
-
-    #[cfg(feature = "nightly")]
-    #[builder(setter(into, strip_option))]
-    buffer: Option<Buffer>,
+    window: Option<crate::api::Window>,
 }
 
 impl OptionValueOpts {

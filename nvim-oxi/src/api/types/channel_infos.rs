@@ -9,14 +9,19 @@ use crate::object::{self, FromObject};
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct ChannelInfos {
-    /// Channel id.
-    pub id: u32,
-
     /// Job arguments list.
     pub argv: Option<Vec<String>>,
 
-    /// Stream underlying the channel.
-    pub stream: ChannelStream,
+    /// Buffer with connected terminal instance. Only present when `mode` is
+    /// `ChannelMode::Terminal`.
+    pub buffer: Option<Buffer>,
+
+    /// Info about the client on the other side of an RPC channel. Only present
+    /// when `mode` is `ChannelMode::Rpc`.
+    pub client: Option<ClientInfos>,
+
+    /// Channel id.
+    pub id: u32,
 
     /// How data receiveed on the channel is interpeted.
     pub mode: ChannelMode,
@@ -26,13 +31,8 @@ pub struct ChannelInfos {
     /// a pty is used (e.g. for `ConPTY` on Windows).
     pub pty: Option<String>,
 
-    /// Buffer with connected terminal instance. Only present when `mode` is
-    /// `ChannelMode::Terminal`.
-    pub buffer: Option<Buffer>,
-
-    /// Info about the client on the other side of an RPC channel. Only present
-    /// when `mode` is `ChannelMode::Rpc`.
-    pub client: Option<ClientInfos>,
+    /// Stream underlying the channel.
+    pub stream: ChannelStream,
 }
 
 #[non_exhaustive]

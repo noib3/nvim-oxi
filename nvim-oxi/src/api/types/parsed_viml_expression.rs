@@ -25,73 +25,74 @@ pub struct ParsedVimLExpression {
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Deserialize)]
 pub struct ParseExpressionError {
-    /// Error message in printf format. Contains exactly one `"%.*s"` block.
-    pub message: String,
-
     /// Error message argument.
     pub arg: String,
+
+    /// Error message in printf format. Contains exactly one `"%.*s"` block.
+    pub message: String,
 }
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Deserialize)]
 #[serde(from = "DeserializedVimLExpressionAST")]
 pub struct VimLExpressionAst {
-    /// Error message in printf format. Contains exactly one `"%.*s"` block.
-    pub ty: VimLAstNode,
-
-    /// A `(line, column)` tuple describing where the the node is started.
-    pub start: (usize, usize),
+    /// A tree of child nodes.
+    #[serde(default)]
+    pub children: BTreeSet<VimLExpressionAst>,
 
     /// Length of the node.
     pub len: usize,
 
-    /// A tree of child nodes.
-    #[serde(default)]
-    pub children: BTreeSet<VimLExpressionAst>,
+    /// A `(line, column)` tuple describing where the the node is started.
+    pub start: (usize, usize),
+
+    /// Error message in printf format. Contains exactly one `"%.*s"` block.
+    pub ty: VimLAstNode,
 }
 
 /// Only used for deserialization purposes.
 #[derive(Deserialize)]
 #[allow(dead_code)]
 struct DeserializedVimLExpressionAST {
-    #[serde(rename = "type")]
-    ty: DeserializedVimLASTNode,
-
-    start: (usize, usize),
-    len: usize,
-
-    #[serde(default)]
-    children: BTreeSet<VimLExpressionAst>,
-
     #[serde(default)]
     augmentation: Option<AssignmentAugmentation>,
-
-    #[serde(default)]
-    cmp_type: Option<ExprComparisonType>,
 
     #[serde(default)]
     ccs_strategy: Option<ExprCaseCompareStrategy>,
 
     #[serde(default)]
-    invert: Option<bool>,
+    children: BTreeSet<VimLExpressionAst>,
 
     #[serde(default)]
-    svalue: Option<String>,
+    cmp_type: Option<ExprComparisonType>,
 
     #[serde(default)]
     fvalue: Option<Float>,
 
     #[serde(default)]
+    ident: Option<String>,
+
+    #[serde(default)]
+    invert: Option<bool>,
+
+    #[serde(default)]
     ivalue: Option<Integer>,
+
+    len: usize,
+
+    #[serde(default)]
+    name: Option<i32>,
 
     #[serde(default)]
     scope: Option<ExprScope>,
 
-    #[serde(default)]
-    ident: Option<String>,
+    start: (usize, usize),
 
     #[serde(default)]
-    name: Option<i32>,
+    svalue: Option<String>,
+
+    #[serde(rename = "type")]
+    ty: DeserializedVimLASTNode,
 }
 
 #[derive(Deserialize)]

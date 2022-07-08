@@ -3,13 +3,10 @@ use nvim_types::{self as nvim, Integer, NonOwning, Object};
 
 use crate::api::types::{
     CommandAddr,
-    CommandArgs,
     CommandComplete,
     CommandNArgs,
     CommandRange,
 };
-use crate::api::Buffer;
-use crate::lua::LuaFun;
 use crate::object::ToObject;
 
 /// Options passed to `Buffer::create_user_command`.
@@ -72,9 +69,9 @@ macro_rules! object_setter {
 
 impl CreateCommandOptsBuilder {
     object_setter!(addr, CommandAddr);
+    object_setter!(complete, CommandComplete);
     object_setter!(nargs, CommandNArgs);
     object_setter!(range, CommandRange);
-    object_setter!(complete, CommandComplete);
 
     pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
         self.desc = Some(desc.into().into());
@@ -85,11 +82,15 @@ impl CreateCommandOptsBuilder {
     pub fn preview<F>(&mut self, f: F) -> &mut Self
     where
         F: FnMut(
-                (CommandArgs, Option<u32>, Option<Buffer>),
+                (
+                    crate::api::types::CommandArgs,
+                    Option<u32>,
+                    Option<crate::api::Buffer>,
+                ),
             ) -> crate::Result<u8>
             + 'static,
     {
-        self.preview = Some(LuaFun::from_fn_mut(f).into());
+        self.preview = Some(crate::lua::LuaFun::from_fn_mut(f).into());
         self
     }
 

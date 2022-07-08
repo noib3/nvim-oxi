@@ -61,9 +61,6 @@ pub type ShouldDetach = bool;
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufAttachOpts {
     #[builder(setter(custom))]
-    on_lines: Object,
-
-    #[builder(setter(custom))]
     on_bytes: Object,
 
     #[builder(setter(custom))]
@@ -73,10 +70,13 @@ pub struct BufAttachOpts {
     on_detach: Object,
 
     #[builder(setter(custom))]
+    on_lines: Object,
+
+    #[builder(setter(custom))]
     on_reload: Object,
 
-    utf_sizes: bool,
     preview: bool,
+    utf_sizes: bool,
 }
 
 impl BufAttachOpts {
@@ -99,10 +99,10 @@ macro_rules! lua_fn_setter {
 }
 
 impl BufAttachOptsBuilder {
-    lua_fn_setter!(on_lines, OnLinesArgs);
     lua_fn_setter!(on_bytes, OnBytesArgs);
     lua_fn_setter!(on_changedtick, OnChangedtickArgs);
     lua_fn_setter!(on_detach, OnDetachArgs);
+    lua_fn_setter!(on_lines, OnLinesArgs);
     lua_fn_setter!(on_reload, OnReloadArgs);
 
     pub fn build(&mut self) -> BufAttachOpts {
@@ -114,13 +114,13 @@ impl From<&BufAttachOpts> for Dictionary {
     fn from(opts: &BufAttachOpts) -> Self {
         // TODO: don't clone
         Self::from_iter([
-            ("on_lines", opts.on_lines.clone()),
             ("on_bytes", opts.on_bytes.clone()),
             ("on_changedtick", opts.on_changedtick.clone()),
             ("on_detach", opts.on_detach.clone()),
+            ("on_lines", opts.on_lines.clone()),
             ("on_reload", opts.on_reload.clone()),
-            ("utf_sizes", opts.utf_sizes.into()),
             ("preview", opts.preview.into()),
+            ("utf_sizes", opts.utf_sizes.into()),
         ])
     }
 }

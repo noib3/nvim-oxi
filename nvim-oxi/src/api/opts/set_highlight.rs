@@ -5,13 +5,7 @@ use nvim_types::{self as nvim, NonOwning, Object};
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetHighlightOpts {
     #[builder(setter(custom))]
-    fg: Object,
-
-    #[builder(setter(custom))]
     bg: Object,
-
-    #[builder(setter(custom))]
-    special: Object,
 
     #[builder(setter(strip_option))]
     blend: Option<u8>,
@@ -19,11 +13,41 @@ pub struct SetHighlightOpts {
     #[builder(setter(strip_option))]
     bold: Option<bool>,
 
+    #[builder(setter(custom))]
+    cterm: Object,
+
+    #[builder(setter(custom))]
+    ctermbg: Object,
+
+    #[builder(setter(custom))]
+    ctermfg: Object,
+
+    #[builder(setter(strip_option))]
+    default: Option<bool>,
+
+    #[builder(setter(custom))]
+    fg: Object,
+
+    #[builder(setter(strip_option))]
+    italic: Option<bool>,
+
+    #[builder(setter(custom))]
+    link: Object,
+
+    #[builder(setter(strip_option))]
+    nocombine: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    reverse: Option<bool>,
+
+    #[builder(setter(custom))]
+    special: Object,
+
     #[builder(setter(strip_option))]
     standout: Option<bool>,
 
     #[builder(setter(strip_option))]
-    underline: Option<bool>,
+    strikethrough: Option<bool>,
 
     #[builder(setter(strip_option))]
     undercurl: Option<bool>,
@@ -38,31 +62,7 @@ pub struct SetHighlightOpts {
     underdouble: Option<bool>,
 
     #[builder(setter(strip_option))]
-    strikethrough: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    italic: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    reverse: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    nocombine: Option<bool>,
-
-    #[builder(setter(custom))]
-    link: Object,
-
-    #[builder(setter(strip_option))]
-    default: Option<bool>,
-
-    #[builder(setter(custom))]
-    ctermfg: Object,
-
-    #[builder(setter(custom))]
-    ctermbg: Object,
-
-    #[builder(setter(custom))]
-    cterm: Object,
+    underline: Option<bool>,
 }
 
 impl SetHighlightOpts {
@@ -73,23 +73,13 @@ impl SetHighlightOpts {
 }
 
 impl SetHighlightOptsBuilder {
-    pub fn fg(&mut self, fg: impl Into<nvim::String>) -> &mut Self {
-        self.fg = Some(fg.into().into());
-        self
-    }
-
     pub fn bg(&mut self, bg: impl Into<nvim::String>) -> &mut Self {
         self.bg = Some(bg.into().into());
         self
     }
 
-    pub fn special(&mut self, special: impl Into<nvim::String>) -> &mut Self {
-        self.special = Some(special.into().into());
-        self
-    }
-
-    pub fn link(&mut self, link: impl Into<nvim::String>) -> &mut Self {
-        self.link = Some(link.into().into());
+    pub fn cterm(&mut self, cterm: impl Into<nvim::String>) -> &mut Self {
+        self.cterm = Some(cterm.into().into());
         self
     }
 
@@ -103,8 +93,18 @@ impl SetHighlightOptsBuilder {
         self
     }
 
-    pub fn cterm(&mut self, cterm: impl Into<nvim::String>) -> &mut Self {
-        self.cterm = Some(cterm.into().into());
+    pub fn fg(&mut self, fg: impl Into<nvim::String>) -> &mut Self {
+        self.fg = Some(fg.into().into());
+        self
+    }
+
+    pub fn link(&mut self, link: impl Into<nvim::String>) -> &mut Self {
+        self.link = Some(link.into().into());
+        self
+    }
+
+    pub fn special(&mut self, special: impl Into<nvim::String>) -> &mut Self {
+        self.special = Some(special.into().into());
         self
     }
 

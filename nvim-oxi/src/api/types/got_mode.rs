@@ -8,8 +8,8 @@ use crate::Result;
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct GotMode {
-    pub mode: Mode,
     pub blocking: bool,
+    pub mode: Mode,
 }
 
 impl FromObject for GotMode {

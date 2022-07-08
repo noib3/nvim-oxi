@@ -4,13 +4,13 @@ use serde::Deserialize;
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash, Deserialize)]
 pub struct CmdMagic {
-    /// Whether the command expands filenames, resulting in characters like
-    /// `"%"`, `"#"` and other wildcards to be expanded.
-    pub file: bool,
-
     /// If `true` the `|` character is treated as a command separator and the
     /// double quote character (`"`) is treated as the start of a comment.
     pub bar: bool,
+
+    /// Whether the command expands filenames, resulting in characters like
+    /// `"%"`, `"#"` and other wildcards to be expanded.
+    pub file: bool,
 }
 
 impl From<CmdMagic> for Object {

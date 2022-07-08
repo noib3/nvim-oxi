@@ -1,10 +1,12 @@
+#[allow(unused_imports)]
 use nvim_oxi::{self as oxi, api, opts::*, types::*};
 
-// fn call_function() {
-//     // TODO: why can't I do this?
-//     let res = api::call_function::<_, usize>("strwidth", ("foo bar"));
-//     assert_eq!(Ok(7), res);
-// }
+#[oxi::test]
+fn call_function() {
+    // // TODO: why can't I do this?
+    // let res = api::call_function::<_, usize>("strwidth", ("foo bar"));
+    // assert_eq!(Ok(7), res);
+}
 
 #[cfg(feature = "nightly")]
 #[oxi::test]

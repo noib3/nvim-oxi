@@ -7,17 +7,6 @@ use crate::object::{self, de::utils, FromObject};
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct UiInfos {
-    /// Requested height of the UI.
-    pub height: usize,
-
-    /// Requested height of the UI.
-    pub width: usize,
-
-    /// `true` if the UI uses RGB colors.
-    pub rgb: bool,
-
-    pub r#override: bool,
-
     /// Channel id or remote UI (not present for TUI).
     #[serde(rename = "chan", deserialize_with = "utils::zero_is_none")]
     pub chan_id: Option<u32>,
@@ -31,6 +20,17 @@ pub struct UiInfos {
     pub ext_tabline: bool,
     pub ext_termcolors: bool,
     pub ext_wildmenu: bool,
+
+    /// Requested height of the UI.
+    pub height: usize,
+
+    pub r#override: bool,
+
+    /// `true` if the UI uses RGB colors.
+    pub rgb: bool,
+
+    /// Requested height of the UI.
+    pub width: usize,
 }
 
 impl FromObject for UiInfos {

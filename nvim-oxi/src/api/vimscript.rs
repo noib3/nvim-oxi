@@ -1,7 +1,6 @@
-use nvim_types::{self as nvim, Array, Dictionary};
+use nvim_types::{self as nvim, Array};
 
 use super::ffi::vimscript::*;
-use super::opts::*;
 use super::types::*;
 use crate::lua::LUA_INTERNAL_CALL;
 use crate::object::{FromObject, ToObject};
@@ -55,7 +54,10 @@ where
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
 #[cfg(feature = "nightly")]
-pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
+pub fn cmd(
+    infos: &CmdInfos,
+    opts: &super::opts::CmdOpts,
+) -> Result<Option<String>> {
     let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
@@ -115,7 +117,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 #[cfg(feature = "nightly")]
 pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    let opts = Dictionary::from(opts);
+    let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)

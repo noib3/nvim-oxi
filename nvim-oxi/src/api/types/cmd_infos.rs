@@ -9,13 +9,23 @@ use crate::object::{self, de::utils, FromObject, ToObject};
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder, Deserialize)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct CmdInfos {
+    /// Value of `:command-addr`. Uses short name.
+    #[serde(deserialize_with = "utils::none_literal_is_none")]
+    #[builder(setter(strip_option))]
+    // Setter doesn't exist bc `addr` is ignored when passed to `nvim_cmd`.
+    pub addr: Option<CommandAddr>,
+
+    /// Command arguments.
+    #[builder(setter(custom))]
+    pub args: Vec<String>,
+
+    /// Whether the command contains a `<bang>` (`!`) modifier.
+    #[builder(setter(strip_option))]
+    pub bang: Option<bool>,
+
     /// Command name.
     #[builder(setter(into, strip_option))]
     pub cmd: Option<String>,
-
-    /// Command range.
-    #[builder(setter(strip_option))]
-    pub range: Option<CmdRange>,
 
     /// Any count that was supplied to the command. `None` if command cannot
     /// take a count.
@@ -23,25 +33,11 @@ pub struct CmdInfos {
     #[serde(deserialize_with = "utils::minus_one_is_none")]
     pub count: Option<u32>,
 
-    /// The optional command `<register>`. `None` if not specified or if
-    /// command cannot take a register.
-    #[serde(deserialize_with = "utils::char_from_string")]
     #[builder(setter(strip_option))]
-    pub reg: Option<char>,
+    pub magic: Option<CmdMagic>,
 
-    /// Whether the command contains a `<bang>` (`!`) modifier.
     #[builder(setter(strip_option))]
-    pub bang: Option<bool>,
-
-    /// Command arguments.
-    #[builder(setter(custom))]
-    pub args: Vec<String>,
-
-    /// Value of `:command-addr`. Uses short name.
-    #[serde(deserialize_with = "utils::none_literal_is_none")]
-    #[builder(setter(strip_option))]
-    // Setter doesn't exist bc `addr` is ignored when passed to `nvim_cmd`.
-    pub addr: Option<CommandAddr>,
+    pub mods: Option<CommandModifiers>,
 
     /// Value of `:command-nargs`
     #[builder(setter(custom))]
@@ -55,11 +51,15 @@ pub struct CmdInfos {
     // Setter doesn't exist bc `nextcmd` is ignored when passed to `nvim_cmd`.
     pub nextcmd: Option<String>,
 
+    /// Command range.
     #[builder(setter(strip_option))]
-    pub magic: Option<CmdMagic>,
+    pub range: Option<CmdRange>,
 
+    /// The optional command `<register>`. `None` if not specified or if
+    /// command cannot take a register.
+    #[serde(deserialize_with = "utils::char_from_string")]
     #[builder(setter(strip_option))]
-    pub mods: Option<CommandModifiers>,
+    pub reg: Option<char>,
 }
 
 impl CmdInfos {

@@ -8,9 +8,6 @@ use crate::object::{self, FromObject};
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct StatuslineInfos {
-    /// Display width of the statusline.
-    pub width: usize,
-
     /// Vector of highlight informations for the statusline. Only included if
     /// the `highlights` field of `crate::api::opts::EvalStatuslineOpts` was
     /// set to `true`.
@@ -18,6 +15,9 @@ pub struct StatuslineInfos {
 
     /// Characters that will be displayed in the statusline.
     pub str: String,
+
+    /// Display width of the statusline.
+    pub width: usize,
 }
 
 impl FromObject for StatuslineInfos {
