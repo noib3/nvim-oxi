@@ -63,7 +63,7 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             let from_path = root
                 .join("target")
-                .join("release")
+                .join("debug")
                 .join(consts::COMPILED_LIB_FILENAME);
 
             let to_path = root.join("lua").join(consts::TARGET_LIB_FILENAME);
@@ -71,7 +71,7 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
             if !from_path.exists() {
                 panic!(
                     "Compiled library not found in '{}'. Please run `cargo \
-                     build --release` before running the tests.",
+                     build` before running the tests.",
                     from_path.display()
                 )
             }
@@ -92,13 +92,21 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
             #[cfg(target_family = "unix")]
-            ::std::os::unix::fs::symlink(&from_path, &to_path).unwrap();
+            let res = ::std::os::unix::fs::symlink(&from_path, &to_path);
 
             #[cfg(target_family = "windows")]
-            ::std::os::windows::fs::symlink_file(&from_path, &to_path).unwrap();
+            let res = ::std::os::windows::fs::symlink_file(&from_path, &to_path);
+
+            if let Err(err) = res {
+                match err.kind() {
+                    ::std::io::ErrorKind::AlreadyExists => {},
+                    _ => panic!("{:?}", err),
+                }
+            }
 
             let out = ::std::process::Command::new("nvim")
                 .args(["-u", "NONE", "--headless"])
+                .args(["-c", "set noswapfile"])
                 .args(["-c", &format!("set rtp+={}", root.display())])
                 .args([
                     "-c",

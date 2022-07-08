@@ -21,7 +21,7 @@ jobs:
         run: cargo test
         working-directory: .
       - name: Build the `tests` crate
-        run: cargo build --release
+        run: cargo build
         working-directory: ./tests
       - name: Run integration tests
         run: cargo test
@@ -44,7 +44,7 @@ jobs:
         run: cargo test
         working-directory: .
       - name: Build the `tests` crate
-        run: cargo build --release
+        run: cargo build
         working-directory: ./tests
       - name: Run integration tests
         run: cargo test
@@ -67,7 +67,7 @@ jobs:
         run: cargo test
         working-directory: .
       - name: Build the `tests` crate
-        run: cargo build --release
+        run: cargo build
         working-directory: ./tests
       - name: Run integration tests
         run: cargo test
