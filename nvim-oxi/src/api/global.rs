@@ -9,6 +9,7 @@ use crate::{
     api::{Buffer, TabPage, Window},
     lua::LUA_INTERNAL_CALL,
     object::{FromObject, ToObject},
+    Error,
     Result,
 };
 
@@ -196,11 +197,12 @@ pub fn get_chan_info(chan: impl Into<Integer>) -> Result<ChannelInfos> {
 ///
 /// Returns the 24-bit RGB value of a `crate::api::get_color_map` color name or
 /// "#rrggbb" hexadecimal string.
-pub fn get_color_by_name(name: &str) -> u32 {
+pub fn get_color_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
     let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
-    // TODO: don't panic
-    color.try_into().expect("invalid argument")
+    (color != -1).then(|| color.try_into().unwrap()).ok_or_else(|| {
+        Error::custom(format!("{name} is not a valid color name"))
+    })
 }
 
 /// Binding to `nvim_get_color_map`.

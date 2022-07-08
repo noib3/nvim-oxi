@@ -4,12 +4,13 @@ use serde::Deserialize;
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 #[serde(untagged)]
-pub enum WindowBorderSide {
+// TODO: use `char` instead of `String`
+pub enum WindowBorderChar {
     Char(String),
     CharAndHlGroup(String, String),
 }
 
-impl<S: AsRef<str>> From<S> for WindowBorderSide {
+impl<S: AsRef<str>> From<S> for WindowBorderChar {
     fn from(s: S) -> Self {
         Self::Char(s.as_ref().to_owned())
     }
@@ -23,9 +24,9 @@ impl<S: AsRef<str>> From<S> for WindowBorderSide {
 //     }
 // }
 
-impl From<WindowBorderSide> for Object {
-    fn from(side: WindowBorderSide) -> Self {
-        use WindowBorderSide::*;
+impl From<WindowBorderChar> for Object {
+    fn from(side: WindowBorderChar) -> Self {
+        use WindowBorderChar::*;
         match side {
             Char(ch) => ch.into(),
             CharAndHlGroup(ch, hl) => Array::from_iter([ch, hl]).into(),
@@ -41,18 +42,18 @@ mod tests {
     #[test]
     fn deserialize_char_side() {
         let side = "|".into();
-        let res = WindowBorderSide::deserialize(Deserializer::new(side));
+        let res = WindowBorderChar::deserialize(Deserializer::new(side));
         assert!(res.is_ok(), "{res:?}");
-        assert_eq!(WindowBorderSide::Char("|".into()), res.unwrap());
+        assert_eq!(WindowBorderChar::Char("|".into()), res.unwrap());
     }
 
     #[test]
     fn deserialize_char_and_hl_group_side() {
         let side = Array::from_iter(["|", "Foo"]).into();
-        let res = WindowBorderSide::deserialize(Deserializer::new(side));
+        let res = WindowBorderChar::deserialize(Deserializer::new(side));
         assert!(res.is_ok(), "{res:?}");
         assert_eq!(
-            WindowBorderSide::CharAndHlGroup("|".into(), "Foo".into()),
+            WindowBorderChar::CharAndHlGroup("|".into(), "Foo".into()),
             res.unwrap()
         );
     }

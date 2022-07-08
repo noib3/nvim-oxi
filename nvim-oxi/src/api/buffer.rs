@@ -16,7 +16,7 @@ use super::opts::*;
 use crate::api::types::{CommandInfos, KeymapInfos, Mode};
 use crate::lua::{LuaFun, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
-use crate::Result;
+use crate::{Error, Result};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Buffer(pub(crate) BufHandle);
@@ -63,8 +63,7 @@ impl Buffer {
         &self,
         send_buffer: bool,
         opts: &BufAttachOpts,
-    ) -> Result<bool> {
-        // TODO: map false to `Err`
+    ) -> Result<()> {
         let mut err = nvim::Error::new();
         let opts = Dictionary::from(opts);
         let has_attached = unsafe {
@@ -76,7 +75,10 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| has_attached)
+        err.into_err_or_flatten(|| match has_attached {
+            true => Ok(()),
+            _ => Err(Error::custom("Attaching to buffer failed")),
+        })
     }
 
     /// Binding to `nvim_buf_call`.
@@ -317,10 +319,10 @@ impl Buffer {
         start_col: usize,
         end_row: usize,
         end_col: usize,
+        opts: Option<&GetTextOpts>,
     ) -> Result<impl Iterator<Item = nvim::String>> {
         let mut err = nvim::Error::new();
-        // TODO: this should be an opt
-        let dict = Dictionary::new();
+        let opts = opts.map(Dictionary::from).unwrap_or_default();
         let lines = unsafe {
             nvim_buf_get_text(
                 LUA_INTERNAL_CALL,
@@ -329,7 +331,7 @@ impl Buffer {
                 start_col.try_into()?,
                 end_row.try_into()?,
                 end_col.try_into()?,
-                dict.non_owning(),
+                opts.non_owning(),
                 &mut err,
             )
         };
@@ -443,8 +445,7 @@ impl Buffer {
         name: char,
         line: usize,
         col: usize,
-    ) -> Result<bool> {
-        // TODO: map false to `Err`
+    ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let mark_was_set = unsafe {
@@ -457,7 +458,10 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| mark_was_set)
+        err.into_err_or_flatten(|| match mark_was_set {
+            true => Ok(()),
+            _ => Err(Error::custom("Couldn't set mark")),
+        })
     }
 
     /// Binding to `nvim_buf_set_name`.

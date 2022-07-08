@@ -15,6 +15,13 @@ pub struct Collection<T> {
     pub(crate) capacity: size_t,
 }
 
+impl<T> Default for Collection<T> {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> Collection<T> {
     /// Creates a new empty `Collection`.
     #[inline]

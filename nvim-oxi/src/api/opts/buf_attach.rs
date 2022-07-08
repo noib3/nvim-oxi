@@ -112,7 +112,7 @@ impl BufAttachOptsBuilder {
 
 impl From<&BufAttachOpts> for Dictionary {
     fn from(opts: &BufAttachOpts) -> Self {
-        // TODO: don't clone
+        // TODO: don't clone by making non-owning version of Dictionary
         Self::from_iter([
             ("on_bytes", opts.on_bytes.clone()),
             ("on_changedtick", opts.on_changedtick.clone()),

@@ -18,7 +18,7 @@ pub struct AutocmdCallbackArgs {
 
     /// Arbitrary data passed to `api::exec_autocmds`.
     #[serde(default)]
-    // TODO: what to put here?
+    // TODO: add `Value` enum.
     pub data: (),
 
     /// The name of the event that triggered the autocommand.

@@ -4,7 +4,7 @@ use super::ffi::extmark::*;
 use super::opts::*;
 use super::types::*;
 use crate::object::FromObject;
-use crate::Result;
+use crate::{Error, Result};
 
 impl super::Buffer {
     /// Binding to `nvim_buf_add_highlight`.
@@ -76,13 +76,8 @@ impl super::Buffer {
     /// Binding to `nvim_buf_del_extmark`.
     ///
     /// Removes an extmark from the buffer.
-    pub fn del_extmark(
-        &mut self,
-        ns_id: u32,
-        extmark_id: u32,
-    ) -> Result<bool> {
+    pub fn del_extmark(&mut self, ns_id: u32, extmark_id: u32) -> Result<()> {
         let mut err = nvim::Error::new();
-        // TODO: convert false to Err
         let was_found = unsafe {
             nvim_buf_del_extmark(
                 self.0,
@@ -91,7 +86,12 @@ impl super::Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| was_found)
+        err.into_err_or_flatten(|| match was_found {
+            true => Ok(()),
+            _ => {
+                Err(Error::custom("No extmark with id {extmark_id} was found"))
+            },
+        })
     }
 
     /// Binding to `nvim_buf_get_extmark_by_id`.
@@ -106,7 +106,6 @@ impl super::Buffer {
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
         let opts = Dictionary::from(opts);
         let mut err = nvim::Error::new();
-        // TODO: convert empty array to Err
         let tuple = unsafe {
             nvim_buf_get_extmark_by_id(
                 self.0,
@@ -117,6 +116,12 @@ impl super::Buffer {
             )
         };
         err.into_err_or_flatten(move || {
+            if tuple.is_empty() {
+                return Err(Error::custom(
+                    "No extmark with id {extmark_id} was found",
+                ));
+            }
+
             let mut iter = tuple.into_iter();
             let row = iter.next().expect("row is present").try_into()?;
             let col = iter.next().expect("col is present").try_into()?;

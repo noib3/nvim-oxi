@@ -180,6 +180,5 @@ fn set_get_del_extmark() {
     // assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 
     let res = buf.del_extmark(ns_id, extmark_id);
-    assert!(res.is_ok(), "{res:?}");
-    assert!(res.unwrap(), "extmark id not found");
+    assert_eq!(Ok(()), res);
 }

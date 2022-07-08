@@ -29,7 +29,7 @@ pub struct CreateAutocmdOpts {
     command: Object,
 
     /// The autocommand group name or id to match against.
-    // TODO: accept either string or int
+    // TODO: add new `StringOrInt` trait
     #[builder(setter(into))]
     group: Object,
 

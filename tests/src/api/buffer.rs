@@ -18,8 +18,8 @@ fn attach() {
         .on_changedtick(|_args| Ok(false))
         .build();
 
-    let has_attached = buf.attach(false, &opts).expect("attach failed");
-    assert!(has_attached);
+    let res = buf.attach(false, &opts);
+    assert_eq!(Ok(()), res);
 
     let bytes_written = api::input("ifoo<Esc>");
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
@@ -116,7 +116,7 @@ fn buf_set_get_del_mark() {
     let mut buf = Buffer::current();
 
     let res = buf.set_mark('a', 1, 0);
-    assert_eq!(Ok(true), res);
+    assert_eq!(Ok(()), res);
 
     assert_eq!((1, 0), buf.get_mark('a').unwrap());
 
@@ -131,7 +131,7 @@ fn set_get_del_text() {
     assert_eq!(Ok(()), buf.set_text(0, 0, 0, 0, ["foo", "bar", "baz"]));
     assert_eq!(
         vec!["foo", "bar", "baz"],
-        buf.get_text(0, 0, 2, 3)
+        buf.get_text(0, 0, 2, 3, None)
             .unwrap()
             .flat_map(TryFrom::try_from)
             .collect::<Vec<String>>()
@@ -142,7 +142,7 @@ fn set_get_del_text() {
 
     assert_eq!(
         1,
-        buf.get_text(0, 0, 0, 1)
+        buf.get_text(0, 0, 0, 1, None)
             .unwrap()
             .map(String::try_from)
             .collect::<Result<Vec<_>, _>>()

@@ -35,6 +35,9 @@ pub enum Error {
 
     #[error("Lua memory error: {0}")]
     LuaMemoryError(String),
+
+    #[error("{0}")]
+    Other(String),
 }
 
 impl ser::Error for Error {
@@ -46,5 +49,11 @@ impl ser::Error for Error {
 impl de::Error for Error {
     fn custom<T: fmt::Display>(msg: T) -> Self {
         Self::DeserializeError(msg.to_string())
+    }
+}
+
+impl Error {
+    pub(crate) fn custom(msg: impl fmt::Display) -> Self {
+        Self::Other(msg.to_string())
     }
 }

@@ -5,11 +5,10 @@ use crate::api::{Buffer, Window};
 use crate::lua::LuaFun;
 
 /// Arguments passed to the function registered to `on_buf`.
-// TODO: docs say a third argument of changedtick is passed. I don't see it.
 pub type OnBufArgs = (
     String, // the string literal "buf"
-    Buffer, // buffer
-    u32,    // changedtick, dubious */
+    Buffer, /* buffer */
+            /* u32, */ // NOTE: docs say a third argument of changedtick is passed. I don't see it. */
 );
 
 /// Arguments passed to the function registered to `on_reload`.
@@ -50,7 +49,7 @@ pub type DontSkipRedrawCycle = bool;
 /// that window.
 pub type DontSkipOnLines = bool;
 
-/// Options passed to `Buffer::attach`.
+/// Options passed to `api::set_decoration_provider`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct DecorationProviderOpts {

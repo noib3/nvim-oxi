@@ -51,7 +51,7 @@ fn get_colors() {
     assert_lt!(0, colors.len());
 
     let (name, color) = colors.into_iter().next().unwrap();
-    assert_eq!(color, api::get_color_by_name(&name));
+    assert_eq!(color, api::get_color_by_name(&name).unwrap());
 }
 
 #[oxi::test]
@@ -116,7 +116,7 @@ fn set_get_del_mark() {
     let mut buf = Buffer::current();
 
     let res = buf.set_mark('A', 1, 0);
-    assert_eq!(Ok(true), res);
+    assert_eq!(Ok(()), res);
 
     let opts = GetMarkOpts::builder().build();
     assert_eq!((1, 0, buf, "".into()), api::get_mark('A', &opts).unwrap());

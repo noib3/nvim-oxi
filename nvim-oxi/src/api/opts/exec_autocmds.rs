@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{Array, NonOwning, Object};
+use nvim_types::{NonOwning, Object};
 
 use crate::api::Buffer;
 
@@ -12,9 +12,9 @@ pub struct ExecAutocmdsOpts {
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
-    // TODO: what to put here?
     #[cfg(feature = "nightly")]
-    data: (),
+    #[builder(setter(custom))]
+    data: Object,
 
     /// The autocommand group name or id to match against.
     #[builder(setter(into))]
@@ -36,15 +36,30 @@ impl ExecAutocmdsOpts {
 }
 
 impl ExecAutocmdsOptsBuilder {
-    pub fn patterns<'a, I>(&mut self, patterns: I) -> &mut Self
-    where
-        I: IntoIterator<Item = &'a str>,
-    {
-        // TODO: change to `NvimString` if
-        // https://github.com/neovim/neovim/issues/19089 doesn't get addressed.
-        self.patterns = Some(Array::from_iter(patterns).into());
+    // TODO: let `any` be a `Value`
+    #[cfg(feature = "nightly")]
+    pub fn data(&mut self, any: impl Into<Object>) -> &mut Self {
+        self.data = Some(any.into());
         self
     }
+
+    // Up to 0.7 only strings are allowed (see
+    // https://github.com/neovim/neovim/issues/19089).
+    #[cfg(not(feature = "nightly"))]
+    pub fn patterns(&mut self, patterns: &str) -> &mut Self {
+        self.patterns = Some(patterns.into());
+        self
+    }
+
+    // TODO: add new `StringOrArrayOfStrings` trait.
+    //
+    // #[cfg(feature = "nightly")]
+    // pub fn patterns(
+    //     &mut self,
+    //     patterns: impl StringOrArrayOfStrings,
+    // ) -> &mut Self {
+    //     self.patterns = Some(patterns.to_obj());
+    // }
 
     pub fn build(&mut self) -> ExecAutocmdsOpts {
         self.fallible_build().expect("never fails, all fields have defaults")

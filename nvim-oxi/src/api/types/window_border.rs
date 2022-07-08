@@ -3,7 +3,7 @@ use std::fmt;
 use nvim_types::{Array, Object};
 use serde::de;
 
-use super::WindowBorderSide;
+use super::WindowBorderChar;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
@@ -26,34 +26,55 @@ pub enum WindowBorder {
     /// A drop shadow effect by blending with the background.
     Shadow,
 
+    /// A single character used for the whole border:
     ///
-    Uniform(WindowBorderSide),
+    /// aaaaa
+    /// a   a
+    /// a   a
+    /// aaaaa
+    Uniform(WindowBorderChar),
 
+    /// A tuple `(a, b)` where `a` is used for the border's corners and `b` for
+    /// its edges:
     ///
-    CornersEdges(WindowBorderSide, WindowBorderSide),
+    /// abbba
+    /// b   b
+    /// b   b
+    /// abbba
+    CornersEdges(WindowBorderChar, WindowBorderChar),
 
+    /// A tuple `(a, b, c, d)` where `a` and `c` are used for the border's
+    /// corners, `b` for its horizontal edges and `d` for the vertical ones:
     ///
-    // TODO: what are X and Y?
-    XHorizontalYVertical(
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
+    /// abbbc
+    /// d   d
+    /// d   d
+    /// cbbba
+    CornersHorizontalYVertical(
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
     ),
 
     /// Use this if you're a control freak and want to specify every single
-    /// corner and edge character individually. The first character sets the
-    /// top-left corner, the second one the top edge, the third the top-right
-    /// corner and so on.
+    /// corner and edge character individually.
+    /// The tuple `(a, b, c, d, e, f, g, h)` specifies every corner and edge
+    /// character clockwise:
+    ///
+    /// abbbc
+    /// h   d
+    /// h   d
+    /// gfffe
     Anal(
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
-        WindowBorderSide,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
+        WindowBorderChar,
     ),
 }
 
@@ -72,7 +93,7 @@ impl From<WindowBorder> for Object {
 
             CornersEdges(a, b) => Array::from_iter([a, b]).into(),
 
-            XHorizontalYVertical(a, b, c, d) => {
+            CornersHorizontalYVertical(a, b, c, d) => {
                 Array::from_iter([a, b, c, d]).into()
             },
 
@@ -148,14 +169,14 @@ impl<'de> de::Deserialize<'de> for WindowBorder {
                     },
                 };
 
-                let a = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let b = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let c = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let d = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let e = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let f = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let g = seq.next_element::<WindowBorderSide>()?.unwrap();
-                let h = seq.next_element::<WindowBorderSide>()?.unwrap();
+                let a = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let b = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let c = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let d = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let e = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let f = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let g = seq.next_element::<WindowBorderChar>()?.unwrap();
+                let h = seq.next_element::<WindowBorderChar>()?.unwrap();
 
                 Ok(Self::Value::Anal(a, b, c, d, e, f, g, h))
             }
@@ -257,14 +278,14 @@ mod tests {
         assert!(res.is_ok(), "{res:?}");
         assert_eq!(
             WindowBorder::Anal(
-                WindowBorderSide::CharAndHlGroup("a".into(), "Foo".into()),
-                WindowBorderSide::Char("b".into()),
-                WindowBorderSide::CharAndHlGroup("".into(), "Bar".into()),
-                WindowBorderSide::Char("c".into()),
-                WindowBorderSide::CharAndHlGroup("d".into(), "Baz".into()),
-                WindowBorderSide::Char("".into()),
-                WindowBorderSide::CharAndHlGroup("".into(), "FooBar".into()),
-                WindowBorderSide::Char("e".into()),
+                WindowBorderChar::CharAndHlGroup("a".into(), "Foo".into()),
+                WindowBorderChar::Char("b".into()),
+                WindowBorderChar::CharAndHlGroup("".into(), "Bar".into()),
+                WindowBorderChar::Char("c".into()),
+                WindowBorderChar::CharAndHlGroup("d".into(), "Baz".into()),
+                WindowBorderChar::Char("".into()),
+                WindowBorderChar::CharAndHlGroup("".into(), "FooBar".into()),
+                WindowBorderChar::Char("e".into()),
             ),
             res.unwrap()
         );
