@@ -3,9 +3,11 @@ use serde::Deserialize;
 
 use crate::object::{self, de::utils, FromObject};
 
-/// Arguments passed to callbacks registered with
-/// `crate::api::nvim_create_user_command`. See `:h nvim_create_user_command`
-/// for details.
+/// Arguments passed to function executed by commands. See
+/// [`Buffer::create_user_command`](crate::api::Buffer::create_user_command) to
+/// create a buffer-local command or or
+/// [`create_user_command`](crate::api::create_user_command) to create a global
+/// one.
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandArgs {

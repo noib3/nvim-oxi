@@ -1,13 +1,10 @@
 use derive_builder::Builder;
 use nvim_types::Object;
 
-/// Options passed to `Buffer::get_commands`.
+/// Options passed to [`Buffer::get_commands`](crate::api::Buffer::get_commands).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
-pub struct GetCommandsOpts {
-    #[builder(setter(strip_option))]
-    builtin: Option<bool>,
-}
+pub struct GetCommandsOpts {}
 
 impl GetCommandsOpts {
     #[inline(always)]
@@ -30,7 +27,7 @@ pub(crate) struct KeyDict_get_commands {
 }
 
 impl From<&GetCommandsOpts> for KeyDict_get_commands {
-    fn from(opts: &GetCommandsOpts) -> Self {
-        Self { builtin: opts.builtin.into() }
+    fn from(_: &GetCommandsOpts) -> Self {
+        Self { builtin: false.into() }
     }
 }

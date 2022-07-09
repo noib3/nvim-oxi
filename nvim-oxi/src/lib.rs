@@ -12,7 +12,7 @@ mod error;
 #[doc(hidden)]
 pub mod lua;
 mod macros;
-pub mod object;
+mod object;
 mod trait_utils;
 pub mod opts {
     pub use crate::api::opts::*;
@@ -24,8 +24,8 @@ pub mod types {
 
 pub use error::{Error, Result};
 pub use lua::Function;
-pub use nvim_types::{Array, Dictionary, String};
+// pub use nvim_types::{Array, Dictionary, String};
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 pub use oxi_test::oxi_test as test;
-pub use toplevel::{nprint as print, *};
+pub use toplevel::*;

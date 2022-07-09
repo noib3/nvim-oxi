@@ -1,14 +1,16 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `Buffer::delete`.
+/// Options passed to [`Buffer::delete`](crate::api::Buffer::delete).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufDeleteOpts {
     #[builder(setter(strip_option))]
+    /// Force deletion ignoring unsaved changes.
     force: Option<bool>,
 
     #[builder(setter(strip_option))]
+    /// If `true` the buffer will only be unloaded, not deleted.
     unload: Option<bool>,
 }
 

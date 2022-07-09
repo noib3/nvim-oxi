@@ -3,7 +3,6 @@ use nvim_oxi::{
     api::{self, Buffer},
     opts::*,
     types::*,
-    Function,
 };
 
 #[oxi::test]
@@ -41,13 +40,11 @@ fn buf_create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let cb = Function::from_fn(|_args: CommandArgs| Ok(()));
-    let res = buf.create_user_command("Bar", cb, &opts);
+    let res = buf.create_user_command("Bar", |_args| Ok(()), &opts);
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
-    let opts = GetCommandsOpts::builder().build();
-    assert_eq!(2, buf.get_commands(&opts).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(2, buf.get_commands(None).unwrap().collect::<Vec<_>>().len());
 
     assert_eq!(Ok(()), buf.del_user_command("Foo"));
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
@@ -69,8 +66,7 @@ fn loaded_n_valid() {
 #[oxi::test]
 fn new_buf_delete() {
     let buf = api::create_buf(true, false).unwrap();
-    let opts = BufDeleteOpts::builder().build();
-    assert_eq!(Ok(()), buf.delete(&opts));
+    assert_eq!(Ok(()), buf.delete(None));
 }
 
 #[oxi::test]
@@ -83,7 +79,7 @@ fn buf_set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = buf.set_keymap(Mode::Insert, "a", None, &opts);
+    let res = buf.set_keymap(Mode::Insert, "a", "", &opts);
     assert_eq!(Ok(()), res);
 
     let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();

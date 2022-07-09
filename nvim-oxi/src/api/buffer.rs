@@ -13,12 +13,16 @@ use serde::{Deserialize, Serialize};
 
 use super::ffi::buffer::*;
 use super::opts::*;
-use crate::api::types::{CommandInfos, KeymapInfos, Mode};
+use crate::api::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
+use crate::trait_utils::StringOrFunction;
 use crate::{Error, Result};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+/// A newtype struct wrapping a Neovim buffer. All the `nvim_buf_*` functions
+/// taking a buffer handle as their first argument are implemented as methods
+/// on this object.
 pub struct Buffer(pub(crate) BufHandle);
 
 impl fmt::Debug for Buffer {
@@ -52,13 +56,16 @@ impl FromObject for Buffer {
 }
 
 impl Buffer {
-    /// Shorthand for `nvim_oxi::api::get_current_buf`.
+    /// Shorthand for
+    /// [`nvim_oxi::api::get_current_buf`](crate::api::get_current_buf).
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_buf()
     }
 
-    /// Binding to `nvim_buf_attach`.
+    /// Binding to [`nvim_buf_attach`](https://neovim.io/doc/user/api.html#nvim_buf_attach()).
+    ///
+    /// Used to register a set of callbacks on specific buffer events.
     pub fn attach(
         &self,
         send_buffer: bool,
@@ -81,13 +88,13 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_call`.
+    /// Binding to [`nvim_buf_call`](https://neovim.io/doc/user/api.html#nvim_buf_call()).
     ///
     /// Calls a function with this buffer as the temporary current buffer.
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
-        R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
+        R: ToObject + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
@@ -98,18 +105,18 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_create_user_command`.
+    /// Binding to [`nvim_buf_create_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_create_user_command()).
     ///
     /// Creates a new buffer-local user command.
     pub fn create_user_command(
         &mut self,
         name: &str,
-        command: impl ToObject,
+        command: impl StringOrFunction<CommandArgs, ()>,
         opts: &CreateCommandOpts,
     ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let command = command.to_obj()?;
+        let command = command.to_obj();
         unsafe {
             nvim_buf_create_user_command(
                 self.0,
@@ -122,7 +129,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_del_keymap`.
+    /// Binding to [`nvim_buf_del_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_del_keymap()).
     ///
     /// Unmaps a buffer-local mapping for the given mode.
     pub fn del_keymap(&mut self, mode: Mode, lhs: &str) -> Result<()> {
@@ -141,7 +148,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_del_mark`.
+    /// Binding to [`nvim_buf_del_mark`](https://neovim.io/doc/user/api.html#nvim_buf_del_mark()).
     ///
     /// Deletes a named mark in the buffer. If the mark is not set in the
     /// buffer it will return false.
@@ -153,7 +160,7 @@ impl Buffer {
         err.into_err_or_else(|| mark_was_deleted)
     }
 
-    /// Binding to `nvim_buf_del_user_command`.
+    /// Binding to [`nvim_buf_del_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()).
     pub fn del_user_command(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -163,9 +170,9 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_del_var`.
+    /// Binding to [`nvim_buf_del_var`](https://neovim.io/doc/user/api.html#nvim_buf_del_var()).
     ///
-    /// Removes a buffer-scoped (b:) variable.
+    /// Removes a buffer-scoped (`b:`) variable.
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -173,44 +180,43 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    // Binding to `nvim_buf_delete`.
-    pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
+    /// Binding to [`nvim_buf_delete`](https://neovim.io/doc/user/api.html#nvim_buf_delete()).
+    ///
+    /// Deletes the buffer (not allowed while
+    /// [`textlock`](https://neovim.io/doc/user/eval.html#textlock) is active).
+    pub fn delete(self, opts: Option<&BufDeleteOpts>) -> Result<()> {
         let mut err = nvim::Error::new();
-        let opts = Dictionary::from(opts);
+        let opts = opts.map(Dictionary::from).unwrap_or_default();
         unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_get_changedtick`.
+    /// Binding to [`nvim_buf_get_changedtick`](https://neovim.io/doc/user/api.html#nvim_buf_get_changedtick()).
     pub fn get_changedtick(&self) -> Result<usize> {
         let mut err = nvim::Error::new();
         let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
         err.into_err_or_else(|| ct.try_into().expect("always positive"))
     }
 
-    /// Binding to `nvim_buf_get_commands`.
-    ///
-    /// Returns an iterator over the buffer-local `CommandInfos`.
+    /// Binding to [`nvim_buf_get_commands`](https://neovim.io/doc/user/api.html#nvim_buf_get_commands()).
     pub fn get_commands(
         &self,
-        opts: &GetCommandsOpts,
-    ) -> Result<impl Iterator<Item = CommandInfos>> {
+        opts: Option<&GetCommandsOpts>,
+    ) -> Result<impl ExactSizeIterator<Item = CommandInfos>> {
         let mut err = nvim::Error::new();
-        let cmds =
-            unsafe { nvim_buf_get_commands(self.0, &opts.into(), &mut err) };
+        let opts = opts.map(KeyDict_get_commands::from).unwrap_or_default();
+        let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
         err.into_err_or_else(|| {
             cmds.into_iter()
                 .map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
         })
     }
 
-    /// Binding to `nvim_buf_get_keymap`.
-    ///
-    /// Returns an iterator over the buffer-local `KeymapInfos`.
+    /// Binding to [`nvim_buf_get_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_get_keymap()).
     pub fn get_keymap(
         &self,
         mode: Mode,
-    ) -> Result<impl Iterator<Item = KeymapInfos>> {
+    ) -> Result<impl ExactSizeIterator<Item = KeymapInfos>> {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
@@ -226,7 +232,7 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_get_lines`.
+    /// Binding to [`nvim_buf_get_lines`](https://neovim.io/doc/user/api.html#nvim_buf_get_lines()).
     ///
     /// Gets a line range from the buffer. Indexing is zero-based,
     /// end-exclusive. Out of bounds indices are clamped to the nearest valid
@@ -237,7 +243,7 @@ impl Buffer {
         start: usize,
         end: usize,
         strict_indexing: bool,
-    ) -> Result<impl Iterator<Item = nvim::String>> {
+    ) -> Result<impl ExactSizeIterator<Item = nvim::String>> {
         let mut err = nvim::Error::new();
         let lines = unsafe {
             nvim_buf_get_lines(
@@ -254,7 +260,7 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_get_mark`.
+    /// Binding to [`nvim_buf_get_mark`](https://neovim.io/doc/user/api.html#nvim_buf_get_mark()).
     ///
     /// Returns a tuple `(row, col)` representing the position of the named
     /// mark. Marks are (1,0)-indexed.
@@ -271,7 +277,7 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_get_name`.
+    /// Binding to [`nvim_buf_get_name`](https://neovim.io/doc/user/api.html#nvim_buf_get_name()).
     ///
     /// Returns the full filepath of the buffer.
     pub fn get_name(&self) -> Result<PathBuf> {
@@ -280,17 +286,17 @@ impl Buffer {
         err.into_err_or_else(|| name.into())
     }
 
-    /// Binding to `nvim_buf_get_offset`.
+    /// Binding to [`nvim_buf_get_offset`](https://neovim.io/doc/user/api.html#nvim_buf_get_offset()).
     ///
     /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
-    pub fn get_offset(&self, index: impl Into<Integer>) -> Result<usize> {
+    pub fn get_offset(&self, index: usize) -> Result<usize> {
         let mut err = nvim::Error::new();
         let offset =
-            unsafe { nvim_buf_get_offset(self.0, index.into(), &mut err) };
+            unsafe { nvim_buf_get_offset(self.0, index as Integer, &mut err) };
         err.into_err_or_else(|| offset.try_into().expect("offset is positive"))
     }
 
-    /// Binding to `nvim_buf_get_option`.
+    /// Binding to [`nvim_buf_get_option`](https://neovim.io/doc/user/api.html#nvim_buf_get_option()).
     ///
     /// Gets a buffer option value. Fails if the specified type couldn't be
     /// deserialized from the returned object.
@@ -306,7 +312,7 @@ impl Buffer {
         err.into_err_or_flatten(|| Value::from_obj(obj))
     }
 
-    /// Binding to `nvim_buf_get_text`.
+    /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
     ///
     /// Gets a range from the buffer. This differs from `Buffer::get_lines` in
     /// that it allows retrieving only portions of a line.
@@ -320,7 +326,7 @@ impl Buffer {
         end_row: usize,
         end_col: usize,
         opts: Option<&GetTextOpts>,
-    ) -> Result<impl Iterator<Item = nvim::String>> {
+    ) -> Result<impl ExactSizeIterator<Item = nvim::String>> {
         let mut err = nvim::Error::new();
         let opts = opts.map(Dictionary::from).unwrap_or_default();
         let lines = unsafe {
@@ -340,9 +346,9 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_get_var`.
+    /// Binding to [`nvim_buf_get_var`](https://neovim.io/doc/user/api.html#nvim_buf_get_var()).
     ///
-    /// Gets a buffer-scoped (b:) variable.
+    /// Gets a buffer-scoped (`b:`) variable.
     pub fn get_var<Value>(&self, name: &str) -> Result<Value>
     where
         Value: FromObject,
@@ -354,21 +360,21 @@ impl Buffer {
         err.into_err_or_flatten(|| Value::from_obj(obj))
     }
 
-    /// Binding to `nvim_buf_is_loaded`.
+    /// Binding to [`nvim_buf_is_loaded`](https://neovim.io/doc/user/api.html#nvim_buf_is_loaded()).
     ///
     /// Checks if a buffer is valid and loaded.
     pub fn is_loaded(&self) -> bool {
         unsafe { nvim_buf_is_loaded(self.0) }
     }
 
-    /// Binding to `nvim_buf_is_valid`.
+    /// Binding to [`nvim_buf_is_valid`](https://neovim.io/doc/user/api.html#nvim_buf_is_valid()).
     ///
     /// Checks if a buffer is valid.
     pub fn is_valid(&self) -> bool {
         unsafe { nvim_buf_is_valid(self.0) }
     }
 
-    /// Binding to `nvim_buf_line_count`.
+    /// Binding to [`nvim_buf_line_count`](https://neovim.io/doc/user/api.html#nvim_buf_line_count()).
     ///
     /// Returns the number of lines in the given buffer.
     pub fn line_count(&self) -> Result<usize> {
@@ -377,19 +383,19 @@ impl Buffer {
         err.into_err_or_else(|| count.try_into().expect("always positive"))
     }
 
-    /// Binding to `nvim_buf_set_keymap`.
+    /// Binding to [`nvim_buf_set_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_set_keymap()).
     ///
     /// Sets a buffer-local mapping for the given mode.
     pub fn set_keymap(
         &mut self,
         mode: Mode,
         lhs: &str,
-        rhs: Option<&str>,
+        rhs: &str,
         opts: &SetKeymapOpts,
     ) -> Result<()> {
         let mode = nvim::String::from(mode);
         let lhs = nvim::String::from(lhs);
-        let rhs = nvim::String::from(rhs.unwrap_or_default());
+        let rhs = nvim::String::from(rhs);
         let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_set_keymap(
@@ -405,7 +411,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_set_lines`.
+    /// Binding to [`nvim_buf_set_lines`](https://neovim.io/doc/user/api.html#nvim_buf_set_lines()).
     ///
     /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
     /// end-exclusive.
@@ -436,7 +442,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_set_mark`.
+    /// Binding to [`nvim_buf_set_mark`](https://neovim.io/doc/user/api.html#nvim_buf_set_mark()).
     ///
     /// Sets a named mark in the buffer. Marks are (1,0)-indexed, and passing 0
     /// as `line` deletes the mark.
@@ -464,7 +470,7 @@ impl Buffer {
         })
     }
 
-    /// Binding to `nvim_buf_set_name`.
+    /// Binding to [`nvim_buf_set_name`](https://neovim.io/doc/user/api.html#nvim_buf_set_name()).
     ///
     /// Sets the full file name for a buffer.
     pub fn set_name(&mut self, name: impl Into<nvim::String>) -> Result<()> {
@@ -474,7 +480,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_set_option`.
+    /// Binding to [`nvim_buf_set_option`](https://neovim.io/doc/user/api.html#nvim_buf_set_option()).
     ///
     /// Sets a buffer option value. Passing `None` as value deletes the option
     /// (only works if there's a global fallback).
@@ -496,7 +502,7 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_set_text`.
+    /// Binding to [`nvim_buf_set_text`](https://neovim.io/doc/user/api.html#nvim_buf_set_text()).
     ///
     /// Sets (replaces) a range in the buffer. Indexing is zero-based, with
     /// both row and column indices being end-exclusive.
@@ -532,10 +538,13 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_buf_set_var`.
+    /// Binding to [`nvim_buf_set_var`](https://neovim.io/doc/user/api.html#nvim_buf_set_var()).
     ///
-    /// Sets a buffer-scoped (b:) variable.
-    pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
+    /// Sets a buffer-scoped (`b:`) variable.
+    pub fn set_var<V>(&mut self, name: &str, value: V) -> Result<()>
+    where
+        V: ToObject,
+    {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe {

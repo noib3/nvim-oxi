@@ -10,6 +10,9 @@ use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+/// A newtype struct wrapping a Neovim window. All the `nvim_win_*` functions
+/// taking a window handle as their first argument are implemented as methods
+/// on this object.
 pub struct Window(pub(crate) WinHandle);
 
 impl fmt::Debug for Window {
@@ -49,7 +52,7 @@ impl Window {
         crate::api::get_current_win()
     }
 
-    /// Binding to `nvim_win_call`.
+    /// Binding to [`nvim_win_call`](https://neovim.io/doc/user/api.html#nvim_win_call()).
     ///
     /// Calls a function with this window as the temporary current window.
     pub fn call<R, F>(&self, fun: F) -> Result<R>
@@ -66,7 +69,7 @@ impl Window {
         })
     }
 
-    /// Binding to `nvim_win_close`.
+    /// Binding to [`nvim_win_close`](https://neovim.io/doc/user/api.html#nvim_win_close()).
     ///
     /// Closes the window. When allowed when `textlock` is active.
     pub fn close(self, force: bool) -> Result<()> {
@@ -75,9 +78,9 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_del_var`.
+    /// Binding to [`nvim_win_del_var`](https://neovim.io/doc/user/api.html#nvim_win_del_var()).
     ///
-    /// Removes a window-scoped (w:) variable.
+    /// Removes a window-scoped (`w:`) variable.
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -85,7 +88,7 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_get_buf`.
+    /// Binding to [`nvim_win_get_buf`](https://neovim.io/doc/user/api.html#nvim_win_get_buf()).
     ///
     /// Gets the current `Buffer` in the window.
     pub fn get_buf(&self) -> Result<Buffer> {
@@ -94,7 +97,7 @@ impl Window {
         err.into_err_or_else(|| handle.into())
     }
 
-    /// Binding to `nvim_win_get_cursor`.
+    /// Binding to [`nvim_win_get_cursor`](https://neovim.io/doc/user/api.html#nvim_win_get_cursor()).
     ///
     /// Gets the (1,0)-indexed cursor position in the window.
     pub fn get_cursor(&self) -> Result<(usize, usize)> {
@@ -108,7 +111,7 @@ impl Window {
         })
     }
 
-    /// Binding to `nvim_win_get_height`.
+    /// Binding to [`nvim_win_get_height`](https://neovim.io/doc/user/api.html#nvim_win_get_height()).
     ///
     /// Gets the window height as a count of rows.
     pub fn get_height(&self) -> Result<u32> {
@@ -117,7 +120,7 @@ impl Window {
         err.into_err_or_else(|| height.try_into().expect("always positive"))
     }
 
-    /// Binding to `nvim_win_get_number`.
+    /// Binding to [`nvim_win_get_number`](https://neovim.io/doc/user/api.html#nvim_win_get_number()).
     ///
     /// Gets the window number.
     pub fn get_number(&self) -> Result<usize> {
@@ -126,7 +129,7 @@ impl Window {
         err.into_err_or_else(|| nr.try_into().expect("always positive"))
     }
 
-    /// Binding to `nvim_win_get_position`.
+    /// Binding to [`nvim_win_get_position`](https://neovim.io/doc/user/api.html#nvim_win_get_position()).
     ///
     /// Gets the window position in display cells.
     pub fn get_position(&self) -> Result<(usize, usize)> {
@@ -140,7 +143,7 @@ impl Window {
         })
     }
 
-    /// Binding to `nvim_win_get_tabpage`.
+    /// Binding to [`nvim_win_get_tabpage`](https://neovim.io/doc/user/api.html#nvim_win_get_tabpage()).
     ///
     /// Gets the window's `TabPage`.
     pub fn get_tabpage(&self) -> Result<TabPage> {
@@ -149,9 +152,9 @@ impl Window {
         err.into_err_or_else(|| handle.into())
     }
 
-    /// Binding to `nvim_win_get_var`.
+    /// Binding to [`nvim_win_get_var`](https://neovim.io/doc/user/api.html#nvim_win_get_var()).
     ///
-    /// Gets a window-scoped (w:) variable.
+    /// Gets a window-scoped (`w:`) variable.
     pub fn get_var<V>(&self, name: &str) -> Result<V>
     where
         V: FromObject,
@@ -163,7 +166,7 @@ impl Window {
         err.into_err_or_flatten(|| V::from_obj(obj))
     }
 
-    /// Binding to `nvim_win_get_width`.
+    /// Binding to [`nvim_win_get_width`](https://neovim.io/doc/user/api.html#nvim_win_get_width()).
     ///
     /// Gets the window width as a number of columns.
     pub fn get_width(&self) -> Result<u32> {
@@ -172,7 +175,7 @@ impl Window {
         err.into_err_or_else(|| width.try_into().expect("always positive"))
     }
 
-    /// Binding to `nvim_win_hide`.
+    /// Binding to [`nvim_win_hide`](https://neovim.io/doc/user/api.html#nvim_win_hide()).
     ///
     /// Closes the window and hides the buffer it contains.
     pub fn hide(self) -> Result<()> {
@@ -181,14 +184,14 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_is_valid`.
+    /// Binding to [`nvim_win_is_valid`](https://neovim.io/doc/user/api.html#nvim_win_is_valid()).
     ///
     /// Checks if the window is valid.
     pub fn is_valid(&self) -> bool {
         unsafe { nvim_win_is_valid(self.0) }
     }
 
-    /// Binding to `nvim_win_set_buf`.
+    /// Binding to [`nvim_win_set_buf`](https://neovim.io/doc/user/api.html#nvim_win_set_buf()).
     ///
     /// Sets `buffer` as the current buffer in the window.
     pub fn set_buf(&mut self, buffer: &Buffer) -> Result<()> {
@@ -197,7 +200,7 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_set_cursor`.
+    /// Binding to [`nvim_win_set_cursor`](https://neovim.io/doc/user/api.html#nvim_win_set_cursor()).
     ///
     /// Sets the (1,0)-indexed cursor in the window. This will scroll the
     /// window even if it not the current one.
@@ -208,7 +211,7 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_set_height`.
+    /// Binding to [`nvim_win_set_height`](https://neovim.io/doc/user/api.html#nvim_win_set_height()).
     ///
     /// Sets the window height.
     pub fn set_height(&mut self, height: impl Into<u32>) -> Result<()> {
@@ -217,9 +220,9 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_set_var`.
+    /// Binding to [`nvim_win_set_var`](https://neovim.io/doc/user/api.html#nvim_win_set_var()).
     ///
-    /// Sets a window-scoped (w:) variable.
+    /// Sets a window-scoped (`w:`) variable.
     pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -234,7 +237,7 @@ impl Window {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to `nvim_win_set_width`.
+    /// Binding to [`nvim_win_set_width`](https://neovim.io/doc/user/api.html#nvim_win_set_width()).
     ///
     /// Sets the window width.
     pub fn set_width(&mut self, width: impl Into<u32>) -> Result<()> {

@@ -6,7 +6,7 @@ use crate::lua::LUA_INTERNAL_CALL;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-/// Binding to `nvim_call_dict_function`.
+/// Binding to [`nvim_call_dict_function`](https://neovim.io/doc/user/api.html#nvim_call_dict_function()).
 ///
 /// Calls a VimL dictionary function with the given arguments, returning the
 /// result of the funtion call.
@@ -31,7 +31,7 @@ where
     err.into_err_or_flatten(|| R::from_obj(res))
 }
 
-/// Binding to `nvim_call_function`.
+/// Binding to [`nvim_call_function`](https://neovim.io/doc/user/api.html#nvim_call_function()).
 ///
 /// Calls a VimL function with the given arguments, returning the result of the
 /// funtion call.
@@ -49,7 +49,7 @@ where
     err.into_err_or_flatten(|| R::from_obj(res))
 }
 
-/// Binding to `nvim_cmd`.
+/// Binding to [`nvim_cmd`](https://neovim.io/doc/user/api.html#nvim_cmd()).
 ///
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
@@ -70,7 +70,7 @@ pub fn cmd(
     })
 }
 
-/// Binding to `nvim_command`.
+/// Binding to [`nvim_command`](https://neovim.io/doc/user/api.html#nvim_command()).
 ///
 /// Executes an Ex command.
 pub fn command(command: &str) -> Result<()> {
@@ -80,7 +80,7 @@ pub fn command(command: &str) -> Result<()> {
     err.into_err_or_else(|| ())
 }
 
-/// Binding to `nvim_eval`.
+/// Binding to [`nvim_eval`](https://neovim.io/doc/user/api.html#nvim_eval()).
 ///
 /// Evaluates a VimL expression.
 pub fn eval<V>(expr: &str) -> Result<V>
@@ -93,7 +93,7 @@ where
     err.into_err_or_flatten(|| V::from_obj(output))
 }
 
-/// Binding to `nvim_exec`.
+/// Binding to [`nvim_exec`](https://neovim.io/doc/user/api.html#nvim_exec()).
 ///
 /// Executes a multiline block of Ex commands. If `output` is true the
 /// output is captured and returned.
@@ -111,7 +111,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     })
 }
 
-/// Binding to `nvim_parse_cmd`.
+/// Binding to [`nvim_parse_cmd`](https://neovim.io/doc/user/api.html#nvim_parse_cmd()).
 ///
 /// Parses the command line.
 #[cfg(feature = "nightly")]
@@ -128,7 +128,7 @@ pub fn parse_cmd(
     err.into_err_or_flatten(|| CmdInfos::from_obj(dict.into()))
 }
 
-/// Binding to `nvim_parse_expression`.
+/// Binding to [`nvim_parse_expression`](https://neovim.io/doc/user/api.html#nvim_parse_expression()).
 ///
 /// Parses a VimL expression.
 pub fn parse_expression(

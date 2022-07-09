@@ -2,6 +2,7 @@ use std::fmt;
 
 use serde::{de, ser};
 
+/// A specialized `Result` type used by `nvim-oxi`.
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug, Eq, PartialEq)]

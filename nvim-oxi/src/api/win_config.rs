@@ -6,7 +6,7 @@ use super::{Buffer, Window};
 use crate::object::FromObject;
 use crate::Result;
 
-/// Binding to `nvim_open_win`.
+/// Binding to [`nvim_open_win`](https://neovim.io/doc/user/api.html#nvim_open_win()).
 ///
 /// Opens a new floating or external window.
 pub fn open_win(
@@ -22,7 +22,7 @@ pub fn open_win(
 }
 
 impl Window {
-    /// Binding to `nvim_win_get_config`.
+    /// Binding to [`nvim_win_get_config`](https://neovim.io/doc/user/api.html#nvim_win_get_config()).
     ///
     /// Gets the window configuration.
     pub fn get_config(&self) -> Result<WindowConfig> {
@@ -39,7 +39,7 @@ impl Window {
         err.into_err_or_flatten(|| WindowConfig::from_obj(dict.into()))
     }
 
-    /// Binding to `nvim_win_get_config`.
+    /// Binding to [`nvim_win_get_config`](https://neovim.io/doc/user/api.html#nvim_win_get_config()).
     ///
     /// Configures the window layout. Only for floating and external windows.
     pub fn set_config(&mut self, config: &WindowConfig) -> Result<()> {

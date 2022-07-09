@@ -4,7 +4,6 @@ use nvim_oxi::{
     api::{self, Buffer},
     opts::*,
     types::*,
-    Function,
 };
 
 #[oxi::test]
@@ -20,8 +19,7 @@ fn create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let cb = Function::from_fn(|_args: CommandArgs| Ok(()));
-    let res = api::create_user_command("Bar", cb, &opts);
+    let res = api::create_user_command("Bar", |_args| Ok(()), &opts);
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 

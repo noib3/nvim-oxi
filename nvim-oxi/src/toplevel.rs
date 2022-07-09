@@ -1,5 +1,6 @@
 use crate::lua::{self, ffi::*, Function};
 use crate::macros::cstr;
+use crate::Result;
 
 /// Binding to the global Lua `print` function. It uses the same syntax as
 /// Rust's `format!` macro and redirects its output to the Neovim message area.
@@ -9,16 +10,15 @@ use crate::macros::cstr;
 /// ```ignore
 /// use nvim_oxi as nvim;
 ///
+/// nvim::print!("Goodbye {}..", String::from("Earth"));
 /// nvim::print!("Hello {planet}!", planet = "Mars");
 /// ```
 #[macro_export]
-macro_rules! nprint {
+macro_rules! print {
     ($($arg:tt)*) => {{
         $crate::__print(::std::fmt::format(format_args!($($arg)*)));
     }}
 }
-
-pub use nprint;
 
 /// Prints a message to the Neovim message area.
 #[doc(hidden)]
@@ -38,10 +38,11 @@ pub fn __print(text: impl Into<String>) {
 /// Binding to `vim.schedule`.
 ///
 /// Schedules a callback to be invoked soon by the main event-loop. Useful to
-/// avoid textlock or other temporary restrictions.
+/// avoid [`textlock`](https://neovim.io/doc/user/eval.html#textlock) or other
+/// temporary restrictions.
 pub fn schedule<F>(fun: F)
 where
-    F: FnOnce(()) -> crate::Result<()> + 'static,
+    F: FnOnce(()) -> Result<()> + 'static,
 {
     // https://github.com/neovim/neovim/blob/master/src/nvim/lua/executor.c#L316
     //

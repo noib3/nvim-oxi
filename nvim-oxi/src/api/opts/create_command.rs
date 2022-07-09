@@ -32,6 +32,7 @@ pub struct CreateCommandOpts {
     desc: Object,
 
     #[builder(setter(strip_option))]
+    /// Whether to override any previous definitions. Defaults to `true`.
     force: Option<bool>,
 
     #[builder(setter(strip_option))]
@@ -53,6 +54,7 @@ pub struct CreateCommandOpts {
 
 impl CreateCommandOpts {
     #[inline(always)]
+    /// Creates a new [`CreateCommandOptsBuilder`].
     pub fn builder() -> CreateCommandOptsBuilder {
         CreateCommandOptsBuilder::default()
     }
@@ -73,6 +75,7 @@ impl CreateCommandOptsBuilder {
     object_setter!(nargs, CommandNArgs);
     object_setter!(range, CommandRange);
 
+    /// Description for the command.
     pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
         self.desc = Some(desc.into().into());
         self
