@@ -23,7 +23,7 @@
           inherit system;
           overlays = [
             rust-overlay.overlays.default
-            neovim-nightly-overlay.overlay
+            # neovim-nightly-overlay.overlay
           ];
         };
 
@@ -35,8 +35,8 @@
 
           packages = with pkgs; [
             gcc
-            rust-bin.nightly.latest.default
-            neovim-nightly
+            (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
+            neovim
           ];
         };
       });
