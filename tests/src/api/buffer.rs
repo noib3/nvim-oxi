@@ -3,7 +3,7 @@ use nvim_oxi::{
     api::{self, Buffer},
     opts::*,
     types::*,
-    LuaFun,
+    Function,
 };
 
 #[oxi::test]
@@ -41,7 +41,7 @@ fn buf_create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let cb = LuaFun::from_fn(|_args: CommandArgs| Ok(()));
+    let cb = Function::from_fn(|_args: CommandArgs| Ok(()));
     let res = buf.create_user_command("Bar", cb, &opts);
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();

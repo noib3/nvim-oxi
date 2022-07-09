@@ -28,8 +28,8 @@ extern "C" {
     #[cfg(feature = "nightly")]
     pub(crate) fn nvim_cmd(
         channel_id: u64,
-        cmd: *const crate::opts::KeyDict_cmd,
-        opts: *const crate::types::KeyDict_cmd_opts,
+        cmd: *const crate::types::KeyDict_cmd,
+        opts: *const crate::opts::KeyDict_cmd_opts,
         err: *mut Error,
     ) -> String;
 

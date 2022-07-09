@@ -115,7 +115,10 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 ///
 /// Parses the command line.
 #[cfg(feature = "nightly")]
-pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
+pub fn parse_cmd(
+    src: &str,
+    opts: &super::opts::ParseCmdOpts,
+) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
     let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();

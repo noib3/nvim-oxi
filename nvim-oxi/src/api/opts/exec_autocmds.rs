@@ -36,7 +36,6 @@ impl ExecAutocmdsOpts {
 }
 
 impl ExecAutocmdsOptsBuilder {
-    // TODO: let `any` be a `Value`
     #[cfg(feature = "nightly")]
     pub fn data(&mut self, any: impl Into<Object>) -> &mut Self {
         self.data = Some(any.into());
@@ -57,6 +56,7 @@ impl ExecAutocmdsOptsBuilder {
         patterns: impl crate::trait_utils::StringOrListOfStrings,
     ) -> &mut Self {
         self.patterns = Some(patterns.to_obj());
+        self
     }
 
     pub fn build(&mut self) -> ExecAutocmdsOpts {
@@ -69,7 +69,7 @@ impl ExecAutocmdsOptsBuilder {
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
     #[cfg(feature = "nightly")]
-    data: Object,
+    data: NonOwning<'a, Object>,
     group: NonOwning<'a, Object>,
     buffer: Object,
     pattern: NonOwning<'a, Object>,
@@ -80,7 +80,7 @@ impl<'a> From<&'a ExecAutocmdsOpts> for KeyDict_exec_autocmds<'a> {
     fn from(opts: &'a ExecAutocmdsOpts) -> KeyDict_exec_autocmds<'a> {
         Self {
             #[cfg(feature = "nightly")]
-            data: opts.data.into(),
+            data: opts.data.non_owning(),
             group: opts.group.non_owning(),
             buffer: opts.buffer.into(),
             pattern: opts.patterns.non_owning(),
