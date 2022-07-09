@@ -93,7 +93,7 @@ impl Drop for ArrayIterator {
 }
 
 macro_rules! impl_from_tuple {
-    ($($ty:ident),*) => {
+    ($($ty:ident)*) => {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
             #[allow(non_snake_case)]
             fn from(($($ty,)*): ($($ty,)*)) -> Self {
@@ -104,21 +104,21 @@ macro_rules! impl_from_tuple {
 }
 
 impl_from_tuple!(A);
-impl_from_tuple!(A, B);
-impl_from_tuple!(A, B, C);
-impl_from_tuple!(A, B, C, D);
-impl_from_tuple!(A, B, C, D, E);
-impl_from_tuple!(A, B, C, D, E, F);
-impl_from_tuple!(A, B, C, D, E, F, G);
-impl_from_tuple!(A, B, C, D, E, F, G, H);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
-impl_from_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+impl_from_tuple!(A B);
+impl_from_tuple!(A B C);
+impl_from_tuple!(A B C D);
+impl_from_tuple!(A B C D E);
+impl_from_tuple!(A B C D E F);
+impl_from_tuple!(A B C D E F G);
+impl_from_tuple!(A B C D E F G H);
+impl_from_tuple!(A B C D E F G H I);
+impl_from_tuple!(A B C D E F G H I J);
+impl_from_tuple!(A B C D E F G H I J K);
+impl_from_tuple!(A B C D E F G H I J K L);
+impl_from_tuple!(A B C D E F G H I J K L M);
+impl_from_tuple!(A B C D E F G H I J K L M N);
+impl_from_tuple!(A B C D E F G H I J K L M N O);
+impl_from_tuple!(A B C D E F G H I J K L M N O P);
 
 #[cfg(test)]
 mod tests {

@@ -50,7 +50,7 @@ pub enum WindowBorder {
     /// d   d
     /// d   d
     /// cbbba
-    CornersHorizontalYVertical(
+    CornersHorizontalVertical(
         WindowBorderChar,
         WindowBorderChar,
         WindowBorderChar,
@@ -78,6 +78,22 @@ pub enum WindowBorder {
     ),
 }
 
+macro_rules! impl_from_tuple {
+    ($variant:ident, $($ty:ident)*) => {
+        impl <$($ty: Into<WindowBorderChar>),*> From<($($ty,)*)> for WindowBorder {
+            #[allow(non_snake_case)]
+            fn from(($($ty,)*): ($($ty,)*)) -> Self {
+                Self::$variant($($ty.into(),)*)
+            }
+        }
+    };
+}
+
+impl_from_tuple!(Uniform, A);
+impl_from_tuple!(CornersEdges, A B);
+impl_from_tuple!(CornersHorizontalVertical, A B C D);
+impl_from_tuple!(Anal, A B C D E F G H);
+
 impl From<WindowBorder> for Object {
     fn from(border: WindowBorder) -> Self {
         use WindowBorder::*;
@@ -93,7 +109,7 @@ impl From<WindowBorder> for Object {
 
             CornersEdges(a, b) => Array::from_iter([a, b]).into(),
 
-            CornersHorizontalYVertical(a, b, c, d) => {
+            CornersHorizontalVertical(a, b, c, d) => {
                 Array::from_iter([a, b, c, d]).into()
             },
 
@@ -247,15 +263,18 @@ mod tests {
         let res = WindowBorder::deserialize(Deserializer::new(sides));
         assert!(res.is_ok(), "{res:?}");
         assert_eq!(
-            WindowBorder::Anal(
-                "a".into(),
-                "a".into(),
-                "a".into(),
-                "a".into(),
-                "a".into(),
-                "a".into(),
-                "a".into(),
-                "a".into(),
+            WindowBorder::from(('a', 'a', 'a', 'a', 'a', 'a', 'a', 'a')),
+            res.unwrap()
+        );
+
+        let sides =
+            Array::from_iter(["", "", "", ">", "", "", "", "<"]).into();
+        let res = WindowBorder::deserialize(Deserializer::new(sides));
+        assert!(res.is_ok(), "{res:?}");
+
+        assert_eq!(
+            WindowBorder::from(
+                (None, None, None, '>', None, None, None, '<',)
             ),
             res.unwrap()
         );
@@ -278,14 +297,14 @@ mod tests {
         assert!(res.is_ok(), "{res:?}");
         assert_eq!(
             WindowBorder::Anal(
-                WindowBorderChar::CharAndHlGroup("a".into(), "Foo".into()),
-                WindowBorderChar::Char("b".into()),
-                WindowBorderChar::CharAndHlGroup("".into(), "Bar".into()),
-                WindowBorderChar::Char("c".into()),
-                WindowBorderChar::CharAndHlGroup("d".into(), "Baz".into()),
-                WindowBorderChar::Char("".into()),
-                WindowBorderChar::CharAndHlGroup("".into(), "FooBar".into()),
-                WindowBorderChar::Char("e".into()),
+                WindowBorderChar::CharAndHlGroup(Some('a'), "Foo".into()),
+                WindowBorderChar::Char(Some('b')),
+                WindowBorderChar::CharAndHlGroup(None, "Bar".into()),
+                WindowBorderChar::Char(Some('c')),
+                WindowBorderChar::CharAndHlGroup(Some('d'), "Baz".into()),
+                WindowBorderChar::Char(None),
+                WindowBorderChar::CharAndHlGroup(None, "FooBar".into()),
+                WindowBorderChar::Char(Some('e')),
             ),
             res.unwrap()
         );

@@ -88,9 +88,9 @@ impl super::Buffer {
         };
         err.into_err_or_flatten(|| match was_found {
             true => Ok(()),
-            _ => {
-                Err(Error::custom("No extmark with id {extmark_id} was found"))
-            },
+            _ => Err(Error::custom(format!(
+                "No extmark with id {extmark_id} was found"
+            ))),
         })
     }
 
@@ -117,9 +117,9 @@ impl super::Buffer {
         };
         err.into_err_or_flatten(move || {
             if tuple.is_empty() {
-                return Err(Error::custom(
-                    "No extmark with id {extmark_id} was found",
-                ));
+                return Err(Error::custom(format!(
+                    "No extmark with id {extmark_id} was found"
+                )));
             }
 
             let mut iter = tuple.into_iter();

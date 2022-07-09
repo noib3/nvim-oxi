@@ -35,6 +35,12 @@ pub struct String {
 }
 
 impl String {
+    #[inline]
+    /// Creates a new empty string.
+    pub const fn new() -> Self {
+        Self { data: std::ptr::null_mut(), size: 0 }
+    }
+
     /// Creates a [`String`] from a byte vector.
     #[inline]
     pub fn from_bytes(mut vec: Vec<u8>) -> Self {
@@ -133,8 +139,9 @@ impl fmt::Display for String {
 }
 
 impl Default for String {
+    #[inline]
     fn default() -> Self {
-        Self { data: std::ptr::null_mut(), size: 0 }
+        Self::new()
     }
 }
 

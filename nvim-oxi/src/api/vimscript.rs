@@ -144,6 +144,5 @@ pub fn parse_expression(
             &mut err,
         )
     };
-    // crate::print!("{dict:?}");
     err.into_err_or_flatten(|| ParsedVimLExpression::from_obj(dict.into()))
 }

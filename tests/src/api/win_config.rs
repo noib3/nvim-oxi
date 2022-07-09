@@ -57,16 +57,9 @@ fn open_win_full_config() {
         .external(false)
         .zindex(300u32)
         .style(WindowStyle::Minimal)
-        .border(WindowBorder::Anal(
-            "".into(),
-            "".into(),
-            "".into(),
-            ">".into(),
-            "".into(),
-            "".into(),
-            "".into(),
-            "<".into(),
-        ))
+        .border(WindowBorder::from((
+            None, None, None, '>', None, None, None, '<',
+        )))
         .build();
 
     let res = api::open_win(buf, false, &config);
@@ -112,16 +105,9 @@ fn set_config() {
         .external(false)
         .zindex(300u32)
         .style(WindowStyle::Minimal)
-        .border(WindowBorder::Anal(
-            "".into(),
-            "".into(),
-            "".into(),
-            ">".into(),
-            "".into(),
-            "".into(),
-            "".into(),
-            "<".into(),
-        ))
+        .border(WindowBorder::from((
+            None, None, None, '>', None, None, None, '<',
+        )))
         .build();
 
     assert_eq!(Ok(()), win.set_config(&config));
