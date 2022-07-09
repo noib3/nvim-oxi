@@ -58,6 +58,13 @@ extern "C" {
         err: *mut Error,
     ) -> Integer;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/options.c#L309
+    pub(crate) fn nvim_win_get_option(
+        win: WinHandle,
+        name: NonOwning<String>,
+        err: *mut Error,
+    ) -> Object;
+
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L272
     pub(crate) fn nvim_win_get_position(
         win: WinHandle,
@@ -107,6 +114,15 @@ extern "C" {
     pub(crate) fn nvim_win_set_height(
         win: WinHandle,
         height: Integer,
+        err: *mut Error,
+    );
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/options.c#L329
+    pub(crate) fn nvim_win_set_option(
+        channel_id: u64,
+        win: WinHandle,
+        name: NonOwning<String>,
+        value: NonOwning<Object>,
         err: *mut Error,
     );
 

@@ -298,8 +298,7 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_get_option`](https://neovim.io/doc/user/api.html#nvim_buf_get_option()).
     ///
-    /// Gets a buffer option value. Fails if the specified type couldn't be
-    /// deserialized from the returned object.
+    /// Gets a buffer option value.
     pub fn get_option<Value>(&self, name: &str) -> Result<Value>
     where
         Value: FromObject,
@@ -349,15 +348,15 @@ impl Buffer {
     /// Binding to [`nvim_buf_get_var`](https://neovim.io/doc/user/api.html#nvim_buf_get_var()).
     ///
     /// Gets a buffer-scoped (`b:`) variable.
-    pub fn get_var<Value>(&self, name: &str) -> Result<Value>
+    pub fn get_var<Var>(&self, name: &str) -> Result<Var>
     where
-        Value: FromObject,
+        Var: FromObject,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Value::from_obj(obj))
+        err.into_err_or_flatten(|| Var::from_obj(obj))
     }
 
     /// Binding to [`nvim_buf_is_loaded`](https://neovim.io/doc/user/api.html#nvim_buf_is_loaded()).

@@ -99,7 +99,7 @@ fn set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = api::set_keymap(Mode::Insert, "a", None, &opts);
+    let res = api::set_keymap(Mode::Insert, "a", "", &opts);
     assert_eq!(Ok(()), res);
 
     let keymaps = api::get_keymap(Mode::Insert).collect::<Vec<_>>();

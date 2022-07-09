@@ -1,7 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `Buffer::get_text`. Currently unused.
+/// Options passed to [`Buffer::get_text`](crate::api::Buffer::get_text).
+/// Currently unused.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetTextOpts {}

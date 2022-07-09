@@ -3,7 +3,7 @@ use nvim_types::{self as nvim, NonOwning, Object};
 
 use crate::lua::Function;
 
-/// Options passed to `Buffer::set_keymap`.
+/// Options passed to [`Buffer::set_keymap`](crate::api::Buffer::set_keymap).
 #[derive(Clone, Debug, Default, PartialEq, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetKeymapOpts {

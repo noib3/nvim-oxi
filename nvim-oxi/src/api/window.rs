@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ffi::window::*;
 use super::{Buffer, TabPage};
-use crate::lua::Function;
+use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -129,6 +129,21 @@ impl Window {
         err.into_err_or_else(|| nr.try_into().expect("always positive"))
     }
 
+    /// Binding to [`nvim_win_get_option`](https://neovim.io/doc/user/api.html#nvim_win_get_option()).
+    ///
+    /// Gets a window option value.
+    pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
+    where
+        Opt: FromObject,
+    {
+        let mut err = nvim::Error::new();
+        let name = nvim::String::from(name);
+        let obj = unsafe {
+            nvim_win_get_option(self.0, name.non_owning(), &mut err)
+        };
+        err.into_err_or_flatten(|| Opt::from_obj(obj))
+    }
+
     /// Binding to [`nvim_win_get_position`](https://neovim.io/doc/user/api.html#nvim_win_get_position()).
     ///
     /// Gets the window position in display cells.
@@ -217,6 +232,28 @@ impl Window {
     pub fn set_height(&mut self, height: impl Into<u32>) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_height(self.0, height.into().into(), &mut err) };
+        err.into_err_or_else(|| ())
+    }
+
+    /// Binding to [`nvim_win_set_option`](https://neovim.io/doc/user/api.html#nvim_win_set_option()).
+    ///
+    /// Sets a window option value. Passing `None` as value deletes the option
+    /// (only works if there's a global fallback).
+    pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
+    where
+        V: ToObject,
+    {
+        let mut err = nvim::Error::new();
+        let name = nvim::String::from(name);
+        unsafe {
+            nvim_win_set_option(
+                LUA_INTERNAL_CALL,
+                self.0,
+                name.non_owning(),
+                value.to_obj()?.non_owning(),
+                &mut err,
+            )
+        };
         err.into_err_or_else(|| ())
     }
 

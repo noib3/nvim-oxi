@@ -58,7 +58,7 @@ pub fn del_current_line() -> Result<()> {
 /// Binding to [`nvim_del_keymap`](https://neovim.io/doc/user/api.html#nvim_del_keymap()).
 ///
 /// Unmaps a global mapping for the given mode. To unmap a buffer-local mapping
-/// user `Buffer::del_keymap` instead.
+/// user [`Buffer::del_keymap`] instead.
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
@@ -366,7 +366,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
 /// otherwise. Local values always correspond to the current buffer or window.
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
-/// window consider using `Buffer::get_option` or `Window::get_option` instead.
+/// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
 pub fn get_option_value<N, V>(name: N, opts: &OptionValueOpts) -> Result<V>
 where
     V: FromObject,
@@ -486,8 +486,8 @@ pub fn input_mouse(
 
 /// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
 ///
-/// Gets the current list of `Buffer`s, including unlisted (unloaded/deleted)
-/// buffers (like `:ls!`). Use `crate::api::Buffer::is_loaded` to check if a
+/// Gets the current list of [`Buffer`]s, including unlisted (unloaded/deleted)
+/// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a
 /// buffer is loaded.
 pub fn list_bufs() -> impl Iterator<Item = Buffer> {
     unsafe { nvim_list_bufs() }
@@ -742,16 +742,16 @@ pub fn set_hl(
 /// Binding to [`nvim_set_keymap`](https://neovim.io/doc/user/api.html#nvim_set_keymap()).
 ///
 /// Sets a global mapping for the given mode. To set a buffer-local mapping use
-/// `Buffer::set_keymap` instead.
+/// [`Buffer::set_keymap`] instead.
 pub fn set_keymap(
     mode: Mode,
     lhs: &str,
-    rhs: Option<&str>,
+    rhs: &str,
     opts: &SetKeymapOpts,
 ) -> Result<()> {
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
-    let rhs = nvim::String::from(rhs.unwrap_or_default());
+    let rhs = nvim::String::from(rhs);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_keymap(

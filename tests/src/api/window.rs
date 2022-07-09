@@ -102,6 +102,17 @@ fn set_get_cursor() {
 }
 
 #[oxi::test]
+fn win_set_get_option() {
+    let mut win = Window::current();
+
+    win.set_option("spell", true).unwrap();
+    assert!(win.get_option::<bool>("spell").unwrap());
+
+    win.set_option("spell", false).unwrap();
+    assert!(!win.get_option::<bool>("spell").unwrap());
+}
+
+#[oxi::test]
 fn win_set_get_del_var() {
     let mut win = Window::current();
     win.set_var("foo", 42).unwrap();

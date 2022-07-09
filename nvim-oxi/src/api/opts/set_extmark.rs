@@ -3,7 +3,7 @@ use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
-/// Options passed to `Buffer::set_keymap`.
+/// Options passed to [`api::set_extmark`](crate::api::extmark::set_extmark).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetExtmarkOpts {
