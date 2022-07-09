@@ -1,4 +1,4 @@
-use nvim_types::Error as NvimError;
+use nvim_types as nvim;
 
 use super::ffi::win_config::*;
 use super::types::*;
@@ -14,7 +14,7 @@ pub fn open_win(
     enter: bool,
     config: &WindowConfig,
 ) -> Result<Window> {
-    let mut err = NvimError::new();
+    let mut err = nvim::Error::new();
     let handle = unsafe {
         nvim_open_win(buf.into().0, enter, &config.into(), &mut err)
     };
@@ -26,12 +26,13 @@ impl Window {
     ///
     /// Gets the window configuration.
     pub fn get_config(&self) -> Result<WindowConfig> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let mut dict = unsafe { nvim_win_get_config(self.0, &mut err) };
-        // SAFETY: if the `win` key is present it's set to an integer
-        // representing a window handle.
-        let win =
-            dict.get(&"win").map(|obj| unsafe { obj.data.integer as i32 });
+        let win = dict.get(&"win").map(|obj| unsafe {
+            // SAFETY: if the `win` key is present it's set to an integer
+            // representing a window handle.
+            obj.data.integer as i32
+        });
         if let Some(handle) = win {
             dict["relative"] = handle.into();
         }
@@ -42,7 +43,7 @@ impl Window {
     ///
     /// Configures the window layout. Only for floating and external windows.
     pub fn set_config(&mut self, config: &WindowConfig) -> Result<()> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         unsafe { nvim_win_set_config(self.0, &config.into(), &mut err) };
         err.into_err_or_else(|| ())
     }

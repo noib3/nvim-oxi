@@ -50,7 +50,7 @@ impl<T> Collection<T> {
     }
 
     #[inline]
-    pub(crate) fn as_mut_slice(&self) -> &mut [T] {
+    pub(crate) fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe { slice::from_raw_parts_mut(self.items, self.size) }
     }
 

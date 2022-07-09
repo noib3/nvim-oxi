@@ -1,5 +1,5 @@
 use libc::c_int;
-use nvim_types::{Error as NvimError, Object};
+use nvim_types::{self as nvim, Object};
 
 use super::{ffi::lua_State, lua::grow_stack};
 use crate::object::FromObject;
@@ -10,7 +10,7 @@ extern "C" {
     fn nlua_pop_Object(
         lstate: *const lua_State,
         r#ref: bool,
-        err: *mut NvimError,
+        err: *mut nvim::Error,
     ) -> Object;
 }
 
@@ -20,7 +20,7 @@ trait ObjectExt: Sized {
 
 impl ObjectExt for Object {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
-        let mut err = NvimError::new();
+        let mut err = nvim::Error::new();
         let obj = nlua_pop_Object(lstate, true, &mut err);
         err.into_err_or_else(|| obj)
     }

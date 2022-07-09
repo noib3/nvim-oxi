@@ -4,6 +4,7 @@ use nvim_types::{self as nvim, Array, NonOwning, Object};
 use crate::api::types::{AutocmdCallbackArgs, ShouldDeleteAutocmd};
 use crate::api::Buffer;
 use crate::lua::LuaFun;
+use crate::trait_utils::StringOrInt;
 use crate::Result;
 
 /// Options passed to `crate::api::create_autocmd`.
@@ -29,8 +30,7 @@ pub struct CreateAutocmdOpts {
     command: Object,
 
     /// The autocommand group name or id to match against.
-    // TODO: add new `StringOrInt` trait
-    #[builder(setter(into))]
+    #[builder(setter(custom))]
     group: Object,
 
     /// Run nested autocommands.
@@ -69,6 +69,11 @@ impl CreateAutocmdOptsBuilder {
 
     pub fn desc(&mut self, desc: impl Into<nvim::String>) -> &mut Self {
         self.desc = Some(desc.into().into());
+        self
+    }
+
+    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+        self.group = Some(group.to_obj());
         self
     }
 

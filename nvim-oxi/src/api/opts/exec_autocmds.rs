@@ -43,7 +43,7 @@ impl ExecAutocmdsOptsBuilder {
         self
     }
 
-    // Up to 0.7 only strings are allowed (see
+    // Up to 0.7 only strings were allowed (see
     // https://github.com/neovim/neovim/issues/19089).
     #[cfg(not(feature = "nightly"))]
     pub fn patterns(&mut self, patterns: &str) -> &mut Self {
@@ -51,15 +51,13 @@ impl ExecAutocmdsOptsBuilder {
         self
     }
 
-    // TODO: add new `StringOrArrayOfStrings` trait.
-    //
-    // #[cfg(feature = "nightly")]
-    // pub fn patterns(
-    //     &mut self,
-    //     patterns: impl StringOrArrayOfStrings,
-    // ) -> &mut Self {
-    //     self.patterns = Some(patterns.to_obj());
-    // }
+    #[cfg(feature = "nightly")]
+    pub fn patterns(
+        &mut self,
+        patterns: impl crate::trait_utils::StringOrListOfStrings,
+    ) -> &mut Self {
+        self.patterns = Some(patterns.to_obj());
+    }
 
     pub fn build(&mut self) -> ExecAutocmdsOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
@@ -71,7 +69,7 @@ impl ExecAutocmdsOptsBuilder {
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
     #[cfg(feature = "nightly")]
-    data: Object, // not present in 0.7.2
+    data: Object,
     group: NonOwning<'a, Object>,
     buffer: Object,
     pattern: NonOwning<'a, Object>,
