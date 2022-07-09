@@ -3,9 +3,8 @@ use nvim_oxi::{self as oxi, api, opts::*, types::*};
 
 #[oxi::test]
 fn call_function() {
-    // // TODO: why can't I do this?
-    // let res = api::call_function::<_, usize>("strwidth", ("foo bar"));
-    // assert_eq!(Ok(7), res);
+    let res = api::call_function::<_, usize>("strwidth", ("foo bar",));
+    assert_eq!(Ok(7), res);
 }
 
 #[cfg(feature = "nightly")]
