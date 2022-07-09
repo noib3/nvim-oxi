@@ -2,6 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{NonOwning, Object};
 
 use crate::api::Buffer;
+use crate::trait_utils::StringOrInt;
 
 /// Options passed to `crate::api::exec_autocmds`.
 #[derive(Clone, Debug, Default, Builder)]
@@ -17,7 +18,7 @@ pub struct ExecAutocmdsOpts {
     data: Object,
 
     /// The autocommand group name or id to match against.
-    #[builder(setter(into))]
+    #[builder(setter(custom))]
     group: Object,
 
     /// Whether to process the modeline after the autocommands.
@@ -39,6 +40,11 @@ impl ExecAutocmdsOptsBuilder {
     #[cfg(feature = "nightly")]
     pub fn data(&mut self, any: impl Into<Object>) -> &mut Self {
         self.data = Some(any.into());
+        self
+    }
+
+    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+        self.group = Some(group.to_obj());
         self
     }
 

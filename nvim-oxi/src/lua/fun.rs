@@ -13,16 +13,16 @@ use crate::object::ToObject;
 use crate::Result;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
-pub struct LuaFun<A, R>(pub(crate) LuaRef, PhantomData<A>, PhantomData<R>);
+pub struct Function<A, R>(pub(crate) LuaRef, PhantomData<A>, PhantomData<R>);
 
-impl<A, R> fmt::Debug for LuaFun<A, R> {
+impl<A, R> fmt::Debug for Function<A, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_tuple("LuaFun").field(&self.0).finish()
+        f.debug_tuple("Function").field(&self.0).finish()
     }
 }
 
-impl<A, R> From<LuaFun<A, R>> for Object {
-    fn from(fun: LuaFun<A, R>) -> Self {
+impl<A, R> From<Function<A, R>> for Object {
+    fn from(fun: Function<A, R>) -> Self {
         Self {
             r#type: ObjectType::kObjectTypeLuaRef,
             data: ObjectData { luaref: fun.0 },
@@ -30,21 +30,21 @@ impl<A, R> From<LuaFun<A, R>> for Object {
     }
 }
 
-impl<A, R> ToObject for LuaFun<A, R> {
+impl<A, R> ToObject for Function<A, R> {
     fn to_obj(self) -> Result<Object> {
         Ok(self.into())
     }
 }
 
-impl<'de, A, R> de::Deserialize<'de> for LuaFun<A, R> {
+impl<'de, A, R> de::Deserialize<'de> for Function<A, R> {
     fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
-        struct LuaFunVisitor<A, R>(PhantomData<A>, PhantomData<R>);
+        struct FunctionVisitor<A, R>(PhantomData<A>, PhantomData<R>);
 
-        impl<'de, A, R> de::Visitor<'de> for LuaFunVisitor<A, R> {
-            type Value = LuaFun<A, R>;
+        impl<'de, A, R> de::Visitor<'de> for FunctionVisitor<A, R> {
+            type Value = Function<A, R>;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 f.write_str("an f32 representing a Lua reference")
@@ -54,15 +54,15 @@ impl<'de, A, R> de::Deserialize<'de> for LuaFun<A, R> {
             where
                 E: de::Error,
             {
-                Ok(LuaFun(value as i32, PhantomData, PhantomData))
+                Ok(Function(value as i32, PhantomData, PhantomData))
             }
         }
 
-        deserializer.deserialize_f32(LuaFunVisitor(PhantomData, PhantomData))
+        deserializer.deserialize_f32(FunctionVisitor(PhantomData, PhantomData))
     }
 }
 
-impl<A, R> ser::Serialize for LuaFun<A, R> {
+impl<A, R> ser::Serialize for Function<A, R> {
     fn serialize<S>(&self, serializer: S) -> StdResult<S::Ok, S::Error>
     where
         S: ser::Serializer,
@@ -71,7 +71,7 @@ impl<A, R> ser::Serialize for LuaFun<A, R> {
     }
 }
 
-impl<A, R> LuaFun<A, R> {
+impl<A, R> Function<A, R> {
     pub fn from_fn<F>(fun: F) -> Self
     where
         A: LuaPoppable,
@@ -169,7 +169,7 @@ impl<A, R> LuaFun<A, R> {
         })
     }
 
-    /// Consumes the `LuaFun`, removing the reference stored in the Lua
+    /// Consumes the `Function`, removing the reference stored in the Lua
     /// registry.
     pub(crate) fn unref(self) {
         super::with_state(move |lstate| unsafe {

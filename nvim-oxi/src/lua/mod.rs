@@ -5,7 +5,7 @@ mod poppable;
 mod pushable;
 
 pub use ffi::lua_State;
-pub use fun::LuaFun;
+pub use fun::Function;
 pub use lua::module_entrypoint;
 pub(crate) use lua::*;
 pub(crate) use poppable::LuaPoppable;

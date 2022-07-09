@@ -2,7 +2,7 @@ use nvim_types::Object;
 use serde::Deserialize;
 
 use super::{CommandAddr, CommandNArgs, CommandRange};
-use crate::lua::LuaFun;
+use crate::lua::Function;
 use crate::object::{self, FromObject};
 use crate::Result;
 
@@ -12,7 +12,7 @@ pub struct CommandInfos {
     pub addr: Option<CommandAddr>,
     pub bang: bool,
     pub bar: bool,
-    pub callback: Option<LuaFun<(), ()>>,
+    pub callback: Option<Function<(), ()>>,
     pub complete: Option<String>,
     pub complete_arg: Option<String>,
     pub count: Option<String>,

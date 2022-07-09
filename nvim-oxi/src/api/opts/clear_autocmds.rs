@@ -2,6 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{Array, NonOwning, Object};
 
 use crate::api::Buffer;
+use crate::trait_utils::StringOrInt;
 
 /// Options passed to `crate::api::clear_autocmds`.
 #[derive(Clone, Debug, Default, Builder)]
@@ -19,7 +20,7 @@ pub struct ClearAutocmdsOpts {
 
     /// Only clear the autocommands belonging to a specific augroup. The
     /// augroup can be specified by both id and name.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(custom))]
     group: Object,
 
     /// Only get the autocommands that match specific patterns. For example, if
@@ -52,6 +53,11 @@ macro_rules! string_or_table {
 impl ClearAutocmdsOptsBuilder {
     string_or_table!(events);
     string_or_table!(patterns);
+
+    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+        self.group = Some(group.to_obj());
+        self
+    }
 
     pub fn build(&mut self) -> ClearAutocmdsOpts {
         self.fallible_build().expect("never fails, all fields have defaults")

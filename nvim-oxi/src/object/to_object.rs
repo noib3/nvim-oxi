@@ -95,7 +95,7 @@ where
 //             F: $fn_trait(A) -> Result<R> + 'static,
 //         {
 //             fn to_obj(self) -> Result<Object> {
-//                 lua::LuaFun::$from_fn(self).to_obj()
+//                 lua::Function::$from_fn(self).to_obj()
 //             }
 //         }
 //     };
@@ -113,7 +113,7 @@ macro_rules! impl_boxed_closure {
             R: lua::LuaPushable + 'static,
         {
             fn to_obj(self) -> Result<Object> {
-                lua::LuaFun::$from_fn(self).to_obj()
+                lua::Function::$from_fn(self).to_obj()
             }
         }
     };

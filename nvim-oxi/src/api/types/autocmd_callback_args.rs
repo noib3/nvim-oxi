@@ -16,11 +16,9 @@ pub struct AutocmdCallbackArgs {
     #[serde(rename = "buf")]
     pub buffer: Buffer,
 
-    /// Arbitrary data passed to `api::exec_autocmds`.
-    #[serde(default)]
-    // TODO: add `Value` enum.
-    pub data: (),
-
+    // /// Arbitrary data passed to `api::exec_autocmds`.
+    // #[serde(default)]
+    // pub data: ??,
     /// The name of the event that triggered the autocommand.
     pub event: String,
 

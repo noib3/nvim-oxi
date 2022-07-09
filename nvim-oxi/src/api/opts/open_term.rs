@@ -2,7 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{self as nvim, Dictionary, Object};
 
 use crate::api::Buffer;
-use crate::lua::LuaFun;
+use crate::lua::Function;
 
 pub type OnInputArgs = (
     String,       // the string literal `"input"`
@@ -31,7 +31,7 @@ impl OpenTermOptsBuilder {
     where
         F: FnMut(OnInputArgs) -> crate::Result<()> + 'static,
     {
-        self.on_input = Some(LuaFun::from_fn_mut(fun).into());
+        self.on_input = Some(Function::from_fn_mut(fun).into());
         self
     }
 

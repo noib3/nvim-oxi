@@ -90,7 +90,7 @@ impl CreateCommandOptsBuilder {
             ) -> crate::Result<u8>
             + 'static,
     {
-        self.preview = Some(crate::lua::LuaFun::from_fn_mut(f).into());
+        self.preview = Some(crate::lua::Function::from_fn_mut(f).into());
         self
     }
 

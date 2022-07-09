@@ -23,8 +23,8 @@ pub mod types {
 }
 
 pub use error::{Error, Result};
-pub use lua::LuaFun as Function;
-pub use nvim_types::{Dictionary, Object, String};
+pub use lua::Function;
+pub use nvim_types::{Array, Dictionary, String};
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 pub use oxi_test::oxi_test as test;

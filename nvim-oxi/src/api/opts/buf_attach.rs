@@ -2,7 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::api::Buffer;
-use crate::lua::LuaFun;
+use crate::lua::Function;
 
 /// Arguments passed to the function registered to `on_lines`.
 pub type OnLinesArgs = (
@@ -92,7 +92,7 @@ macro_rules! lua_fn_setter {
         where
             F: FnMut($args) -> crate::Result<ShouldDetach> + 'static,
         {
-            self.$name = Some(LuaFun::from_fn_mut(fun).into());
+            self.$name = Some(Function::from_fn_mut(fun).into());
             self
         }
     };

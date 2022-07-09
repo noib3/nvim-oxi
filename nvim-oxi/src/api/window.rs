@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ffi::window::*;
 use super::{Buffer, TabPage};
-use crate::lua::LuaFun;
+use crate::lua::Function;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -57,7 +57,7 @@ impl Window {
         R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
     {
-        let fun = LuaFun::from_fn_once(fun);
+        let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
         let obj = unsafe { nvim_win_call(self.0, fun.0, &mut err) };
         err.into_err_or_flatten(move || {

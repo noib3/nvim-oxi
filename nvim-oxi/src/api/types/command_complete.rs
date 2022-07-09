@@ -1,7 +1,7 @@
 use nvim_types::Object;
 use serde::Serialize;
 
-use crate::lua::LuaFun;
+use crate::lua::Function;
 use crate::object::{self, ToObject};
 
 /// See `:h command-complete` for details.
@@ -46,7 +46,7 @@ pub enum CommandComplete {
     Var,
 
     /// See `:h command-completion-customlist` for details.
-    CustomList(LuaFun<(String, String, usize), Vec<String>>),
+    CustomList(Function<(String, String, usize), Vec<String>>),
 }
 
 impl ToObject for CommandComplete {

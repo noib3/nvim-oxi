@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, NonOwning, Object};
 
-use crate::lua::LuaFun;
+use crate::lua::Function;
 
 /// Options passed to `Buffer::set_keymap`.
 #[derive(Clone, Debug, Default, PartialEq, Builder)]
@@ -44,7 +44,7 @@ impl SetKeymapOptsBuilder {
     where
         F: FnMut(()) -> crate::Result<()> + 'static,
     {
-        self.callback = Some(LuaFun::from_fn_mut(fun).into());
+        self.callback = Some(Function::from_fn_mut(fun).into());
         self
     }
 

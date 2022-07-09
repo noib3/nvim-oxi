@@ -2,13 +2,13 @@ use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::api::{Buffer, Window};
-use crate::lua::LuaFun;
+use crate::lua::Function;
 
+// NOTE: docs say a third argument of changedtick is passed. I don't see it.
 /// Arguments passed to the function registered to `on_buf`.
 pub type OnBufArgs = (
     String, // the string literal "buf"
-    Buffer, /* buffer */
-            /* u32, */ // NOTE: docs say a third argument of changedtick is passed. I don't see it. */
+    Buffer, // buffer
 );
 
 /// Arguments passed to the function registered to `on_reload`.
@@ -82,7 +82,7 @@ macro_rules! lua_fn_setter {
         where
             F: FnMut($args) -> crate::Result<$ret> + 'static,
         {
-            self.$name = Some(LuaFun::from_fn_mut(fun).into());
+            self.$name = Some(Function::from_fn_mut(fun).into());
             self
         }
     };

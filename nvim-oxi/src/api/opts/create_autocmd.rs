@@ -3,7 +3,7 @@ use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::{AutocmdCallbackArgs, ShouldDeleteAutocmd};
 use crate::api::Buffer;
-use crate::lua::LuaFun;
+use crate::lua::Function;
 use crate::trait_utils::StringOrInt;
 use crate::Result;
 
@@ -58,7 +58,7 @@ impl CreateAutocmdOptsBuilder {
     where
         F: FnMut(AutocmdCallbackArgs) -> Result<ShouldDeleteAutocmd> + 'static,
     {
-        self.callback = Some(LuaFun::from_fn_mut(callback).into());
+        self.callback = Some(Function::from_fn_mut(callback).into());
         self
     }
 
