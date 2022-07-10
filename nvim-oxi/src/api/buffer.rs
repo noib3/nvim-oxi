@@ -150,14 +150,16 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_del_mark`](https://neovim.io/doc/user/api.html#nvim_buf_del_mark()).
     ///
-    /// Deletes a named mark in the buffer. If the mark is not set in the
-    /// buffer it will return false.
-    pub fn del_mark(&mut self, name: char) -> Result<bool> {
+    /// Deletes a named mark in the buffer.
+    pub fn del_mark(&mut self, name: char) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let mark_was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_else(|| mark_was_deleted)
+        err.into_err_or_flatten(|| match mark_was_deleted {
+            true => Ok(()),
+            _ => Err(Error::custom("Couldn't delete mark")),
+        })
     }
 
     /// Binding to [`nvim_buf_del_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()).
@@ -192,7 +194,7 @@ impl Buffer {
     }
 
     /// Binding to [`nvim_buf_get_changedtick`](https://neovim.io/doc/user/api.html#nvim_buf_get_changedtick()).
-    pub fn get_changedtick(&self) -> Result<usize> {
+    pub fn get_changedtick(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
         err.into_err_or_else(|| ct.try_into().expect("always positive"))
@@ -262,8 +264,8 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_get_mark`](https://neovim.io/doc/user/api.html#nvim_buf_get_mark()).
     ///
-    /// Returns a tuple `(row, col)` representing the position of the named
-    /// mark. Marks are (1,0)-indexed.
+    /// Returns a (1-0) indexed `(row, col)` tuple representing the position
+    /// of the named mark.
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -288,7 +290,7 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_get_offset`](https://neovim.io/doc/user/api.html#nvim_buf_get_offset()).
     ///
-    /// Returns the byte offset of a line (0-indexed, so line 1 has index 0).
+    /// Returns the 0-indexed byte offset of a line.
     pub fn get_offset(&self, index: usize) -> Result<usize> {
         let mut err = nvim::Error::new();
         let offset =
@@ -299,16 +301,16 @@ impl Buffer {
     /// Binding to [`nvim_buf_get_option`](https://neovim.io/doc/user/api.html#nvim_buf_get_option()).
     ///
     /// Gets a buffer option value.
-    pub fn get_option<Value>(&self, name: &str) -> Result<Value>
+    pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
-        Value: FromObject,
+        Opt: FromObject,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
             nvim_buf_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Value::from_obj(obj))
+        err.into_err_or_flatten(|| Opt::from_obj(obj))
     }
 
     /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
@@ -384,7 +386,8 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_set_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_set_keymap()).
     ///
-    /// Sets a buffer-local mapping for the given mode.
+    /// Sets a buffer-local mapping for the given mode. To set a global mapping
+    /// use [`api::set_keymap`](crate::api::set_keymap) instead.
     pub fn set_keymap(
         &mut self,
         mode: Mode,
@@ -422,8 +425,8 @@ impl Buffer {
         replacement: Lines,
     ) -> Result<()>
     where
-        Line: Into<nvim::String>,
         Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
     {
         let rpl = replacement.into_iter().map(Into::into).collect::<Array>();
         let mut err = nvim::Error::new();
@@ -514,8 +517,8 @@ impl Buffer {
         replacement: Lines,
     ) -> Result<()>
     where
-        Line: Into<nvim::String>,
         Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
     {
         let mut err = nvim::Error::new();
         unsafe {

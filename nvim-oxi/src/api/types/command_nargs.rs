@@ -5,8 +5,11 @@ use crate::object::{self, ToObject};
 
 /// Number of arguments accepted by a command.
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize,
+)]
 pub enum CommandNArgs {
+    #[default]
     #[serde(rename = "0")]
     Zero,
 

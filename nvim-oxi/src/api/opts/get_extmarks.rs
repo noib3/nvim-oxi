@@ -1,21 +1,26 @@
 use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
-/// Options passed to `Buffer::get_extmark_by_id`.
+/// Options passed to
+/// [`Buffer::get_extmarks`](crate::api::Buffer::get_extmarks).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetExtmarksOpts {
-    /// Whether to include the extmark's `ExtmarkInfos` in the returned tuple.
+    /// Whether to include the extmark's
+    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of the
+    /// tuples returned by
+    /// [`Buffer::get_extmarks`](crate::api::Buffer::get_extmarks).
     #[builder(setter(strip_option))]
     details: Option<bool>,
 
     /// Maximum number of extmarks to return.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     limits: Option<u32>,
 }
 
 impl GetExtmarksOpts {
     #[inline(always)]
+    /// Creates a new [`GetExtmarksOptsBuilder`].
     pub fn builder() -> GetExtmarksOptsBuilder {
         GetExtmarksOptsBuilder::default()
     }

@@ -44,8 +44,8 @@ pub enum Mode {
 macro_rules! is_mode {
     ($fn_name:ident, $variant:ident) => {
         #[inline(always)]
-        pub fn $fn_name(&self) -> bool {
-            *self == Mode::$variant
+        pub const fn $fn_name(&self) -> bool {
+            matches!(self, Mode::$variant)
         }
     };
 }

@@ -117,7 +117,7 @@ fn buf_set_get_del_mark() {
     assert_eq!((1, 0), buf.get_mark('a').unwrap());
 
     let res = buf.del_mark('a');
-    assert_eq!(Ok(true), res);
+    assert_eq!(Ok(()), res);
 }
 
 #[oxi::test]

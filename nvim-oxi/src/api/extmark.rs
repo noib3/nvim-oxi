@@ -3,10 +3,11 @@ use nvim_types::{self as nvim, Array, Dictionary, Integer};
 use super::ffi::extmark::*;
 use super::opts::*;
 use super::types::*;
+use super::Buffer;
 use crate::object::FromObject;
 use crate::{Error, Result};
 
-impl super::Buffer {
+impl Buffer {
     /// Binding to [`nvim_buf_add_highlight`](https://neovim.io/doc/user/api.html#nvim_buf_add_highlight()).
     ///
     /// Adds a highlight to the buffer. `line`, `col_start` and `col_end` are
@@ -96,8 +97,10 @@ impl super::Buffer {
 
     /// Binding to [`nvim_buf_get_extmark_by_id`](https://neovim.io/doc/user/api.html#nvim_buf_get_extmark_by_id()).
     ///
-    /// Returns the 0-indexed `(row, col)` tuple representing the position of
-    /// an extmark.
+    /// The first two elements of the returned tuple represent the 0-indexed
+    /// `row, col` position of the extmark. The last element is only present if
+    /// the [`details`](crate::api::opts::GetExtmarkByIdOptsBuilder::details)
+    /// option field was set to `true`.
     pub fn get_extmark_by_id(
         &self,
         ns_id: u32,
@@ -133,8 +136,11 @@ impl super::Buffer {
     /// Bindings to `nvim_buf_get_extmarks`.
     ///
     /// Gets all the extmarks in a buffer region specified by start and end
-    /// positions. Returns an iterator over `(extmark_id, row, col)` tuples in
-    /// "traversal order".
+    /// positions. Returns an iterator over `(extmark_id, row, col, infos)`
+    /// tuples in "traversal order". Like for [`Buffer::get_extmark_by_id`],
+    /// the `infos` are present only if the
+    /// [`details`](crate::api::opts::GetExtmarksOptsBuilder::details) option
+    /// field was set to `true`.
     pub fn get_extmarks(
         &self,
         ns_id: u32,
@@ -177,7 +183,7 @@ impl super::Buffer {
     /// Binding to [`nvim_buf_set_extmark`](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
     ///
     /// Creates or updates an extmark. Both `line` and `col` are 0-indexed.
-    /// Returnes the id if the creates/updates extmark.
+    /// Returns the id of the created/updated extmark.
     pub fn set_extmark<I, L, C>(
         &mut self,
         ns_id: I,

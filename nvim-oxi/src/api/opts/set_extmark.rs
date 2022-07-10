@@ -1,9 +1,9 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, Array, NonOwning, Object};
+use nvim_types::{self as nvim, Array, Integer, NonOwning, Object};
 
 use crate::api::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
-/// Options passed to [`api::set_extmark`](crate::api::extmark::set_extmark).
+/// Options passed to [`Buffer::set_extmark`](crate::api::Buffer::set_extmark).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SetExtmarkOpts {
@@ -14,28 +14,29 @@ pub struct SetExtmarkOpts {
     cursorline_hl_group: Object,
 
     /// Ending line of the mark. 0-indexed and exclusive.
-    #[builder(setter(into, strip_option))]
-    end_col: Option<i64>,
+    #[builder(setter(strip_option))]
+    end_col: Option<usize>,
 
     /// Indicates the direction the extmark's end position (if it exists) will
     /// be shifted in when new text is inserted (`true` for right, `false` for
     /// left). Defaults to left.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     end_right_gravity: Option<bool>,
 
     /// Ending line of the mark. 0-indexed and inclusive.
-    #[builder(setter(into, strip_option))]
-    end_row: Option<i64>,
+    #[builder(setter(strip_option))]
+    end_row: Option<usize>,
 
-    /// For use with `api::set_decoration_provider` callbacks. The mark will
-    /// only be used for the current redraw cycle, and not be permanently
-    /// stored in the buffer.
-    #[builder(setter(into, strip_option))]
+    /// For use with
+    /// [`api::set_decoration_provider`](crate::api::set_decoration_provider)
+    /// callbacks. The mark will only be used for the current redraw cycle, and
+    /// not be permanently stored in the buffer.
+    #[builder(setter(strip_option))]
     ephemeral: Option<bool>,
 
     /// Whether to continue the highlight for the rest of the screen line for
     /// multiline highlights covering the EOL of a line.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     hl_eol: Option<bool>,
 
     #[builder(setter(custom))]
@@ -45,8 +46,8 @@ pub struct SetExtmarkOpts {
     hl_mode: Object,
 
     /// Id of the extmark to edit.
-    #[builder(setter(into, strip_option))]
-    id: Option<i64>,
+    #[builder(setter(strip_option))]
+    id: Option<u32>,
 
     #[builder(setter(custom))]
     line_hl_group: Object,
@@ -56,12 +57,12 @@ pub struct SetExtmarkOpts {
 
     /// A priority value for the highlight group. For example, treesitter
     /// highlights use a value of 100.
-    #[builder(setter(into, strip_option))]
-    priority: Option<i64>,
+    #[builder(setter(strip_option))]
+    priority: Option<u32>,
 
     /// Indicates the direction the extmark will be shifted in when new text is
     /// inserted (`true` for right, `false` for left). Defaults to right.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     right_gravity: Option<bool>,
 
     #[builder(setter(custom))]
@@ -73,13 +74,13 @@ pub struct SetExtmarkOpts {
     /// Whether the extmark should not be placed if the line or column value is
     /// past the end of the buffer or end of the line, respectively. Defaults
     /// to `true`.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     strict: Option<bool>,
 
     /// Whether the mark should be drawn by an external UI. When `true` the UI
     /// will receive `win_extmark` events.
     #[cfg(feature = "nightly")]
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     ui_watched: Option<bool>,
 
     #[builder(setter(custom))]
@@ -87,12 +88,12 @@ pub struct SetExtmarkOpts {
 
     /// Whether to place virtual lines above the buffer line containing the
     /// mark.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     virt_lines_above: Option<bool>,
 
     /// Whether to place extmarks in the leftmost column of the ewindow,
     /// bypassing sign and number columns.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     virt_lines_leftcol: Option<bool>,
 
     #[builder(setter(custom))]
@@ -100,7 +101,7 @@ pub struct SetExtmarkOpts {
 
     /// Whether to hide the virtual text when the background text is selected
     /// or hidden due to horizontal scroll.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     virt_text_hide: Option<bool>,
 
     #[builder(setter(custom))]
@@ -109,7 +110,7 @@ pub struct SetExtmarkOpts {
     /// Position the virtual text at a fixed window column (starting from the
     /// first text column).
     #[builder(setter(into, strip_option))]
-    virt_text_win_col: Option<i64>,
+    virt_text_win_col: Option<u32>,
 }
 
 impl SetExtmarkOpts {
@@ -122,7 +123,8 @@ impl SetExtmarkOpts {
 
 impl SetExtmarkOptsBuilder {
     /// Enable concealing symilar to `:syn-conceal`. If a character is supplied
-    /// it is used as `:syn-cchar`. `hl_group` is used to highlight the
+    /// it is used as `:syn-cchar`.
+    /// [`hl_group`](SetExtmarkOptsBuilder::hl_group) is used to highlight the
     /// character if provided, otherwise it defaults to `hl-Conceal`.
     pub fn conceal(&mut self, char: Option<char>) -> &mut Self {
         self.conceal =
@@ -197,7 +199,7 @@ impl SetExtmarkOptsBuilder {
     /// specified in `highlights` will be combined together, with the highest
     /// priority highlight beign applied last. Each highlight group can either
     /// be a string or an integer, the latter obtained using
-    /// `api::get_hl_id_by_name`.
+    /// [`api::get_hl_id_by_name`](crate::api::get_hl_id_by_name).
     pub fn virt_text<Txt, Hl, Hls, Cnk>(&mut self, chunks: Cnk) -> &mut Self
     where
         Txt: Into<nvim::String>,
@@ -271,10 +273,10 @@ impl<'a> From<&'a SetExtmarkOpts> for KeyDict_set_extmark<'a> {
             id: opts.id.into(),
             hl_eol: opts.hl_eol.into(),
             strict: opts.strict.into(),
-            end_col: opts.end_col.into(),
+            end_col: opts.end_col.map(|n| n as Integer).into(),
             conceal: opts.conceal.non_owning(),
             hl_mode: opts.hl_mode.non_owning(),
-            end_row: opts.end_row.into(),
+            end_row: opts.end_row.map(|n| n as Integer).into(),
             end_line: Object::nil(),
             hl_group: opts.hl_group.non_owning(),
             priority: opts.priority.into(),

@@ -3,8 +3,6 @@ use serde::Deserialize;
 
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
-/// Controls how the highlights of a virtual text associated to an extmark are
-/// combined with the highlights of the text.
 pub enum ExtmarkPosition {
     /// Defines the extmark's position in the buffer by a 0-indexed `(row,
     /// col)` tuple.
