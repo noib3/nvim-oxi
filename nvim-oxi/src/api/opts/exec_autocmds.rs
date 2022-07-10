@@ -4,12 +4,12 @@ use nvim_types::{NonOwning, Object};
 use crate::api::Buffer;
 use crate::trait_utils::StringOrInt;
 
-/// Options passed to `crate::api::exec_autocmds`.
+/// Options passed to [`api::exec_autocmds`](crate::api::exec_autocmds).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct ExecAutocmdsOpts {
-    /// A specific `Buffer` for buffer-local autocommands. Cannot be used
-    /// together with `patterns`.
+    /// A specific [`Buffer`] for buffer-local autocommands. Cannot be used
+    /// together with [`patterns`](ExecAutocmdsOptsBuilder::patterns).
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
@@ -17,14 +17,12 @@ pub struct ExecAutocmdsOpts {
     #[builder(setter(custom))]
     data: Object,
 
-    /// The autocommand group name or id to match against.
     #[builder(setter(custom))]
     group: Object,
 
     /// Whether to process the modeline after the autocommands.
     modeline: bool,
 
-    /// Patterns to match against. Cannot be used together with `buffer`.
     #[builder(setter(custom))]
     patterns: Object,
 }
@@ -43,24 +41,32 @@ impl ExecAutocmdsOptsBuilder {
         self
     }
 
-    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+    /// The autocommand group name or id to match against.
+    pub fn group<Grp>(&mut self, group: Grp) -> &mut Self
+    where
+        Grp: StringOrInt,
+    {
         self.group = Some(group.to_obj());
         self
     }
 
     // Up to 0.7 only strings were allowed (see
     // https://github.com/neovim/neovim/issues/19089).
+    /// Patterns to match against. Cannot be used together with
+    /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
     #[cfg(not(feature = "nightly"))]
     pub fn patterns(&mut self, patterns: &str) -> &mut Self {
         self.patterns = Some(patterns.into());
         self
     }
 
+    /// Patterns to match against. Cannot be used together with
+    /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
     #[cfg(feature = "nightly")]
-    pub fn patterns(
-        &mut self,
-        patterns: impl crate::trait_utils::StringOrListOfStrings,
-    ) -> &mut Self {
+    pub fn patterns<Patterns>(&mut self, patterns: Patterns) -> &mut Self
+    where
+        Patterns: crate::trait_utils::StringOrListOfStrings,
+    {
         self.patterns = Some(patterns.to_obj());
         self
     }

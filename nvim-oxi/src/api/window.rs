@@ -46,7 +46,7 @@ impl FromObject for Window {
 }
 
 impl Window {
-    /// Shorthand for `nvim_oxi::api::get_current_win`.
+    /// Shorthand for [`api::get_current_win`](crate::api::get_current_win).
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_win()
@@ -57,8 +57,8 @@ impl Window {
     /// Calls a function with this window as the temporary current window.
     pub fn call<R, F>(&self, fun: F) -> Result<R>
     where
-        R: ToObject + FromObject,
         F: FnOnce(()) -> Result<R> + 'static,
+        R: ToObject + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
@@ -71,7 +71,8 @@ impl Window {
 
     /// Binding to [`nvim_win_close`](https://neovim.io/doc/user/api.html#nvim_win_close()).
     ///
-    /// Closes the window. When allowed when `textlock` is active.
+    /// Closes the window. Not allowed when
+    /// [`textlock`](https://neovim.io/doc/user/eval.html#textlock) is active.
     pub fn close(self, force: bool) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_close(self.0, force, &mut err) };
@@ -90,7 +91,7 @@ impl Window {
 
     /// Binding to [`nvim_win_get_buf`](https://neovim.io/doc/user/api.html#nvim_win_get_buf()).
     ///
-    /// Gets the current `Buffer` in the window.
+    /// Gets the current [`Buffer`] in the window.
     pub fn get_buf(&self) -> Result<Buffer> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_win_get_buf(self.0, &mut err) };
@@ -123,7 +124,7 @@ impl Window {
     /// Binding to [`nvim_win_get_number`](https://neovim.io/doc/user/api.html#nvim_win_get_number()).
     ///
     /// Gets the window number.
-    pub fn get_number(&self) -> Result<usize> {
+    pub fn get_number(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let nr = unsafe { nvim_win_get_number(self.0, &mut err) };
         err.into_err_or_else(|| nr.try_into().expect("always positive"))
@@ -170,15 +171,15 @@ impl Window {
     /// Binding to [`nvim_win_get_var`](https://neovim.io/doc/user/api.html#nvim_win_get_var()).
     ///
     /// Gets a window-scoped (`w:`) variable.
-    pub fn get_var<V>(&self, name: &str) -> Result<V>
+    pub fn get_var<Var>(&self, name: &str) -> Result<Var>
     where
-        V: FromObject,
+        Var: FromObject,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_win_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| V::from_obj(obj))
+        err.into_err_or_flatten(|| Var::from_obj(obj))
     }
 
     /// Binding to [`nvim_win_get_width`](https://neovim.io/doc/user/api.html#nvim_win_get_width()).
@@ -209,7 +210,7 @@ impl Window {
     /// Binding to [`nvim_win_set_buf`](https://neovim.io/doc/user/api.html#nvim_win_set_buf()).
     ///
     /// Sets `buffer` as the current buffer in the window.
-    pub fn set_buf(&mut self, buffer: &Buffer) -> Result<()> {
+    pub fn set_buf(&mut self, buffer: Buffer) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_buf(self.0, buffer.0, &mut err) };
         err.into_err_or_else(|| ())
@@ -218,7 +219,7 @@ impl Window {
     /// Binding to [`nvim_win_set_cursor`](https://neovim.io/doc/user/api.html#nvim_win_set_cursor()).
     ///
     /// Sets the (1,0)-indexed cursor in the window. This will scroll the
-    /// window even if it not the current one.
+    /// window even if it's not the current one.
     pub fn set_cursor(&mut self, line: usize, col: usize) -> Result<()> {
         let mut err = nvim::Error::new();
         let pos = Array::from_iter([line as Integer, col as Integer]);
@@ -229,9 +230,9 @@ impl Window {
     /// Binding to [`nvim_win_set_height`](https://neovim.io/doc/user/api.html#nvim_win_set_height()).
     ///
     /// Sets the window height.
-    pub fn set_height(&mut self, height: impl Into<u32>) -> Result<()> {
+    pub fn set_height(&mut self, height: u32) -> Result<()> {
         let mut err = nvim::Error::new();
-        unsafe { nvim_win_set_height(self.0, height.into().into(), &mut err) };
+        unsafe { nvim_win_set_height(self.0, height.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
 
@@ -239,9 +240,9 @@ impl Window {
     ///
     /// Sets a window option value. Passing `None` as value deletes the option
     /// (only works if there's a global fallback).
-    pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
+    pub fn set_option<Opt>(&mut self, name: &str, value: Opt) -> Result<()>
     where
-        V: ToObject,
+        Opt: ToObject,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -260,7 +261,10 @@ impl Window {
     /// Binding to [`nvim_win_set_var`](https://neovim.io/doc/user/api.html#nvim_win_set_var()).
     ///
     /// Sets a window-scoped (`w:`) variable.
-    pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
+    pub fn set_var<Var>(&mut self, name: &str, value: Var) -> Result<()>
+    where
+        Var: ToObject,
+    {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe {
@@ -277,9 +281,9 @@ impl Window {
     /// Binding to [`nvim_win_set_width`](https://neovim.io/doc/user/api.html#nvim_win_set_width()).
     ///
     /// Sets the window width.
-    pub fn set_width(&mut self, width: impl Into<u32>) -> Result<()> {
+    pub fn set_width(&mut self, width: u32) -> Result<()> {
         let mut err = nvim::Error::new();
-        unsafe { nvim_win_set_width(self.0, width.into().into(), &mut err) };
+        unsafe { nvim_win_set_width(self.0, width.into(), &mut err) };
         err.into_err_or_else(|| ())
     }
 }

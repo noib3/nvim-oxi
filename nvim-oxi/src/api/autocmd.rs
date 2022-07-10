@@ -8,7 +8,7 @@ use crate::{lua::LUA_INTERNAL_CALL, Result};
 
 /// Binding to [`nvim_clear_autocmds`](https://neovim.io/doc/user/api.html#nvim_clear_autocmds()).
 ///
-/// Clears all the autocommands matched by at least one of the fields of
+/// Clears all the autocommands matched by at least one of `opts`'s fields.
 pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_clear_autocmds(&opts.into(), &mut err) };
@@ -18,7 +18,9 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
 /// Binding to [`nvim_create_augroup`](https://neovim.io/doc/user/api.html#nvim_create_augroup()).
 ///
 /// Creates a new autocommand group or gets an existing one. To get the id of
-/// an existing augroup set the `clear` field of `opts` to `false`.
+/// an existing augroup set the
+/// [`clear`](super::opts::CreateAugroupOptsBuilder::clear) field of `opts` to
+/// `false`.
 pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -86,8 +88,8 @@ pub fn del_autocmd(id: u32) -> Result<()> {
 
 /// Binding to [`nvim_exec_autocmds`](https://neovim.io/doc/user/api.html#nvim_exec_autocmds()).
 ///
-/// Executes all the autocommands associated with the given events matching
-/// `opts`.
+/// Executes all the autocommands registered on the given `events` that also
+/// match `opts`.
 pub fn exec_autocmds<'a, I>(events: I, opts: &ExecAutocmdsOpts) -> Result<()>
 where
     I: IntoIterator<Item = &'a str>,
@@ -105,7 +107,7 @@ where
 /// combination of them.
 pub fn get_autocmds(
     opts: &GetAutocmdsOpts,
-) -> Result<impl Iterator<Item = AutocmdInfos>> {
+) -> Result<impl ExactSizeIterator<Item = AutocmdInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(&opts.into(), &mut err) };
     err.into_err_or_else(|| {

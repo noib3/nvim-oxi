@@ -154,15 +154,19 @@ impl Buffer {
     pub fn del_mark(&mut self, name: char) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let mark_was_deleted =
+        let was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| match mark_was_deleted {
+        err.into_err_or_flatten(|| match was_deleted {
             true => Ok(()),
             _ => Err(Error::custom("Couldn't delete mark")),
         })
     }
 
     /// Binding to [`nvim_buf_del_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()).
+    ///
+    /// Deletes a buffer-local user-command. Use
+    /// [`api::del_user_command`](crate::api::del_user_command) to delete a
+    /// global command.
     pub fn del_user_command(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);

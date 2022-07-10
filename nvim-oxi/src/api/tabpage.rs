@@ -8,10 +8,10 @@ use super::Window;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 /// A newtype struct wrapping a Neovim tabpage. All the `nvim_tabpage_*`
 /// functions taking a tabpage handle as their first argument are implemented
 /// as methods on this object.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct TabPage(pub(crate) TabHandle);
 
 impl fmt::Debug for TabPage {
@@ -45,7 +45,8 @@ impl FromObject for TabPage {
 }
 
 impl TabPage {
-    /// Shorthand for `nvim_oxi::api::get_current_tabpage`.
+    /// Shorthand for
+    /// [`api::get_current_tabpage`](crate::api::get_current_tabpage).
     #[inline(always)]
     pub fn current() -> Self {
         crate::api::get_current_tabpage()
@@ -64,7 +65,7 @@ impl TabPage {
     /// Binding to [`nvim_tabpage_get_number`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_number()).
     ///
     /// Gets the tabpage number.
-    pub fn get_number(&self) -> Result<usize> {
+    pub fn get_number(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let number = unsafe { nvim_tabpage_get_number(self.0, &mut err) };
         err.into_err_or_else(|| number.try_into().expect("always positive"))
@@ -73,16 +74,16 @@ impl TabPage {
     /// Binding to [`nvim_tabpage_get_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_var()).
     ///
     /// Gets a tab-scoped (`t:`) variable.
-    pub fn get_var<V>(&self, name: &str) -> Result<V>
+    pub fn get_var<Var>(&self, name: &str) -> Result<Var>
     where
-        V: FromObject,
+        Var: FromObject,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| V::from_obj(obj))
+        err.into_err_or_flatten(|| Var::from_obj(obj))
     }
 
     /// Binding to [`nvim_tabpage_get_win`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()).
@@ -104,7 +105,7 @@ impl TabPage {
     /// Binding to [`nvim_tabpage_list_wins`](https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()).
     ///
     /// Gets the windows in a tabpage.
-    pub fn list_wins(&self) -> Result<impl Iterator<Item = Window>> {
+    pub fn list_wins(&self) -> Result<impl ExactSizeIterator<Item = Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
         err.into_err_or_else(|| {
@@ -115,7 +116,10 @@ impl TabPage {
     /// Binding to [`nvim_tabpage_set_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_set_var()).
     ///
     /// Sets a tab-scoped (`t:`) variable.
-    pub fn set_var(&mut self, name: &str, value: impl ToObject) -> Result<()> {
+    pub fn set_var<Var>(&mut self, name: &str, value: Var) -> Result<()>
+    where
+        Var: ToObject,
+    {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe {

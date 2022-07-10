@@ -17,41 +17,44 @@ pub struct WindowConfig {
     #[builder(setter(strip_option))]
     pub border: Option<WindowBorder>,
 
-    /// Places window relative to buffer text (only when `relative` is
-    /// `WinRelativeTo::Window(win)`). Takes a zero indexed `(line, column)`
-    /// tuple, with `row` and `col` being placed relative to this position if
-    /// specified.
+    /// Places window relative to buffer text (only when
+    /// [`relative`](WindowConfigBuilder::relative) is set to
+    /// [`WindowRelativeTo::Window(win)`](WindowRelativeTo)). Takes a zero
+    /// indexed `(line, column)` tuple, with `row` and `col` being placed
+    /// relative to this position if specified.
     #[builder(setter(custom))]
     pub bufpos: Option<(usize, usize)>,
 
     /// Column position in units of screen cell width. May be fractional
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub col: Option<Float>,
 
     /// Whether an attached GUI should display the window as an external
     /// top-level window.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub external: Option<bool>,
 
     /// Enable focus by user actions like mouse events. Non-focusable windows
     /// can be entered by `crate::api::set_current_win`.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub focusable: Option<bool>,
 
     /// Window height in character cells. Minimum of 1.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub height: Option<u32>,
 
     /// If `true` then no buffer-related autocommand events such as `BufEnter`
-    /// or `BufLeave` are fired when calling `crate::api::open_win`.
-    #[builder(setter(into, strip_option))]
+    /// or `BufLeave` are fired when calling
+    /// [`api::open_win`](crate::api::open_win).
+    #[builder(setter(strip_option))]
     pub noautocmd: Option<bool>,
 
+    /// What the window is positioned relative to.
     #[builder(setter(strip_option))]
     pub relative: Option<WindowRelativeTo>,
 
-    /// Row position in units of screen cell height. May be fractional
-    #[builder(setter(into, strip_option))]
+    /// Row position in units of screen cell height. May be fractional.
+    #[builder(setter(strip_option))]
     pub row: Option<Float>,
 
     /// Configures the appearance of the window.
@@ -59,12 +62,12 @@ pub struct WindowConfig {
     pub style: Option<WindowStyle>,
 
     /// Window width in character cells. Minimum of 1.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub width: Option<u32>,
 
     /// Stacking order. Windows with higher `zindex` go in front of windows
     /// with lower indices.
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     pub zindex: Option<u32>,
 }
 
@@ -77,6 +80,11 @@ impl WindowConfig {
 }
 
 impl WindowConfigBuilder {
+    /// Places window relative to buffer text (only when
+    /// [`relative`](WindowConfigBuilder::relative) is set to
+    /// [`WindowRelativeTo::Window(win)`](WindowRelativeTo)). Takes a zero
+    /// indexed `(line, column)` tuple, with `row` and `col` being placed
+    /// relative to this position if specified.
     pub fn bufpos(&mut self, line: usize, column: usize) -> &mut Self {
         self.bufpos = Some(Some((line, column)));
         self

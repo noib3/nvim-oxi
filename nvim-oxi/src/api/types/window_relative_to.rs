@@ -7,12 +7,12 @@ use crate::api::Window;
 
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-/// Specifies what a floating window is position relative to.
+/// Specifies what a floating window is positioned relative to.
 pub enum WindowRelativeTo {
     /// Positions the window relative to the global Neovim editor grid.
     Editor,
 
-    /// Position the window relative to another window.
+    /// Positions the window relative to another window.
     Window(Window),
 
     /// Positions the window relative to the current cursor position.

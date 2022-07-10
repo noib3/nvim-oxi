@@ -20,8 +20,8 @@ fn open_win_basic_config() {
     let buf = api::create_buf(true, true).unwrap();
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .row(1.5)
         .col(1.5)
         .build();
@@ -48,8 +48,8 @@ fn open_win_full_config() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Window(Window::current()))
         .anchor(WindowAnchor::SouthWest)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .bufpos(7, 5)
         .row(1.5)
         .col(1.5)
@@ -85,8 +85,8 @@ fn set_config() {
 
     let initial = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .row(1.5)
         .col(1.5)
         .build();
@@ -96,14 +96,14 @@ fn set_config() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Window(Window::current()))
         .anchor(WindowAnchor::SouthWest)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .bufpos(7, 5)
         .row(1.5)
         .col(1.5)
         .focusable(false)
         .external(false)
-        .zindex(300u32)
+        .zindex(300)
         .style(WindowStyle::Minimal)
         .border(WindowBorder::from((
             None, None, None, '>', None, None, None, '<',

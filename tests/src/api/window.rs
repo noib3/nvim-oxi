@@ -15,8 +15,8 @@ fn win_call() {
 fn close_hide() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .row(1.5)
         .col(1.5)
         .build();
@@ -45,7 +45,7 @@ fn get_set_buf() {
     assert_eq!(Ok(Buffer::current()), win.get_buf());
 
     let buf = api::create_buf(true, false).unwrap();
-    assert_eq!(Ok(()), win.set_buf(&buf));
+    assert_eq!(Ok(()), win.set_buf(buf));
 
     let res = win.call(move |_| {
         let win = Window::current();
@@ -60,8 +60,8 @@ fn get_set_buf() {
 fn get_set_height_width() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
-        .height(10u8)
-        .width(5u8)
+        .height(10)
+        .width(5)
         .row(1.5)
         .col(1.5)
         .build();
@@ -71,8 +71,8 @@ fn get_set_height_width() {
     assert_eq!(10, win.get_height().unwrap());
     assert_eq!(5, win.get_width().unwrap());
 
-    assert_eq!(Ok(()), win.set_height(5u8));
-    assert_eq!(Ok(()), win.set_width(10u8));
+    assert_eq!(Ok(()), win.set_height(5));
+    assert_eq!(Ok(()), win.set_width(10));
 
     assert_eq!(5, win.get_height().unwrap());
     assert_eq!(10, win.get_width().unwrap());

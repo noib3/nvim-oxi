@@ -9,16 +9,26 @@ use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
+/// Informations about a parsed VimL expression returned by
+/// [`api::parse_expression`](crate::api::parse_expression).
 pub struct ParsedVimLExpression {
+    /// The syntax tree of the parsed expression.
     #[serde(default)]
     pub ast: Option<VimLExpressionAst>,
 
+    /// Only present if there was an error parsing the expression.
     #[serde(default)]
     pub error: Option<ParseExpressionError>,
 
+    /// Only present if `include_highlight` was set to `true` when calling
+    /// [`api::parse_expression`](crate::api::parse_expression). The first
+    /// three items of the tuples represent the line, starting column and
+    /// ending column (exclusive) of each highlight, while the last item is the
+    /// highlight group name.
     #[serde(default)]
     pub highlight: Vec<(usize, usize, usize, String)>,
 
+    /// Number of bytes successfully parsed.
     pub len: usize,
 }
 

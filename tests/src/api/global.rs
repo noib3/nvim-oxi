@@ -120,7 +120,7 @@ fn set_get_del_mark() {
     assert_eq!((1, 0, buf, "".into()), api::get_mark('A', &opts).unwrap());
 
     let res = api::del_mark('A');
-    assert_eq!(Ok(true), res);
+    assert_eq!(Ok(()), res);
 }
 
 #[oxi::test]

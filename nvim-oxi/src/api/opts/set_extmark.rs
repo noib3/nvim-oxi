@@ -178,9 +178,9 @@ impl SetExtmarkOptsBuilder {
     /// Virtual lines to add next to the mark.
     pub fn virt_lines<Txt, Hl, Cnk>(&mut self, chunks: Cnk) -> &mut Self
     where
+        Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
         Hl: Into<Object>,
-        Cnk: IntoIterator<Item = (Txt, Hl)>,
     {
         self.virt_lines = Some(
             chunks
@@ -202,10 +202,10 @@ impl SetExtmarkOptsBuilder {
     /// [`api::get_hl_id_by_name`](crate::api::get_hl_id_by_name).
     pub fn virt_text<Txt, Hl, Hls, Cnk>(&mut self, chunks: Cnk) -> &mut Self
     where
-        Txt: Into<nvim::String>,
-        Hl: Into<Object>,
-        Hls: IntoIterator<Item = Hl>,
         Cnk: IntoIterator<Item = (Txt, Hls)>,
+        Txt: Into<nvim::String>,
+        Hls: IntoIterator<Item = Hl>,
+        Hl: Into<Object>,
     {
         self.virt_text = Some(
             chunks

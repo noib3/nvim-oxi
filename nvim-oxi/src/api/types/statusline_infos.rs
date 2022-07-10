@@ -4,20 +4,22 @@ use serde::Deserialize;
 use super::StatuslineHighlightInfos;
 use crate::object::{self, FromObject};
 
-/// Object returned from a call to `crate::api::eval_statusline`.
+/// Statusline informations returned by
+/// [`api::eval_statusline`](crate::api::eval_statusline).
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct StatuslineInfos {
-    /// Vector of highlight informations for the statusline. Only included if
-    /// the `highlights` field of `crate::api::opts::EvalStatuslineOpts` was
-    /// set to `true`.
-    pub highlights: Option<Vec<StatuslineHighlightInfos>>,
+    /// Vector of highlight informations for the statusline populated if the
+    /// [`highlights`](crate::api::opts::EvalStatuslineOptsBuilder::highlights)
+    /// field of  was set to `true`.
+    #[serde(default)]
+    pub highlights: Vec<StatuslineHighlightInfos>,
 
-    /// Characters that will be displayed in the statusline.
+    /// Characters displayed in the statusline.
     pub str: String,
 
     /// Display width of the statusline.
-    pub width: usize,
+    pub width: u32,
 }
 
 impl FromObject for StatuslineInfos {

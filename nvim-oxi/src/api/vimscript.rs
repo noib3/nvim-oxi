@@ -1,22 +1,21 @@
-use nvim_types::{self as nvim, Array};
+use nvim_types::{self as nvim, Array, Object};
 
 use super::ffi::vimscript::*;
 use super::types::*;
 use crate::lua::LUA_INTERNAL_CALL;
-use crate::object::{FromObject, ToObject};
+use crate::object::FromObject;
 use crate::Result;
 
 /// Binding to [`nvim_call_dict_function`](https://neovim.io/doc/user/api.html#nvim_call_dict_function()).
 ///
 /// Calls a VimL dictionary function with the given arguments, returning the
 /// result of the funtion call.
-pub fn call_dict_function<D, A, R>(dict: D, func: &str, args: A) -> Result<R>
+pub fn call_dict_function<A, R>(dict: &str, func: &str, args: A) -> Result<R>
 where
-    D: ToObject,
     A: Into<Array>,
     R: FromObject,
 {
-    let dict = dict.to_obj()?;
+    let dict = Object::from(nvim::String::from(dict));
     let func = nvim::String::from(func);
     let args = args.into();
     let mut err = nvim::Error::new();

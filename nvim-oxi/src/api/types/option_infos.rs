@@ -8,7 +8,7 @@ use crate::object::{self, FromObject};
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct OptionInfos {
-    ///
+    /// TODO: docs
     pub allows_duplicates: bool,
 
     /// List of comma-separated values.
@@ -17,6 +17,7 @@ pub struct OptionInfos {
     /// The default value for the option.
     pub default: OptionDefault,
 
+    /// TODO: docs
     pub flaglist: bool,
 
     /// Whether a window or buffer option also has a global value.

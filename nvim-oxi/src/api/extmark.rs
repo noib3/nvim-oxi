@@ -147,8 +147,9 @@ impl Buffer {
         start: ExtmarkPosition,
         end: ExtmarkPosition,
         opts: &GetExtmarksOpts,
-    ) -> Result<impl Iterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>>
-    {
+    ) -> Result<
+        impl ExactSizeIterator<Item = (u32, usize, usize, Option<ExtmarkInfos>)>,
+    > {
         let opts = Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
@@ -226,7 +227,7 @@ pub fn create_namespace(name: &str) -> u32 {
 ///
 /// Returns an iterator over all the existing, non-anonymous namespace names
 /// and ids tuples `(name, id)`.
-pub fn get_namespaces() -> impl Iterator<Item = (String, u32)> {
+pub fn get_namespaces() -> impl ExactSizeIterator<Item = (String, u32)> {
     unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
         let k = k.try_into().expect("namespace name is valid UTF-8");
         let v = v.try_into().expect("namespace id is positive");

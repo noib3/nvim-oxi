@@ -4,57 +4,62 @@ use nvim_types::{Array, NonOwning, Object};
 use crate::api::Buffer;
 use crate::trait_utils::StringOrInt;
 
-/// Options passed to `crate::api::clear_autocmds`.
+/// Options passed to [`api::clear_autocmds`](crate::api::clear_autocmds).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct ClearAutocmdsOpts {
     /// Only clear the autocommands local to a specific `Buffer`. Cannot be
-    /// used together with `patterns`.
+    /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
-    /// Clear all the autocommands triggered by one or more of the specified
-    /// events.
     #[builder(setter(custom))]
     events: Object,
 
-    /// Only clear the autocommands belonging to a specific augroup. The
-    /// augroup can be specified by both id and name.
     #[builder(setter(custom))]
     group: Object,
 
-    /// Only get the autocommands that match specific patterns. For example, if
-    /// you have `"*.py"` as a pattern for a particular autocommand, you must
-    /// pass that exact pattern to clear it. Cannot be used together with
-    /// `buffer`.
     #[builder(setter(custom))]
     patterns: Object,
 }
 
 impl ClearAutocmdsOpts {
+    /// Creates a new [`ClearAutocmdsOptsBuilder`].
     #[inline(always)]
     pub fn builder() -> ClearAutocmdsOptsBuilder {
         ClearAutocmdsOptsBuilder::default()
     }
 }
 
-macro_rules! string_or_table {
-    ($fn_name:ident) => {
-        pub fn $fn_name<'a, I>(&mut self, iter: I) -> &mut Self
-        where
-            I: IntoIterator<Item = &'a str>,
-        {
-            self.$fn_name = Some(Array::from_iter(iter).into());
-            self
-        }
-    };
-}
-
 impl ClearAutocmdsOptsBuilder {
-    string_or_table!(events);
-    string_or_table!(patterns);
+    /// Clear all the autocommands triggered by one or more of the specified
+    /// events.
+    pub fn events<'a, I>(&mut self, iter: I) -> &mut Self
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        self.events = Some(Array::from_iter(iter).into());
+        self
+    }
 
-    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+    /// Only clear the autocommands matching specific patterns. For example, if
+    /// you have `"*.py"` as a pattern for a particular autocommand, you must
+    /// pass that exact pattern to clear it. Cannot be used together with
+    /// [`buffer`](ClearAutocmdsOptsBuilder::buffer).
+    pub fn patterns<'a, I>(&mut self, iter: I) -> &mut Self
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        self.patterns = Some(Array::from_iter(iter).into());
+        self
+    }
+
+    /// Only clear the autocommands belonging to a specific augroup. The
+    /// augroup can be specified by both id and name.
+    pub fn group<Grp>(&mut self, group: Grp) -> &mut Self
+    where
+        Grp: StringOrInt,
+    {
         self.group = Some(group.to_obj());
         self
     }

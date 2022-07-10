@@ -12,10 +12,12 @@ use crate::trait_utils::StringOrFunction;
 use crate::{Error, Result};
 
 /// Binding to [`nvim_chan_send`](https://neovim.io/doc/user/api.html#nvim_chan_send()).
-pub fn chan_send(chan: impl Into<Integer>, data: &str) -> Result<()> {
+///
+/// Sends data to a channel.
+pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
     let mut err = nvim::Error::new();
     let data = nvim::String::from(data);
-    unsafe { nvim_chan_send(chan.into(), data.non_owning(), &mut err) };
+    unsafe { nvim_chan_send(channel_id.into(), data.non_owning(), &mut err) };
     err.into_err_or_else(|| ())
 }
 
@@ -29,11 +31,16 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 }
 
 /// Binding to [`nvim_create_user_command`](https://neovim.io/doc/user/api.html#nvim_create_user_command()).
-pub fn create_user_command(
+///
+/// Creates a new [user command](https://neovim.io/doc/user/map.html#user-commands).
+pub fn create_user_command<Cmd>(
     name: &str,
-    command: impl StringOrFunction<CommandArgs, ()>,
+    command: Cmd,
     opts: &CreateCommandOpts,
-) -> Result<()> {
+) -> Result<()>
+where
+    Cmd: StringOrFunction<CommandArgs, ()>,
+{
     let name = nvim::String::from(name);
     let command = command.to_obj();
     let mut err = nvim::Error::new();
@@ -48,7 +55,9 @@ pub fn create_user_command(
     err.into_err_or_else(|| ())
 }
 
-/// Binding to [`nvim_del_current_line`](https://neovim.io/doc/user/api.html#nvim_del_current_line())
+/// Binding to [`nvim_del_current_line`](https://neovim.io/doc/user/api.html#nvim_del_current_line()).
+///
+/// Deletes the current line.
 pub fn del_current_line() -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_del_current_line(&mut err) };
@@ -58,7 +67,7 @@ pub fn del_current_line() -> Result<()> {
 /// Binding to [`nvim_del_keymap`](https://neovim.io/doc/user/api.html#nvim_del_keymap()).
 ///
 /// Unmaps a global mapping for the given mode. To unmap a buffer-local mapping
-/// user [`Buffer::del_keymap`] instead.
+/// use [`Buffer::del_keymap`] instead.
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
@@ -75,14 +84,24 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
 }
 
 /// Binding to [`nvim_del_mark`](https://neovim.io/doc/user/api.html#nvim_del_mark()).
-pub fn del_mark(name: char) -> Result<bool> {
+///
+/// Deletes an uppercase/file named mark. Returns an error if a lowercase or
+/// buffer-local named mark is used. Use [`Buffer::del_mark`] to delete a
+/// buffer-local mark.
+pub fn del_mark(name: char) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let res = unsafe { nvim_del_mark(name.non_owning(), &mut err) };
-    err.into_err_or_else(|| res)
+    let was_deleted = unsafe { nvim_del_mark(name.non_owning(), &mut err) };
+    err.into_err_or_flatten(|| match was_deleted {
+        true => Ok(()),
+        _ => Err(Error::custom("Couldn't delete mark")),
+    })
 }
 
 /// Binding to [`nvim_del_user_command`](https://neovim.io/doc/user/api.html#nvim_del_user_command()).
+///
+/// Deletes a global user-defined command.  Use [`Buffer::del_user_command`] to
+/// delete a buffer-local command.
 pub fn del_user_command(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -102,12 +121,12 @@ pub fn del_var(name: &str) -> Result<()> {
 
 /// Binding to [`nvim_echo`](https://neovim.io/doc/user/api.html#nvim_echo()).
 ///
-/// Echoes a message to the https://neovim message area.
+/// Echoes a message to the Neovim message area.
 pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
+    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
     Text: std::fmt::Display,
     HlGroup: AsRef<str>,
-    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
 {
     let chunks = chunks
         .into_iter()
@@ -129,7 +148,7 @@ where
 
 /// Binding to [`nvim_err_write`](https://neovim.io/doc/user/api.html#nvim_err_write()).
 ///
-/// Writes a message to the https://neovim error buffer. Does not append a newline
+/// Writes a message to the Neovim error buffer. Does not append a newline
 /// (`"\n"`); the message gets buffered and won't be displayed until a linefeed
 /// is written.
 pub fn err_write(str: &str) {
@@ -138,7 +157,7 @@ pub fn err_write(str: &str) {
 
 /// Binding to [`nvim_err_writeln`](https://neovim.io/doc/user/api.html#nvim_err_writeln()).
 ///
-/// Writes a message to the https://neovim error buffer. Appends a newline (`"\n"`), so
+/// Writes a message to the Neovim error buffer. Appends a newline (`"\n"`), so
 /// the buffer is flushed and displayed.
 pub fn err_writeln(str: &str) {
     unsafe { nvim_err_writeln(nvim::String::from(str).non_owning()) }
@@ -169,7 +188,8 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
 /// Binding to [`nvim_get_all_options_info`](https://neovim.io/doc/user/api.html#nvim_get_all_options_info()).
 ///
 /// Gets the option information for all options.
-pub fn get_all_options_info() -> Result<impl Iterator<Item = OptionInfos>> {
+pub fn get_all_options_info(
+) -> Result<impl ExactSizeIterator<Item = OptionInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_all_options_info(&mut err) };
     err.into_err_or_else(|| {
@@ -182,9 +202,9 @@ pub fn get_all_options_info() -> Result<impl Iterator<Item = OptionInfos>> {
 /// Binding to [`nvim_get_chan_info`](https://neovim.io/doc/user/api.html#nvim_get_chan_info()).
 ///
 /// Gets information about a channel.
-pub fn get_chan_info(chan: impl Into<Integer>) -> Result<ChannelInfos> {
+pub fn get_chan_info(channel_id: u32) -> Result<ChannelInfos> {
     let mut err = nvim::Error::new();
-    let infos = unsafe { nvim_get_chan_info(chan.into(), &mut err) };
+    let infos = unsafe { nvim_get_chan_info(channel_id.into(), &mut err) };
     err.into_err_or_flatten(|| ChannelInfos::from_obj(infos.into()))
 }
 
@@ -204,7 +224,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 ///
 /// Returns an iterator over tuples representing color names and 24-bit RGB
 /// values (e.g. 65535).
-pub fn get_color_map() -> impl Iterator<Item = (String, u32)> {
+pub fn get_color_map() -> impl ExactSizeIterator<Item = (String, u32)> {
     unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
         (String::try_from(k).unwrap(), u32::try_from(v).unwrap())
     })
@@ -216,7 +236,7 @@ pub fn get_color_map() -> impl Iterator<Item = (String, u32)> {
 /// user-defined commands are returned, not builtin ones.
 pub fn get_commands(
     opts: &GetCommandsOpts,
-) -> Result<impl Iterator<Item = CommandInfos>> {
+) -> Result<impl ExactSizeIterator<Item = CommandInfos>> {
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
     err.into_err_or_else(|| {
@@ -296,7 +316,7 @@ where
 /// Binding to [`nvim_get_keymap`](https://neovim.io/doc/user/api.html#nvim_get_keymap()).
 ///
 /// Returns an iterator over the global mapping definitions.
-pub fn get_keymap(mode: Mode) -> impl Iterator<Item = KeymapInfos> {
+pub fn get_keymap(mode: Mode) -> impl ExactSizeIterator<Item = KeymapInfos> {
     let mode = nvim::String::from(mode);
     unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
         .into_iter()
@@ -393,7 +413,7 @@ pub fn get_proc(pid: impl Into<Integer>) -> Result<ProcInfos> {
 /// Gets the immediate children of process `pid`.
 pub fn get_proc_children(
     pid: impl Into<Integer>,
-) -> Result<impl Iterator<Item = u32>> {
+) -> Result<impl ExactSizeIterator<Item = u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
     err.into_err_or_else(|| {
@@ -407,7 +427,7 @@ pub fn get_proc_children(
 pub fn get_runtime_file(
     name: impl Into<nvim::String>,
     get_all: bool,
-) -> Result<impl Iterator<Item = PathBuf>> {
+) -> Result<impl ExactSizeIterator<Item = PathBuf>> {
     let mut err = nvim::Error::new();
     let files = unsafe {
         nvim_get_runtime_file(name.into().non_owning(), get_all, &mut err)
@@ -415,8 +435,7 @@ pub fn get_runtime_file(
     err.into_err_or_else(|| {
         files
             .into_iter()
-            .map(|obj| nvim::String::try_from(obj).unwrap())
-            .filter_map(|str| PathBuf::try_from(str).ok())
+            .map(|obj| PathBuf::from(nvim::String::try_from(obj).unwrap()))
     })
 }
 
@@ -489,7 +508,7 @@ pub fn input_mouse(
 /// Gets the current list of [`Buffer`]s, including unlisted (unloaded/deleted)
 /// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a
 /// buffer is loaded.
-pub fn list_bufs() -> impl Iterator<Item = Buffer> {
+pub fn list_bufs() -> impl ExactSizeIterator<Item = Buffer> {
     unsafe { nvim_list_bufs() }
         .into_iter()
         .map(|obj| Buffer::from_obj(obj).unwrap())
@@ -498,7 +517,7 @@ pub fn list_bufs() -> impl Iterator<Item = Buffer> {
 /// Binding to [`nvim_list_chans`](https://neovim.io/doc/user/api.html#nvim_list_chans()).
 ///
 /// Returns an iterator over the informations about all the open channels.
-pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
+pub fn list_chans() -> impl ExactSizeIterator<Item = ChannelInfos> {
     unsafe { nvim_list_chans() }
         .into_iter()
         .map(|obj| ChannelInfos::from_obj(obj).unwrap())
@@ -507,35 +526,38 @@ pub fn list_chans() -> impl Iterator<Item = ChannelInfos> {
 /// Binding to [`nvim_list_runtime_paths`](https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()).
 ///
 /// Gets the paths contained in https://neovim's runtimepath.
-pub fn list_runtime_paths() -> Result<impl Iterator<Item = PathBuf>> {
+pub fn list_runtime_paths() -> Result<impl ExactSizeIterator<Item = PathBuf>> {
     let mut err = nvim::Error::new();
     let paths = unsafe { nvim_list_runtime_paths(&mut err) };
     err.into_err_or_else(|| {
         paths
             .into_iter()
-            .map(|obj| nvim::String::try_from(obj).unwrap())
-            .filter_map(|str| PathBuf::try_from(str).ok())
+            .map(|obj| PathBuf::from(nvim::String::try_from(obj).unwrap()))
     })
 }
 
 /// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
 ///
 /// Gets the current list of `Tabpage`s.
-pub fn list_tabpages() -> impl Iterator<Item = TabPage> {
-    unsafe { nvim_list_tabpages() }.into_iter().flat_map(TabPage::from_obj)
+pub fn list_tabpages() -> impl ExactSizeIterator<Item = TabPage> {
+    unsafe { nvim_list_tabpages() }
+        .into_iter()
+        .map(|obj| TabPage::from_obj(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_uis`](https://neovim.io/doc/user/api.html#nvim_list_uis()).
 ///
 /// Returns an iterator over the informations about all the attached UIs.
-pub fn list_uis() -> impl Iterator<Item = UiInfos> {
-    unsafe { nvim_list_uis() }.into_iter().flat_map(UiInfos::from_obj)
+pub fn list_uis() -> impl ExactSizeIterator<Item = UiInfos> {
+    unsafe { nvim_list_uis() }
+        .into_iter()
+        .map(|obj| UiInfos::from_obj(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_wins`](https://neovim.io/doc/user/api.html#nvim_list_wins()).
 ///
 /// Gets the current list of `Window`s.
-pub fn list_wins() -> impl Iterator<Item = Window> {
+pub fn list_wins() -> impl ExactSizeIterator<Item = Window> {
     unsafe { nvim_list_wins() }
         .into_iter()
         .map(|obj| Window::from_obj(obj).unwrap())
