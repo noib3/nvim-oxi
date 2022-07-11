@@ -1,8 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `crate::api::get_mark`. It's currently reserved for
-/// future use and doesn't have any methods.
+/// Options passed to [`api::get_mark`](crate::api::get_mark). Currently unused.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetMarkOpts {}

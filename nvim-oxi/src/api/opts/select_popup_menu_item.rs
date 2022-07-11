@@ -1,8 +1,9 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `crate::api::select_popupmenu_item`. It's currently
-/// reserved for future use and doesn't have any methods.
+/// Options passed to
+/// [`api::select_popupmenu_item`](crate::api::select_popupmenu_item).
+/// Currently unused.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct SelectPopupMenuItemOpts {}

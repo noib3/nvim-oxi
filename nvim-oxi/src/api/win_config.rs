@@ -10,14 +10,13 @@ use crate::Result;
 ///
 /// Opens a new floating or external window.
 pub fn open_win(
-    buf: impl Into<Buffer>,
+    buf: Buffer,
     enter: bool,
     config: &WindowConfig,
 ) -> Result<Window> {
     let mut err = nvim::Error::new();
-    let handle = unsafe {
-        nvim_open_win(buf.into().0, enter, &config.into(), &mut err)
-    };
+    let handle =
+        unsafe { nvim_open_win(buf.0, enter, &config.into(), &mut err) };
     err.into_err_or_else(|| handle.into())
 }
 

@@ -4,12 +4,13 @@ use serde::Serialize;
 
 use crate::object;
 
-/// Options passed to `crate::api::create_user_command`.
+/// Options passed to
+/// [`nvim_oxi::api::create_user_command`](crate::api::create_user_command).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
     #[cfg(feature = "nightly")]
-    #[builder(setter(into, strip_option))]
+    #[builder(setter(strip_option))]
     buffer: Option<crate::api::Buffer>,
 
     #[builder(setter(custom))]
@@ -55,6 +56,7 @@ impl From<OptionScope> for nvim::String {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Default)]
 #[repr(C)]
 pub(crate) struct KeyDict_option<'a> {
     #[cfg(feature = "nightly")]

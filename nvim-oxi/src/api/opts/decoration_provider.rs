@@ -3,21 +3,25 @@ use nvim_types::{Dictionary, Object};
 
 use crate::api::{Buffer, Window};
 use crate::lua::Function;
+use crate::Result;
 
 // NOTE: docs say a third argument of changedtick is passed. I don't see it.
-/// Arguments passed to the function registered to `on_buf`.
+/// Arguments passed to the function registered to
+/// [`on_buf`](DecorationProviderOptsBuilder::on_buf).
 pub type OnBufArgs = (
     String, // the string literal "buf"
     Buffer, // buffer
 );
 
-/// Arguments passed to the function registered to `on_reload`.
+/// Arguments passed to the function registered to
+/// [`on_end`](DecorationProviderOptsBuilder::on_end).
 pub type OnEndArgs = (
     String, // the string literal "end"
     u32,    // changedtick
 );
 
-/// Arguments passed to the function registered to `on_line`.
+/// Arguments passed to the function registered to
+/// [`on_line`](DecorationProviderOptsBuilder::on_line).
 pub type OnLineArgs = (
     String, // the string literal "win"
     Window, // window
@@ -25,14 +29,16 @@ pub type OnLineArgs = (
     usize,  // row
 );
 
-/// Arguments passed to the function registered to `on_start`.
+/// Arguments passed to the function registered to
+/// [`on_start`](DecorationProviderOptsBuilder::on_start).
 pub type OnStartArgs = (
     String, // the string literal "start"
     u32,    // changedtick
     u32, /* `type`, undocumented? (https://github.com/neovim/neovim/blob/master/src/nvim/decoration_provider.c#L68) */
 );
 
-/// Arguments passed to the function registered to `on_win`.
+/// Arguments passed to the function registered to
+/// [`on_win`](DecorationProviderOptsBuilder::on_win).
 pub type OnWinArgs = (
     String, // the string literal "win"
     Window, // window
@@ -49,7 +55,8 @@ pub type DontSkipRedrawCycle = bool;
 /// that window.
 pub type DontSkipOnLines = bool;
 
-/// Options passed to `api::set_decoration_provider`.
+/// Options passed to
+/// [`nvim_oxi::api::set_decoration_provider`](crate::api::set_decoration_provider).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct DecorationProviderOpts {
@@ -71,6 +78,7 @@ pub struct DecorationProviderOpts {
 
 impl DecorationProviderOpts {
     #[inline(always)]
+    /// Creates a new [`DecorationProviderOptsBuilder`].
     pub fn builder() -> DecorationProviderOptsBuilder {
         DecorationProviderOptsBuilder::default()
     }
@@ -80,7 +88,7 @@ macro_rules! lua_fn_setter {
     ($name:ident, $args:ty, $ret:ty) => {
         pub fn $name<F>(&mut self, fun: F) -> &mut Self
         where
-            F: FnMut($args) -> crate::Result<$ret> + 'static,
+            F: FnMut($args) -> Result<$ret> + 'static,
         {
             self.$name = Some(Function::from_fn_mut(fun).into());
             self

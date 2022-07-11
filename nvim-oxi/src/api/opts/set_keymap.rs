@@ -74,6 +74,7 @@ impl SetKeymapOptsBuilder {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(Default)]
 #[repr(C)]
 pub(crate) struct KeyDict_keymap<'a> {
     desc: NonOwning<'a, Object>,

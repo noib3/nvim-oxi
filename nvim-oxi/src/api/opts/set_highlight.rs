@@ -3,6 +3,7 @@ use nvim_types::{self as nvim, NonOwning, Object};
 
 #[derive(Clone, Debug, Default, PartialEq, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`nvim_oxi::api::set_hl`](crate::api::set_hl).
 pub struct SetHighlightOpts {
     #[builder(setter(custom))]
     bg: Object,
@@ -67,44 +68,45 @@ pub struct SetHighlightOpts {
 
 impl SetHighlightOpts {
     #[inline(always)]
+    /// Creates a new [`SetHighlightOptsBuilder`].
     pub fn builder() -> SetHighlightOptsBuilder {
         <SetHighlightOptsBuilder as Default>::default()
     }
 }
 
 impl SetHighlightOptsBuilder {
-    pub fn bg(&mut self, bg: impl Into<nvim::String>) -> &mut Self {
-        self.bg = Some(bg.into().into());
+    pub fn bg(&mut self, bg: &str) -> &mut Self {
+        self.bg = Some(nvim::String::from(bg).into());
         self
     }
 
-    pub fn cterm(&mut self, cterm: impl Into<nvim::String>) -> &mut Self {
-        self.cterm = Some(cterm.into().into());
+    pub fn cterm(&mut self, cterm: &str) -> &mut Self {
+        self.cterm = Some(nvim::String::from(cterm).into());
         self
     }
 
-    pub fn ctermbg(&mut self, ctermbg: impl Into<nvim::String>) -> &mut Self {
-        self.ctermbg = Some(ctermbg.into().into());
+    pub fn ctermbg(&mut self, ctermbg: &str) -> &mut Self {
+        self.ctermbg = Some(nvim::String::from(ctermbg).into());
         self
     }
 
-    pub fn ctermfg(&mut self, ctermfg: impl Into<nvim::String>) -> &mut Self {
-        self.ctermfg = Some(ctermfg.into().into());
+    pub fn ctermfg(&mut self, ctermfg: &str) -> &mut Self {
+        self.ctermfg = Some(nvim::String::from(ctermfg).into());
         self
     }
 
-    pub fn fg(&mut self, fg: impl Into<nvim::String>) -> &mut Self {
-        self.fg = Some(fg.into().into());
+    pub fn fg(&mut self, fg: &str) -> &mut Self {
+        self.fg = Some(nvim::String::from(fg).into());
         self
     }
 
-    pub fn link(&mut self, link: impl Into<nvim::String>) -> &mut Self {
-        self.link = Some(link.into().into());
+    pub fn link(&mut self, link: &str) -> &mut Self {
+        self.link = Some(nvim::String::from(link).into());
         self
     }
 
-    pub fn special(&mut self, special: impl Into<nvim::String>) -> &mut Self {
-        self.special = Some(special.into().into());
+    pub fn special(&mut self, special: &str) -> &mut Self {
+        self.special = Some(nvim::String::from(special).into());
         self
     }
 

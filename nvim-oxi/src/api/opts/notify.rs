@@ -1,8 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to `crate::api::notify`. It's currently reserved for
-/// future use and doesn't have any methods.
+/// Options passed to [`nvim_oxi::api::notify`](crate::api::notify). Currently
+/// unused.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct NotifyOpts {}

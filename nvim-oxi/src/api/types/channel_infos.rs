@@ -5,7 +5,6 @@ use super::ClientInfos;
 use crate::api::Buffer;
 use crate::object::{self, FromObject};
 
-/// Object returned from a call to `crate::api::get_chan_info`.
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 pub struct ChannelInfos {

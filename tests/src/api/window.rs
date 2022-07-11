@@ -21,10 +21,12 @@ fn close_hide() {
         .col(1.5)
         .build();
 
-    let win = api::open_win(0, false, &config).unwrap();
+    let buf = Buffer::current();
+
+    let win = api::open_win(buf, false, &config).unwrap();
     assert_eq!(Ok(()), win.close(false));
 
-    let win = api::open_win(0, false, &config).unwrap();
+    let win = api::open_win(buf, false, &config).unwrap();
     assert_eq!(Ok(()), win.hide());
 }
 
@@ -66,7 +68,9 @@ fn get_set_height_width() {
         .col(1.5)
         .build();
 
-    let mut win = api::open_win(0, false, &config).unwrap();
+    let buf = Buffer::current();
+
+    let mut win = api::open_win(buf, false, &config).unwrap();
 
     assert_eq!(10, win.get_height().unwrap());
     assert_eq!(5, win.get_width().unwrap());

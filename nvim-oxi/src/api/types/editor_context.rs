@@ -4,34 +4,33 @@ use serde::Deserialize;
 
 use crate::object::{self, FromObject};
 
-/// Object returned from a call to `crate::api::get_context`.
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct EditorContext {
     #[builder(setter(custom))]
     #[serde(default, rename = "bufs")]
-    bufferlist: Vec<nvim::String>,
+    pub bufferlist: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "gvars")]
-    global_vars: Vec<nvim::String>,
+    pub global_vars: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "funcs")]
-    global_and_script_local_funcs: Vec<nvim::String>,
+    pub global_and_script_local_funcs: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "jumps")]
-    jumplist: Vec<nvim::String>,
+    pub jumplist: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "regs")]
-    registers: Vec<nvim::String>,
+    pub registers: Vec<nvim::String>,
 
     #[builder(setter(custom))]
     #[serde(default, rename = "sfuncs")]
-    script_local_funcs: Vec<nvim::String>,
+    pub script_local_funcs: Vec<nvim::String>,
 }
 
 impl EditorContext {
@@ -45,8 +44,8 @@ macro_rules! strvec_setter {
     ($name:ident) => {
         pub fn $name<Line, Lines>(&mut self, lines: Lines) -> &mut Self
         where
-            Line: Into<nvim::String>,
             Lines: IntoIterator<Item = Line>,
+            Line: Into<nvim::String>,
         {
             self.$name =
                 Some(lines.into_iter().map(Into::into).collect::<Vec<_>>());

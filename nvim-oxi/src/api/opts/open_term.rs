@@ -4,6 +4,14 @@ use nvim_types::{self as nvim, Dictionary, Object};
 use crate::api::Buffer;
 use crate::lua::Function;
 
+/// Arguments passed to the callback registered to
+/// [`on_input`](OpenTermOptsBuilder::on_input). The `(a, b, c, d)` tuple
+/// represents:
+///
+/// - `a`: the string literal `"input"`;
+/// - `b`: channel id;
+/// - `c`: the [`Buffer`] associated to the terminal instance;
+/// - `d`: data input.
 pub type OnInputArgs = (
     String,       // the string literal `"input"`
     u32,          // channel_id
@@ -11,7 +19,6 @@ pub type OnInputArgs = (
     nvim::String, // data input
 );
 
-/// Options passed to `crate::api::open_term`.
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OpenTermOpts {
@@ -21,12 +28,14 @@ pub struct OpenTermOpts {
 
 impl OpenTermOpts {
     #[inline(always)]
+    /// Creates a new [`OpenTermOptsBuilder`].
     pub fn builder() -> OpenTermOptsBuilder {
         OpenTermOptsBuilder::default()
     }
 }
 
 impl OpenTermOptsBuilder {
+    /// Callback invoked on data input (like keypresses in terminal mode).
     pub fn on_input<F>(&mut self, fun: F) -> &mut Self
     where
         F: FnMut(OnInputArgs) -> crate::Result<()> + 'static,

@@ -3,7 +3,7 @@ use nvim_types::{self as nvim, Array, NonOwning, Object};
 
 use crate::api::types::ContextType;
 
-/// Options passed to `crate::api::get_context`.
+/// Options passed to [`api::get_context`](crate::api::get_context).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetContextOpts {
@@ -13,12 +13,14 @@ pub struct GetContextOpts {
 
 impl GetContextOpts {
     #[inline(always)]
+    /// Creates a new [`GetContextOptsBuilder`].
     pub fn builder() -> GetContextOptsBuilder {
         GetContextOptsBuilder::default()
     }
 }
 
 impl GetContextOptsBuilder {
+    /// List of [`ContextType`]s to gather, or empty for all.
     pub fn types<T: IntoIterator<Item = ContextType>>(
         &mut self,
         types: T,

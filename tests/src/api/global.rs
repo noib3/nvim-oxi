@@ -99,7 +99,7 @@ fn set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = api::set_keymap(Mode::Insert, "a", "", &opts);
+    let res = api::set_keymap(Mode::Insert, "a", "", Some(&opts));
     assert_eq!(Ok(()), res);
 
     let keymaps = api::get_keymap(Mode::Insert).collect::<Vec<_>>();
@@ -133,10 +133,10 @@ fn set_get_del_var() {
 #[oxi::test]
 fn set_get_option() {
     api::set_option("modified", true).unwrap();
-    assert!(api::get_option::<_, bool>("modified").unwrap());
+    assert!(api::get_option::<bool>("modified").unwrap());
 
     api::set_option("modified", false).unwrap();
-    assert!(!api::get_option::<_, bool>("modified").unwrap());
+    assert!(!api::get_option::<bool>("modified").unwrap());
 }
 
 #[oxi::test]
