@@ -5,7 +5,7 @@ use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
 use libc::{c_char, c_int};
-use nvim_types::{LuaRef, Object, ObjectData, ObjectType};
+use nvim_types::{LuaRef, Object};
 use serde::{de, ser};
 
 use super::{ffi::*, LuaPoppable, LuaPushable};
@@ -23,10 +23,7 @@ impl<A, R> fmt::Debug for Function<A, R> {
 
 impl<A, R> From<Function<A, R>> for Object {
     fn from(fun: Function<A, R>) -> Self {
-        Self {
-            r#type: ObjectType::kObjectTypeLuaRef,
-            data: ObjectData { luaref: fun.0 },
-        }
+        Self::new_luaref(fun.0)
     }
 }
 
@@ -35,6 +32,18 @@ impl<A, R> ToObject for Function<A, R> {
         Ok(self.into())
     }
 }
+
+// impl<A, R> FromObject for Function<A, R> {
+//     fn from_obj(obj: Object) -> Result<Function<A, R>> {
+//         // match obj.r#type
+//         //         (matches!(obj.r#type, nvim_types::ObjectType::kObjectTypeLuaRef))
+//         //             .then_some(unsafe { obj.data.$data })
+//         //             .ok_or_else(|| Primitive {
+//         //                 expected: $variant,
+//         //                 actual: obj.r#type,
+//         //             })
+//     }
+// }
 
 impl<'de, A, R> de::Deserialize<'de> for Function<A, R> {
     fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>

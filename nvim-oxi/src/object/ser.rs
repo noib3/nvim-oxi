@@ -1,4 +1,4 @@
-use nvim_types::{self as nvim, Object, ObjectData, ObjectType};
+use nvim_types::{self as nvim, Object};
 use serde::ser;
 
 use crate::Result;
@@ -9,6 +9,7 @@ use crate::Result;
 pub struct Serializer;
 
 impl Serializer {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self
     }
@@ -77,10 +78,7 @@ impl ser::Serializer for Serializer {
     // described in `super::de`.
     #[inline]
     fn serialize_f32(self, value: f32) -> Result<Self::Ok> {
-        Ok(Object {
-            r#type: ObjectType::kObjectTypeLuaRef,
-            data: ObjectData { luaref: value as i32 },
-        })
+        Ok(Object::new_luaref(value as i32))
     }
 
     #[inline]

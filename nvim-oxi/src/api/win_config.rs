@@ -30,7 +30,7 @@ impl Window {
         let win = dict.get(&"win").map(|obj| unsafe {
             // SAFETY: if the `win` key is present it's set to an integer
             // representing a window handle.
-            obj.data.integer as i32
+            obj.as_integer_unchecked() as i32
         });
         if let Some(handle) = win {
             dict["relative"] = handle.into();

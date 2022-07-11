@@ -60,6 +60,15 @@ pub struct VimLExpressionAst {
     pub ty: VimLAstNode,
 }
 
+// fn deserialize_children<'de, D>(
+//     deserializer: D,
+// ) -> Result<BTreeSet<VimLExpressionAst>, D::Error>
+// where
+//     D: serde::de::Deserializer<'de>,
+// {
+//     todo!()
+// }
+
 /// Only used for deserialization purposes.
 #[derive(Deserialize)]
 #[allow(dead_code)]

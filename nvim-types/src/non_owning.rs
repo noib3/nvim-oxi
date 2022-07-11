@@ -6,6 +6,7 @@ use std::mem::ManuallyDrop;
 ///
 /// Used for FFI functions that accept data by value, but don't destroy or move
 /// out of it. This is guaranteed to have the same layout as `T`.
+#[doc(hidden)]
 #[repr(transparent)]
 pub struct NonOwning<'a, T> {
     _inner: ManuallyDrop<T>,

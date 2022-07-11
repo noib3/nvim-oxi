@@ -7,18 +7,18 @@ use crate::api::Buffer;
 use crate::object::{self, FromObject};
 use crate::Result;
 
-pub type ShouldDeleteAutocmd = bool;
-
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct AutocmdCallbackArgs {
     /// The `Buffer` specified by `<abuf>`.
     #[serde(rename = "buf")]
     pub buffer: Buffer,
 
-    // /// Arbitrary data passed to `api::exec_autocmds`.
-    // #[serde(default)]
-    // pub data: ??,
+    /// Arbitrary data passed to
+    /// [`nvim_oxi::api::exec_autocmds`](crate::api::nvim_exec_autocmds).
+    #[serde(default)]
+    pub data: Object,
+
     /// The name of the event that triggered the autocommand.
     pub event: String,
 

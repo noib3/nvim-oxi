@@ -1,11 +1,13 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, Array, NonOwning, Object};
 
-use crate::api::types::{AutocmdCallbackArgs, ShouldDeleteAutocmd};
+use crate::api::types::AutocmdCallbackArgs;
 use crate::api::Buffer;
 use crate::lua::Function;
 use crate::trait_utils::StringOrInt;
 use crate::Result;
+
+pub type ShouldDeleteAutocmd = bool;
 
 /// Options passed to `crate::api::create_autocmd`.
 #[derive(Clone, Debug, Default, Builder)]
@@ -72,7 +74,10 @@ impl CreateAutocmdOptsBuilder {
         self
     }
 
-    pub fn group(&mut self, group: impl StringOrInt) -> &mut Self {
+    pub fn group<Grp>(&mut self, group: Grp) -> &mut Self
+    where
+        Grp: StringOrInt,
+    {
         self.group = Some(group.to_obj());
         self
     }

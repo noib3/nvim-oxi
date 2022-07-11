@@ -17,15 +17,15 @@ pub struct Error {
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Eq, PartialEq)]
 #[repr(C)]
-pub enum ErrorType {
-    kErrorTypeNone = -1,
-    kErrorTypeException,
-    kErrorTypeValidation,
+enum ErrorType {
+    None = -1,
+    Exception,
+    Validation,
 }
 
 impl Error {
     pub const fn new() -> Self {
-        Self { r#type: ErrorType::kErrorTypeNone, msg: std::ptr::null_mut() }
+        Self { r#type: ErrorType::None, msg: std::ptr::null_mut() }
     }
 }
 
@@ -49,9 +49,9 @@ impl fmt::Display for Error {
         } else {
             use ErrorType::*;
             let msg = match self.r#type {
-                kErrorTypeNone => return Ok(()),
-                kErrorTypeException => "exception",
-                kErrorTypeValidation => "validation",
+                None => return Ok(()),
+                Exception => "exception",
+                Validation => "validation",
             };
             write!(f, "{}", msg)
         }
@@ -81,6 +81,6 @@ impl Error {
 
     #[inline]
     pub const fn is_err(&self) -> bool {
-        !matches!(self.r#type, ErrorType::kErrorTypeNone)
+        !matches!(self.r#type, ErrorType::None)
     }
 }

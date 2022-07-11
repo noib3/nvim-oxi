@@ -65,6 +65,7 @@ impl<T> Collection<T> {
 
     /// Make a non-owning version of this `Collection`.
     #[inline]
+    #[doc(hidden)]
     pub fn non_owning(&self) -> NonOwning<'_, Self> {
         NonOwning::new(Self { ..*self })
     }

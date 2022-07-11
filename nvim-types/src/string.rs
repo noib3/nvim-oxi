@@ -10,8 +10,6 @@ use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
 
 use libc::{c_char, size_t};
-#[cfg(feature = "serde")]
-use serde::de;
 
 use crate::NonOwning;
 
@@ -30,8 +28,8 @@ use crate::NonOwning;
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
-    pub data: *mut c_char,
-    pub size: size_t,
+    pub(crate) data: *mut c_char,
+    pub(crate) size: size_t,
 }
 
 impl String {
@@ -65,6 +63,12 @@ impl String {
     #[inline]
     pub const fn len(&self) -> usize {
         self.size
+    }
+
+    /// Returns a pointer pointing to the byte of the string.
+    #[inline]
+    pub const fn as_ptr(&self) -> *const c_char {
+        self.data as *const c_char
     }
 
     /// Returns a byte slice of this `String`'s contents.
@@ -118,6 +122,7 @@ impl String {
 
     /// Makes a non-owning version of this `String`.
     #[inline]
+    #[doc(hidden)]
     pub fn non_owning(&self) -> NonOwning<'_, String> {
         NonOwning::new(Self { ..*self })
     }
@@ -255,7 +260,10 @@ impl TryFrom<String> for StdString {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> de::Deserialize<'de> for String {
+use serde::de;
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for String {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,

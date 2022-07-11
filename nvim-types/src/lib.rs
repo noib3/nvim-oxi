@@ -9,10 +9,10 @@ mod string;
 pub use array::*;
 pub use collection::*;
 pub use dictionary::*;
-pub use error::*;
-pub use non_owning::*;
-pub use object::*;
-pub use string::*;
+pub use error::Error;
+pub use non_owning::NonOwning;
+pub use object::{FromObjectError, Object, ObjectKind};
+pub use string::String;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 pub type Boolean = bool;

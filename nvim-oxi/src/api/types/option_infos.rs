@@ -6,7 +6,7 @@ use crate::object::{self, FromObject};
 /// Informations related to an option. Unlike in the Lua API, the `type` field
 /// is omitted because it's included in the definition of `default`.
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct OptionInfos {
     /// TODO: docs
     pub allows_duplicates: bool,
@@ -15,7 +15,7 @@ pub struct OptionInfos {
     pub commalist: bool,
 
     /// The default value for the option.
-    pub default: OptionDefault,
+    pub default: Object,
 
     /// TODO: docs
     pub flaglist: bool,
@@ -78,55 +78,5 @@ impl OptionScope {
     #[inline]
     pub const fn is_window(&self) -> bool {
         matches!(self, OptionScope::Window)
-    }
-}
-
-#[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
-#[serde(untagged)]
-pub enum OptionDefault {
-    Boolean(bool),
-    Number(i64),
-    String(String),
-}
-
-impl OptionDefault {
-    #[inline]
-    pub const fn as_boolean(&self) -> Option<bool> {
-        match self {
-            OptionDefault::Boolean(b) => Some(*b),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub const fn as_number(&self) -> Option<i64> {
-        match self {
-            OptionDefault::Number(n) => Some(*n),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub fn as_string(&self) -> Option<&str> {
-        match &self {
-            OptionDefault::String(s) => Some(s),
-            _ => None,
-        }
-    }
-
-    #[inline]
-    pub const fn is_boolean(&self) -> bool {
-        matches!(self, OptionDefault::Boolean(_))
-    }
-
-    #[inline]
-    pub const fn is_number(&self) -> bool {
-        matches!(self, OptionDefault::Number(_))
-    }
-
-    #[inline]
-    pub const fn is_string(&self) -> bool {
-        matches!(self, OptionDefault::String(_))
     }
 }

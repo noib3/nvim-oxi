@@ -31,6 +31,8 @@ impl_into!(i64);
 impl_into!(f64);
 impl_into!(StdString);
 impl_into!(NvimString);
+impl_into!(Array);
+impl_into!(Dictionary);
 
 /// Implements `ToObject` for "big integer" types.
 macro_rules! impl_bigint {

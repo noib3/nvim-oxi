@@ -1,4 +1,4 @@
-use libc::{c_char, c_int};
+use libc::c_int;
 use nvim_types::Object;
 
 use super::ffi::*;
@@ -11,34 +11,30 @@ trait ObjectExt {
 
 impl ObjectExt for Object {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<()> {
-        use nvim_types::ObjectType::*;
-        match self.r#type {
-            kObjectTypeNil => lua_pushnil(lstate),
+        use nvim_types::ObjectKind::*;
+        match self.kind() {
+            Nil => lua_pushnil(lstate),
 
-            kObjectTypeBoolean => {
-                let n = if self.data.boolean { 1 } else { 0 };
+            Boolean => {
+                let n = if self.as_boolean_unchecked() { 1 } else { 0 };
                 lua_pushboolean(lstate, n);
             },
 
-            kObjectTypeInteger => {
-                let n = self.data.integer.try_into()?;
+            Integer => {
+                let n = self.as_integer_unchecked().try_into()?;
                 lua_pushinteger(lstate, n);
             },
 
-            kObjectTypeFloat => {
-                lua_pushnumber(lstate, self.data.float);
+            Float => {
+                lua_pushnumber(lstate, self.as_float_unchecked());
             },
 
-            kObjectTypeString => {
+            String => {
                 let string = self.into_string_unchecked();
-                lua_pushlstring(
-                    lstate,
-                    string.data as *const c_char,
-                    string.size,
-                );
+                lua_pushlstring(lstate, string.as_ptr(), string.len());
             },
 
-            kObjectTypeArray => {
+            Array => {
                 let array = self.into_array_unchecked();
                 lua_createtable(lstate, array.len().try_into()?, 0);
 
@@ -48,23 +44,23 @@ impl ObjectExt for Object {
                 }
             },
 
-            kObjectTypeDictionary => {
+            Dictionary => {
                 let dict = self.into_dict_unchecked();
                 lua_createtable(lstate, 0, dict.len().try_into()?);
 
                 for (key, value) in dict {
-                    lua_pushlstring(
-                        lstate,
-                        key.data as *const c_char,
-                        key.size,
-                    );
+                    lua_pushlstring(lstate, key.as_ptr(), key.len());
                     value.push(lstate)?;
                     lua_rawset(lstate, -3);
                 }
             },
 
-            kObjectTypeLuaRef => {
-                lua_rawgeti(lstate, LUA_REGISTRYINDEX, self.data.luaref);
+            LuaRef => {
+                lua_rawgeti(
+                    lstate,
+                    LUA_REGISTRYINDEX,
+                    self.as_luaref_unchecked(),
+                );
             },
         };
 

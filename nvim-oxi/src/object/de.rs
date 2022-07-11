@@ -1,6 +1,6 @@
 use std::string::String as StdString;
 
-use nvim_types::{Object, ObjectType};
+use nvim_types::{Object, ObjectKind};
 use serde::de::{self, IntoDeserializer};
 
 use crate::Result;
@@ -29,30 +29,40 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        let data = &self.obj.data;
+        use ObjectKind::*;
+        match self.obj.kind() {
+            Nil => visitor.visit_unit(),
 
-        use ObjectType::*;
-        match self.obj.r#type {
-            kObjectTypeNil => visitor.visit_unit(),
-            kObjectTypeBoolean => visitor.visit_bool(unsafe { data.boolean }),
-            kObjectTypeInteger => visitor.visit_i64(unsafe { data.integer }),
-            kObjectTypeFloat => visitor.visit_f64(unsafe { data.float }),
-            kObjectTypeString => {
+            Boolean => {
+                visitor.visit_bool(unsafe { self.obj.as_boolean_unchecked() })
+            },
+
+            Integer => {
+                visitor.visit_i64(unsafe { self.obj.as_integer_unchecked() })
+            },
+
+            Float => unsafe {
+                visitor.visit_f64(self.obj.as_float_unchecked())
+            },
+
+            String => {
                 let string = unsafe { self.obj.into_string_unchecked() };
                 match string.as_str() {
                     Ok(str) => visitor.visit_str(str),
                     _ => visitor.visit_bytes(string.as_bytes()),
                 }
             },
-            kObjectTypeArray => self.deserialize_seq(visitor),
-            kObjectTypeDictionary => self.deserialize_map(visitor),
+
+            Array => self.deserialize_seq(visitor),
+
+            Dictionary => self.deserialize_map(visitor),
 
             // We map the ref representing the index of the lua function in the
             // Lua registry to `f32`. It's definitely a hack, but Neovim rarely
             // returns a float so it should a good place to store it to avoid
             // collisions.
-            kObjectTypeLuaRef => {
-                visitor.visit_f32(unsafe { data.luaref } as f32)
+            LuaRef => unsafe {
+                visitor.visit_f32(self.obj.as_luaref_unchecked() as f32)
             },
         }
     }
@@ -62,9 +72,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        use ObjectType::*;
-        match self.obj.r#type {
-            kObjectTypeNil => visitor.visit_none(),
+        match self.obj.kind() {
+            ObjectKind::Nil => visitor.visit_none(),
             _ => visitor.visit_some(self),
         }
     }
@@ -79,9 +88,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        use ObjectType::*;
-        let (variant, obj) = match self.obj.r#type {
-            kObjectTypeDictionary => {
+        let (variant, obj) = match self.obj.kind() {
+            ObjectKind::Dictionary => {
                 let mut iter =
                     unsafe { self.obj.into_dict_unchecked() }.into_iter();
 
@@ -98,7 +106,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                 (variant.into_string()?, Some(value))
             },
 
-            kObjectTypeString => (
+            ObjectKind::String => (
                 unsafe { self.obj.into_string_unchecked() }.into_string()?,
                 None,
             ),
@@ -114,9 +122,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        use ObjectType::*;
-        match self.obj.r#type {
-            kObjectTypeArray => {
+        match self.obj.kind() {
+            ObjectKind::Array => {
                 let iter =
                     unsafe { self.obj.into_array_unchecked() }.into_iter();
                 let mut deserializer = SeqDeserializer { iter };
@@ -156,9 +163,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        use ObjectType::*;
-        match self.obj.r#type {
-            kObjectTypeDictionary => {
+        match self.obj.kind() {
+            ObjectKind::Dictionary => {
                 let iter =
                     unsafe { self.obj.into_dict_unchecked() }.into_iter();
                 let mut deserializer = MapDeserializer { iter, obj: None };
