@@ -42,6 +42,7 @@ pub struct CreateCommandOpts {
     nargs: Object,
 
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(custom))]
     preview: Object,
 
@@ -82,6 +83,7 @@ impl CreateCommandOptsBuilder {
     }
 
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn preview<F>(&mut self, f: F) -> &mut Self
     where
         F: FnMut(

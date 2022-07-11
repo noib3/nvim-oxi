@@ -10,6 +10,7 @@ use crate::object;
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(strip_option))]
     buffer: Option<crate::api::Buffer>,
 
@@ -17,6 +18,7 @@ pub struct OptionValueOpts {
     scope: Object,
 
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(into, strip_option))]
     window: Option<crate::api::Window>,
 }

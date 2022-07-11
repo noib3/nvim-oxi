@@ -53,6 +53,7 @@ where
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
 #[cfg(feature = "nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
 pub fn cmd(
     infos: &CmdInfos,
     opts: &super::opts::CmdOpts,
@@ -114,6 +115,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 ///
 /// Parses the command line.
 #[cfg(feature = "nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
 pub fn parse_cmd(
     src: &str,
     opts: &super::opts::ParseCmdOpts,

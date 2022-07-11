@@ -80,6 +80,7 @@ pub struct SetExtmarkOpts {
     /// Whether the mark should be drawn by an external UI. When `true` the UI
     /// will receive `win_extmark` events.
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(strip_option))]
     ui_watched: Option<bool>,
 

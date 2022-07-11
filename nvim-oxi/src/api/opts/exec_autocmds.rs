@@ -14,6 +14,7 @@ pub struct ExecAutocmdsOpts {
     buffer: Option<Buffer>,
 
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(custom))]
     data: Object,
 

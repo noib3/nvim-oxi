@@ -44,6 +44,7 @@ pub struct CommandArgs {
 
     /// Command modifiers in a more structured format.
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub smods: super::CommandModifiers,
 }
 

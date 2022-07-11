@@ -28,6 +28,7 @@ pub struct EvalStatuslineOpts {
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
     #[cfg(feature = "nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
