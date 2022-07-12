@@ -107,6 +107,7 @@ impl Object {
 
     /// TODO: docs
     #[inline(always)]
+    #[doc(hidden)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         self.data.luaref
     }

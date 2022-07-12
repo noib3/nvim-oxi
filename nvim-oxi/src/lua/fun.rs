@@ -5,11 +5,11 @@ use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
 use libc::{c_char, c_int};
-use nvim_types::{LuaRef, Object};
+use nvim_types::{LuaRef, Object, ObjectKind};
 use serde::{de, ser};
 
 use super::{ffi::*, LuaPoppable, LuaPushable};
-use crate::object::ToObject;
+use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Clone, Eq, PartialEq, Hash)]
@@ -33,17 +33,17 @@ impl<A, R> ToObject for Function<A, R> {
     }
 }
 
-// impl<A, R> FromObject for Function<A, R> {
-//     fn from_obj(obj: Object) -> Result<Function<A, R>> {
-//         // match obj.r#type
-//         //         (matches!(obj.r#type, nvim_types::ObjectType::kObjectTypeLuaRef))
-//         //             .then_some(unsafe { obj.data.$data })
-//         //             .ok_or_else(|| Primitive {
-//         //                 expected: $variant,
-//         //                 actual: obj.r#type,
-//         //             })
-//     }
-// }
+impl<A, R> FromObject for Function<A, R> {
+    fn from_obj(obj: Object) -> Result<Function<A, R>> {
+        match obj.kind() {
+            ObjectKind::LuaRef => {
+                let luaref = unsafe { obj.as_luaref_unchecked() };
+                Ok(Self(luaref, PhantomData, PhantomData))
+            },
+            _ => todo!(),
+        }
+    }
+}
 
 impl<'de, A, R> de::Deserialize<'de> for Function<A, R> {
     fn deserialize<D>(deserializer: D) -> StdResult<Self, D::Error>
