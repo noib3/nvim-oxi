@@ -6,11 +6,11 @@ use crate::object::ToObject;
 use crate::Result;
 
 trait ObjectExt {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<()>;
+    unsafe fn push_obj(self, lstate: *mut lua_State) -> Result<()>;
 }
 
 impl ObjectExt for Object {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<()> {
+    unsafe fn push_obj(self, lstate: *mut lua_State) -> Result<()> {
         use nvim_types::ObjectKind::*;
         match self.kind() {
             Nil => lua_pushnil(lstate),
@@ -39,7 +39,7 @@ impl ObjectExt for Object {
                 lua_createtable(lstate, array.len().try_into()?, 0);
 
                 for (i, obj) in array.into_iter().enumerate() {
-                    obj.push(lstate)?;
+                    obj.push_obj(lstate)?;
                     lua_rawseti(lstate, -2, (i + 1).try_into()?);
                 }
             },
@@ -50,7 +50,7 @@ impl ObjectExt for Object {
 
                 for (key, value) in dict {
                     lua_pushlstring(lstate, key.as_ptr(), key.len());
-                    value.push(lstate)?;
+                    value.push_obj(lstate)?;
                     lua_rawset(lstate, -3);
                 }
             },
@@ -80,7 +80,7 @@ where
     A: ToObject,
 {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int> {
-        self.to_obj()?.push(lstate)?;
+        self.to_obj()?.push_obj(lstate)?;
         Ok(1)
     }
 }

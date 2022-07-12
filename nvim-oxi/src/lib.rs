@@ -12,7 +12,7 @@ mod error;
 #[doc(hidden)]
 pub mod lua;
 mod macros;
-mod object;
+pub mod object;
 mod trait_utils;
 pub mod opts {
     pub use crate::api::opts::*;

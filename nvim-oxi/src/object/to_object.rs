@@ -8,6 +8,13 @@ pub trait ToObject {
     fn to_obj(self) -> Result<Object>;
 }
 
+impl ToObject for Object {
+    #[inline]
+    fn to_obj(self) -> Result<Object> {
+        Ok(self)
+    }
+}
+
 /// Implements `ToObject` for `Into<Object>` types.
 macro_rules! impl_into {
     ($type:ty) => {

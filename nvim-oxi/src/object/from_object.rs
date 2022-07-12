@@ -8,6 +8,13 @@ pub trait FromObject: Sized {
     fn from_obj(obj: Object) -> Result<Self>;
 }
 
+impl FromObject for Object {
+    #[inline]
+    fn from_obj(obj: Object) -> Result<Self> {
+        Ok(obj)
+    }
+}
+
 /// Implements `FromObject` for `TryFrom<Object>` types.
 macro_rules! impl_try_from {
     ($type:ty) => {

@@ -15,11 +15,11 @@ extern "C" {
 }
 
 trait ObjectExt: Sized {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self>;
+    unsafe fn pop_obj(lstate: *mut lua_State) -> Result<Self>;
 }
 
 impl ObjectExt for Object {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
+    unsafe fn pop_obj(lstate: *mut lua_State) -> Result<Self> {
         let mut err = nvim::Error::new();
         let obj = nlua_pop_Object(lstate, true, &mut err);
         err.into_err_or_else(|| obj)
@@ -43,7 +43,7 @@ where
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self> {
         grow_stack(lstate, Self::N);
-        A::from_obj(Object::pop(lstate)?)
+        A::from_obj(Object::pop_obj(lstate)?)
     }
 }
 
