@@ -46,6 +46,7 @@ where
     }
 }
 
+/// An owning iterator over the entries of
 pub struct ArrayIterator {
     start: *const Object,
     end: *const Object,
@@ -56,11 +57,12 @@ impl Iterator for ArrayIterator {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        (self.start != self.end).then(|| {
-            let current = self.start;
-            self.start = unsafe { self.start.offset(1) };
-            unsafe { ptr::read(current) }
-        })
+        if self.start == self.end {
+            return None;
+        }
+        let current = self.start;
+        self.start = unsafe { self.start.offset(1) };
+        Some(unsafe { ptr::read(current) })
     }
 
     #[inline]
@@ -80,6 +82,20 @@ impl ExactSizeIterator for ArrayIterator {
         unsafe { self.end.offset_from(self.start) as usize }
     }
 }
+
+impl DoubleEndedIterator for ArrayIterator {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.start == self.end {
+            return None;
+        }
+        let current = self.end;
+        self.end = unsafe { self.end.offset(-1) };
+        Some(unsafe { ptr::read(current) })
+    }
+}
+
+impl std::iter::FusedIterator for ArrayIterator {}
 
 impl Drop for ArrayIterator {
     fn drop(&mut self) {

@@ -11,8 +11,8 @@ pub type Dictionary = Collection<KeyValuePair>;
 #[derive(Clone, PartialEq)]
 #[repr(C)]
 pub struct KeyValuePair {
-    pub key: String,
-    pub value: Object,
+    pub(crate) key: String,
+    pub(crate) value: Object,
 }
 
 impl fmt::Debug for KeyValuePair {
@@ -118,12 +118,13 @@ impl Iterator for DictIterator {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        (self.start != self.end).then(|| {
-            let current = self.start;
-            self.start = unsafe { self.start.offset(1) };
-            let KeyValuePair { key, value } = unsafe { ptr::read(current) };
-            (key, value)
-        })
+        if self.start == self.end {
+            return None;
+        }
+        let current = self.start;
+        self.start = unsafe { self.start.offset(1) };
+        let KeyValuePair { key, value } = unsafe { ptr::read(current) };
+        Some((key, value))
     }
 
     #[inline]
@@ -144,6 +145,21 @@ impl ExactSizeIterator for DictIterator {
         unsafe { self.end.offset_from(self.start) as usize }
     }
 }
+
+impl DoubleEndedIterator for DictIterator {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.start == self.end {
+            return None;
+        }
+        let current = self.end;
+        self.end = unsafe { self.end.offset(-1) };
+        let KeyValuePair { key, value } = unsafe { ptr::read(current) };
+        Some((key, value))
+    }
+}
+
+impl std::iter::FusedIterator for DictIterator {}
 
 impl Drop for DictIterator {
     fn drop(&mut self) {

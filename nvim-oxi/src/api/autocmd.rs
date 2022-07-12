@@ -3,6 +3,7 @@ use nvim_types::{self as nvim, Array, Integer, Object};
 use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
+use crate::iterator::SuperIterator;
 use crate::object::FromObject;
 use crate::{lua::LUA_INTERNAL_CALL, Result};
 
@@ -107,7 +108,7 @@ where
 /// combination of them.
 pub fn get_autocmds(
     opts: &GetAutocmdsOpts,
-) -> Result<impl ExactSizeIterator<Item = AutocmdInfos>> {
+) -> Result<impl SuperIterator<AutocmdInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(&opts.into(), &mut err) };
     err.into_err_or_else(|| {

@@ -9,6 +9,7 @@
 
 pub mod api;
 mod error;
+pub(crate) mod iterator;
 #[doc(hidden)]
 pub mod lua;
 mod macros;

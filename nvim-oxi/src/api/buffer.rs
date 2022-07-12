@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use super::ffi::buffer::*;
 use super::opts::*;
 use crate::api::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
+use crate::iterator::SuperIterator;
 use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::trait_utils::StringOrFunction;
@@ -214,7 +215,7 @@ impl Buffer {
     pub fn get_commands(
         &self,
         opts: Option<&GetCommandsOpts>,
-    ) -> Result<impl ExactSizeIterator<Item = CommandInfos>> {
+    ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
         let opts = opts.map(KeyDict_get_commands::from).unwrap_or_default();
         let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
@@ -228,7 +229,7 @@ impl Buffer {
     pub fn get_keymap(
         &self,
         mode: Mode,
-    ) -> Result<impl ExactSizeIterator<Item = KeymapInfos>> {
+    ) -> Result<impl SuperIterator<KeymapInfos>> {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
@@ -255,7 +256,7 @@ impl Buffer {
         start: usize,
         end: usize,
         strict_indexing: bool,
-    ) -> Result<impl ExactSizeIterator<Item = nvim::String>> {
+    ) -> Result<impl SuperIterator<nvim::String>> {
         let mut err = nvim::Error::new();
         let lines = unsafe {
             nvim_buf_get_lines(
@@ -337,7 +338,7 @@ impl Buffer {
         end_row: usize,
         end_col: usize,
         opts: Option<&GetTextOpts>,
-    ) -> Result<impl ExactSizeIterator<Item = nvim::String>> {
+    ) -> Result<impl SuperIterator<nvim::String>> {
         let mut err = nvim::Error::new();
         let opts = opts.map(Dictionary::from).unwrap_or_default();
         let lines = unsafe {

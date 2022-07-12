@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::ffi::tabpage::*;
 use super::Window;
+use crate::iterator::SuperIterator;
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -105,7 +106,7 @@ impl TabPage {
     /// Binding to [`nvim_tabpage_list_wins`](https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()).
     ///
     /// Gets the windows in a tabpage.
-    pub fn list_wins(&self) -> Result<impl ExactSizeIterator<Item = Window>> {
+    pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
         err.into_err_or_else(|| {

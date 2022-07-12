@@ -6,6 +6,7 @@ use super::ffi::global::*;
 use super::opts::*;
 use super::types::*;
 use crate::api::{Buffer, TabPage, Window};
+use crate::iterator::SuperIterator;
 use crate::lua::LUA_INTERNAL_CALL;
 use crate::object::{FromObject, ToObject};
 use crate::trait_utils::StringOrFunction;
@@ -188,8 +189,7 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
 /// Binding to [`nvim_get_all_options_info`](https://neovim.io/doc/user/api.html#nvim_get_all_options_info()).
 ///
 /// Gets the option information for all options.
-pub fn get_all_options_info(
-) -> Result<impl ExactSizeIterator<Item = OptionInfos>> {
+pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_all_options_info(&mut err) };
     err.into_err_or_else(|| {
@@ -224,7 +224,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 ///
 /// Returns an iterator over tuples representing color names and 24-bit RGB
 /// values (e.g. 65535).
-pub fn get_color_map() -> impl ExactSizeIterator<Item = (String, u32)> {
+pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
         (String::try_from(k).unwrap(), u32::try_from(v).unwrap())
     })
@@ -236,7 +236,7 @@ pub fn get_color_map() -> impl ExactSizeIterator<Item = (String, u32)> {
 /// user-defined commands are returned, not builtin ones.
 pub fn get_commands(
     opts: &GetCommandsOpts,
-) -> Result<impl ExactSizeIterator<Item = CommandInfos>> {
+) -> Result<impl SuperIterator<CommandInfos>> {
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
     err.into_err_or_else(|| {
@@ -314,7 +314,7 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
 /// Binding to [`nvim_get_keymap`](https://neovim.io/doc/user/api.html#nvim_get_keymap()).
 ///
 /// Returns an iterator over the global mapping definitions.
-pub fn get_keymap(mode: Mode) -> impl ExactSizeIterator<Item = KeymapInfos> {
+pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
     unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
         .into_iter()
@@ -409,9 +409,7 @@ pub fn get_proc(pid: u32) -> Result<ProcInfos> {
 /// Binding to [`nvim_get_proc_children`](https://neovim.io/doc/user/api.html#nvim_get_proc_children()).
 ///
 /// Gets the immediate children of process `pid`.
-pub fn get_proc_children(
-    pid: u32,
-) -> Result<impl ExactSizeIterator<Item = u32>> {
+pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
     err.into_err_or_else(|| {
@@ -425,7 +423,7 @@ pub fn get_proc_children(
 pub fn get_runtime_file<Name>(
     name: Name,
     get_all: bool,
-) -> Result<impl ExactSizeIterator<Item = PathBuf>>
+) -> Result<impl SuperIterator<PathBuf>>
 where
     Name: AsRef<Path>,
 {
@@ -515,7 +513,7 @@ pub fn input_mouse(
 /// Gets the current list of [`Buffer`]s, including unlisted (unloaded/deleted)
 /// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a
 /// buffer is loaded.
-pub fn list_bufs() -> impl ExactSizeIterator<Item = Buffer> {
+pub fn list_bufs() -> impl SuperIterator<Buffer> {
     unsafe { nvim_list_bufs() }
         .into_iter()
         .map(|obj| Buffer::from_obj(obj).unwrap())
@@ -524,7 +522,7 @@ pub fn list_bufs() -> impl ExactSizeIterator<Item = Buffer> {
 /// Binding to [`nvim_list_chans`](https://neovim.io/doc/user/api.html#nvim_list_chans()).
 ///
 /// Returns an iterator over the informations about all the open channels.
-pub fn list_chans() -> impl ExactSizeIterator<Item = ChannelInfos> {
+pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
     unsafe { nvim_list_chans() }
         .into_iter()
         .map(|obj| ChannelInfos::from_obj(obj).unwrap())
@@ -533,7 +531,7 @@ pub fn list_chans() -> impl ExactSizeIterator<Item = ChannelInfos> {
 /// Binding to [`nvim_list_runtime_paths`](https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()).
 ///
 /// Gets the paths contained in https://neovim's runtimepath.
-pub fn list_runtime_paths() -> Result<impl ExactSizeIterator<Item = PathBuf>> {
+pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     let mut err = nvim::Error::new();
     let paths = unsafe { nvim_list_runtime_paths(&mut err) };
     err.into_err_or_else(|| {
@@ -546,7 +544,7 @@ pub fn list_runtime_paths() -> Result<impl ExactSizeIterator<Item = PathBuf>> {
 /// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
 ///
 /// Gets the current list of `Tabpage`s.
-pub fn list_tabpages() -> impl ExactSizeIterator<Item = TabPage> {
+pub fn list_tabpages() -> impl SuperIterator<TabPage> {
     unsafe { nvim_list_tabpages() }
         .into_iter()
         .map(|obj| TabPage::from_obj(obj).unwrap())
@@ -555,7 +553,7 @@ pub fn list_tabpages() -> impl ExactSizeIterator<Item = TabPage> {
 /// Binding to [`nvim_list_uis`](https://neovim.io/doc/user/api.html#nvim_list_uis()).
 ///
 /// Returns an iterator over the informations about all the attached UIs.
-pub fn list_uis() -> impl ExactSizeIterator<Item = UiInfos> {
+pub fn list_uis() -> impl SuperIterator<UiInfos> {
     unsafe { nvim_list_uis() }
         .into_iter()
         .map(|obj| UiInfos::from_obj(obj).unwrap())
@@ -564,7 +562,7 @@ pub fn list_uis() -> impl ExactSizeIterator<Item = UiInfos> {
 /// Binding to [`nvim_list_wins`](https://neovim.io/doc/user/api.html#nvim_list_wins()).
 ///
 /// Gets the current list of `Window`s.
-pub fn list_wins() -> impl ExactSizeIterator<Item = Window> {
+pub fn list_wins() -> impl SuperIterator<Window> {
     unsafe { nvim_list_wins() }
         .into_iter()
         .map(|obj| Window::from_obj(obj).unwrap())
