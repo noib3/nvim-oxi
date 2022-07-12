@@ -10,7 +10,7 @@ use crate::Result;
 ///
 /// Opens a new floating or external window.
 pub fn open_win(
-    buf: Buffer,
+    buf: &Buffer,
     enter: bool,
     config: &WindowConfig,
 ) -> Result<Window> {

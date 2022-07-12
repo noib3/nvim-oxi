@@ -122,8 +122,8 @@ pub(crate) struct KeyDict_float_config {
 
 impl From<&WindowConfig> for KeyDict_float_config {
     fn from(config: &WindowConfig) -> Self {
-        let win = match config.relative {
-            Some(WindowRelativeTo::Window(win)) => win.into(),
+        let win = match &config.relative {
+            Some(WindowRelativeTo::Window(win)) => win.0.into(),
             _ => Object::nil(),
         };
 
@@ -146,7 +146,7 @@ impl From<&WindowConfig> for KeyDict_float_config {
             border: config.border.clone().into(),
             bufpos,
             external: config.external.into(),
-            relative: config.relative.into(),
+            relative: config.relative.as_ref().into(),
             focusable: config.focusable.into(),
             noautocmd: config.noautocmd.into(),
         }

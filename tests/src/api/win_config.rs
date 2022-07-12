@@ -8,7 +8,7 @@ use nvim_oxi::{
 fn open_win_empty_config() {
     let buf = Buffer::current();
     let config = WindowConfig::builder().build();
-    let res = api::open_win(buf, false, &config);
+    let res = api::open_win(&buf, false, &config);
     assert!(
         res.is_err(),
         "config is missing required fields `relative`, `height` and `width`"
@@ -26,7 +26,7 @@ fn open_win_basic_config() {
         .col(1.5)
         .build();
 
-    let res = api::open_win(buf, false, &config);
+    let res = api::open_win(&buf, false, &config);
     assert!(res.is_ok(), "{res:?}");
 
     let win = res.unwrap();
@@ -62,7 +62,7 @@ fn open_win_full_config() {
         )))
         .build();
 
-    let res = api::open_win(buf, false, &config);
+    let res = api::open_win(&buf, false, &config);
     assert!(res.is_ok(), "{res:?}");
 
     let win = res.unwrap();
@@ -91,7 +91,7 @@ fn set_config() {
         .col(1.5)
         .build();
 
-    let mut win = api::open_win(buf, false, &initial).unwrap();
+    let mut win = api::open_win(&buf, false, &initial).unwrap();
 
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Window(Window::current()))

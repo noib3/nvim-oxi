@@ -95,7 +95,7 @@ impl<'a> From<&'a ExecAutocmdsOpts> for KeyDict_exec_autocmds<'a> {
             #[cfg(feature = "nightly")]
             data: opts.data.non_owning(),
             group: opts.group.non_owning(),
-            buffer: opts.buffer.into(),
+            buffer: opts.buffer.as_ref().into(),
             pattern: opts.patterns.non_owning(),
             modeline: opts.modeline.into(),
         }

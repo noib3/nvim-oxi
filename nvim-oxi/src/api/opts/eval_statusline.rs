@@ -34,7 +34,7 @@ pub struct EvalStatuslineOpts {
 
     /// Window to use as context for the statusline.
     #[builder(setter(into, strip_option))]
-    winid: Option<Window>,
+    window: Option<Window>,
 }
 
 impl EvalStatuslineOpts {
@@ -66,7 +66,7 @@ pub(crate) struct KeyDict_eval_statusline {
 impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
     fn from(opts: &EvalStatuslineOpts) -> Self {
         Self {
-            winid: opts.winid.into(),
+            winid: opts.window.as_ref().into(),
             fillchar: opts.fillchar.into(),
             maxwidth: opts.maxwidth.into(),
             highlights: opts.highlights.into(),

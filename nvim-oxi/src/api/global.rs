@@ -603,7 +603,7 @@ pub fn notify(
 /// Opens a terminal instance in a buffer. Returns the id of a channel that can
 /// be used to send data to the instance via
 /// [`nvim_oxi::api::chan_send`](chan_send).
-pub fn open_term(buffer: Buffer, opts: Option<&OpenTermOpts>) -> Result<u32> {
+pub fn open_term(buffer: &Buffer, opts: Option<&OpenTermOpts>) -> Result<u32> {
     let opts = opts.map(Dictionary::from).unwrap_or_default();
     let mut err = nvim::Error::new();
     let channel_id =
@@ -713,7 +713,7 @@ pub fn select_popupmenu_item(
 /// Binding to [`nvim_set_current_buf`](https://neovim.io/doc/user/api.html#nvim_set_current_buf()).
 ///
 /// Sets the current buffer.
-pub fn set_current_buf(buf: Buffer) -> Result<()> {
+pub fn set_current_buf(buf: &Buffer) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_buf(buf.0, &mut err) };
     err.into_err_or_else(|| ())
@@ -747,7 +747,7 @@ where
 /// Binding to [`nvim_set_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_set_current_tabpage()).
 ///
 /// Sets the current tabpage.
-pub fn set_current_tabpage(tabpage: TabPage) -> Result<()> {
+pub fn set_current_tabpage(tabpage: &TabPage) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_tabpage(tabpage.0, &mut err) };
     err.into_err_or_else(|| ())
@@ -756,7 +756,7 @@ pub fn set_current_tabpage(tabpage: TabPage) -> Result<()> {
 /// Binding to [`nvim_set_current_win`](https://neovim.io/doc/user/api.html#nvim_set_current_win()).
 ///
 /// Sets the current window.
-pub fn set_current_win(win: Window) -> Result<()> {
+pub fn set_current_win(win: &Window) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_win(win.0, &mut err) };
     err.into_err_or_else(|| ())

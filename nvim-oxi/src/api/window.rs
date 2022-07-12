@@ -9,7 +9,7 @@ use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 /// A newtype struct wrapping a Neovim window. All the `nvim_win_*` functions
 /// taking a window handle as their first argument are implemented as methods
 /// on this object.
@@ -35,6 +35,12 @@ impl<H: Into<WinHandle>> From<H> for Window {
 
 impl From<Window> for Object {
     fn from(win: Window) -> Self {
+        win.0.into()
+    }
+}
+
+impl From<&Window> for Object {
+    fn from(win: &Window) -> Self {
         win.0.into()
     }
 }
@@ -210,7 +216,7 @@ impl Window {
     /// Binding to [`nvim_win_set_buf`](https://neovim.io/doc/user/api.html#nvim_win_set_buf()).
     ///
     /// Sets `buffer` as the current buffer in the window.
-    pub fn set_buf(&mut self, buffer: Buffer) -> Result<()> {
+    pub fn set_buf(&mut self, buffer: &Buffer) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_buf(self.0, buffer.0, &mut err) };
         err.into_err_or_else(|| ())

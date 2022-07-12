@@ -114,7 +114,7 @@ impl<'a> From<&'a CreateAutocmdOpts> for KeyDict_create_autocmd<'a> {
             desc: opts.desc.non_owning(),
             once: opts.once.into(),
             group: opts.group.non_owning(),
-            buffer: opts.buffer.into(),
+            buffer: opts.buffer.as_ref().into(),
             nested: opts.nested.into(),
             command: opts.command.non_owning(),
             pattern: opts.patterns.non_owning(),

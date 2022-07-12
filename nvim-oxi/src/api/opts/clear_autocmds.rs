@@ -83,7 +83,7 @@ impl<'a> From<&'a ClearAutocmdsOpts> for KeyDict_clear_autocmds<'a> {
         Self {
             event: opts.events.non_owning(),
             group: opts.group.non_owning(),
-            buffer: opts.buffer.into(),
+            buffer: opts.buffer.as_ref().into(),
             pattern: opts.patterns.non_owning(),
         }
     }

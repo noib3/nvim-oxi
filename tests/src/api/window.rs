@@ -23,10 +23,10 @@ fn close_hide() {
 
     let buf = Buffer::current();
 
-    let win = api::open_win(buf, false, &config).unwrap();
+    let win = api::open_win(&buf, false, &config).unwrap();
     assert_eq!(Ok(()), win.close(false));
 
-    let win = api::open_win(buf, false, &config).unwrap();
+    let win = api::open_win(&buf, false, &config).unwrap();
     assert_eq!(Ok(()), win.hide());
 }
 
@@ -47,7 +47,7 @@ fn get_set_buf() {
     assert_eq!(Ok(Buffer::current()), win.get_buf());
 
     let buf = api::create_buf(true, false).unwrap();
-    assert_eq!(Ok(()), win.set_buf(buf));
+    assert_eq!(Ok(()), win.set_buf(&buf));
 
     let res = win.call(move |_| {
         let win = Window::current();
@@ -70,7 +70,7 @@ fn get_set_height_width() {
 
     let buf = Buffer::current();
 
-    let mut win = api::open_win(buf, false, &config).unwrap();
+    let mut win = api::open_win(&buf, false, &config).unwrap();
 
     assert_eq!(10, win.get_height().unwrap());
     assert_eq!(5, win.get_width().unwrap());

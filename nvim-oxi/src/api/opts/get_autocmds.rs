@@ -72,7 +72,7 @@ impl<'a> From<&'a GetAutocmdsOpts> for KeyDict_get_autocmds<'a> {
         Self {
             event: opts.events.non_owning(),
             group: opts.group.non_owning(),
-            buffer: opts.buffer.into(),
+            buffer: opts.buffer.as_ref().into(),
             pattern: opts.patterns.non_owning(),
         }
     }

@@ -19,7 +19,7 @@ use crate::object::{FromObject, ToObject};
 use crate::trait_utils::StringOrFunction;
 use crate::{Error, Result};
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 /// A newtype struct wrapping a Neovim buffer. All the `nvim_buf_*` functions
 /// taking a buffer handle as their first argument are implemented as methods
 /// on this object.
@@ -45,6 +45,12 @@ impl<H: Into<BufHandle>> From<H> for Buffer {
 
 impl From<Buffer> for Object {
     fn from(buf: Buffer) -> Self {
+        buf.0.into()
+    }
+}
+
+impl From<&Buffer> for Object {
+    fn from(buf: &Buffer) -> Self {
         buf.0.into()
     }
 }

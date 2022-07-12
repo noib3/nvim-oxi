@@ -6,7 +6,7 @@ use serde::de;
 use crate::api::Window;
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 /// Specifies what a floating window is positioned relative to.
 pub enum WindowRelativeTo {
     /// Positions the window relative to the global Neovim editor grid.
@@ -19,8 +19,8 @@ pub enum WindowRelativeTo {
     Cursor,
 }
 
-impl From<WindowRelativeTo> for Object {
-    fn from(pos: WindowRelativeTo) -> Self {
+impl From<&WindowRelativeTo> for Object {
+    fn from(pos: &WindowRelativeTo) -> Self {
         use WindowRelativeTo::*;
         Self::from(match pos {
             Editor => "editor",
