@@ -95,6 +95,7 @@ impl CreateAutocmdOptsBuilder {
     }
 }
 
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_create_autocmd<'a> {

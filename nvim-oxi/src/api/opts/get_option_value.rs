@@ -57,8 +57,8 @@ impl From<OptionScope> for nvim::String {
     }
 }
 
-#[allow(non_camel_case_types)]
 #[derive(Default)]
+#[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_option<'a> {
     #[cfg(feature = "nightly")]

@@ -56,8 +56,9 @@ where
 #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
 pub fn cmd(
     infos: &CmdInfos,
-    opts: &super::opts::CmdOpts,
+    opts: Option<&super::opts::CmdOpts>,
 ) -> Result<Option<String>> {
+    let opts = opts.map(KeyDict_cmd_opts).unwrap_or_default();
     let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
@@ -118,10 +119,10 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
 pub fn parse_cmd(
     src: &str,
-    opts: &super::opts::ParseCmdOpts,
+    opts: Option<&super::opts::ParseCmdOpts>,
 ) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    let opts = nvim::Dictionary::from(opts);
+    let opts = opts.map(nvim::Dictionary::from).unwrap_or_default();
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)

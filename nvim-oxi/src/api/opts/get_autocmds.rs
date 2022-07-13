@@ -58,6 +58,7 @@ impl GetAutocmdsOptsBuilder {
     }
 }
 
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_get_autocmds<'a> {

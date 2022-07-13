@@ -124,6 +124,7 @@ impl SetHighlightOptsBuilder {
 // also `nocombine` and `undercurl` don't make it to the final definition of
 // `KeyDict_highlight` in nightly builds, but are still mentioned in the docs
 // and are present in `keysets.lua` so idk, I'll leave them in for now.
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_highlight<'a> {

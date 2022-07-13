@@ -90,9 +90,9 @@ impl FromObject for CmdInfos {
     }
 }
 
+#[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-#[derive(Default, Debug)]
 pub(crate) struct KeyDict_cmd {
     cmd: Object,
     reg: Object,

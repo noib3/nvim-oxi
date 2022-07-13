@@ -23,9 +23,9 @@ impl GetCommandsOptsBuilder {
     }
 }
 
+#[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-#[derive(Default, Debug)]
 pub(crate) struct KeyDict_get_commands {
     builtin: Object,
 }

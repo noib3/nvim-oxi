@@ -14,17 +14,15 @@ fn chan_send_fail() {
 
 #[oxi::test]
 fn create_del_user_command() {
-    let opts = CreateCommandOpts::builder().build();
-    let res = api::create_user_command("Foo", ":", &opts);
+    let res = api::create_user_command("Foo", ":", None);
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res = api::create_user_command("Bar", |_args| Ok(()), &opts);
+    let res = api::create_user_command("Bar", |_args| Ok(()), None);
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
-    let opts = GetCommandsOpts::builder().build();
-    assert_eq!(2, api::get_commands(&opts).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(2, api::get_commands(None).unwrap().collect::<Vec<_>>().len());
 
     assert_eq!(Ok(()), api::del_user_command("Foo"));
     assert_eq!(Ok(()), api::del_user_command("Bar"));
@@ -33,7 +31,7 @@ fn create_del_user_command() {
 #[oxi::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
-    let res = api::eval_statusline("foo", &opts);
+    let res = api::eval_statusline("foo", Some(&opts));
     assert_eq!(Ok("foo".into()), res.map(|infos| infos.str));
 }
 
@@ -54,8 +52,7 @@ fn get_colors() {
 
 #[oxi::test]
 fn get_context() {
-    let opts = GetContextOpts::builder().build();
-    let res = api::get_context(&opts);
+    let res = api::get_context(None);
     assert!(res.is_ok());
 }
 
@@ -116,8 +113,7 @@ fn set_get_del_mark() {
     let res = buf.set_mark('A', 1, 0);
     assert_eq!(Ok(()), res);
 
-    let opts = GetMarkOpts::builder().build();
-    assert_eq!((1, 0, buf, "".into()), api::get_mark('A', &opts).unwrap());
+    assert_eq!((1, 0, buf, "".into()), api::get_mark('A', None).unwrap());
 
     let res = api::del_mark('A');
     assert_eq!(Ok(()), res);

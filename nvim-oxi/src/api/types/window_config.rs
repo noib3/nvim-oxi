@@ -101,6 +101,7 @@ impl FromObject for WindowConfig {
     }
 }
 
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_float_config {

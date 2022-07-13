@@ -21,7 +21,7 @@ pub struct EvalStatuslineOpts {
     maxwidth: Option<u32>,
 
     /// Evaluate the tabline instead of the statusline. When `true` the
-    /// [`winid`](EvalStatuslineOptsBuilder::winid) field is ignored.
+    /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
     #[builder(setter(strip_option))]
     use_tabline: Option<bool>,
 
@@ -51,6 +51,7 @@ impl EvalStatuslineOptsBuilder {
     }
 }
 
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_eval_statusline {

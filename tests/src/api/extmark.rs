@@ -45,14 +45,14 @@ fn get_extmarks() {
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
-    let extmark_id = buf.set_extmark(ns_id, 0, 0, &opts).unwrap();
+    let extmark_id = buf.set_extmark(ns_id, 0, 0, Some(&opts)).unwrap();
 
     let start = ExtmarkPosition::ById(extmark_id);
     let end = ExtmarkPosition::ById(extmark_id);
     let opts = GetExtmarksOpts::builder().details(true).build();
 
     let res = buf
-        .get_extmarks(ns_id, start, end, &opts)
+        .get_extmarks(ns_id, start, end, Some(&opts))
         .map(|iter| iter.collect::<Vec<_>>());
     assert!(res.is_ok(), "{res:?}");
 
@@ -153,13 +153,13 @@ fn set_get_del_extmark() {
         // .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
-    let res = buf.set_extmark(ns_id, 0, 0, &opts);
+    let res = buf.set_extmark(ns_id, 0, 0, Some(&opts));
     assert!(res.is_ok(), "{res:?}");
 
     let extmark_id = res.unwrap();
 
     let opts = GetExtmarkByIdOpts::builder().details(true).build();
-    let got = buf.get_extmark_by_id(ns_id, extmark_id, &opts);
+    let got = buf.get_extmark_by_id(ns_id, extmark_id, Some(&opts));
     assert!(got.is_ok(), "{got:?}");
 
     let (row, col, infos) = got.unwrap();

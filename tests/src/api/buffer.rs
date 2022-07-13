@@ -34,13 +34,12 @@ fn buf_call() {
 #[oxi::test]
 fn buf_create_del_user_command() {
     let mut buf = Buffer::current();
-    let opts = CreateCommandOpts::builder().build();
 
-    let res = buf.create_user_command("Foo", ":", &opts);
+    let res = buf.create_user_command("Foo", ":", None);
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res = buf.create_user_command("Bar", |_args| Ok(()), &opts);
+    let res = buf.create_user_command("Bar", |_args| Ok(()), None);
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
@@ -79,7 +78,7 @@ fn buf_set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = buf.set_keymap(Mode::Insert, "a", "", &opts);
+    let res = buf.set_keymap(Mode::Insert, "a", "", Some(&opts));
     assert_eq!(Ok(()), res);
 
     let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();

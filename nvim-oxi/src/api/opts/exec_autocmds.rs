@@ -77,8 +77,8 @@ impl ExecAutocmdsOptsBuilder {
     }
 }
 
+#[derive(Default)]
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
     #[cfg(feature = "nightly")]

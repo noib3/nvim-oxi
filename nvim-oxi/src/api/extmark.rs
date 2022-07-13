@@ -106,9 +106,9 @@ impl Buffer {
         &self,
         ns_id: u32,
         extmark_id: u32,
-        opts: &GetExtmarkByIdOpts,
+        opts: Option<&GetExtmarkByIdOpts>,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
-        let opts = Dictionary::from(opts);
+        let opts = opts.map(Dictionary::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         let tuple = unsafe {
             nvim_buf_get_extmark_by_id(
@@ -147,10 +147,10 @@ impl Buffer {
         ns_id: u32,
         start: ExtmarkPosition,
         end: ExtmarkPosition,
-        opts: &GetExtmarksOpts,
+        opts: Option<&GetExtmarksOpts>,
     ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
     {
-        let opts = Dictionary::from(opts);
+        let opts = opts.map(Dictionary::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
@@ -185,25 +185,21 @@ impl Buffer {
     ///
     /// Creates or updates an extmark. Both `line` and `col` are 0-indexed.
     /// Returns the id of the created/updated extmark.
-    pub fn set_extmark<I, L, C>(
+    pub fn set_extmark(
         &mut self,
-        ns_id: I,
-        line: L,
-        col: C,
-        opts: &SetExtmarkOpts,
-    ) -> Result<u32>
-    where
-        I: Into<Integer>,
-        L: Into<Integer>,
-        C: Into<Integer>,
-    {
+        ns_id: u32,
+        line: usize,
+        col: usize,
+        opts: Option<&SetExtmarkOpts>,
+    ) -> Result<u32> {
+        let opts = opts.map(KeyDict_set_extmark::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         let id = unsafe {
             nvim_buf_set_extmark(
                 self.0,
-                ns_id.into(),
-                line.into(),
-                col.into(),
+                ns_id as Integer,
+                line as Integer,
+                col as Integer,
                 &opts.into(),
                 &mut err,
             )

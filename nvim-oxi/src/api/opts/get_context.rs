@@ -40,9 +40,9 @@ impl GetContextOptsBuilder {
     }
 }
 
+#[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-#[derive(Default, Debug)]
 pub(crate) struct KeyDict_context<'a> {
     types: NonOwning<'a, Object>,
 }

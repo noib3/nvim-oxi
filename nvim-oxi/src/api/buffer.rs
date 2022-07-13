@@ -115,12 +115,16 @@ impl Buffer {
     /// Binding to [`nvim_buf_create_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_create_user_command()).
     ///
     /// Creates a new buffer-local user command.
-    pub fn create_user_command(
+    pub fn create_user_command<Cmd>(
         &mut self,
         name: &str,
-        command: impl StringOrFunction<CommandArgs, ()>,
-        opts: &CreateCommandOpts,
-    ) -> Result<()> {
+        command: Cmd,
+        opts: Option<&CreateCommandOpts>,
+    ) -> Result<()>
+    where
+        Cmd: StringOrFunction<CommandArgs, ()>,
+    {
+        let opts = opts.map(KeyDict_user_command::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let command = command.to_obj();
@@ -404,11 +408,12 @@ impl Buffer {
         mode: Mode,
         lhs: &str,
         rhs: &str,
-        opts: &SetKeymapOpts,
+        opts: Option<&SetKeymapOpts>,
     ) -> Result<()> {
         let mode = nvim::String::from(mode);
         let lhs = nvim::String::from(lhs);
         let rhs = nvim::String::from(rhs);
+        let opts = opts.map(KeyDict_keymap::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_set_keymap(

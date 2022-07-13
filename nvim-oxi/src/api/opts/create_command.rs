@@ -106,6 +106,7 @@ impl CreateCommandOptsBuilder {
 
 // To see the generated key dicts you need to build Neovim and look in
 // `/build/src/nvim/auto/keysets_defs.generated.h`.
+#[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_user_command<'a> {
