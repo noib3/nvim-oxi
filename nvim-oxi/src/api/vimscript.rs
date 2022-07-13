@@ -10,10 +10,14 @@ use crate::Result;
 ///
 /// Calls a VimL dictionary function with the given arguments, returning the
 /// result of the funtion call.
-pub fn call_dict_function<A, R>(dict: &str, func: &str, args: A) -> Result<R>
+pub fn call_dict_function<Args, Ret>(
+    dict: &str,
+    func: &str,
+    args: Args,
+) -> Result<Ret>
 where
-    A: Into<Array>,
-    R: FromObject,
+    Args: Into<Array>,
+    Ret: FromObject,
 {
     let dict = Object::from(nvim::String::from(dict));
     let func = nvim::String::from(func);
@@ -27,17 +31,17 @@ where
             &mut err,
         )
     };
-    err.into_err_or_flatten(|| R::from_obj(res))
+    err.into_err_or_flatten(|| Ret::from_obj(res))
 }
 
 /// Binding to [`nvim_call_function`](https://neovim.io/doc/user/api.html#nvim_call_function()).
 ///
 /// Calls a VimL function with the given arguments, returning the result of the
 /// funtion call.
-pub fn call_function<A, R>(func: &str, args: A) -> Result<R>
+pub fn call_function<Args, Ret>(func: &str, args: Args) -> Result<Ret>
 where
-    A: Into<Array>,
-    R: FromObject,
+    Args: Into<Array>,
+    Ret: FromObject,
 {
     let func = nvim::String::from(func);
     let args = args.into();
@@ -45,7 +49,7 @@ where
     let res = unsafe {
         nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| R::from_obj(res))
+    err.into_err_or_flatten(|| Ret::from_obj(res))
 }
 
 /// Binding to [`nvim_cmd`](https://neovim.io/doc/user/api.html#nvim_cmd()).

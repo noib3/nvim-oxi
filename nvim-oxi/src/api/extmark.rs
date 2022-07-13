@@ -51,24 +51,19 @@ impl Buffer {
     ///
     /// Lines are 0-indexed. It's possible to clear the namespace in the entire
     /// buffer by specifying `line_start = 0` and `line_end = -1`.
-    pub fn clear_namespace<I, S, E>(
+    pub fn clear_namespace(
         &mut self,
-        ns_id: I,
-        line_start: S,
-        line_end: E,
-    ) -> Result<()>
-    where
-        I: Into<Integer>,
-        S: Into<Integer>,
-        E: Into<Integer>,
-    {
+        ns_id: u32,
+        line_start: usize,
+        line_end: usize,
+    ) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_clear_namespace(
                 self.0,
-                ns_id.into(),
-                line_start.into(),
-                line_end.into(),
+                ns_id as Integer,
+                line_start as Integer,
+                line_end as Integer,
                 &mut err,
             )
         };

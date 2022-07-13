@@ -17,7 +17,7 @@ fn add_highlight() {
 fn clear_namespace() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
-    let res = buf.clear_namespace(id, 0, -1);
+    let res = buf.clear_namespace(id, 0, usize::MAX);
     assert_eq!(Ok(()), res);
 }
 

@@ -124,18 +124,17 @@ pub fn del_var(name: &str) -> Result<()> {
 /// Binding to [`nvim_echo`](https://neovim.io/doc/user/api.html#nvim_echo()).
 ///
 /// Echoes a message to the Neovim message area.
-pub fn echo<Text, HlGroup, Chunks>(chunks: Chunks, history: bool) -> Result<()>
+pub fn echo<'hl, Text, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
-    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
-    Text: std::fmt::Display,
-    HlGroup: AsRef<str>,
+    Chunks: IntoIterator<Item = (Text, Option<&'hl str>)>,
+    Text: Into<nvim::String>,
 {
     let chunks = chunks
         .into_iter()
         .map(|(text, hlgroup)| {
             Array::from_iter([
-                Object::from(text.to_string()),
-                Object::from(hlgroup.map(|hl| hl.as_ref().to_owned())),
+                Object::from(text.into()),
+                Object::from(hlgroup.map(|hl| hl.to_owned())),
             ])
         })
         .collect::<Array>();
@@ -728,9 +727,9 @@ pub fn set_current_buf(buf: &Buffer) -> Result<()> {
 /// Binding to [`nvim_set_current_dir`](https://neovim.io/doc/user/api.html#nvim_set_current_dir()).
 ///
 /// Changes the global working directory.
-pub fn set_current_dir<P>(dir: P) -> Result<()>
+pub fn set_current_dir<Dir>(dir: Dir) -> Result<()>
 where
-    P: AsRef<Path>,
+    Dir: AsRef<Path>,
 {
     let dir = nvim::String::from(dir.as_ref().to_owned());
     let mut err = nvim::Error::new();
@@ -741,9 +740,9 @@ where
 /// Binding to [`nvim_set_current_line`](https://neovim.io/doc/user/api.html#nvim_set_current_line()).
 ///
 /// Sets the current line.
-pub fn set_current_line<L>(line: L) -> Result<()>
+pub fn set_current_line<Line>(line: Line) -> Result<()>
 where
-    L: Into<nvim::String>,
+    Line: Into<nvim::String>,
 {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_line(line.into().non_owning(), &mut err) };

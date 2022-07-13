@@ -1,5 +1,5 @@
 use std::fmt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use nvim_types::{
     self as nvim,
@@ -491,9 +491,9 @@ impl Buffer {
     /// Binding to [`nvim_buf_set_name`](https://neovim.io/doc/user/api.html#nvim_buf_set_name()).
     ///
     /// Sets the full file name for a buffer.
-    pub fn set_name(&mut self, name: impl Into<nvim::String>) -> Result<()> {
+    pub fn set_name<Name: AsRef<Path>>(&mut self, name: Name) -> Result<()> {
+        let name = nvim::String::from(name.as_ref().to_owned());
         let mut err = nvim::Error::new();
-        let name = name.into();
         unsafe { nvim_buf_set_name(self.0, name.non_owning(), &mut err) };
         err.into_err_or_else(|| ())
     }
