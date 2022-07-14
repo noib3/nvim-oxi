@@ -1,10 +1,12 @@
 use nvim_types::Object;
-use serde::Deserialize;
+use serde::{
+    de::{Deserializer, Error},
+    Deserialize,
+};
 
 use super::{CommandAddr, CommandArgs, CommandNArgs, CommandRange};
 use crate::lua::Function;
 use crate::object::{self, FromObject};
-use crate::Result;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
@@ -27,8 +29,9 @@ pub struct CommandInfos {
     /// TODO: docs
     pub complete_arg: Option<String>,
 
-    /// TODO: docs and parse string to `u32`.
-    pub count: Option<String>,
+    /// TODO: docs
+    #[serde(deserialize_with = "parse_count")]
+    pub count: Option<u32>,
 
     /// TODO: docs
     pub definition: Option<String>,
@@ -55,8 +58,21 @@ pub struct CommandInfos {
     pub script_id: i32,
 }
 
+fn parse_count<'de, D>(deserializer: D) -> Result<Option<u32>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Option::<String>::deserialize(deserializer)?
+        .map(|count| {
+            count.parse().map_err(|err: std::num::ParseIntError| {
+                D::Error::custom(err.to_string())
+            })
+        })
+        .transpose()
+}
+
 impl FromObject for CommandInfos {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_obj(obj: Object) -> crate::Result<Self> {
         Self::deserialize(object::Deserializer::new(obj))
     }
 }

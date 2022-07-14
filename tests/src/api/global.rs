@@ -29,6 +29,15 @@ fn create_del_user_command() {
 }
 
 #[oxi::test]
+fn user_command_with_count() {
+    let opts = CreateCommandOpts::builder().count(32).build();
+    api::create_user_command("Foo", "echo 'foo'", Some(&opts)).unwrap();
+
+    let res = api::get_commands(None).map(|cmds| cmds.collect::<Vec<_>>());
+    assert!(res.is_ok(), "{res:?}");
+}
+
+#[oxi::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
     let res = api::eval_statusline("foo", Some(&opts));

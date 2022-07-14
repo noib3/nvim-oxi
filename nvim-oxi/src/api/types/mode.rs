@@ -1,10 +1,8 @@
 use nvim_types as nvim;
-use serde::{Deserialize, Serialize};
-
-use crate::object;
+use serde::Deserialize;
 
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub enum Mode {
     #[serde(rename = "c")]
     CmdLine,
@@ -18,7 +16,7 @@ pub enum Mode {
     #[serde(rename = "l")]
     Langmap,
 
-    #[serde(rename(serialize = "", deserialize = " "))]
+    #[serde(rename(deserialize = " "))]
     NormalVisualOperator,
 
     #[serde(rename = "n")]
@@ -64,9 +62,20 @@ impl Mode {
 
 impl From<Mode> for nvim::String {
     fn from(mode: Mode) -> Self {
-        mode.serialize(object::Serializer)
-            .expect("`Mode` is serializable")
-            .try_into()
-            .expect("`Mode` is serialized into a string")
+        use Mode::*;
+        match mode {
+            CmdLine => "c",
+            Insert => "i",
+            InsertCmdLine => "!",
+            Langmap => "l",
+            NormalVisualOperator => "",
+            Normal => "n",
+            OperatorPending => "o",
+            Select => "s",
+            Terminal => "t",
+            Visual => "x",
+            VisualSelect => "v",
+        }
+        .into()
     }
 }
