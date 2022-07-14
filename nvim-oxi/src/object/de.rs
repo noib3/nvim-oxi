@@ -455,3 +455,55 @@ pub(crate) mod utils {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use nvim_types::{Array, Dictionary};
+    use serde::Deserialize;
+
+    use super::*;
+
+    fn d(value: impl Into<Object>) -> Result<Object> {
+        Object::deserialize(Deserializer::new(value.into()))
+            .map_err(Into::into)
+    }
+
+    #[test]
+    fn deserialize_unit() {
+        assert_eq!(Ok(Object::nil()), d(()));
+    }
+
+    #[test]
+    fn deserialize_bool() {
+        assert_eq!(Ok(Object::from(true)), d(true));
+    }
+
+    #[test]
+    fn deserialize_num() {
+        assert_eq!(Ok(Object::from(42)), d(42i32));
+        assert_eq!(Ok(Object::from(42)), d(42u8));
+        assert_eq!(Ok(Object::from(42)), d(42u32));
+    }
+
+    #[test]
+    fn deserialize_str() {
+        assert_eq!(Ok(Object::from("foobar")), d("foobar"));
+        assert_eq!(Ok(Object::from("barfoo")), d(String::from("barfoo")));
+    }
+
+    #[test]
+    fn deserialize_seq() {
+        let arr = Array::from((1, 2, "foo", false));
+        assert_eq!(Ok(Object::from(arr.clone())), d(arr));
+    }
+
+    #[test]
+    fn deserialize_map() {
+        let map = Dictionary::from_iter([
+            ("foo", Object::from("foo")),
+            ("bar", Object::from(false)),
+            ("baz", Object::from(Array::from(("foo", "bar", false)))),
+        ]);
+        assert_eq!(Ok(Object::from(map.clone())), d(map));
+    }
+}

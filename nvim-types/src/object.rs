@@ -606,14 +606,32 @@ impl<'de> serde::Deserialize<'de> for Object {
             where
                 A: de::SeqAccess<'de>,
             {
-                todo!()
+                let mut vec = Vec::<Object>::with_capacity(
+                    seq.size_hint().unwrap_or_default(),
+                );
+
+                while let Some(obj) = seq.next_element::<Object>()? {
+                    vec.push(obj);
+                }
+
+                Ok(vec.into_iter().collect::<Array>().into())
             }
 
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
             where
                 A: de::MapAccess<'de>,
             {
-                todo!()
+                let mut vec = Vec::<(NvimString, Object)>::with_capacity(
+                    map.size_hint().unwrap_or_default(),
+                );
+
+                while let Some(pair) =
+                    map.next_entry::<NvimString, Object>()?
+                {
+                    vec.push(pair);
+                }
+
+                Ok(vec.into_iter().collect::<Dictionary>().into())
             }
 
             visit_into!(visit_bool, bool);

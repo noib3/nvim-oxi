@@ -39,16 +39,16 @@ pub struct CmdInfos {
     #[builder(setter(strip_option))]
     pub mods: Option<CommandModifiers>,
 
-    /// Value of `:command-nargs`
-    #[builder(setter(custom))]
     // Setter doesn't exist bc `nargs` is ignored when passed to `nvim_cmd`.
+    /// Value of `:command-nargs`
+    #[builder(setter(skip))]
     pub nargs: Option<CommandNArgs>,
 
+    // Setter doesn't exist bc `nextcmd` is ignored when passed to `nvim_cmd`.
     /// Next command if there are multiple commands separated by a `:bar`.
     /// `None` if there isn't a next command.
-    #[builder(setter(custom))]
+    #[builder(setter(skip))]
     #[serde(deserialize_with = "utils::empty_string_is_none")]
-    // Setter doesn't exist bc `nextcmd` is ignored when passed to `nvim_cmd`.
     pub nextcmd: Option<String>,
 
     /// Command range.
