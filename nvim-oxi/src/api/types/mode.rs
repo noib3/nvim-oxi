@@ -18,8 +18,7 @@ pub enum Mode {
     #[serde(rename = "l")]
     Langmap,
 
-    // TODO: SEGFAULT: passing this to `Buffer::get_keymap` causes a segfault?
-    #[serde(rename = "")]
+    #[serde(rename(serialize = "", deserialize = " "))]
     NormalVisualOperator,
 
     #[serde(rename = "n")]

@@ -1,3 +1,4 @@
+use all_asserts::*;
 use nvim_oxi::{
     self as oxi,
     api::{self, Buffer},
@@ -85,6 +86,23 @@ fn buf_set_get_del_keymap() {
     assert_eq!(1, keymaps.len());
 
     let res = buf.del_keymap(Mode::Insert, "a");
+    assert_eq!(Ok(()), res);
+}
+
+#[oxi::test]
+fn buf_set_get_del_nvo_keymap() {
+    let mut buf = Buffer::current();
+
+    let res = buf.set_keymap(Mode::NormalVisualOperator, "a", "b", None);
+    assert_eq!(Ok(()), res);
+
+    let keymaps = buf
+        .get_keymap(Mode::NormalVisualOperator)
+        .unwrap()
+        .collect::<Vec<_>>();
+    assert_le!(1, keymaps.len());
+
+    let res = buf.del_keymap(Mode::NormalVisualOperator, "a");
     assert_eq!(Ok(()), res);
 }
 
