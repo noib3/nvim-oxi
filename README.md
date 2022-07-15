@@ -5,30 +5,22 @@
 [![MSRV]](https://www.rust-lang.org/)
 [![CI]](https://github.com/noib3/nvim-oxi/actions)
 
-[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/tests.yml/badge.svg
-[Docs]: https://docs.rs/nvim-oxi/badge.svg
 [Latest version]: https://img.shields.io/crates/v/nvim-oxi.svg
-[MSRV]: https://img.shields.io/badge/Rust-1.62+-brightgreen.svg?&logo=rust
+[Docs]: https://docs.rs/nvim-oxi/badge.svg
+[MSRV]: https://img.shields.io/badge/rustc-1.62+-brightgreen.svg?&logo=rust
+[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/tests.yml/badge.svg
 
 ## What
 
-Morbi eu mauris sapien. Ut at lorem sapien. Integer sollicitudin leo urna, at
-tempus lacus facilisis nec. Aliquam auctor tincidunt erat in consequat.
-Maecenas ultricies bibendum dolor, et dignissim elit iaculis vitae. Curabitur
-diam odio, sollicitudin ac lectus ut, interdum blandit diam. Mauris mattis ex
-efficitur lacus sagittis molestie. Integer tempus purus eget maximus egestas.
-Cras ut bibendum lorem. Pellentesque non vehicula ante. Integer nec scelerisque
-mi, a feugiat libero.
+The `nvim-oxi` crate provides first-class Rust bindings to the rich API exposed
+by the [Neovim](https://neovim.io) terminal text editor.
+
+The project is mostly intended for plugin authors, although nothing's stopping
+end users from writing their Neovim configs in Rust.
 
 ## How
 
-Morbi eu mauris sapien. Ut at lorem sapien. Integer sollicitudin leo urna, at
-tempus lacus facilisis nec. Aliquam auctor tincidunt erat in consequat.
-Maecenas ultricies bibendum dolor, et dignissim elit iaculis vitae. Curabitur
-diam odio, sollicitudin ac lectus ut, interdum blandit diam. Mauris mattis ex
-efficitur lacus sagittis molestie. Integer tempus purus eget maximus egestas.
-Cras ut bibendum lorem. Pellentesque non vehicula ante. Integer nec scelerisque
-mi, a feugiat libero.
+TODO!
 
 ## Why
 
@@ -37,8 +29,8 @@ Two main reasons:
 
 - access to the Rust ecosystem: Lua is a great, minimal scripting language but
   can also be limiting when writing more complex plugins. In contrast, Rust is
-  a fully-fledged language with a huge ecosystem of crates for
-  (de)serialization, networking, IO, green threads, etc;
+  a fully-fledged, statically typed language with a huge ecosystem of crates
+  for (de)serialization, networking, IO, green threads, etc;
 
 - `nvim-oxi` provides a fully typed API: everything from optional function
   fields to callback arguments is checked at compile-time. This allows plugin
@@ -64,9 +56,9 @@ might add a new example documenting your use case (if it can be done).
 
 ## Testing
 
-The `test` feature flag enables the `#[nvim_oxi::test]` proc macro which you
-can use instead of the regular `#[test]` annotation to test a piece of code
-using Rust's excellent testing framework.
+The `test` feature flag enables the `#[nvim_oxi::test]` proc macro. This macro
+replaces the regular `#[test]` annotations and can be used to test a piece of
+code from within a Neovim instance using Rust's excellent testing framework.
 
 For example:
 
@@ -81,8 +73,8 @@ fn set_get_del_var() {
 }
 ```
 
-Then `cargo test` will test that code from within a new Neovim instance with an
-empty config. There are a couple of gotchas:
+Then `cargo test` will spawn a new Neovim process with an empty config, run
+that code and exit. There are a couple of gotchas:
 
 - after changing a piece of code, `cargo build` has to be run before you can
   test that with `cargo test`;
