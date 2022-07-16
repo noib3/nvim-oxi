@@ -3,7 +3,9 @@ name = "oxi-module"
 version = "0.1.0"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
-publish = false
+description = "Proc macro for the `nvim-oxi` crate."
+repository = "https://github.com/noib3/nvim-oxi"
+license = "MIT"
 
 [lib]
 proc-macro = true
@@ -11,4 +13,4 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0", features = ["extra-traits"] }
+syn = { version = "1.0", features = ["full"] }

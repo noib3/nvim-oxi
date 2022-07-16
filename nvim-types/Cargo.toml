@@ -6,7 +6,10 @@ authors = [
   "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
 ]
 edition = "2021"
-publish = false
+description = "Rust bindings to the Neovim C types."
+documentation = "https://docs.rs/nvim_types"
+repository = "https://github.com/noib3/nvim-oxi"
+license = "MIT"
 
 [dependencies]
 libc = "0.2"
