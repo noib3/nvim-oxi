@@ -20,15 +20,30 @@ end users from writing their Neovim configs in Rust.
 
 ## How
 
-TODO!
+The traditional way to write Neovim plugins in languages other than the
+"builtin" ones, i.e. Vimscript or Lua, is via [RPC
+channels](https://neovim.io/doc/user/api.html#RPC). This approach comes with a
+few limitations mostly due to having to (de)serialize everything to
+MessagePack-encoded messages, prohibiting things like attaching callbacks to
+keymaps or scheduling functions.
+
+`nvim-oxi` takes a different approach. It leverages Rust's foreign function
+interface (FFI) support to hook straight into the Neovim C code, allowing
+feature parity with "in process" plugins while also avoiding the need for an
+extra IO layer.
+
+[This
+thread](https://neovim.discourse.group/t/calling-neovim-internal-functions-with-luajit-ffi-and-rust)
+on the Neovim discourse goes into a bit more detail for anyone who's
+interested.
 
 ## Why
 
-Why bother when Neovim already exposes its rich and powerful API through Lua?
-Two main reasons:
+Why bother when Neovim already has Lua as a first-class citizen? Mainly two
+reasons:
 
 - access to the Rust ecosystem: Lua is a great, minimal scripting language but
-  can also be limiting when writing more complex plugins. In contrast, Rust is
+  can also be limiting when writing more complex plugins. In contrast Rust is
   a fully-fledged, statically typed language with a huge ecosystem of crates
   for (de)serialization, networking, IO, green threads, etc;
 
@@ -36,13 +51,6 @@ Two main reasons:
   fields to callback arguments is checked at compile-time. This allows plugin
   authors to spend less time reading through the help docs and more time
   iterating via `cargo check`s.
-
-<!--
-Lastly, there is possibly some performance to be gained by directly interacting
-with the C code instead of serializing and deserializing MessagePack messages
-like RPC plugins do. However the improvements are likely to not be noticeable
-for most common tasks, and just having a
--->
 
 ## Examples
 
@@ -79,7 +87,7 @@ that code and exit. There are a couple of gotchas:
 - after changing a piece of code, `cargo build` has to be run before you can
   test that with `cargo test`;
 
-- you cannot have two test functions with the same name, even if belonging to
+- you cannot have two test functions with the same name, even if they belong to
   different modules. For example this won't work:
 
 ```rust
