@@ -5,6 +5,8 @@ use std::{fmt, ptr};
 use super::{Collection, Object, String};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
+//
+/// A mapping from Neovim [`String`s](String) to [`Object`s](Object).
 pub type Dictionary = Collection<KeyValuePair>;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L128

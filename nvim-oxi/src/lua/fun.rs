@@ -12,6 +12,7 @@ use super::{ffi::*, LuaPoppable, LuaPushable};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
+/// Handle to a Lua function either created from Rust or deserialized from Lua.
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct Function<A, R>(pub(crate) LuaRef, PhantomData<A>, PhantomData<R>);
 

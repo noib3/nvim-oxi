@@ -2,9 +2,10 @@ use std::fmt;
 
 use serde::{de, ser};
 
-/// A specialized `Result` type used by `nvim-oxi`.
+/// Alias for a `Result` with error type [`nvim_oxi::Error`](Error).
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Error returned by `nvim-oxi` functions.
 #[derive(thiserror::Error, Debug, Eq, PartialEq)]
 pub enum Error {
     #[error(transparent)]

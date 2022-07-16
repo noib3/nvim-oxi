@@ -4,6 +4,21 @@ use quote::quote;
 use syn::{parse_macro_input, Error};
 
 // *Heavily* inspired by mlua's `lua_module` proc macro.
+//
+/// Marks the plugin entrypoint.
+///
+/// # Examples
+///
+/// ```ignore
+/// use nvim_oxi as oxi;
+///
+/// #[oxi::module]
+/// fn foo() -> oxi::Result<()> {
+///     Ok(())
+/// }
+/// ```
+///
+/// the compiled library can then be loaded from Neovim with `require("foo")`.
 #[proc_macro_attribute]
 pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as syn::AttributeArgs);

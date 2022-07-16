@@ -18,6 +18,8 @@ use crate::{
 };
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
+//
+/// Represents any type of Neovim object.
 #[repr(C)]
 pub struct Object {
     r#type: ObjectKind,

@@ -1,6 +1,10 @@
-//! # First-class bindings to Neovim internals
+//! # Rust bindings to all things Neovim
 //!
-//! The `nvim-oxi` crate ...
+//! The `nvim-oxi` crate provides first-class Rust bindings to the rich API
+//! exposed by the [Neovim](https://neovim.io) terminal text editor.
+//!
+//! The project is mostly intended for plugin authors, although nothing's
+//! stopping end users from writing their Neovim configs in Rust.
 
 #![deny(future_incompatible)]
 #![deny(nonstandard_style)]
@@ -15,10 +19,14 @@ mod macros;
 pub mod object;
 mod trait_utils;
 pub mod opts {
+    //! Contains all the `*Opts` structs passed to functions as optional
+    //! arguments.
     pub use crate::api::opts::*;
 }
 mod toplevel;
 pub mod types {
+    //! Contains the Rust type definitions of objects given to and returned by
+    //! Neovim functions.
     pub use crate::api::types::*;
 }
 

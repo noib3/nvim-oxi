@@ -1,3 +1,5 @@
+//! Handles the conversion between Rust types and Neovim
+//! [`Object`s](crate::Object).
 pub(crate) mod de;
 mod from_object;
 mod ser;

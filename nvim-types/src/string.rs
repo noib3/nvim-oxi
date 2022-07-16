@@ -13,18 +13,20 @@ use libc::{c_char, size_t};
 
 use crate::NonOwning;
 
-/// Neovim's `String`s:
-///   - are null-terminated;
-///   - *can* contain null bytes (confirmed by bfredl on matrix);
-///   - they store a `size` field just like Rust strings, which *doesn't*
-///     include the last `\0`;
-///   - unlike Rust strings, they are *not* guaranteed to always contain valid
-///     UTF-8 byte sequences;
-///
-/// See https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L478
-/// for how a C string gets converted into a Neovim string.
-///
-/// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
+// Neovim's `String`s:
+//   - are null-terminated;
+//   - *can* contain null bytes (confirmed by bfredl on matrix);
+//   - they store a `size` field just like Rust strings, which *doesn't*
+//     include the last `\0`;
+//   - unlike Rust strings, they are *not* guaranteed to always contain valid
+//     UTF-8 byte sequences;
+//
+// See https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L478
+// for how a C string gets converted into a Neovim string.
+//
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
+//
+/// A particular string type used internally by Neovim.
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {

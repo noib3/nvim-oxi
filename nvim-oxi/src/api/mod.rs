@@ -1,4 +1,6 @@
-//! This module contains the bindings to the [Neovim API](https://neovim.io/doc/user/api.html), exposed in Lua through the `vim.api` table.
+//! This module contains the bindings to the [Neovim
+//! API](https://neovim.io/doc/user/api.html), exposed in Lua through the
+//! `vim.api` table.
 //!
 //! # Naming convention
 //!

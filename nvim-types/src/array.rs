@@ -4,6 +4,8 @@ use std::{fmt, ptr};
 use super::{Collection, Object};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
+//
+/// An array of Neovim [`Object`s](Object).
 pub type Array = Collection<Object>;
 
 impl fmt::Debug for Array {
