@@ -6,9 +6,9 @@ mod non_owning;
 mod object;
 mod string;
 
-pub use array::*;
-pub use collection::*;
-pub use dictionary::*;
+pub use array::{Array, ArrayIterator};
+pub(crate) use collection::*;
+pub use dictionary::{DictIterator, Dictionary};
 pub use error::Error;
 pub use non_owning::NonOwning;
 pub use object::{FromObjectError, Object, ObjectKind};

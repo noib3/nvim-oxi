@@ -11,7 +11,7 @@ use crate::NonOwning;
 #[repr(C)]
 pub struct Collection<T> {
     pub(crate) items: *mut T,
-    pub size: size_t,
+    pub(crate) size: size_t,
     pub(crate) capacity: size_t,
 }
 
