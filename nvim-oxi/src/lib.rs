@@ -6,6 +6,8 @@
 //! The project is mostly intended for plugin authors, although nothing's
 //! stopping end users from writing their Neovim configs in Rust.
 
+#![doc(html_root_url = "https://docs.rs/nvim_oxi/0.1.0")]
+#![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![deny(future_incompatible)]
 #![deny(nonstandard_style)]
 #![deny(rustdoc::broken_intra_doc_links)]
