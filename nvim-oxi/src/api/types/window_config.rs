@@ -26,7 +26,7 @@ pub struct WindowConfig {
     pub bufpos: Option<(usize, usize)>,
 
     /// Column position in units of screen cell width. May be fractional
-    #[builder(setter(strip_option))]
+    #[builder(setter(into, strip_option))]
     pub col: Option<Float>,
 
     /// Whether an attached GUI should display the window as an external
@@ -54,7 +54,7 @@ pub struct WindowConfig {
     pub relative: Option<WindowRelativeTo>,
 
     /// Row position in units of screen cell height. May be fractional.
-    #[builder(setter(strip_option))]
+    #[builder(setter(into, strip_option))]
     pub row: Option<Float>,
 
     /// Configures the appearance of the window.

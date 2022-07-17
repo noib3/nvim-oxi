@@ -1,6 +1,4 @@
-# basic-calc
-
-This ...
+# calc
 
 ```lua
 local calc = require("calc")

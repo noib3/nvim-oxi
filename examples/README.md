@@ -1,6 +1,17 @@
 # Examples
 
-...
+There are currently only 3 example plugins, with more to be added as requested.
+Roughly in order of which one you should go through first:
+
+- `calc`: shows how to expose your plugin's core functions to Lua;
+- `api`: shows how to use the `api` module to create commands, set keymaps and
+  manipulate floating windows;
+- `serialize`: shows how to deserialize Lua tables into Rust objects using
+  [`serde`](https://serde.rs).
+
+The examples also include some snippets of Lua code that you can use to test
+the plugins from Neovim once you've compiled and loaded them following the
+steps below.
 
 ## Crate setup
 

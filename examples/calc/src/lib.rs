@@ -1,7 +1,7 @@
-use nvim_oxi::{self as nvim, Dictionary, Function, Object};
+use nvim_oxi::{self as oxi, Dictionary, Function, Object};
 
-#[nvim::module]
-fn calc() -> nvim::Result<Dictionary> {
+#[oxi::module]
+fn calc() -> oxi::Result<Dictionary> {
     let add = Function::from_fn(|(a, b): (i32, i32)| Ok(a + b));
 
     let multiply = Function::from_fn(|(a, b): (i32, i32)| Ok(a * b));

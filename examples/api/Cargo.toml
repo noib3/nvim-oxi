@@ -1,5 +1,5 @@
 [package]
-name = "async-apples"
+name = "api"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,4 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-async-std = { version = "1.12", features = ["unstable"] }
-futures-lite = "1.12"
 nvim-oxi = { path = "../../nvim-oxi" }
-rand = "0.8"
