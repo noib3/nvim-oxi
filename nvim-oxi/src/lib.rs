@@ -19,6 +19,7 @@ pub(crate) mod iterator;
 pub mod lua;
 mod macros;
 pub mod object;
+pub use object::{FromObject, ToObject};
 mod trait_utils;
 pub mod opts {
     //! Contains all the `*Opts` structs passed to functions as optional

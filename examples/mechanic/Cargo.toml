@@ -1,5 +1,5 @@
 [package]
-name = "serialize"
+name = "mechanic"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 nvim-oxi = { path = "../../nvim-oxi" }
+serde = { version = "1.0", features = ["derive"] }
