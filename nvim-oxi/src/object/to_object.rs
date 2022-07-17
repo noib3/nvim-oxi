@@ -4,6 +4,7 @@ use nvim_types::{Array, Dictionary, Object, String as NvimString};
 
 use crate::Result;
 
+/// Trait implemented for types that can be converted into [`Object`s](Object).
 pub trait ToObject {
     fn to_obj(self) -> Result<Object>;
 }

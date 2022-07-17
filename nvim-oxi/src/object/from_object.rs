@@ -4,6 +4,7 @@ use nvim_types::{Array, Object, String as NvimString};
 
 use crate::Result;
 
+/// Trait implemented for types that can be obtained from [`Object`s](Object).
 pub trait FromObject: Sized {
     fn from_obj(obj: Object) -> Result<Self>;
 }
