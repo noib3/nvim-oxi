@@ -3,7 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -39,5 +43,6 @@
             neovim
           ];
         };
-      });
+      }
+    );
 }
