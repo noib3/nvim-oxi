@@ -30,12 +30,11 @@ unsafe fn init_state(lstate: *mut lua_State) {
 /// entrypoint function and pushes the result on the stack.
 #[doc(hidden)]
 #[inline(always)]
-pub unsafe fn module_entrypoint<F, R>(
+pub unsafe fn module_entrypoint<R>(
     lstate: *mut lua_State,
-    body: F,
+    body: fn() -> crate::Result<R>,
 ) -> libc::c_int
 where
-    F: FnOnce() -> crate::Result<R> + 'static,
     R: super::LuaPushable,
 {
     self::init_state(lstate);
