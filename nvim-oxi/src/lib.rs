@@ -35,7 +35,7 @@ pub mod types {
 
 pub use error::{Error, Result};
 pub use lua::Function;
-pub use nvim_types::{Array, Dictionary, Object, String};
+pub use nvim_types::{Array, Dictionary, Object, ObjectKind, String};
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
