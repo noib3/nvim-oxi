@@ -1,8 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, NonOwning, Object};
 
-use crate::lua::Function;
-use crate::Result;
+use crate::trait_utils::ToFunction;
 
 /// Options passed to [`Buffer::set_keymap`](crate::api::Buffer::set_keymap)
 /// and [`api::set_keymap`](crate::api::set_keymap).
@@ -56,9 +55,9 @@ impl SetKeymapOptsBuilder {
     /// A function to call when the mapping is executed.
     pub fn callback<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(()) -> Result<()> + 'static,
+        F: ToFunction<(), ()>,
     {
-        self.callback = Some(Function::from_fn_mut(fun).into());
+        self.callback = Some(fun.to_obj());
         self
     }
 

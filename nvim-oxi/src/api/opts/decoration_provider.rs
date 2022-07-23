@@ -2,8 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::api::{Buffer, Window};
-use crate::lua::Function;
-use crate::Result;
+use crate::trait_utils::ToFunction;
 
 // NOTE: docs say a third argument of changedtick is passed. I don't see it.
 /// Arguments passed to the function registered to
@@ -84,24 +83,46 @@ impl DecorationProviderOpts {
     }
 }
 
-macro_rules! lua_fn_setter {
-    ($name:ident, $args:ty, $ret:ty) => {
-        pub fn $name<F>(&mut self, fun: F) -> &mut Self
-        where
-            F: FnMut($args) -> Result<$ret> + 'static,
-        {
-            self.$name = Some(Function::from_fn_mut(fun).into());
-            self
-        }
-    };
-}
-
 impl DecorationProviderOptsBuilder {
-    lua_fn_setter!(on_buf, OnBufArgs, ());
-    lua_fn_setter!(on_end, OnEndArgs, ());
-    lua_fn_setter!(on_line, OnLineArgs, ());
-    lua_fn_setter!(on_start, OnStartArgs, DontSkipRedrawCycle);
-    lua_fn_setter!(on_win, OnWinArgs, DontSkipOnLines);
+    pub fn on_buf<F>(&mut self, fun: F) -> &mut Self
+    where
+        F: ToFunction<OnBufArgs, ()>,
+    {
+        self.on_buf = Some(fun.to_obj());
+        self
+    }
+
+    pub fn on_end<F>(&mut self, fun: F) -> &mut Self
+    where
+        F: ToFunction<OnEndArgs, ()>,
+    {
+        self.on_end = Some(fun.to_obj());
+        self
+    }
+
+    pub fn on_line<F>(&mut self, fun: F) -> &mut Self
+    where
+        F: ToFunction<OnLineArgs, ()>,
+    {
+        self.on_line = Some(fun.to_obj());
+        self
+    }
+
+    pub fn on_start<F>(&mut self, fun: F) -> &mut Self
+    where
+        F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
+    {
+        self.on_start = Some(fun.to_obj());
+        self
+    }
+
+    pub fn on_win<F>(&mut self, fun: F) -> &mut Self
+    where
+        F: ToFunction<OnWinArgs, DontSkipOnLines>,
+    {
+        self.on_win = Some(fun.to_obj());
+        self
+    }
 
     pub fn build(&mut self) -> DecorationProviderOpts {
         self.fallible_build().expect("never fails, all fields have defaults")

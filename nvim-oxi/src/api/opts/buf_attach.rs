@@ -2,8 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::api::Buffer;
-use crate::lua::Function;
-use crate::Result;
+use crate::trait_utils::ToFunction;
 
 /// Arguments passed to the callback registered to
 /// [`on_lines`](BufAttachOptsBuilder::on_lines). The `(a, b, c, d, e, f, g, h,
@@ -128,36 +127,36 @@ impl BufAttachOptsBuilder {
     /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
     pub fn on_bytes<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnBytesArgs) -> Result<ShouldDetach> + 'static,
+        F: ToFunction<OnBytesArgs, ShouldDetach>,
     {
-        self.on_bytes = Some(Function::from_fn_mut(fun).into());
+        self.on_bytes = Some(fun.to_obj());
         self
     }
 
     /// Callback invoked on changedtick increment without text change.
     pub fn on_changedtick<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnChangedtickArgs) -> Result<ShouldDetach> + 'static,
+        F: ToFunction<OnChangedtickArgs, ShouldDetach>,
     {
-        self.on_changedtick = Some(Function::from_fn_mut(fun).into());
+        self.on_changedtick = Some(fun.to_obj());
         self
     }
 
     /// Callback invoked on detach.
     pub fn on_detach<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnDetachArgs) -> Result<ShouldDetach> + 'static,
+        F: ToFunction<OnDetachArgs, ShouldDetach>,
     {
-        self.on_detach = Some(Function::from_fn_mut(fun).into());
+        self.on_detach = Some(fun.to_obj());
         self
     }
 
     /// Callback invoked on change.
     pub fn on_lines<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnLinesArgs) -> Result<ShouldDetach> + 'static,
+        F: ToFunction<OnLinesArgs, ShouldDetach>,
     {
-        self.on_lines = Some(Function::from_fn_mut(fun).into());
+        self.on_lines = Some(fun.to_obj());
         self
     }
 
@@ -165,9 +164,9 @@ impl BufAttachOptsBuilder {
     /// considered changed.
     pub fn on_reload<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnReloadArgs) -> Result<ShouldDetach> + 'static,
+        F: ToFunction<OnReloadArgs, ShouldDetach>,
     {
-        self.on_reload = Some(Function::from_fn_mut(fun).into());
+        self.on_reload = Some(fun.to_obj());
         self
     }
 

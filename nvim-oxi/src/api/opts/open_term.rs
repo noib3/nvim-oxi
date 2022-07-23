@@ -2,7 +2,7 @@ use derive_builder::Builder;
 use nvim_types::{self as nvim, Dictionary, Object};
 
 use crate::api::Buffer;
-use crate::lua::Function;
+use crate::trait_utils::ToFunction;
 
 /// Arguments passed to the callback registered to
 /// [`on_input`](OpenTermOptsBuilder::on_input). The `(a, b, c, d)` tuple
@@ -38,9 +38,9 @@ impl OpenTermOptsBuilder {
     /// Callback invoked on data input (like keypresses in terminal mode).
     pub fn on_input<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(OnInputArgs) -> crate::Result<()> + 'static,
+        F: ToFunction<OnInputArgs, ()>,
     {
-        self.on_input = Some(Function::from_fn_mut(fun).into());
+        self.on_input = Some(fun.to_obj());
         self
     }
 

@@ -38,22 +38,50 @@ impl_into!(StringOrListOfStrings, String);
 // Here I'd like to use `IntoIterator` instead of `Vec`, but without
 // specilization that'd cause conflicting impls.
 impl<S: Into<String>> StringOrListOfStrings for Vec<S> {
+    #[inline]
     fn to_obj(self) -> Object {
         Array::from_iter(self.into_iter().map(Into::into)).into()
     }
 }
 
+/// A rust closure or a [`Function`].
+pub trait ToFunction<A, R> {
+    fn to_obj(self) -> Object;
+}
+
+impl<A, R, F> ToFunction<A, R> for F
+where
+    A: LuaPoppable,
+    R: LuaPushable,
+    F: FnMut(A) -> crate::Result<R> + 'static,
+{
+    #[inline]
+    fn to_obj(self) -> Object {
+        Function::from_fn_mut(self).into()
+    }
+}
+
+impl<A, R> ToFunction<A, R> for Function<A, R> {
+    #[inline]
+    fn to_obj(self) -> Object {
+        self.into()
+    }
+}
+
+/// A rust closure, a [`Function`] or a string.
 pub trait StringOrFunction<A, R> {
     fn to_obj(self) -> Object;
 }
 
 impl<A, R> StringOrFunction<A, R> for &str {
+    #[inline]
     fn to_obj(self) -> Object {
         self.into()
     }
 }
 
 impl<A, R> StringOrFunction<A, R> for String {
+    #[inline]
     fn to_obj(self) -> Object {
         self.into()
     }
@@ -65,12 +93,14 @@ where
     R: LuaPushable,
     F: FnMut(A) -> crate::Result<R> + 'static,
 {
+    #[inline]
     fn to_obj(self) -> Object {
         Function::from_fn_mut(self).into()
     }
 }
 
 impl<A, R> StringOrFunction<A, R> for Function<A, R> {
+    #[inline]
     fn to_obj(self) -> Object {
         self.into()
     }
