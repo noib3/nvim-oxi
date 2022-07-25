@@ -10,11 +10,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
-- `ObjectKind` is exposed publicly
+- `ObjectKind` enum is exposed
   ([ac818c4](https://github.com/noib3/nvim-oxi/commit/ac818c46b897bd73e1340ea15a641f858259a22b));
 
 - added `ToFunction` trait which allows to accept both rust closures and
   `Function`s ([3002b0b](https://github.com/noib3/nvim-oxi/commit/3002b0bf37c1107567f0eaf0b1d5b2bb10124a08));
+
+- `LuaPoppable` and `LuaPushable` traits are exposed
+  ([6cb5ebd](https://github.com/noib3/nvim-oxi/commit/6cb5ebdfce7f61350985a9a5683cfd6fc4dcb9b6));
 
 ### Changed
 
