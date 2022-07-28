@@ -5,7 +5,7 @@ use serde::Serialize;
 use crate::object;
 
 /// Options passed to
-/// [`nvim_oxi::api::create_user_command`](crate::api::create_user_command).
+/// [`nvim_oxi::api::set_option_value`](crate::api::set_option_value).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
