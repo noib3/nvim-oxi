@@ -72,9 +72,9 @@ impl<'a> From<&'a OptionValueOpts> for KeyDict_option<'a> {
     fn from(opts: &'a OptionValueOpts) -> Self {
         Self {
             #[cfg(feature = "nightly")]
-            buf: opts.buffer.into(),
+            buf: opts.buffer.as_ref().into(),
             #[cfg(feature = "nightly")]
-            win: opts.window.into(),
+            win: opts.window.as_ref().into(),
             scope: opts.scope.non_owning(),
         }
     }
