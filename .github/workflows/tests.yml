@@ -3,72 +3,37 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        neovim: [stable, nightly]
+        include:
+          - neovim: stable
+            features: ""
+          - neovim: nightly
+            features: "--features nightly"
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Install Neovim # nightly
+      - name: Install Neovim ${{ matrix.neovim }}
         uses: rhysd/action-setup-vim@v1
         with:
             neovim: true
-            # version: nightly
+            version: ${{ matrix.neovim }}
       - name: Install latest stable `rustc`
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
       - name: Run unit tests
-        run: cargo test
+        run: cargo test ${{ matrix.features }}
         working-directory: .
       - name: Build the `tests` crate
-        run: cargo build
+        run: cargo build ${{ matrix.features }}
         working-directory: ./tests
       - name: Run integration tests
-        run: cargo test
-        working-directory: ./tests
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Neovim # nightly
-        uses: rhysd/action-setup-vim@v1
-        with:
-            neovim: true
-            # version: nightly
-      - name: Install latest stable `rustc`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - name: Run unit tests
-        run: cargo test
-        working-directory: .
-      - name: Build the `tests` crate
-        run: cargo build
-        working-directory: ./tests
-      - name: Run integration tests
-        run: cargo test
-        working-directory: ./tests
-  macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Neovim # nightly
-        uses: rhysd/action-setup-vim@v1
-        with:
-            neovim: true
-            # version: nightly
-      - name: Install latest stable `rustc`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - name: Run unit tests
-        run: cargo test
-        working-directory: .
-      - name: Build the `tests` crate
-        run: cargo build
-        working-directory: ./tests
-      - name: Run integration tests
-        run: cargo test
+        run: cargo test ${{ matrix.features }}
         working-directory: ./tests
