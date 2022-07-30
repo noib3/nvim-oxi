@@ -86,6 +86,15 @@ fn get_options() {
 }
 
 #[oxi::test]
+fn hl_underline() {
+    let opts = SetHighlightOpts::builder().underline(true).build();
+    api::set_hl(0, "MatchParen", Some(&opts)).unwrap();
+
+    let infos = api::get_hl_by_name("MatchParen", true).unwrap();
+    assert_eq!(Some(true), infos.underline);
+}
+
+#[oxi::test]
 fn set_get_del_current_line() {
     let res = api::set_current_line("foo");
     assert_eq!(Ok(()), res);
