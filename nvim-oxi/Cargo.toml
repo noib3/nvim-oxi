@@ -16,12 +16,16 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
+libuv-rs = ["loop", "dep:libuv"]
+loop = ["dep:libuv-sys2"]
 nightly = []
 test = ["dep:oxi-test"]
 
 [dependencies]
 derive_builder = "0.11"
 libc = "0.2"
+libuv-sys2 = { version = "1.43", optional = true }
+libuv = { version = "2.4", optional = true }
 nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
 once_cell = "1.12"
 oxi-module = { version = "0.1", path = "../oxi-module" }

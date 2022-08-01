@@ -12,32 +12,43 @@
 #![deny(nonstandard_style)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-pub mod api;
+// Private modules.
 mod error;
 pub(crate) mod iterator;
+mod macros;
+mod toplevel;
+mod trait_utils;
+
+// Public modules.
+pub mod api;
 #[doc(hidden)]
 pub mod lua;
-mod macros;
 pub mod object;
-pub use object::{FromObject, ToObject};
-mod trait_utils;
+
 pub mod opts {
     //! Contains all the `*Opts` structs passed to functions as optional
     //! arguments.
     pub use crate::api::opts::*;
 }
-mod toplevel;
+
 pub mod types {
     //! Contains the Rust type definitions of objects given to and returned by
     //! Neovim functions.
     pub use crate::api::types::*;
 }
 
+// Public modules behind feature flags.
+#[cfg(feature = "loop")]
+#[cfg_attr(docsrs, doc(cfg(feature = "loop")))]
+pub mod libuv;
+
+// Re-exports.
 pub use error::{Error, Result};
 pub use lua::Function;
 #[doc(hidden)]
 pub use lua::{LuaPoppable, LuaPushable};
 pub use nvim_types::{Array, Dictionary, Object, ObjectKind, String};
+pub use object::{FromObject, ToObject};
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
