@@ -86,6 +86,12 @@ fn get_options() {
 }
 
 #[oxi::test]
+fn get_option_info() {
+    api::set_option("number", true).unwrap();
+    assert!(api::get_option_info("number").is_ok());
+}
+
+#[oxi::test]
 fn hl_underline() {
     let opts = SetHighlightOpts::builder().underline(true).build();
     api::set_hl(0, "MatchParen", Some(&opts)).unwrap();
