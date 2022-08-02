@@ -20,6 +20,35 @@ macro_rules! print {
     }}
 }
 
+/// Same as [`print!`] but for the [`std::dbg!`] macro
+///
+/// # Examples
+///
+/// ```ignore
+/// use nvim_oxi as nvim;
+///
+/// nvim::dbg!(Some("test"));
+/// ```
+#[macro_export]
+macro_rules! dbg {
+    () => {
+        $crate::print!("[{}:{}]", ::core::file!(), ::core::line!())
+    };
+    ($val:expr $(,)?) => {
+        match $val {
+            tmp => {
+                $crate::print!("[{}:{}] {} = {:#?}",
+                    ::core::file!(), ::core::line!(), ::core::stringify!($val), &tmp);
+                tmp
+            }
+        }
+    };
+    ($($val:expr),+ $(,)?) => {
+        ($($crate::dbg!($val)),+,)
+    };
+}
+
+
 /// Prints a message to the Neovim message area.
 #[doc(hidden)]
 pub fn __print(text: impl Into<String>) {
