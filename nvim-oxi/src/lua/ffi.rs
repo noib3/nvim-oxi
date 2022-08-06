@@ -67,6 +67,9 @@ extern "C" {
         k: *const c_char,
     );
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_getmetatable
+    pub(crate) fn lua_getmetatable(L: *mut lua_State, index: c_int) -> c_int;
+
     // https://www.lua.org/manual/5.1/manual.html#lua_gettop
     pub(crate) fn lua_gettop(L: *mut lua_State) -> c_int;
 
@@ -75,6 +78,12 @@ extern "C" {
         L: *mut lua_State,
         size: size_t,
     ) -> *mut c_void;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_next
+    pub(crate) fn lua_next(L: *mut lua_State, index: c_int) -> c_int;
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_objlen
+    pub(crate) fn lua_objlen(L: *mut lua_State, index: c_int) -> usize;
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pcall
     pub(crate) fn lua_pcall(
@@ -181,9 +190,8 @@ pub(crate) unsafe fn lua_pushcfunction(
     lua_pushcclosure(L, r#fn, 0)
 }
 
-// https://www.lua.org/manual/5.1/manual.html#lua_pop
-#[inline(always)]
 // https://www.lua.org/manual/5.1/manual.html#lua_tostring
+#[inline(always)]
 pub(crate) unsafe fn lua_tostring(
     L: *mut lua_State,
     index: c_int,

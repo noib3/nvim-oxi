@@ -146,6 +146,7 @@ impl Default for Object {
     }
 }
 
+// TODO: rewrite
 impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ObjectKind::*;
@@ -168,6 +169,7 @@ impl fmt::Debug for Object {
     }
 }
 
+// TODO: rewrite
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ObjectKind::*;
@@ -655,7 +657,19 @@ impl<'de> serde::Deserialize<'de> for Object {
 
 #[cfg(test)]
 mod tests {
-    use super::{Object, StdString};
+    use super::*;
+
+    // #[test]
+    // fn debug_array() {
+    //     let obj = Object::from(Array::from((1, 2, 3, "a")));
+    //     assert_eq!(String::from("[1, 2, 3, \"a\"]"), format!("{obj:?}"));
+    // }
+
+    // #[test]
+    // fn debug_nested_array() {
+    //     let obj = Object::from(Array::from(Array::from((1, 2, 3))));
+    //     assert_eq!(String::from("[[1, 2, 3]]"), format!("{obj:?}"));
+    // }
 
     #[test]
     fn std_string_to_obj_and_back() {

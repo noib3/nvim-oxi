@@ -153,7 +153,7 @@ impl<A, R> Function<A, R> {
             lua_rawgeti(lstate, LUA_REGISTRYINDEX, self.0);
             let nargs = args.push(lstate)?;
 
-            match lua_pcall(lstate, nargs, R::N, 0) {
+            match lua_pcall(lstate, nargs, R::N, 0 /* <- errorfunc */) {
                 LUA_OK => R::pop(lstate),
 
                 err_code => {
