@@ -19,16 +19,13 @@ pub struct KeyValuePair {
 
 impl fmt::Debug for KeyValuePair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_tuple("KeyValuePair")
-            .field(&self.key)
-            .field(&self.value)
-            .finish()
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for KeyValuePair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.key, self.value)
+        write!(f, "{}: {}", self.key, self.value)
     }
 }
 
@@ -70,13 +67,7 @@ impl fmt::Debug for Dictionary {
 
 impl fmt::Display for Dictionary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_map()
-            .entries(
-                self.iter().map(|pair| {
-                    (pair.key.to_string(), pair.value.to_string())
-                }),
-            )
-            .finish()
+        fmt::Debug::fmt(self, f)
     }
 }
 
@@ -85,7 +76,6 @@ impl<S: Into<String>> std::ops::Index<S> for Dictionary {
 
     fn index(&self, index: S) -> &Self::Output {
         self.get(&index.into()).unwrap()
-        // self.deref().index(index.into())
     }
 }
 
@@ -201,7 +191,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Dictionary, Object, String};
+    use super::{Dictionary, Object, String as NvimString};
 
     #[test]
     fn iter_basic() {
@@ -213,15 +203,15 @@ mod tests {
 
         let mut iter = dict.into_iter();
         assert_eq!(
-            Some((String::from("foo"), Object::from("Foo"))),
+            Some((NvimString::from("foo"), Object::from("Foo"))),
             iter.next()
         );
         assert_eq!(
-            Some((String::from("bar"), Object::from("Bar"))),
+            Some((NvimString::from("bar"), Object::from("Bar"))),
             iter.next()
         );
         assert_eq!(
-            Some((String::from("baz"), Object::from("Baz"))),
+            Some((NvimString::from("baz"), Object::from("Baz"))),
             iter.next()
         );
         assert_eq!(None, iter.next());
@@ -237,8 +227,32 @@ mod tests {
 
         let mut iter = dict.into_iter();
         assert_eq!(
-            Some((String::from("foo"), Object::from("Foo"))),
+            Some((NvimString::from("foo"), Object::from("Foo"))),
             iter.next()
         );
+    }
+
+    #[test]
+    fn debug_dict() {
+        let dict = Dictionary::from_iter([
+            ("a", Object::from(1)),
+            ("b", Object::from(true)),
+            ("c", Object::from("foobar")),
+        ]);
+
+        assert_eq!(
+            String::from("{a: 1, b: true, c: \"foobar\"}"),
+            format!("{dict}")
+        );
+    }
+
+    #[test]
+    fn debug_nested_dict() {
+        let dict = Dictionary::from_iter([(
+            "foo",
+            Object::from(Dictionary::from_iter([("a", 1)])),
+        )]);
+
+        assert_eq!(String::from("{foo: {a: 1}}"), format!("{dict}"));
     }
 }

@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
 use std::mem::ManuallyDrop;
-use std::ops::Deref;
 use std::result::Result as StdResult;
 use std::string::String as StdString;
 
@@ -146,46 +145,25 @@ impl Default for Object {
     }
 }
 
-// TODO: rewrite
 impl fmt::Debug for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ObjectKind::*;
-
-        let data: &dyn fmt::Debug = match self.r#type {
-            Nil => &"nil",
-            Boolean => unsafe { &self.data.boolean },
-            Integer => unsafe { &self.data.integer },
-            Float => unsafe { &self.data.float },
-            String => unsafe { &self.data.string },
-            Array => unsafe { &self.data.array },
-            Dictionary => unsafe { &self.data.dictionary },
-            LuaRef => unsafe { &self.data.luaref },
-        };
-
-        f.debug_struct("Object")
-            .field("type", &self.r#type)
-            .field("data", data)
-            .finish()
+        fmt::Display::fmt(self, f)
     }
 }
 
-// TODO: rewrite
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ObjectKind::*;
-
-        let inner: &dyn fmt::Display = match self.r#type {
-            Nil => &"()",
-            Boolean => unsafe { &self.data.boolean },
-            Integer => unsafe { &self.data.integer },
-            Float => unsafe { &self.data.float },
-            String => unsafe { self.data.string.deref() },
-            Array => unsafe { self.data.array.deref() },
-            Dictionary => unsafe { self.data.dictionary.deref() },
-            LuaRef => unsafe { &self.data.luaref },
-        };
-
-        f.debug_tuple("Object").field(&inner.to_string()).finish()
+        match self.r#type {
+            Nil => f.write_str("()"),
+            Boolean => write!(f, "{}", unsafe { self.data.boolean }),
+            Integer => write!(f, "{}", unsafe { self.data.integer }),
+            Float => write!(f, "{}", unsafe { self.data.float }),
+            String => write!(f, "\"{}\"", unsafe { &*self.data.string }),
+            Array => write!(f, "{}", unsafe { &*self.data.array }),
+            Dictionary => write!(f, "{}", unsafe { &*self.data.dictionary }),
+            LuaRef => write!(f, "LuaRef({})", unsafe { self.data.luaref }),
+        }
     }
 }
 
@@ -659,18 +637,6 @@ impl<'de> serde::Deserialize<'de> for Object {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn debug_array() {
-    //     let obj = Object::from(Array::from((1, 2, 3, "a")));
-    //     assert_eq!(String::from("[1, 2, 3, \"a\"]"), format!("{obj:?}"));
-    // }
-
-    // #[test]
-    // fn debug_nested_array() {
-    //     let obj = Object::from(Array::from(Array::from((1, 2, 3))));
-    //     assert_eq!(String::from("[[1, 2, 3]]"), format!("{obj:?}"));
-    // }
-
     #[test]
     fn std_string_to_obj_and_back() {
         let str = StdString::from("foo");
@@ -678,5 +644,64 @@ mod tests {
         let str_again = StdString::try_from(obj);
         assert!(str_again.is_ok());
         assert_eq!(str, str_again.unwrap());
+    }
+
+    #[test]
+    fn print_nil() {
+        let obj = Object::nil();
+        assert_eq!("()", &format!("{obj:?}"));
+        assert_eq!("()", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_boolean() {
+        let obj = Object::from(true);
+        assert_eq!("true", &format!("{obj:?}"));
+        assert_eq!("true", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_integer() {
+        let obj = Object::from(42);
+        assert_eq!("42", &format!("{obj:?}"));
+        assert_eq!("42", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_float() {
+        let obj = Object::from(42.1);
+        assert_eq!("42.1", &format!("{obj:?}"));
+        assert_eq!("42.1", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_string() {
+        let obj = Object::from("foobar");
+        assert_eq!("\"foobar\"", &format!("{obj:?}"));
+        assert_eq!("\"foobar\"", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_array() {
+        let obj = Object::from(Array::from((42.1, true, "foo")));
+        assert_eq!("[42.1, true, \"foo\"]", &format!("{obj:?}"));
+        assert_eq!("[42.1, true, \"foo\"]", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_dict() {
+        let obj = Object::from(Dictionary::from_iter([
+            ("foo", Object::from("bar")),
+            ("baz", Object::from(19)),
+        ]));
+        assert_eq!("{foo: \"bar\", baz: 19}", &format!("{obj:?}"));
+        assert_eq!("{foo: \"bar\", baz: 19}", &format!("{obj}"));
+    }
+
+    #[test]
+    fn print_luaref() {
+        let obj = Object::new_luaref(42);
+        assert_eq!("LuaRef(42)", &format!("{obj:?}"));
+        assert_eq!("LuaRef(42)", &format!("{obj}"));
     }
 }

@@ -10,13 +10,13 @@ pub type Array = Collection<Object>;
 
 impl fmt::Debug for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_list().entries(self.iter().map(ToString::to_string)).finish()
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
@@ -166,5 +166,17 @@ mod tests {
         let empty = Array { size: 0, capacity: 0, items: ptr::null_mut() };
         let vec = empty.into_iter().collect::<Vec<_>>();
         assert_eq!(0, vec.len());
+    }
+
+    #[test]
+    fn debug_array() {
+        let arr = Array::from((1, 2, 3, "a", true));
+        assert_eq!(String::from("[1, 2, 3, \"a\", true]"), format!("{arr}"));
+    }
+
+    #[test]
+    fn debug_nested_array() {
+        let arr = Array::from_iter([Array::from((1, 2, 3))]);
+        assert_eq!(String::from("[[1, 2, 3]]"), format!("{arr}"));
     }
 }

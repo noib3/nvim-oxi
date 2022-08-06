@@ -132,16 +132,13 @@ impl String {
 
 impl fmt::Debug for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("String")
-            .field("data", &self.to_string_lossy())
-            .field("size", &self.size)
-            .finish()
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&self.to_string_lossy().to_owned())
+        f.write_str(&self.to_string_lossy())
     }
 }
 
