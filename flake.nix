@@ -23,25 +23,35 @@
   outputs = { self, ... }@inputs: with inputs;
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
+        mkPkgs = isNightly: (import nixpkgs {
           inherit system;
           overlays = [
             rust-overlay.overlays.default
-            # neovim-nightly-overlay.overlay
+          ] ++ nixpkgs.lib.lists.optionals isNightly [
+            neovim-nightly-overlay.overlay
           ];
-        };
+        });
 
-        inherit (pkgs) lib stdenv;
+        mkShell = isNightly: (
+          let
+            pkgs = mkPkgs isNightly;
+            inherit (pkgs) lib stdenv;
+          in
+          pkgs.mkShell {
+            buildInputs = lib.lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
+
+            packages = with pkgs; [
+              gcc
+              (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
+              neovim
+            ];
+          }
+        );
       in
       {
-        devShell = pkgs.mkShell {
-          buildInputs = lib.lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
-
-          packages = with pkgs; [
-            gcc
-            (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
-            neovim
-          ];
+        devShells = {
+          default = mkShell false;
+          nightly = mkShell true;
         };
       }
     );
