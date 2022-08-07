@@ -6,7 +6,8 @@ use serde::{de, ser};
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error returned by `nvim-oxi` functions.
-#[derive(thiserror::Error, Debug, Eq, PartialEq)]
+#[derive(thiserror::Error, Debug)]
+#[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {
     #[error(transparent)]
     NvimError(#[from] nvim_types::Error),
@@ -40,6 +41,10 @@ pub enum Error {
 
     #[error("{0}")]
     Other(String),
+
+    #[cfg(feature = "mlua")]
+    #[error(transparent)]
+    MluaError(#[from] mlua::Error),
 }
 
 impl ser::Error for Error {

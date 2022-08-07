@@ -42,6 +42,19 @@ pub mod types {
 #[cfg_attr(docsrs, doc(cfg(feature = "loop")))]
 pub mod libuv;
 
+#[cfg(feature = "mlua")]
+#[cfg_attr(docsrs, doc(cfg(feature = "mlua")))]
+pub mod mlua {
+    /// Returns a static reference to a
+    /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
+    /// to be able to interact with other Lua plugins.
+    pub fn lua() -> &'static mlua::Lua {
+        crate::lua::with_state(|lstate| unsafe {
+            mlua::Lua::init_from_ptr(lstate as *mut _).into_static()
+        })
+    }
+}
+
 // Re-exports.
 pub use error::{Error, Result};
 pub use lua::Function;

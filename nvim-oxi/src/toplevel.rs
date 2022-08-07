@@ -48,7 +48,6 @@ macro_rules! dbg {
     };
 }
 
-
 /// Prints a message to the Neovim message area.
 #[doc(hidden)]
 pub fn __print(text: impl Into<String>) {

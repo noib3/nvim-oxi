@@ -41,9 +41,11 @@
             buildInputs = lib.lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
 
             packages = with pkgs; [
-              gcc
               (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
+              gcc
+              luajit
               neovim
+              pkg-config
             ];
           }
         );
