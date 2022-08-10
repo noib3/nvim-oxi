@@ -24,7 +24,7 @@ pub struct OptionInfos {
     pub global_local: bool,
 
     /// Channel id where the option was set (`0` for local).
-    pub last_set_chan: u32,
+    pub last_set_chan: i64,
 
     /// The line number where the option was set.
     pub last_set_linenr: usize,
