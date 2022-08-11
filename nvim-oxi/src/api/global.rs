@@ -427,13 +427,10 @@ pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
 /// Binding to [`nvim_get_runtime_file`](https://neovim.io/doc/user/api.html#nvim_get_runtime_file()).
 ///
 /// Returns an iterator over all the files matching `name` in the runtime path.
-pub fn get_runtime_file<Name>(
-    name: Name,
+pub fn get_runtime_file(
+    name: impl AsRef<Path>,
     get_all: bool,
-) -> Result<impl SuperIterator<PathBuf>>
-where
-    Name: AsRef<Path>,
-{
+) -> Result<impl SuperIterator<PathBuf>> {
     let name = nvim::String::from(name.as_ref().to_owned());
     let mut err = nvim::Error::new();
     let files =
