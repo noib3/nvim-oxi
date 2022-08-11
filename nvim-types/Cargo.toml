@@ -11,6 +11,9 @@ documentation = "https://docs.rs/nvim_types"
 repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 
+[features]
+nightly = []
+
 [dependencies]
 libc = "0.2"
 serde = { version = "1.0", optional = true }

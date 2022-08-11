@@ -19,7 +19,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 libuv-rs = ["loop", "dep:libuv"]
 loop = ["dep:libuv-sys2"]
 mlua = ["dep:mlua"]
-nightly = []
+nightly = ["nvim-types/nightly"]
 test = ["dep:oxi-test"]
 
 [dependencies]

@@ -2,17 +2,25 @@
 //! `Dictionary`s.
 
 use std::ops::{Deref, DerefMut};
+use std::ptr;
 use std::slice;
 
 use libc::size_t;
 
 use crate::NonOwning;
 
+// Up until 0.7.* `items` was the first item of the struct. From 0.8 it's the
+// last one.
 #[repr(C)]
 pub struct Collection<T> {
+    #[cfg(not(feature = "nightly"))]
     pub(crate) items: *mut T,
+
     pub(crate) size: size_t,
     pub(crate) capacity: size_t,
+
+    #[cfg(feature = "nightly")]
+    pub(crate) items: *mut T,
 }
 
 impl<T> Default for Collection<T> {
@@ -79,8 +87,11 @@ impl<T: Clone> Clone for Collection<T> {
 
 impl<T> Drop for Collection<T> {
     fn drop(&mut self) {
-        let _ =
-            unsafe { Vec::from_raw_parts(self.items, self.size, self.size) };
+        unsafe {
+            ptr::drop_in_place(ptr::slice_from_raw_parts_mut(
+                self.items, self.size,
+            ))
+        }
     }
 }
 
