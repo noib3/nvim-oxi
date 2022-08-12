@@ -28,6 +28,13 @@ pub struct SetKeymapOpts {
     #[builder(setter(strip_option))]
     nowait: Option<bool>,
 
+    /// When [`expr`](SetKeymapOptsBuilder::expr) is `true`, this option can be
+    /// used to replace the keycodes in the resulting string (see
+    /// [nvim_oxi::api::replace_termcodes](crate::api::replace_termcodes)).
+    #[cfg(feature = "nightly")]
+    #[builder(setter(strip_option))]
+    replace_keycodes: Option<bool>,
+
     /// Whether to remap characters in the right-hand side by expanding the
     /// `<sid>` script tag.
     #[builder(setter(strip_option))]
@@ -84,6 +91,8 @@ pub(crate) struct KeyDict_keymap<'a> {
     nowait: Object,
     noremap: Object,
     callback: NonOwning<'a, Object>,
+    #[cfg(feature = "nightly")]
+    replace_keycodes: Object,
 }
 
 impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap<'a> {
@@ -97,6 +106,8 @@ impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap<'a> {
             nowait: opts.nowait.into(),
             noremap: opts.noremap.into(),
             callback: opts.callback.non_owning(),
+            #[cfg(feature = "nightly")]
+            replace_keycodes: opts.replace_keycodes.into(),
         }
     }
 }
