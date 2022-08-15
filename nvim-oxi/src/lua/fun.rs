@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
-use libc::{c_char, c_int};
+use libc::c_int;
 use nvim_types::{LuaRef, Object, ObjectKind};
 use serde::{de, ser};
 
@@ -97,7 +97,7 @@ impl<A, R> Function<A, R> {
                 &**upv
             };
 
-            fun(lstate).unwrap_or_else(|err| handle_error(lstate, err))
+            fun(lstate).unwrap_or_else(|err| super::handle_error(lstate, err))
         }
 
         let r#ref = super::with_state(move |lstate| unsafe {
@@ -186,10 +186,4 @@ impl<A, R> Function<A, R> {
             luaL_unref(lstate, LUA_REGISTRYINDEX, self.0);
         })
     }
-}
-
-unsafe fn handle_error(lstate: *mut lua_State, err: crate::Error) -> ! {
-    let msg = err.to_string();
-    lua_pushlstring(lstate, msg.as_ptr() as *const c_char, msg.len());
-    lua_error(lstate);
 }

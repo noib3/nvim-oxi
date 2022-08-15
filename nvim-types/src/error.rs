@@ -13,6 +13,9 @@ pub struct Error {
     msg: *mut c_char,
 }
 
+unsafe impl Send for Error {}
+unsafe impl Sync for Error {}
+
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Eq, PartialEq)]

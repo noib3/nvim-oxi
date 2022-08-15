@@ -38,6 +38,10 @@ where
     R: super::LuaPushable,
 {
     self::init_state(lstate);
+
+    #[cfg(feature = "loop")]
+    crate::r#loop::init_loop(lstate);
+
     body().unwrap().push(lstate).unwrap()
 }
 
@@ -102,4 +106,13 @@ pub(crate) unsafe fn debug_type(
     n: c_int,
 ) -> impl fmt::Display {
     CStr::from_ptr(luaL_typename(lstate, n)).to_string_lossy()
+}
+
+pub(crate) unsafe fn handle_error(
+    lstate: *mut lua_State,
+    err: crate::Error,
+) -> ! {
+    let msg = err.to_string();
+    lua_pushlstring(lstate, msg.as_ptr() as *const _, msg.len());
+    lua_error(lstate);
 }

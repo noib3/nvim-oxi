@@ -40,7 +40,7 @@ pub mod types {
 // Public modules behind feature flags.
 #[cfg(feature = "loop")]
 #[cfg_attr(docsrs, doc(cfg(feature = "loop")))]
-pub mod libuv;
+pub mod r#loop;
 
 #[cfg(feature = "mlua")]
 #[cfg_attr(docsrs, doc(cfg(feature = "mlua")))]

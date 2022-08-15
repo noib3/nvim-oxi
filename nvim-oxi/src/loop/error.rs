@@ -1,0 +1,12 @@
+use thiserror::Error as ThisError;
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug, Eq, PartialEq, ThisError)]
+pub enum Error {
+    #[error("Couldn't create async handle")]
+    CouldntCreateAsyncHandle,
+
+    #[error("Couldn't trigger async handle")]
+    CouldntTriggerAsyncHandle,
+}

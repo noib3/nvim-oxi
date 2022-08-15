@@ -1,12 +1,13 @@
 use std::fmt;
 
 use serde::{de, ser};
+use thiserror::Error as ThisError;
 
 /// Alias for a `Result` with error type [`nvim_oxi::Error`](Error).
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error returned by `nvim-oxi` functions.
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, ThisError)]
 #[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {
     #[error(transparent)]
@@ -41,6 +42,10 @@ pub enum Error {
 
     #[error("{0}")]
     Other(String),
+
+    #[cfg(feature = "loop")]
+    #[error(transparent)]
+    LoopError(#[from] crate::r#loop::Error),
 
     #[cfg(feature = "mlua")]
     #[error(transparent)]
