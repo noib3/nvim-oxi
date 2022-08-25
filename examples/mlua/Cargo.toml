@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 nvim-oxi = { path = "../../nvim-oxi", features = ["mlua"] }
-mlua = { version = "0.8", features = ["luajit"] }
+mlua = { version = "0.8", features = ["luajit", "vendored"] }

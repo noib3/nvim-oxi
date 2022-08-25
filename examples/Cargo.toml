@@ -1,0 +1,11 @@
+[package]
+name = "testing"
+version = "0.0.1"
+edition = "2021"
+
+[dev-dependencies]
+insta = "1"
+
+[workspace]
+members = ["calc", "mechanic", "api", "mlua", "async"]
+

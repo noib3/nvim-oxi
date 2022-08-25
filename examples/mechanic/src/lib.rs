@@ -72,13 +72,11 @@ fn fix(mut car: Car) -> Result<Car> {
         (Nikola, DoesntMove) => print!("Try going downhill"),
         (Tesla, KillsPedestrians) => print!("Hands on the wheel!!"),
         (Volkswagen, Pollutes) => print!("Software update?"),
-
-        _ => {
-            car.works = true;
-            car.problem = None;
-        },
+        _ => (),
     }
 
+    car.works = true;
+    car.problem = None;
     Ok(car)
 }
 
