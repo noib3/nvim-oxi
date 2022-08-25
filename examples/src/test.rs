@@ -1,5 +1,7 @@
-//! `cargo r` will run this testing binary in debug mode but run all examples in debug mode
-//! `RELEASE=1 cargo r` will run this testing binary in debug mode but run all examples in release mode
+//! `cargo test` will test and run all examples binaries in debug mode
+//! `RELEASE=1 cargo test` will test but run all examples binaries in release mode
+//! `cargo insta test --review` will update all the snapshots (except ones tagged with `#[ignore]`)
+//! `cargo insta test --review -- test_fn_name` will update `test_fn_name` only
 
 use insta::assert_snapshot as save;
 
