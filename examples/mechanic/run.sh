@@ -1,7 +1,4 @@
 #!/bin/bash
-export name_lib="libmechanic"
-export name="mechanic"
-
 export lua='
 local mechanic = require("mechanic")
 
@@ -16,5 +13,4 @@ assert(fixed.works)
 assert(fixed.problem == nil)
 print(vim.inspect(fixed))
 '
-
 bash ../run.sh

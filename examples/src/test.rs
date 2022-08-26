@@ -5,9 +5,12 @@
 
 use insta::assert_snapshot as save;
 
+// Empty vars
+const EMPTY: &[(&str, &str)] = &[];
+
 #[test]
 fn calc() {
-    let [_out, err] = run("./calc/run.sh", &[]).unwrap();
+    let [_out, err] = run("./calc/run.sh", EMPTY).unwrap();
     save!(&err, @r###"
     Result: 
      add(-1, 128): 127 
@@ -18,7 +21,7 @@ fn calc() {
 
 #[test]
 fn mechanic() {
-    let [_out, err] = run("./mechanic/run.sh", &[]).unwrap();
+    let [_out, err] = run("./mechanic/run.sh", EMPTY).unwrap();
     save!(&err, @r###"
     Hands on the wheel!!
     {
@@ -33,7 +36,7 @@ fn mechanic() {
 #[test]
 #[ignore]
 fn api() {
-    let [_out, err] = run("./api/run.sh", &[]).unwrap();
+    let [_out, err] = run("./api/run.sh", EMPTY).unwrap();
     save!(&err, @r###"
     thread '<unnamed>' panicked at 'called `Result::unwrap()` on an `Err` value: NvimError("replace_keycodes is not a boolean")', /rust/github/nvim-oxi/nvim-oxi/src/lua/lua.rs:45:12
     note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
@@ -46,21 +49,18 @@ fn api() {
 #[test]
 #[ignore]
 fn mlua() {
-    let [_out, err] = run("./mlua/run.sh", &[]).unwrap();
+    // The project name is `lua` which is not from the directory.
+    let [(n1, ref n2), (l1, ref l2)] = var_name("lua");
+    let [_out, err] = run("./mlua/run.sh", &[(n1, n2), (l1, l2)]).unwrap();
     save!(&err, @"");
 }
 
-// run bash scripts to test in nvim
+// Run bash scripts to test in nvim
 fn run(p: &str, envs: &[(&str, &str)]) -> std::io::Result<[String; 2]> {
     let path: &std::path::Path = p.as_ref();
-    let mut cmd = std::process::Command::new("/bin/bash");
-
-    // Clear env if `envs` are specified.
-    if !envs.is_empty() {
-        cmd.env_clear().envs(envs.iter().copied());
-    }
-
-    cmd.current_dir(path.parent().unwrap())
+    std::process::Command::new("/bin/bash")
+        .envs(envs.iter().copied())
+        .current_dir(path.parent().unwrap())
         .arg(path.file_name().unwrap())
         .output()
         .map(|o| {
@@ -69,4 +69,18 @@ fn run(p: &str, envs: &[(&str, &str)]) -> std::io::Result<[String; 2]> {
                 String::from_utf8(o.stderr).unwrap(),
             ]
         })
+}
+
+// Get `$name` & `$name_lib` on specific platform
+fn var_name(name: &str) -> [(&'static str, String); 2] {
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let [name, name_lib] = [format!("{name}.so"), format!("lib{name}.so")];
+
+    #[cfg(target_os = "macos")]
+    let [name, name_lib] = [format!("{name}.so"), format!("lib{name}.dylib")];
+
+    #[cfg(target_os = "windows")]
+    compile_error!("Not supported on Windows");
+
+    [("name", name), ("name_lib", name_lib)]
 }
