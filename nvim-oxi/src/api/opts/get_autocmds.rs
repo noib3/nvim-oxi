@@ -3,7 +3,7 @@ use nvim_types::{Array, NonOwning, Object};
 
 use crate::api::Buffer;
 
-/// Options passed to `crate::api::clear_autocmds`.
+/// Options passed to [`nvim_oxi::api::get_autocmds`](crate::api::get_autocmds).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct GetAutocmdsOpts {

@@ -1,9 +1,9 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, NonOwning, Object};
 
+/// Options passed to [`nvim_oxi::api::set_hl`](crate::api::set_hl).
 #[derive(Clone, Debug, Default, PartialEq, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
-/// Options passed to [`nvim_oxi::api::set_hl`](crate::api::set_hl).
 pub struct SetHighlightOpts {
     #[builder(setter(custom))]
     background: Object,
