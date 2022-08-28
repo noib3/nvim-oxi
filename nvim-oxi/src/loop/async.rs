@@ -37,12 +37,12 @@ unsafe impl Sync for AsyncHandle {}
 
 impl Drop for AsyncHandle {
     fn drop(&mut self) {
-        unsafe { uv_close(self.handle as _, None) };
+        // unsafe { uv_close(self.handle as _, None) };
 
-        if !self.handle.is_null() {
-            let layout = Layout::new::<uv_async_t>();
-            unsafe { std::alloc::dealloc(self.handle as _, layout) };
-        }
+        // if !self.handle.is_null() {
+        //     let layout = Layout::new::<uv_async_t>();
+        //     unsafe { std::alloc::dealloc(self.handle as _, layout) };
+        // }
     }
 }
 
