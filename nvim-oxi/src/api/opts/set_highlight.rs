@@ -6,7 +6,7 @@ use nvim_types::{self as nvim, NonOwning, Object};
 /// Options passed to [`nvim_oxi::api::set_hl`](crate::api::set_hl).
 pub struct SetHighlightOpts {
     #[builder(setter(custom))]
-    bg: Object,
+    background: Object,
 
     #[builder(setter(strip_option))]
     blend: Option<u8>,
@@ -27,7 +27,7 @@ pub struct SetHighlightOpts {
     default: Option<bool>,
 
     #[builder(setter(custom))]
-    fg: Object,
+    foreground: Object,
 
     #[builder(setter(strip_option))]
     italic: Option<bool>,
@@ -75,8 +75,8 @@ impl SetHighlightOpts {
 }
 
 impl SetHighlightOptsBuilder {
-    pub fn bg(&mut self, bg: &str) -> &mut Self {
-        self.bg = Some(nvim::String::from(bg).into());
+    pub fn background(&mut self, background: &str) -> &mut Self {
+        self.background = Some(nvim::String::from(background).into());
         self
     }
 
@@ -95,8 +95,8 @@ impl SetHighlightOptsBuilder {
         self
     }
 
-    pub fn fg(&mut self, fg: &str) -> &mut Self {
-        self.fg = Some(nvim::String::from(fg).into());
+    pub fn foreground(&mut self, foreground: &str) -> &mut Self {
+        self.foreground = Some(nvim::String::from(foreground).into());
         self
     }
 
@@ -128,8 +128,8 @@ impl SetHighlightOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_highlight<'a> {
-    bg: NonOwning<'a, Object>,
-    fg: NonOwning<'a, Object>,
+    bg: Object,
+    fg: Object,
     sp: Object,
     bold: Object,
     link: NonOwning<'a, Object>,
@@ -152,8 +152,8 @@ pub(crate) struct KeyDict_highlight<'a> {
     #[cfg(not(feature = "nightly"))]
     underdash: Object,
     underline: Object,
-    background: Object,
-    foreground: Object,
+    background: NonOwning<'a, Object>,
+    foreground: NonOwning<'a, Object>,
     #[cfg(feature = "nightly")]
     underdashed: Object,
     #[cfg(feature = "nightly")]
@@ -168,8 +168,8 @@ pub(crate) struct KeyDict_highlight<'a> {
 impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
     fn from(opts: &'a SetHighlightOpts) -> Self {
         Self {
-            bg: opts.bg.non_owning(),
-            fg: opts.fg.non_owning(),
+            bg: Object::nil(),
+            fg: Object::nil(),
             sp: Object::nil(),
             bold: opts.bold.into(),
             link: opts.link.non_owning(),
@@ -192,8 +192,8 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             #[cfg(not(feature = "nightly"))]
             underdash: opts.underdashed.into(),
             underline: opts.underline.into(),
-            background: Object::nil(),
-            foreground: Object::nil(),
+            background: opts.background.non_owning(),
+            foreground: opts.foreground.non_owning(),
             #[cfg(feature = "nightly")]
             underdashed: opts.underdashed.into(),
             #[cfg(feature = "nightly")]
