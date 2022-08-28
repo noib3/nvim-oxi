@@ -117,9 +117,11 @@ impl SetHighlightOptsBuilder {
 
 // Diff between 0.7.2 and master is:
 //
-// underdot -> underdotted
-// underdash -> underdashed
-// underlineline -> underdouble
+// `temp` -> removed
+// `global` -> renamed to `global_link`
+// `underdot` -> renamed to `underdotted`
+// `underdash` -> renamed to `underdashed`
+// `underlineline` -> renamed to `underdouble`
 //
 // also `nocombine` and `undercurl` don't make it to the final definition of
 // `KeyDict_highlight` in nightly builds, but are still mentioned in the docs
@@ -133,9 +135,11 @@ pub(crate) struct KeyDict_highlight<'a> {
     sp: Object,
     bold: Object,
     link: NonOwning<'a, Object>,
+    #[cfg(not(feature = "nightly"))]
     temp: Object,
     blend: Object,
     cterm: NonOwning<'a, Object>,
+    #[cfg(not(feature = "nightly"))]
     global: Object,
     italic: Object,
     special: NonOwning<'a, Object>,
@@ -155,6 +159,8 @@ pub(crate) struct KeyDict_highlight<'a> {
     background: NonOwning<'a, Object>,
     foreground: NonOwning<'a, Object>,
     #[cfg(feature = "nightly")]
+    global_link: Object,
+    #[cfg(feature = "nightly")]
     underdashed: Object,
     #[cfg(feature = "nightly")]
     underdotted: Object,
@@ -173,9 +179,11 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             sp: Object::nil(),
             bold: opts.bold.into(),
             link: opts.link.non_owning(),
+            #[cfg(not(feature = "nightly"))]
             temp: Object::nil(),
             blend: opts.blend.into(),
             cterm: opts.cterm.non_owning(),
+            #[cfg(not(feature = "nightly"))]
             global: Object::nil(),
             italic: opts.italic.into(),
             special: opts.special.non_owning(),
@@ -194,6 +202,8 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             underline: opts.underline.into(),
             background: opts.background.non_owning(),
             foreground: opts.foreground.non_owning(),
+            #[cfg(feature = "nightly")]
+            global_link: Object::nil(),
             #[cfg(feature = "nightly")]
             underdashed: opts.underdashed.into(),
             #[cfg(feature = "nightly")]
