@@ -45,7 +45,7 @@ fn get_extmarks() {
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
-    let extmark_id = buf.set_extmark(ns_id, 0, 0, Some(&opts)).unwrap();
+    let extmark_id = buf.set_extmark(ns_id, 0, 0, &opts).unwrap();
 
     let start = ExtmarkPosition::ById(extmark_id);
     let end = ExtmarkPosition::ById(extmark_id);
@@ -153,7 +153,7 @@ fn set_get_del_extmark() {
         // .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
-    let res = buf.set_extmark(ns_id, 0, 0, Some(&opts));
+    let res = buf.set_extmark(ns_id, 0, 0, &opts);
     assert!(res.is_ok(), "{res:?}");
 
     let extmark_id = res.unwrap();

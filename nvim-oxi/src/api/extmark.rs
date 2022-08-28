@@ -185,9 +185,8 @@ impl Buffer {
         ns_id: u32,
         line: usize,
         col: usize,
-        opts: Option<&SetExtmarkOpts>,
+        opts: &SetExtmarkOpts,
     ) -> Result<u32> {
-        let opts = opts.map(KeyDict_set_extmark::from).unwrap_or_default();
         let mut err = nvim::Error::new();
         let id = unsafe {
             nvim_buf_set_extmark(
@@ -195,7 +194,7 @@ impl Buffer {
                 ns_id as Integer,
                 line as Integer,
                 col as Integer,
-                &opts.into(),
+                &opts.0,
                 &mut err,
             )
         };
