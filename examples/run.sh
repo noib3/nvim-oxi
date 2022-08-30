@@ -12,11 +12,12 @@ fi
 name=${name:-"$project.so"}
 
 # build
+features=${features:-""}
 if [ $RELEASE ]; then
-    cargo b -r -q && mkdir lua -p && cp ../target/release/$name_lib lua/$name -f;
+    cargo b -r -q $features && mkdir lua -p && cp ../target/release/$name_lib lua/$name -f;
     echo "release built"
 else
-    cargo b -q && mkdir lua -p && cp ../target/debug/$name_lib lua/$name -f;
+    cargo b -q $features && mkdir lua -p && cp ../target/debug/$name_lib lua/$name -f;
     echo "debug built"
 fi
 

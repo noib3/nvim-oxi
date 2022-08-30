@@ -5,12 +5,18 @@
 
 use insta::assert_snapshot as save;
 
-// Empty vars
-const EMPTY: &[(&str, &str)] = &[];
+use crate::*;
+
+#[test]
+fn nvim() {
+    save!(NVIM, @"v0.8.0");
+    save!(NVIM_NIGHTLY, @"true");
+    save!(format!("{:?}", nvim_nightly()), @r###"(true, [("features", "-F nvim-oxi/nightly")])"###);
+}
 
 #[test]
 fn calc() {
-    let [_out, err] = run("./calc/run.sh", EMPTY).unwrap();
+    let [_out, err] = run("./calc/run.sh", NIGHTLY).unwrap();
     save!(&err, @r###"
     Result: 
      add(-1, 128): 127 
@@ -21,7 +27,7 @@ fn calc() {
 
 #[test]
 fn mechanic() {
-    let [_out, err] = run("./mechanic/run.sh", EMPTY).unwrap();
+    let [_out, err] = run("./mechanic/run.sh", NIGHTLY).unwrap();
     save!(&err, @r###"
     Hands on the wheel!!
     {
@@ -32,16 +38,12 @@ fn mechanic() {
     "###);
 }
 
-// This test is failed.
 #[test]
-#[ignore]
 fn api() {
-    let [_out, err] = run("./api/run.sh", EMPTY).unwrap();
+    let [_out, err] = run("./api/run.sh", NIGHTLY).unwrap();
     save!(&err, @r###"
-    thread '<unnamed>' panicked at 'called `Result::unwrap()` on an `Err` value: NvimError("replace_keycodes is not a boolean")', /rust/github/nvim-oxi/nvim-oxi/src/lua/lua.rs:45:12
-    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-    fatal runtime error: Rust panics must be rethrown
-    ../run.sh: line 14: 1621945 Aborted                 nvim -u NONE --headless +"$set_rtp" +":lua $lua" +quit
+    From insert mode: hello
+    Hello from Rust
     "###);
 }
 
