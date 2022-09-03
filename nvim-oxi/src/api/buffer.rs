@@ -39,24 +39,35 @@ impl fmt::Display for Buffer {
 }
 
 impl<H: Into<BufHandle>> From<H> for Buffer {
+    #[inline(always)]
     fn from(handle: H) -> Self {
         Self(handle.into())
     }
 }
 
 impl From<Buffer> for Object {
+    #[inline(always)]
     fn from(buf: Buffer) -> Self {
         buf.0.into()
     }
 }
 
 impl From<&Buffer> for Object {
+    #[inline(always)]
     fn from(buf: &Buffer) -> Self {
         buf.0.into()
     }
 }
 
+impl ToObject for Buffer {
+    #[inline(always)]
+    fn to_obj(self) -> Result<Object> {
+        Ok(self.0.into())
+    }
+}
+
 impl FromObject for Buffer {
+    #[inline(always)]
     fn from_obj(obj: Object) -> Result<Self> {
         Ok(BufHandle::try_from(obj)?.into())
     }
