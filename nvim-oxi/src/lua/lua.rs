@@ -38,8 +38,8 @@ where
 {
     self::init_state(lstate);
 
-    #[cfg(feature = "loop")]
-    crate::r#loop::init_loop(lstate);
+    #[cfg(feature = "libuv")]
+    nvim_libuv::init(lstate as _);
 
     body().unwrap().push(lstate).unwrap()
 }

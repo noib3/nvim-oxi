@@ -40,7 +40,9 @@ pub mod types {
 // Public modules behind feature flags.
 #[cfg(feature = "libuv")]
 #[cfg_attr(docsrs, doc(cfg(feature = "libuv")))]
-pub mod libuv;
+pub mod libuv {
+    pub use nvim_libuv::*;
+}
 
 #[cfg(feature = "mlua")]
 #[cfg_attr(docsrs, doc(cfg(feature = "mlua")))]
