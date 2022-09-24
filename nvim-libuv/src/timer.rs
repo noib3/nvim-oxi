@@ -3,32 +3,21 @@ use std::time::Duration;
 
 use libuv_sys2::{self as ffi, uv_timer_t};
 
-use crate::{Handle, HandleCallbackMut};
+use crate::Handle;
+
+pub(crate) type Callback =
+    Box<dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn Error>> + 'static>;
 
 pub struct TimerHandle {
-    handle: Handle<uv_timer_t, HandleCallbackMut<Self>>,
+    handle: Handle<uv_timer_t, Callback>,
 }
 
 impl TimerHandle {
     /// TODO: docs
     fn new() -> Result<Self, crate::Error> {
-        let mut handle = Handle::new();
-
-        if handle.is_null() {
-            // TODO
-            return Err(crate::Error::CouldntCreateAsyncHandle);
-        }
-
-        let retv = unsafe {
-            crate::with_loop(|uv_loop| {
-                ffi::uv_timer_init(uv_loop, handle.as_mut_ptr())
-            })
-        };
-
-        if retv < 0 {
-            // TODO
-            return Err(crate::Error::CouldntCreateAsyncHandle);
-        }
+        let handle = Handle::new(|uv_loop, handle| unsafe {
+            ffi::uv_timer_init(uv_loop, handle.as_mut_ptr())
+        })?;
 
         Ok(Self { handle })
     }
@@ -45,7 +34,7 @@ impl TimerHandle {
     {
         let mut timer = Self::new()?;
 
-        let callback: HandleCallbackMut<Self> = Box::new(move |timer| {
+        let callback: Callback = Box::new(move |timer| {
             // Type erase the callback by boxing its error.
             callback(timer).map_err(|err| Box::new(err) as Box<dyn Error>)
         });
@@ -100,16 +89,16 @@ impl TimerHandle {
     }
 }
 
-extern "C" fn timer_cb(handle: *mut uv_timer_t) {
-    let handle: Handle<_, HandleCallbackMut<TimerHandle>> =
-        unsafe { Handle::from_raw(handle) };
+extern "C" fn timer_cb(ptr: *mut uv_timer_t) {
+    let handle: Handle<_, Callback> = unsafe { Handle::from_raw(ptr) };
 
     let callback = unsafe { handle.get_data() };
 
     if !callback.is_null() {
-        if let Err(_err) =
-            unsafe { &mut *callback }(&mut TimerHandle { handle })
-        {
+        let mut handle = TimerHandle { handle };
+        let callback = unsafe { &mut *callback };
+
+        if let Err(_err) = callback(&mut handle) {
             // TODO: what now?
         }
     }

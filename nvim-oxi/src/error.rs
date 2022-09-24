@@ -43,9 +43,9 @@ pub enum Error {
     #[error("{0}")]
     Other(String),
 
-    #[cfg(feature = "loop")]
+    #[cfg(feature = "libuv")]
     #[error(transparent)]
-    LoopError(#[from] crate::r#loop::Error),
+    LibuvError(#[from] nvim_libuv::Error),
 
     #[cfg(feature = "mlua")]
     #[error(transparent)]

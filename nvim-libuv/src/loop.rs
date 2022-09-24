@@ -1,5 +1,3 @@
-#![allow(non_camel_case_types)]
-
 use libuv_sys2::uv_loop_t;
 use once_cell::unsync::OnceCell;
 
@@ -12,12 +10,19 @@ extern "C" {
     fn luv_loop(lua_state: *mut std::ffi::c_void) -> *mut uv_loop_t;
 }
 
-/// TODO: docs
+/// Initializes the loop.
+///
+/// NOTE: this function **must** be called before calling any other function
+/// exposed by this crate or there will be segfaults.
+#[doc(hidden)]
 pub unsafe fn init(lua_state: *mut std::ffi::c_void) {
     LOOP.with(|uv_loop| uv_loop.set(luv_loop(lua_state))).unwrap_unchecked();
 }
 
 /// Executes a function with access to the libuv loop.
+///
+/// NOTE: this will segfault if the loop has not been initialized by calling
+/// [init].
 pub(crate) unsafe fn with_loop<F, R>(fun: F) -> R
 where
     F: FnOnce(*mut uv_loop_t) -> R,

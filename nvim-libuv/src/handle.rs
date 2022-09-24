@@ -1,23 +1,48 @@
 use std::alloc::{self, Layout};
-use std::error::Error;
 use std::ffi::c_void;
 use std::marker::PhantomData;
 
-use libuv_sys2::{self as ffi, uv_handle_t};
+use libuv_sys2::{self as ffi, uv_handle_t, uv_loop_t};
 
-pub(crate) type HandleCallbackMut<T> =
-    Box<dyn FnMut(&mut T) -> Result<(), Box<dyn Error>> + 'static>;
+use crate::Result;
 
+/// TODO: docs
 pub(crate) struct Handle<T, D: 'static> {
     ptr: *mut T,
     data: PhantomData<D>,
 }
 
+impl<T, D> Clone for Handle<T, D> {
+    fn clone(&self) -> Self {
+        Self { ptr: self.ptr, data: PhantomData }
+    }
+}
+
 impl<T, D> Handle<T, D> {
-    pub(crate) fn new() -> Handle<T, D> {
+    /// TODO: docs
+    pub(crate) fn new<I>(initializer: I) -> Result<Handle<T, D>>
+    where
+        I: FnOnce(*mut uv_loop_t, &mut Self) -> i32,
+    {
         let layout = Layout::new::<T>();
         let ptr = unsafe { alloc::alloc(layout) as *mut T };
-        Self { ptr, data: PhantomData }
+
+        let mut handle = Self { ptr, data: PhantomData };
+
+        if ptr.is_null() {
+            return Err(crate::Error::CouldntCreateAsyncHandle); // TODO
+        }
+
+        let retv = unsafe {
+            crate::with_loop(|uv_loop| initializer(uv_loop, &mut handle))
+        };
+
+        if retv < 0 {
+            unsafe { alloc::dealloc(ptr as *mut u8, layout) };
+            return Err(crate::Error::CouldntCreateAsyncHandle); // TODO
+        }
+
+        Ok(handle)
     }
 
     pub(crate) fn as_ptr(&self) -> *const T {
@@ -30,10 +55,6 @@ impl<T, D> Handle<T, D> {
 
     pub(crate) unsafe fn from_raw(ptr: *mut T) -> Self {
         Self { ptr, data: PhantomData }
-    }
-
-    pub(crate) fn is_null(&self) -> bool {
-        self.ptr.is_null()
     }
 
     pub(crate) unsafe fn get_data(&self) -> *mut D {
@@ -49,10 +70,3 @@ impl<T, D> Handle<T, D> {
         )
     }
 }
-
-// impl<T, D> Drop for Handle<T, D> {
-//     fn drop(&mut self) {
-//         let layout = Layout::new::<T>();
-//         unsafe { alloc::dealloc(self.ptr as *mut u8, layout) };
-//     }
-// }
