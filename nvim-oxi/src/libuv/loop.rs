@@ -12,12 +12,12 @@ thread_local! {
     static LOOP: OnceCell<*mut uv_loop_t> = OnceCell::new();
 }
 
-#[inline]
+/// TODO: docs
 pub(crate) unsafe fn init_loop(lstate: *mut lua::lua_State) {
     LOOP.with(|main_loop| main_loop.set(luv_loop(lstate)).unwrap_unchecked());
 }
 
-#[inline]
+/// TODO: docs
 pub(crate) unsafe fn with_loop<F, R>(fun: F) -> R
 where
     F: FnOnce(*mut uv_loop_t) -> R,

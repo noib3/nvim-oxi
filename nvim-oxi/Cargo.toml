@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-loop = ["dep:libuv-sys2"]
+libuv = ["dep:libuv-sys2"]
 mlua = ["dep:mlua"]
 nightly = ["nvim-types/nightly"]
 test = ["dep:oxi-test"]
@@ -39,4 +39,4 @@ thiserror = "1.0"
 name = "libuv"
 path = "../examples/libuv.rs"
 crate-type = ["cdylib"]
-required-features = ["loop"]
+required-features = ["libuv"]

@@ -1,4 +1,4 @@
-use nvim_oxi::{self as oxi, r#loop};
+use nvim_oxi::{self as oxi, libuv};
 
 #[oxi::module]
 fn libuv() -> oxi::Result<()> {
