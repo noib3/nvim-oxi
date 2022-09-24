@@ -1,3 +1,5 @@
+use std::ffi::c_char;
+
 use crate::lua::{self, ffi::*, Function};
 use crate::macros::cstr;
 use crate::Result;
@@ -54,11 +56,7 @@ pub fn __print(text: impl Into<String>) {
     lua::with_state(move |lstate| unsafe {
         let text = text.into();
         lua_getglobal(lstate, cstr!("print"));
-        lua_pushlstring(
-            lstate,
-            text.as_ptr() as *const libc::c_char,
-            text.len(),
-        );
+        lua_pushlstring(lstate, text.as_ptr() as *const c_char, text.len());
         lua_call(lstate, 1, 0);
     });
 }

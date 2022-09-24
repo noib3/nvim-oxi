@@ -27,7 +27,6 @@ oxi-module = { version = "0.1", path = "../oxi-module" }
 oxi-test = { version = "0.1", path = "../oxi-test", optional = true }
 
 derive_builder = "0.11"
-libc = "0.2"
 libuv-sys2 = { version = "1.43", optional = true }
 mlua = { version = "0.8", optional = true }
 once_cell = "1.12"

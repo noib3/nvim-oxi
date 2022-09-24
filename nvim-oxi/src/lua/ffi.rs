@@ -2,9 +2,8 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use std::ffi::{c_char, c_double, c_int, c_void};
 use std::marker::{PhantomData, PhantomPinned};
-
-use libc::{c_char, c_double, c_int, c_void, size_t};
 
 #[repr(C)]
 #[doc(hidden)]
@@ -76,7 +75,7 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_newuserdata
     pub(crate) fn lua_newuserdata(
         L: *mut lua_State,
-        size: size_t,
+        size: usize,
     ) -> *mut c_void;
 
     // https://www.lua.org/manual/5.1/manual.html#lua_next
@@ -113,7 +112,7 @@ extern "C" {
     pub(crate) fn lua_pushlstring(
         L: *mut lua_State,
         s: *const c_char,
-        len: size_t,
+        len: usize,
     );
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushnil
@@ -150,7 +149,7 @@ extern "C" {
     pub(crate) fn lua_tolstring(
         L: *mut lua_State,
         index: c_int,
-        len: *mut size_t,
+        len: *mut usize,
     ) -> *const c_char;
 
     // https://www.lua.org/manual/5.1/manual.html#lua_tonumber

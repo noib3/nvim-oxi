@@ -1,15 +1,9 @@
 use std::borrow::Cow;
-use std::ffi::OsStr;
+use std::ffi::{c_char, OsStr};
 use std::mem::ManuallyDrop;
-#[cfg(target_family = "unix")]
-use std::os::unix::ffi::OsStrExt;
-#[cfg(target_family = "windows")]
-use std::os::windows::ffi::OsStrExt;
 use std::path::PathBuf;
 use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
-
-use libc::{c_char, size_t};
 
 use crate::NonOwning;
 
@@ -31,7 +25,7 @@ use crate::NonOwning;
 #[repr(C)]
 pub struct String {
     pub(crate) data: *mut c_char,
-    pub(crate) size: size_t,
+    pub(crate) size: usize,
 }
 
 impl String {
@@ -210,6 +204,7 @@ impl From<PathBuf> for String {
 impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
+        use std::os::unix::ffi::OsStrExt;
         OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
     }
 }
@@ -218,6 +213,7 @@ impl From<String> for PathBuf {
 impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
+        use std::os::windows::ffi::OsStrExt;
         StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
     }
 }

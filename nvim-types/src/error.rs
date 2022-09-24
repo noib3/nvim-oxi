@@ -1,9 +1,7 @@
 use std::error::Error as StdError;
-use std::ffi::CStr;
+use std::ffi::{c_char, CStr};
 use std::fmt;
 use std::result::Result as StdResult;
-
-use libc::c_char;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
 #[derive(thiserror::Error, Eq, PartialEq)]

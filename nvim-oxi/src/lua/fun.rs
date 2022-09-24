@@ -1,10 +1,9 @@
 use std::cell::RefCell;
-use std::ffi::CStr;
+use std::ffi::{c_int, CStr};
 use std::marker::PhantomData;
 use std::result::Result as StdResult;
 use std::{fmt, mem, ptr};
 
-use libc::c_int;
 use nvim_types::{LuaRef, Object, ObjectKind};
 use serde::{de, ser};
 

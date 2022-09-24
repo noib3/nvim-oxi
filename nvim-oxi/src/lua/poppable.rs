@@ -1,6 +1,5 @@
-use std::ffi::CStr;
+use std::ffi::{c_int, CStr};
 
-use libc::c_int;
 use nvim_types::{Array, Dictionary, Object};
 
 use super::{ffi::*, lua::grow_stack};

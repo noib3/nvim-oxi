@@ -1,4 +1,5 @@
-use libc::c_int;
+use std::ffi::c_int;
+
 use nvim_types::Object;
 
 use super::ffi::*;

@@ -5,8 +5,6 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::slice;
 
-use libc::size_t;
-
 use crate::NonOwning;
 
 // Up until 0.7.* `items` was the first item of the struct. From 0.8 it's the
@@ -16,8 +14,8 @@ pub struct Collection<T> {
     #[cfg(not(feature = "nightly"))]
     pub(crate) items: *mut T,
 
-    pub(crate) size: size_t,
-    pub(crate) capacity: size_t,
+    pub(crate) size: usize,
+    pub(crate) capacity: usize,
 
     #[cfg(feature = "nightly")]
     pub(crate) items: *mut T,

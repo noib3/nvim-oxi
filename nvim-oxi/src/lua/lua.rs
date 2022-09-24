@@ -1,7 +1,6 @@
-use std::ffi::CStr;
+use std::ffi::{c_int, CStr};
 use std::{fmt, mem};
 
-use libc::c_int;
 use once_cell::unsync::OnceCell;
 
 use super::ffi::*;
@@ -33,7 +32,7 @@ unsafe fn init_state(lstate: *mut lua_State) {
 pub unsafe fn module_entrypoint<R>(
     lstate: *mut lua_State,
     body: fn() -> crate::Result<R>,
-) -> libc::c_int
+) -> c_int
 where
     R: super::LuaPushable,
 {
