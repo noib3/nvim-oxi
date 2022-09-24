@@ -5,9 +5,9 @@ members = [
   "nvim-types",
   "oxi-module",
   "oxi-test",
+  "examples/*"
 ]
 
 exclude = [
-  "examples",
   "tests",
 ]
