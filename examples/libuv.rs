@@ -26,15 +26,15 @@ fn libuv() -> oxi::Result<()> {
     };
 
     let _handle = TimerHandle::start(
-        &Duration::from_millis(0),
-        &Duration::from_secs(1),
+        Duration::from_millis(0),
+        Duration::from_secs(1),
         callback,
     );
 
     // --
     let msg = String::from("Hey there!");
 
-    let _handle = TimerHandle::once(&Duration::from_secs(2), move || {
+    let _handle = TimerHandle::once(Duration::from_secs(2), move || {
         oxi::schedule(move |_| Ok(print!("{msg}")));
         Ok::<_, oxi::Error>(())
     });

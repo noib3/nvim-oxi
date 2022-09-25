@@ -24,8 +24,8 @@ impl TimerHandle {
 
     /// TODO: docs
     pub fn start<E, Cb>(
-        timeout: &Duration,
-        repeat: &Duration,
+        timeout: Duration,
+        repeat: Duration,
         mut callback: Cb,
     ) -> Result<Self, crate::Error>
     where
@@ -60,7 +60,7 @@ impl TimerHandle {
 
     /// TODO: docs
     pub fn once<E, Cb>(
-        timeout: &Duration,
+        timeout: Duration,
         callback: Cb,
     ) -> Result<Self, crate::Error>
     where
@@ -69,7 +69,7 @@ impl TimerHandle {
     {
         let mut callback = Some(callback);
 
-        Self::start(timeout, &Duration::from_millis(0), move |timer| {
+        Self::start(timeout, Duration::from_millis(0), move |timer| {
             let res = callback.take().unwrap()();
             timer.stop().unwrap();
             res
