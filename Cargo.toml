@@ -2,7 +2,7 @@
 
 members = [
   "lua-bindings",
-  "nvim-libuv",
+  "libuv-bindings",
   "nvim-api",
   "nvim-oxi",
   "nvim-types",

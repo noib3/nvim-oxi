@@ -41,7 +41,7 @@ pub mod lua {
 #[cfg(feature = "libuv")]
 #[cfg_attr(docsrs, doc(cfg(feature = "libuv")))]
 pub mod libuv {
-    pub use nvim_libuv::*;
+    pub use libuv_bindings::*;
 }
 
 #[cfg(feature = "mlua")]

@@ -19,7 +19,7 @@ where
     lua::init(lstate);
 
     #[cfg(feature = "libuv")]
-    nvim_libuv::init(lstate);
+    libuv_bindings::init(lstate);
 
     match body() {
         Ok(api) => api.push(lstate).unwrap(),

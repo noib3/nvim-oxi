@@ -48,7 +48,7 @@ pub enum Error {
 
     #[cfg(feature = "libuv")]
     #[error(transparent)]
-    LibuvError(#[from] nvim_libuv::Error),
+    LibuvError(#[from] libuv_bindings::Error),
 
     #[cfg(feature = "mlua")]
     #[error(transparent)]
@@ -68,7 +68,7 @@ impl de::Error for Error {
 }
 
 impl Error {
-    pub(crate) fn custom(msg: impl fmt::Display) -> Self {
+    pub fn custom(msg: impl fmt::Display) -> Self {
         Self::Other(msg.to_string())
     }
 }

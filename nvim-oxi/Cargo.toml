@@ -16,7 +16,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-libuv = ["nvim-libuv"]
+libuv = ["libuv-bindings"]
 mlua = ["dep:mlua"]
 nightly = ["nvim-types/nightly"]
 test = ["oxi-test"]
@@ -24,7 +24,7 @@ test = ["oxi-test"]
 [dependencies]
 lua-bindings = { version = "0.1", path = "../lua-bindings" }
 nvim-api = { version = "0.1", path = "../nvim-api" }
-nvim-libuv = { version = "0.1", path = "../nvim-libuv", optional = true }
+libuv-bindings = { version = "0.1", path = "../libuv-bindings", optional = true }
 nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
 oxi-module = { version = "0.1", path = "../oxi-module" }
 oxi-test = { version = "0.1", path = "../oxi-test", optional = true }
