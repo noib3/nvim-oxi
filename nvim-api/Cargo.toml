@@ -1,0 +1,14 @@
+[package]
+name = "nvim-api"
+version = "0.1.0"
+authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
+edition = "2021"
+
+[dependencies]
+lua-bindings = { version = "0.1", path = "../lua-bindings" }
+nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
+
+derive_builder = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_repr = "0.1"
+thiserror = "1.0"

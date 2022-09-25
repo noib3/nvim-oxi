@@ -16,22 +16,22 @@
 pub mod entrypoint;
 
 mod error;
-pub(crate) mod iterator;
 mod toplevel;
-mod trait_utils;
 
-pub mod api;
+pub mod api {
+    pub use nvim_api::*;
+}
 
 pub mod opts {
     //! Contains all the `*Opts` structs passed to functions as optional
     //! arguments.
-    pub use crate::api::opts::*;
+    pub use nvim_api::opts::*;
 }
 
 pub mod types {
     //! Contains the Rust type definitions of objects given to and returned by
     //! Neovim functions.
-    pub use crate::api::types::*;
+    pub use nvim_api::types::*;
 }
 
 pub mod lua {
