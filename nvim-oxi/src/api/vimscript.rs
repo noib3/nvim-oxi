@@ -2,7 +2,7 @@ use nvim_types::{self as nvim, Array, Object};
 
 use super::ffi::vimscript::*;
 use super::types::*;
-use crate::lua::LUA_INTERNAL_CALL;
+use super::LUA_INTERNAL_CALL;
 use crate::object::FromObject;
 use crate::Result;
 

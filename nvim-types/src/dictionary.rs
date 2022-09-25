@@ -1,6 +1,11 @@
 use std::collections::HashMap as StdHashMap;
+use std::error::Error;
+use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
+
+use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua_bindings as lua;
 
 use super::{Collection, Object, String};
 
@@ -82,6 +87,75 @@ impl<S: Into<String>> std::ops::Index<S> for Dictionary {
 impl<S: Into<String>> std::ops::IndexMut<S> for Dictionary {
     fn index_mut(&mut self, index: S) -> &mut Self::Output {
         self.get_mut(&index.into()).unwrap()
+    }
+}
+
+impl LuaPushable for Dictionary {
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, Box<dyn Error>> {
+        lua::ffi::lua_createtable(lstate, 0, self.len().try_into()?);
+
+        for (key, obj) in self {
+            lua::ffi::lua_pushlstring(lstate, key.as_ptr(), key.len());
+            obj.push(lstate)?;
+            lua::ffi::lua_rawset(lstate, -3);
+        }
+
+        Ok(1)
+    }
+}
+
+impl LuaPoppable for Dictionary {
+    const N: c_int = 1;
+
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+        if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
+            || lua::utils::is_table_array(lstate, -1)
+        {
+            // TODO: return early
+            todo!()
+        }
+
+        let len = lua_objlen(lstate, -1);
+        let mut pairs = Vec::<(crate::String, Object)>::with_capacity(len);
+
+        // Pushing `nil` as the first key.
+        lua_pushnil(lstate);
+
+        while lua_next(lstate, -2) != 0 {
+            if lua_type(lstate, -2) != LUA_TSTRING {
+                let typename = lua::utils::debug_type(lstate, -2);
+
+                // TODO: return early
+                todo!()
+
+                // return Err(Error::custom(format!(
+                //     "encountered a {typename} key while popping a dictionary \
+                //      off the stack"
+                // )));
+            }
+
+            let key = {
+                let mut len = 0;
+                let ptr = lua_tolstring(lstate, -2, &mut len);
+
+                let mut vec = Vec::<u8>::with_capacity(len);
+                std::ptr::copy(ptr as *const u8, vec.as_mut_ptr(), len);
+                vec.set_len(len);
+
+                crate::String::from_bytes(vec)
+            };
+
+            let value = Object::pop(lstate)?;
+
+            pairs.push((key, value));
+        }
+
+        lua_pop(lstate, 1);
+
+        Ok(Dictionary::from_iter(pairs))
     }
 }
 

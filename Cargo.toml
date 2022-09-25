@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+  "lua-bindings",
   "nvim-libuv",
   "nvim-oxi",
   "nvim-types",

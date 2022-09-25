@@ -1,32 +1,34 @@
 use std::borrow::Cow;
-use std::error::Error as StdError;
+use std::error::Error;
+use std::ffi::c_int;
 use std::fmt;
 use std::mem::ManuallyDrop;
-use std::result::Result as StdResult;
-use std::string::String as StdString;
+
+use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua_bindings as lua;
 
 use crate::{
     Array,
     Boolean,
     Dictionary,
     Float,
+    Function,
     Integer,
     LuaRef,
     NonOwning,
-    String as NvimString,
 };
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L115
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L109
 //
-/// Represents any type of Neovim object.
+/// Represents any valid Neovim type.
 #[repr(C)]
 pub struct Object {
-    r#type: ObjectKind,
+    ty: ObjectKind,
     data: ObjectData,
 }
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L100
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(C)]
 pub enum ObjectKind {
     Nil = 0,
@@ -39,45 +41,73 @@ pub enum ObjectKind {
     LuaRef,
 }
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L117
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L111
 #[repr(C)]
 union ObjectData {
     boolean: Boolean,
     integer: Integer,
     float: Float,
-    string: ManuallyDrop<NvimString>,
+    string: ManuallyDrop<crate::String>,
     array: ManuallyDrop<Array>,
     dictionary: ManuallyDrop<Dictionary>,
     luaref: LuaRef,
 }
 
+impl Default for Object {
+    fn default() -> Object {
+        Object::nil()
+    }
+}
+
+impl fmt::Debug for Object {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
+impl fmt::Display for Object {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use ObjectKind::*;
+        match self.ty {
+            Nil => f.write_str("()"),
+            Boolean => write!(f, "{}", unsafe { self.data.boolean }),
+            Integer => write!(f, "{}", unsafe { self.data.integer }),
+            Float => write!(f, "{}", unsafe { self.data.float }),
+            String => write!(f, "\"{}\"", unsafe { &*self.data.string }),
+            Array => write!(f, "{}", unsafe { &*self.data.array }),
+            Dictionary => write!(f, "{}", unsafe { &*self.data.dictionary }),
+            LuaRef => write!(f, "LuaRef({})", unsafe { self.data.luaref }),
+        }
+    }
+}
+
 impl Object {
     /// Returns a new nil object.
     #[inline]
-    pub const fn nil() -> Self {
-        Self { r#type: ObjectKind::Nil, data: ObjectData { integer: 0 } }
+    pub fn nil() -> Self {
+        Self { ty: ObjectKind::Nil, data: ObjectData { integer: 0 } }
     }
 
     #[inline]
-    pub const fn is_nil(&self) -> bool {
-        matches!(self.r#type, ObjectKind::Nil)
+    pub fn is_nil(&self) -> bool {
+        matches!(self.ty, ObjectKind::Nil)
     }
 
     #[inline]
-    pub const fn is_some(&self) -> bool {
+    pub fn is_some(&self) -> bool {
         !self.is_nil()
     }
 
     #[inline(always)]
     #[doc(hidden)]
-    pub fn new_luaref(luaref: LuaRef) -> Self {
-        Self { r#type: ObjectKind::LuaRef, data: ObjectData { luaref } }
+    pub fn from_luaref(luaref: LuaRef) -> Self {
+        Self { ty: ObjectKind::LuaRef, data: ObjectData { luaref } }
     }
 
     /// TODO: docs
     #[inline]
     pub fn kind(&self) -> ObjectKind {
-        self.r#type
+        self.ty
     }
 
     /// Make a non-owning version of this `Object`.
@@ -113,73 +143,41 @@ impl Object {
         self.data.luaref
     }
 
-    /// Extracts the inner [`String`] from the object, without checking that the
-    /// object actually represents a [`String`].
-    #[inline(always)]
-    pub unsafe fn into_string_unchecked(self) -> NvimString {
+    /// Extracts the inner [`String`] from the object, without checking that
+    /// the object actually represents a [`String`].
+    pub unsafe fn into_string_unchecked(self) -> crate::String {
         let str = ManuallyDrop::new(self);
-        NvimString { ..*str.data.string }
+        crate::String { ..*str.data.string }
     }
 
     /// Extracts the inner [`Array`] from the object, without checking that the
     /// object actually represents an [`Array`].
-    #[inline(always)]
     pub unsafe fn into_array_unchecked(self) -> Array {
         let array = ManuallyDrop::new(self);
         Array { ..*array.data.array }
     }
 
-    /// Extracts the inner [`Dictionary`] from the object, without checking that
-    /// the object actually represents a [`Dictionary`].
-    #[inline(always)]
+    /// Extracts the inner [`Dictionary`] from the object, without checking
+    /// that the object actually represents a [`Dictionary`].
     pub unsafe fn into_dict_unchecked(self) -> Dictionary {
         let dict = ManuallyDrop::new(self);
         Dictionary { ..*dict.data.dictionary }
     }
 }
 
-impl Default for Object {
-    #[inline]
-    fn default() -> Self {
-        Self::nil()
-    }
-}
-
-impl fmt::Debug for Object {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
-
-impl fmt::Display for Object {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ObjectKind::*;
-        match self.r#type {
-            Nil => f.write_str("()"),
-            Boolean => write!(f, "{}", unsafe { self.data.boolean }),
-            Integer => write!(f, "{}", unsafe { self.data.integer }),
-            Float => write!(f, "{}", unsafe { self.data.float }),
-            String => write!(f, "\"{}\"", unsafe { &*self.data.string }),
-            Array => write!(f, "{}", unsafe { &*self.data.array }),
-            Dictionary => write!(f, "{}", unsafe { &*self.data.dictionary }),
-            LuaRef => write!(f, "LuaRef({})", unsafe { self.data.luaref }),
-        }
-    }
-}
-
 macro_rules! clone_copy {
     ($self:expr, $field:ident) => {{
         Self {
-            r#type: $self.r#type,
+            ty: $self.ty,
             data: ObjectData { $field: unsafe { $self.data.$field } },
         }
     }};
 }
 
 macro_rules! clone_drop {
-    ($self:expr, $field:ident, $as_type:ident) => {{
+    ($self:expr, $field:ident, $as_type:ty) => {{
         Self {
-            r#type: $self.r#type,
+            ty: $self.ty,
             data: ObjectData {
                 $field: ManuallyDrop::new(
                     unsafe { &$self.data.$field as &$as_type }.clone(),
@@ -191,12 +189,12 @@ macro_rules! clone_drop {
 
 impl Clone for Object {
     fn clone(&self) -> Self {
-        match self.r#type {
+        match self.ty {
             ObjectKind::Nil => Self::nil(),
             ObjectKind::Boolean => clone_copy!(self, boolean),
             ObjectKind::Integer => clone_copy!(self, integer),
             ObjectKind::Float => clone_copy!(self, float),
-            ObjectKind::String => clone_drop!(self, string, NvimString),
+            ObjectKind::String => clone_drop!(self, string, crate::String),
             ObjectKind::Array => clone_drop!(self, array, Array),
             ObjectKind::Dictionary => {
                 clone_drop!(self, dictionary, Dictionary)
@@ -209,7 +207,7 @@ impl Clone for Object {
 impl Drop for Object {
     fn drop(&mut self) {
         use ObjectKind::*;
-        match self.r#type {
+        match self.ty {
             String => unsafe { ManuallyDrop::drop(&mut self.data.string) },
 
             Array => unsafe { ManuallyDrop::drop(&mut self.data.array) },
@@ -226,7 +224,7 @@ impl Drop for Object {
 impl PartialEq<Self> for Object {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        if self.r#type != other.r#type {
+        if self.ty != other.ty {
             return false;
         };
 
@@ -234,7 +232,7 @@ impl PartialEq<Self> for Object {
 
         unsafe {
             use ObjectKind::*;
-            match self.r#type {
+            match self.ty {
                 Nil => true,
                 Boolean => lhs.boolean == rhs.boolean,
                 Integer => lhs.boolean == rhs.boolean,
@@ -260,10 +258,7 @@ macro_rules! from_copy {
         impl From<$type> for Object {
             #[inline(always)]
             fn from($data: $type) -> Self {
-                Object {
-                    r#type: ObjectKind::$variant,
-                    data: ObjectData { $data },
-                }
+                Object { ty: ObjectKind::$variant, data: ObjectData { $data } }
             }
         }
     };
@@ -275,12 +270,12 @@ from_copy!(Float, Float, float);
 
 /// Implements `From<..>` for primitive `ManuallyDrop` types.
 macro_rules! from_man_drop {
-    ($type:ident, $variant:ident, $data:ident) => {
+    ($type:ty, $variant:ident, $data:ident) => {
         impl From<$type> for Object {
             #[inline(always)]
             fn from($data: $type) -> Self {
                 Object {
-                    r#type: ObjectKind::$variant,
+                    ty: ObjectKind::$variant,
                     data: ObjectData { $data: ManuallyDrop::new($data) },
                 }
             }
@@ -288,7 +283,7 @@ macro_rules! from_man_drop {
     };
 }
 
-from_man_drop!(NvimString, String, string);
+from_man_drop!(crate::String, String, string);
 from_man_drop!(Array, Array, array);
 from_man_drop!(Dictionary, Dictionary, dictionary);
 
@@ -318,24 +313,24 @@ impl From<f32> for Object {
     }
 }
 
-impl From<StdString> for Object {
+impl From<String> for Object {
     #[inline(always)]
-    fn from(s: StdString) -> Self {
-        NvimString::from(s).into()
+    fn from(s: String) -> Self {
+        crate::String::from(s).into()
     }
 }
 
 impl From<&str> for Object {
     #[inline(always)]
     fn from(s: &str) -> Self {
-        NvimString::from(s).into()
+        crate::String::from(s).into()
     }
 }
 
 impl From<char> for Object {
     #[inline(always)]
     fn from(ch: char) -> Self {
-        NvimString::from(ch).into()
+        crate::String::from(ch).into()
     }
 }
 
@@ -382,7 +377,7 @@ where
 
 impl<K, V> FromIterator<(K, V)> for Object
 where
-    NvimString: From<K>,
+    crate::String: From<K>,
     Object: From<V>,
 {
     #[inline(always)]
@@ -405,7 +400,7 @@ pub enum FromObjectError {
     Secondary {
         primitive: ObjectKind,
         into: &'static str,
-        source: Box<dyn StdError + Send + Sync>,
+        source: Box<dyn Error + Send + Sync>,
     },
 }
 
@@ -433,7 +428,7 @@ impl Eq for FromObjectError {}
 impl FromObjectError {
     pub fn secondary<E, T>(primitive: ObjectKind, err: E) -> Self
     where
-        E: StdError + Send + Sync + 'static,
+        E: Error + Send + Sync + 'static,
     {
         Self::Secondary {
             primitive,
@@ -446,13 +441,13 @@ impl FromObjectError {
 impl TryFrom<Object> for () {
     type Error = FromObjectError;
 
-    fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-        (matches!(obj.r#type, ObjectKind::Nil)).then_some(()).ok_or_else(
-            || FromObjectError::Primitive {
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
+        (matches!(obj.ty, ObjectKind::Nil)).then_some(()).ok_or_else(|| {
+            FromObjectError::Primitive {
                 expected: ObjectKind::Nil,
-                actual: obj.r#type,
-            },
-        )
+                actual: obj.ty,
+            }
+        })
     }
 }
 
@@ -462,12 +457,12 @@ macro_rules! try_from_copy {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
-            fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-                (matches!(obj.r#type, ObjectKind::$variant))
+            fn try_from(obj: Object) -> Result<Self, Self::Error> {
+                (matches!(obj.ty, ObjectKind::$variant))
                     .then_some(unsafe { obj.data.$data })
                     .ok_or_else(|| FromObjectError::Primitive {
                         expected: ObjectKind::$variant,
-                        actual: obj.r#type,
+                        actual: obj.ty,
                     })
             }
         }
@@ -480,12 +475,12 @@ try_from_copy!(Float, Float, float);
 
 /// Implements `TryFrom<Object>` for primitive `ManuallyDrop` types.
 macro_rules! try_from_man_drop {
-    ($type:ident, $variant:ident, $into_inner:ident) => {
+    ($type:ty, $variant:ident, $into_inner:ident) => {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
-            fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-                let ty = obj.r#type;
+            fn try_from(obj: Object) -> Result<Self, Self::Error> {
+                let ty = obj.ty;
                 (matches!(ty, ObjectKind::$variant))
                     .then_some(unsafe { obj.$into_inner() })
                     .ok_or_else(|| FromObjectError::Primitive {
@@ -497,19 +492,19 @@ macro_rules! try_from_man_drop {
     };
 }
 
-try_from_man_drop!(NvimString, String, into_string_unchecked);
+try_from_man_drop!(crate::String, String, into_string_unchecked);
 try_from_man_drop!(Array, Array, into_array_unchecked);
 try_from_man_drop!(Dictionary, Dictionary, into_dict_unchecked);
 
 /// Implements `TryFrom<Object>` for a type that implements `TryFrom<{prim}>`,
 /// where `{prim}` is one of the primitive data types.
 macro_rules! try_from_prim {
-    ($orig:ident, $type:ty, $variant:ident) => {
+    ($orig:ty, $type:ty, $variant:ident) => {
         impl TryFrom<Object> for $type {
             type Error = FromObjectError;
 
-            fn try_from(obj: Object) -> StdResult<Self, Self::Error> {
-                $orig::try_from(obj)?.try_into().map_err(|err| {
+            fn try_from(obj: Object) -> Result<Self, Self::Error> {
+                <$orig>::try_from(obj)?.try_into().map_err(|err| {
                     FromObjectError::secondary::<_, $type>(
                         ObjectKind::$variant,
                         err,
@@ -531,105 +526,85 @@ try_from_prim!(Integer, i128, Integer);
 try_from_prim!(Integer, u128, Integer);
 try_from_prim!(Integer, isize, Integer);
 try_from_prim!(Integer, usize, Integer);
+try_from_prim!(crate::String, String, String);
 
-try_from_prim!(NvimString, StdString, String);
+impl<A, R> From<Function<A, R>> for Object {
+    fn from(fun: Function<A, R>) -> Self {
+        Self::from_luaref(fun.lua_ref)
+    }
+}
 
-#[cfg(feature = "serde")]
-use serde::de;
+impl LuaPushable for Object {
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, Box<dyn Error>> {
+        match self.kind() {
+            ObjectKind::Nil => ().push(lstate),
+            ObjectKind::Boolean => self.as_boolean_unchecked().push(lstate),
+            ObjectKind::Integer => self.as_integer_unchecked().push(lstate),
+            ObjectKind::Float => self.as_float_unchecked().push(lstate),
+            ObjectKind::String => self.into_string_unchecked().push(lstate),
+            ObjectKind::Array => self.into_array_unchecked().push(lstate),
+            ObjectKind::Dictionary => self.into_dict_unchecked().push(lstate),
 
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Object {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        struct ObjectVisitor;
-
-        macro_rules! visit_into {
-            ($fn_name:ident, $ty:ty) => {
-                fn $fn_name<E>(self, value: $ty) -> Result<Self::Value, E>
-                where
-                    E: de::Error,
-                {
-                    Ok(Object::from(value))
-                }
-            };
+            ObjectKind::LuaRef => {
+                let index = lua::ffi::LUA_REGISTRYINDEX;
+                let lua_ref = self.as_luaref_unchecked();
+                lua::ffi::lua_rawgeti(lstate, index, lua_ref);
+                todo!()
+                // Ok(1)
+            },
         }
+    }
+}
 
-        impl<'de> de::Visitor<'de> for ObjectVisitor {
-            type Value = Object;
+impl LuaPoppable for Object {
+    const N: c_int = 1;
 
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("either a string of a byte vector")
-            }
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+        match lua_type(lstate, -1) {
+            LUA_TNIL => <()>::pop(lstate).map(Into::into),
 
-            fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Object::nil())
-            }
+            LUA_TBOOLEAN => <bool>::pop(lstate).map(Into::into),
 
-            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(NvimString::from_bytes(b.to_owned()).into())
-            }
+            LUA_TNUMBER => {
+                let n = <lua_Number>::pop(lstate)?;
 
-            fn visit_f32<E>(self, f: f32) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Object::new_luaref(f as LuaRef))
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::SeqAccess<'de>,
-            {
-                let mut vec = Vec::<Object>::with_capacity(
-                    seq.size_hint().unwrap_or_default(),
-                );
-
-                while let Some(obj) = seq.next_element::<Object>()? {
-                    vec.push(obj);
+                // This checks that the number is in the range (i32::MIN,
+                // i32::MAX) andd that it has no fractional component.
+                if n == (n as c_int) as lua_Number {
+                    Ok(Object::from(n as c_int))
+                } else {
+                    Ok(Object::from(n))
                 }
+            },
 
-                Ok(vec.into_iter().collect::<Array>().into())
-            }
+            LUA_TSTRING => crate::String::pop(lstate).map(Into::into),
 
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::MapAccess<'de>,
-            {
-                let mut vec = Vec::<(NvimString, Object)>::with_capacity(
-                    map.size_hint().unwrap_or_default(),
-                );
-
-                while let Some(pair) =
-                    map.next_entry::<NvimString, Object>()?
-                {
-                    vec.push(pair);
+            LUA_TTABLE => {
+                if lua::utils::is_table_array(lstate, -1) {
+                    Array::pop(lstate).map(Into::into)
+                } else {
+                    Dictionary::pop(lstate).map(Into::into)
                 }
+            },
 
-                Ok(vec.into_iter().collect::<Dictionary>().into())
-            }
+            LUA_TFUNCTION => {
+                let luaref = luaL_ref(lstate, LUA_REGISTRYINDEX);
+                Ok(Object::from_luaref(luaref))
+            },
 
-            visit_into!(visit_bool, bool);
-            visit_into!(visit_i8, i8);
-            visit_into!(visit_u8, u8);
-            visit_into!(visit_i16, i16);
-            visit_into!(visit_u16, u16);
-            visit_into!(visit_i32, i32);
-            visit_into!(visit_u32, u32);
-            visit_into!(visit_i64, i64);
-            // visit_into!(visit_u64, u64);
-            visit_into!(visit_str, &str);
-            visit_into!(visit_f64, f64);
+            LUA_TNONE => todo!(),
+
+            LUA_TLIGHTUSERDATA | LUA_TUSERDATA | LUA_TTHREAD => {
+                let typename = lua::utils::debug_type(lstate, -1);
+                lua_pop(lstate, 1);
+                todo!()
+            },
+
+            _ => unreachable!(),
         }
-
-        deserializer.deserialize_any(ObjectVisitor)
     }
 }
 
@@ -639,9 +614,9 @@ mod tests {
 
     #[test]
     fn std_string_to_obj_and_back() {
-        let str = StdString::from("foo");
+        let str = String::from("foo");
         let obj = Object::from(str.clone());
-        let str_again = StdString::try_from(obj);
+        let str_again = String::try_from(obj);
         assert!(str_again.is_ok());
         assert_eq!(str, str_again.unwrap());
     }
@@ -700,7 +675,7 @@ mod tests {
 
     #[test]
     fn print_luaref() {
-        let obj = Object::new_luaref(42);
+        let obj = Object::from_luaref(42);
         assert_eq!("LuaRef(42)", &format!("{obj:?}"));
         assert_eq!("LuaRef(42)", &format!("{obj}"));
     }

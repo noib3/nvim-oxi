@@ -84,18 +84,20 @@ impl CreateCommandOptsBuilder {
 
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
-    pub fn preview<F>(&mut self, f: F) -> &mut Self
+    pub fn preview<F>(&mut self, fun: F) -> &mut Self
     where
-        F: FnMut(
+        F: Into<
+            nvim_types::Function<
                 (
                     crate::api::types::CommandArgs,
                     Option<u32>,
                     Option<crate::api::Buffer>,
                 ),
-            ) -> crate::Result<u8>
-            + 'static,
+                u8,
+            >,
+        >,
     {
-        self.preview = Some(crate::lua::Function::from_fn_mut(f).into());
+        self.preview = Some(fun.into().into());
         self
     }
 

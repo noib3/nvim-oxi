@@ -1,11 +1,12 @@
 use std::fmt;
 
-use nvim_types::{self as nvim, Array, Integer, Object, WinHandle};
+use lua_bindings::{LuaPoppable, LuaPushable};
+use nvim_types::{self as nvim, Array, Function, Integer, Object, WinHandle};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::window::*;
+use super::LUA_INTERNAL_CALL;
 use super::{Buffer, TabPage};
-use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::Result;
 
@@ -51,6 +52,16 @@ impl FromObject for Window {
     }
 }
 
+impl LuaPoppable for Window {
+    const N: std::ffi::c_int = 1;
+
+    unsafe fn pop(
+        lstate: *mut lua_bindings::ffi::lua_State,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+        WinHandle::pop(lstate).map(Into::into)
+    }
+}
+
 impl Window {
     /// Shorthand for [`api::get_current_win`](crate::api::get_current_win).
     #[inline(always)]
@@ -64,13 +75,14 @@ impl Window {
     pub fn call<R, F>(&self, fun: F) -> Result<R>
     where
         F: FnOnce(()) -> Result<R> + 'static,
-        R: ToObject + FromObject,
+        R: LuaPushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
-        let obj = unsafe { nvim_win_call(self.0, fun.0, &mut err) };
+        let obj = unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
+
         err.into_err_or_flatten(move || {
-            fun.unref();
+            fun.remove_from_lua_registry();
             R::from_obj(obj)
         })
     }

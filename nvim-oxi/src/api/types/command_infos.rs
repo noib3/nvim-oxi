@@ -1,11 +1,10 @@
-use nvim_types::Object;
+use nvim_types::{Function, Object};
 use serde::{
     de::{Deserializer, Error},
     Deserialize,
 };
 
 use super::{CommandAddr, CommandArgs, CommandNArgs, CommandRange};
-use crate::lua::Function;
 use crate::object::{self, FromObject};
 
 #[non_exhaustive]

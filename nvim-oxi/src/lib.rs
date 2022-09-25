@@ -12,17 +12,15 @@
 #![deny(nonstandard_style)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-// Private modules.
+#[doc(hidden)]
+pub mod entrypoint;
+
 mod error;
 pub(crate) mod iterator;
-mod macros;
 mod toplevel;
 mod trait_utils;
 
-// Public modules.
 pub mod api;
-#[doc(hidden)]
-pub mod lua;
 pub mod object;
 
 pub mod opts {
@@ -37,7 +35,10 @@ pub mod types {
     pub use crate::api::types::*;
 }
 
-// Public modules behind feature flags.
+pub mod lua {
+    pub use lua_bindings::*;
+}
+
 #[cfg(feature = "libuv")]
 #[cfg_attr(docsrs, doc(cfg(feature = "libuv")))]
 pub mod libuv {
@@ -59,10 +60,15 @@ pub mod mlua {
 
 // Re-exports.
 pub use error::{Error, Result};
-pub use lua::Function;
 #[doc(hidden)]
-pub use lua::{LuaPoppable, LuaPushable};
-pub use nvim_types::{Array, Dictionary, Object, ObjectKind, String};
+pub use nvim_types::{
+    Array,
+    Dictionary,
+    Function,
+    Object,
+    ObjectKind,
+    String,
+};
 pub use object::{FromObject, ToObject};
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]

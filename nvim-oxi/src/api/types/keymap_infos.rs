@@ -1,8 +1,7 @@
-use nvim_types::Object;
+use nvim_types::{Function, Object};
 use serde::Deserialize;
 
 use super::Mode;
-use crate::lua::Function;
 use crate::object::{self, de::utils, FromObject};
 
 #[non_exhaustive]

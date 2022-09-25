@@ -22,6 +22,7 @@ nightly = ["nvim-types/nightly"]
 test = ["oxi-test"]
 
 [dependencies]
+lua-bindings = { version = "0.1", path = "../lua-bindings" }
 nvim-libuv = { version = "0.1", path = "../nvim-libuv", optional = true }
 nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
 oxi-module = { version = "0.1", path = "../oxi-module" }

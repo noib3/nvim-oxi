@@ -1,6 +1,5 @@
-use nvim_types::{Array, Object};
-
-use crate::lua::{Function, LuaPoppable, LuaPushable};
+use lua_bindings::{LuaPoppable, LuaPushable};
+use nvim_types::{Array, Function, Object};
 
 macro_rules! impl_into {
     ($trait:ident, $type:ty) => {

@@ -4,17 +4,27 @@ mod array;
 mod collection;
 mod dictionary;
 mod error;
+mod from_object;
+mod function;
 mod non_owning;
 mod object;
 mod string;
+mod to_object;
+
+#[cfg(feature = "serde")]
+#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
+mod serde;
 
 pub use array::{Array, ArrayIterator};
 pub(crate) use collection::*;
 pub use dictionary::{DictIterator, Dictionary};
 pub use error::Error;
+pub use from_object::FromObject;
+pub use function::Function;
 pub use non_owning::NonOwning;
 pub use object::{FromObjectError, Object, ObjectKind};
 pub use string::String;
+pub use to_object::ToObject;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 pub type Boolean = bool;

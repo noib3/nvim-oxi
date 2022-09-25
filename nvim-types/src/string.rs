@@ -1,9 +1,13 @@
 use std::borrow::Cow;
-use std::ffi::{c_char, OsStr};
+use std::error::Error;
+use std::ffi::{c_char, c_int, OsStr};
 use std::mem::ManuallyDrop;
 use std::path::PathBuf;
 use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
+
+use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua_bindings as lua;
 
 use crate::NonOwning;
 
@@ -31,7 +35,7 @@ pub struct String {
 impl String {
     #[inline]
     /// Creates a new empty string.
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self { data: std::ptr::null_mut(), size: 0 }
     }
 
@@ -124,6 +128,13 @@ impl String {
     }
 }
 
+impl Default for String {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl fmt::Debug for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(self, f)
@@ -133,13 +144,6 @@ impl fmt::Debug for String {
 impl fmt::Display for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&self.to_string_lossy())
-    }
-}
-
-impl Default for String {
-    #[inline]
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -213,7 +217,6 @@ impl From<String> for PathBuf {
 impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
-        use std::os::windows::ffi::OsStrExt;
         StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
     }
 }
@@ -254,40 +257,35 @@ impl TryFrom<String> for StdString {
     }
 }
 
-#[cfg(feature = "serde")]
-use serde::de;
+impl LuaPushable for String {
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, Box<dyn Error>> {
+        lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
+        Ok(1)
+    }
+}
 
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for String {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        struct StringVisitor;
+impl LuaPoppable for String {
+    const N: c_int = 1;
 
-        impl<'de> de::Visitor<'de> for StringVisitor {
-            type Value = String;
-
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("either a string of a byte vector")
-            }
-
-            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(String::from_bytes(b.to_owned()))
-            }
-
-            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(String::from(s))
-            }
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+        if lua_type(lstate, -1) != LUA_TSTRING {
+            // TODO: return early
+            todo!()
         }
 
-        deserializer.deserialize_str(StringVisitor)
+        let mut len = 0;
+        let ptr = lua_tolstring(lstate, -1, &mut len);
+
+        let mut vec = Vec::<u8>::with_capacity(len);
+        std::ptr::copy(ptr as *const u8, vec.as_mut_ptr(), len);
+        vec.set_len(len);
+
+        lua_pop(lstate, 1);
+
+        Ok(Self::from_bytes(vec))
     }
 }
 

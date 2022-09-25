@@ -1,7 +1,6 @@
-use nvim_types::Object;
+use nvim_types::{Function, Object};
 use serde::Serialize;
 
-use crate::lua::Function;
 use crate::object::{self, ToObject};
 
 /// See `:h command-complete` for details.

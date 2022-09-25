@@ -1,11 +1,13 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
 
+use lua_bindings::{LuaPoppable, LuaPushable};
 use nvim_types::{
     self as nvim,
     Array,
     BufHandle,
     Dictionary,
+    Function,
     Integer,
     Object,
 };
@@ -13,9 +15,9 @@ use serde::{Deserialize, Serialize};
 
 use super::ffi::buffer::*;
 use super::opts::*;
+use super::LUA_INTERNAL_CALL;
 use crate::api::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::iterator::SuperIterator;
-use crate::lua::{Function, LUA_INTERNAL_CALL};
 use crate::object::{FromObject, ToObject};
 use crate::trait_utils::StringOrFunction;
 use crate::{Error, Result};
@@ -73,6 +75,16 @@ impl FromObject for Buffer {
     }
 }
 
+impl LuaPoppable for Buffer {
+    const N: std::ffi::c_int = 1;
+
+    unsafe fn pop(
+        lstate: *mut lua_bindings::ffi::lua_State,
+    ) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+        BufHandle::pop(lstate).map(Into::into)
+    }
+}
+
 impl Buffer {
     /// Shorthand for
     /// [`nvim_oxi::api::get_current_buf`](crate::api::get_current_buf).
@@ -112,13 +124,14 @@ impl Buffer {
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
         F: FnOnce(()) -> Result<R> + 'static,
-        R: ToObject + FromObject,
+        R: LuaPushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
-        let obj = unsafe { nvim_buf_call(self.0, fun.0, &mut err) };
+        let obj = unsafe { nvim_buf_call(self.0, fun.lua_ref(), &mut err) };
+
         err.into_err_or_flatten(move || {
-            fun.unref();
+            fun.remove_from_lua_registry();
             R::from_obj(obj)
         })
     }

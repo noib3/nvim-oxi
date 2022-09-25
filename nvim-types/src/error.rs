@@ -1,5 +1,5 @@
 use std::error::Error as StdError;
-use std::ffi::{c_char, CStr};
+use std::ffi::{c_char, CStr, CString};
 use std::fmt;
 use std::result::Result as StdResult;
 
@@ -80,8 +80,13 @@ impl Error {
         self.into_err_or_else(f)?
     }
 
-    #[inline]
-    pub const fn is_err(&self) -> bool {
+    pub fn from_err<E: StdError>(err: E) -> Self {
+        let c_string = CString::new(err.to_string()).unwrap_or_default();
+        let ptr = c_string.into_raw() /* TODO: memory leak */;
+        Self { r#type: ErrorType::Exception, msg: ptr }
+    }
+
+    pub fn is_err(&self) -> bool {
         !matches!(self.r#type, ErrorType::None)
     }
 }

@@ -1,9 +1,9 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, Array, NonOwning, Object};
+use nvim_types::{self as nvim, Array, Function, NonOwning, Object};
 
 use crate::api::types::AutocmdCallbackArgs;
 use crate::api::Buffer;
-use crate::trait_utils::{StringOrInt, ToFunction};
+use crate::trait_utils::StringOrInt;
 
 pub type ShouldDeleteAutocmd = bool;
 
@@ -56,9 +56,9 @@ impl CreateAutocmdOpts {
 impl CreateAutocmdOptsBuilder {
     pub fn callback<F>(&mut self, callback: F) -> &mut Self
     where
-        F: ToFunction<AutocmdCallbackArgs, ShouldDeleteAutocmd>,
+        F: Into<Function<AutocmdCallbackArgs, ShouldDeleteAutocmd>>,
     {
-        self.callback = Some(callback.to_obj());
+        self.callback = Some(callback.into().into());
         self
     }
 

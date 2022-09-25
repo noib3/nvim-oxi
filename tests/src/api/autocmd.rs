@@ -62,7 +62,7 @@ fn create_autocmd() {
     let opts = CreateAutocmdOpts::builder()
         .buffer(0)
         .desc("Does nothing, in the current buffer")
-        .callback(|_args| Ok(false))
+        .callback(|_args| Ok::<_, oxi::Error>(false))
         .build();
 
     let id = api::create_autocmd(["VimEnter"], &opts);
@@ -94,7 +94,7 @@ fn exec_autocmds() {
         .callback(move |_args| {
             let mut i = cloned.borrow_mut();
             *i += 1;
-            Ok(false)
+            Ok::<_, oxi::Error>(false)
         })
         .buffer(0)
         .once(true)
@@ -135,8 +135,9 @@ fn set_del_augroup_by_name() {
 
 #[oxi::test]
 fn set_exec_del_autocmd() {
-    let opts =
-        CreateAutocmdOpts::builder().callback(|_args| Ok(false)).build();
+    let opts = CreateAutocmdOpts::builder()
+        .callback(|_args| Ok::<_, oxi::Error>(false))
+        .build();
 
     let id = api::create_autocmd(["BufAdd, BufDelete"], &opts)
         .expect("create_autocmd failed");

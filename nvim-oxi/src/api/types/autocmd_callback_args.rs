@@ -5,7 +5,6 @@ use serde::Deserialize;
 
 use crate::api::Buffer;
 use crate::object::{self, FromObject};
-use crate::Result;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -38,7 +37,17 @@ pub struct AutocmdCallbackArgs {
 }
 
 impl FromObject for AutocmdCallbackArgs {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_obj(obj: Object) -> Result<Self, crate::Error> {
         Self::deserialize(object::Deserializer::new(obj))
+    }
+}
+
+impl lua_bindings::LuaPoppable for AutocmdCallbackArgs {
+    const N: std::ffi::c_int = 1;
+
+    unsafe fn pop(
+        lstate: *mut lua_bindings::ffi::lua_State,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Object::pop(lstate).and_then(|obj| Ok(Self::from_obj(obj)?))
     }
 }

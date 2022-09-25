@@ -13,15 +13,14 @@ fn libuv() -> oxi::Result<()> {
     let mut n = 0;
 
     let callback = move |timer: &mut TimerHandle| {
-        let i = n;
-
-        if i <= 10 {
+        if n <= 10 {
+            let i = n;
             oxi::schedule(move |_| Ok(print!("Callback called {i} times")));
+            n += 1;
         } else {
             timer.stop().unwrap();
         }
 
-        n += 1;
         Ok::<_, oxi::Error>(())
     };
 

@@ -1,4 +1,5 @@
 use libuv_sys2::uv_loop_t;
+use lua_bindings::ffi::lua_State;
 use once_cell::unsync::OnceCell;
 
 thread_local! {
@@ -7,7 +8,7 @@ thread_local! {
 
 extern "C" {
     // https://github.com/luvit/luv/blob/master/src/luv.c#L751
-    fn luv_loop(lua_state: *mut std::ffi::c_void) -> *mut uv_loop_t;
+    fn luv_loop(lua_state: *mut lua_State) -> *mut uv_loop_t;
 }
 
 /// Initializes the loop.
@@ -15,7 +16,7 @@ extern "C" {
 /// NOTE: this function **must** be called before calling any other function
 /// exposed by this crate or there will be segfaults.
 #[doc(hidden)]
-pub unsafe fn init(lua_state: *mut std::ffi::c_void) {
+pub unsafe fn init(lua_state: *mut lua_State) {
     LOOP.with(|uv_loop| uv_loop.set(luv_loop(lua_state))).unwrap_unchecked();
 }
 

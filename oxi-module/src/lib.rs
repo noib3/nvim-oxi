@@ -32,6 +32,7 @@ pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as syn::ItemFn);
 
     let module_name = item.sig.ident.clone();
+
     let lua_module =
         Ident::new(&format!("luaopen_{module_name}"), Span::call_site());
 
@@ -40,9 +41,9 @@ pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         #[no_mangle]
         unsafe extern "C" fn #lua_module(
-            state: *mut ::nvim_oxi::lua::lua_State,
-        ) -> ::std::os::raw::c_int {
-            ::nvim_oxi::lua::module_entrypoint(state, #module_name)
+            state: *mut ::nvim_oxi::lua::ffi::lua_State,
+        ) -> ::std::ffi::c_int {
+            ::nvim_oxi::entrypoint::entrypoint(state, #module_name)
         }
     };
 

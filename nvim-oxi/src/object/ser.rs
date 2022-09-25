@@ -78,7 +78,7 @@ impl ser::Serializer for Serializer {
     // described in `super::de`.
     #[inline]
     fn serialize_f32(self, value: f32) -> Result<Self::Ok> {
-        Ok(Object::new_luaref(value as i32))
+        Ok(Object::from_luaref(value as i32))
     }
 
     #[inline]
