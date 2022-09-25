@@ -1,8 +1,6 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, NonOwning, Object};
+use nvim_types::{self as nvim, FromObject, NonOwning, Object, Serializer};
 use serde::Serialize;
-
-use crate::object;
 
 /// Options passed to
 /// [`nvim_oxi::api::set_option_value`](crate::api::set_option_value).
@@ -50,10 +48,11 @@ pub enum OptionScope {
 
 impl From<OptionScope> for nvim::String {
     fn from(ctx: OptionScope) -> Self {
-        ctx.serialize(object::Serializer)
-            .expect("`OptionScope` is serializable")
-            .try_into()
-            .expect("`OptionScope` is serialized into a string")
+        nvim::String::from_obj(
+            ctx.serialize(Serializer::new())
+                .expect("`OptionScope` is serializable"),
+        )
+        .expect("`OptionScope` is serialized into a string")
     }
 }
 

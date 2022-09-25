@@ -1,11 +1,10 @@
-use nvim_types::{self as nvim, Array, Integer, Object};
+use nvim_types::{self as nvim, Array, FromObject, Integer, Object};
 
 use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
 use super::LUA_INTERNAL_CALL;
 use crate::iterator::SuperIterator;
-use crate::object::FromObject;
 use crate::Result;
 
 /// Binding to [`nvim_clear_autocmds`](https://neovim.io/doc/user/api.html#nvim_clear_autocmds()).

@@ -110,8 +110,9 @@ fn str_to_char(str: &str) -> Option<char> {
 
 #[cfg(test)]
 mod tests {
+    use nvim_types::Deserializer;
+
     use super::*;
-    use crate::object::Deserializer;
 
     #[test]
     fn to_char() {

@@ -41,6 +41,21 @@ pub enum ObjectKind {
     LuaRef,
 }
 
+impl ObjectKind {
+    pub fn as_static(&self) -> &'static str {
+        match self {
+            Self::Nil => "nil",
+            Self::Boolean => "boolean",
+            Self::Integer => "integer",
+            Self::Float => "float",
+            Self::String => "string",
+            Self::Array => "array",
+            Self::Dictionary => "dictionary",
+            Self::LuaRef => "luaref",
+        }
+    }
+}
+
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L111
 #[repr(C)]
 union ObjectData {
@@ -386,148 +401,6 @@ where
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-pub enum FromObjectError {
-    /// Raised when implementing `TryFrom<Object>` for one of the "primitive"
-    /// data types, i.e. a field of the `ObjectData` union.
-    #[error("Was expecting a \"{expected:?}\", got \"{actual:?}\" instead")]
-    Primitive { expected: ObjectKind, actual: ObjectKind },
-
-    /// Raised when implementing `TryFrom<Object>` for a type that implements
-    /// `TryFrom<{type}>`, where `{type}` is a primitive data type. For
-    /// example, `TryFrom<StdString>` or `TryFrom<usize>`.
-    #[error("Error converting {into} into {primitive:?}: {source}")]
-    Secondary {
-        primitive: ObjectKind,
-        into: &'static str,
-        source: Box<dyn Error + Send + Sync>,
-    },
-}
-
-impl PartialEq<Self> for FromObjectError {
-    fn eq(&self, other: &Self) -> bool {
-        use FromObjectError::*;
-        match (self, other) {
-            (
-                Primitive { expected: e1, actual: a1 },
-                Primitive { expected: e2, actual: a2 },
-            ) => (e1 == e2) && (a1 == a2),
-
-            (
-                Secondary { primitive: p1, into: i1, source: _ },
-                Secondary { primitive: p2, into: i2, source: _ },
-            ) => (p1 == p2) && (i1 == i2),
-
-            _ => false,
-        }
-    }
-}
-
-impl Eq for FromObjectError {}
-
-impl FromObjectError {
-    pub fn secondary<E, T>(primitive: ObjectKind, err: E) -> Self
-    where
-        E: Error + Send + Sync + 'static,
-    {
-        Self::Secondary {
-            primitive,
-            into: std::any::type_name::<T>(),
-            source: Box::new(err),
-        }
-    }
-}
-
-impl TryFrom<Object> for () {
-    type Error = FromObjectError;
-
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        (matches!(obj.ty, ObjectKind::Nil)).then_some(()).ok_or_else(|| {
-            FromObjectError::Primitive {
-                expected: ObjectKind::Nil,
-                actual: obj.ty,
-            }
-        })
-    }
-}
-
-/// Implements `TryFrom<Object>` for primitive `Copy` types.
-macro_rules! try_from_copy {
-    ($type:ident, $variant:ident, $data:ident) => {
-        impl TryFrom<Object> for $type {
-            type Error = FromObjectError;
-
-            fn try_from(obj: Object) -> Result<Self, Self::Error> {
-                (matches!(obj.ty, ObjectKind::$variant))
-                    .then_some(unsafe { obj.data.$data })
-                    .ok_or_else(|| FromObjectError::Primitive {
-                        expected: ObjectKind::$variant,
-                        actual: obj.ty,
-                    })
-            }
-        }
-    };
-}
-
-try_from_copy!(Boolean, Boolean, boolean);
-try_from_copy!(Integer, Integer, integer);
-try_from_copy!(Float, Float, float);
-
-/// Implements `TryFrom<Object>` for primitive `ManuallyDrop` types.
-macro_rules! try_from_man_drop {
-    ($type:ty, $variant:ident, $into_inner:ident) => {
-        impl TryFrom<Object> for $type {
-            type Error = FromObjectError;
-
-            fn try_from(obj: Object) -> Result<Self, Self::Error> {
-                let ty = obj.ty;
-                (matches!(ty, ObjectKind::$variant))
-                    .then_some(unsafe { obj.$into_inner() })
-                    .ok_or_else(|| FromObjectError::Primitive {
-                        expected: ObjectKind::$variant,
-                        actual: ty,
-                    })
-            }
-        }
-    };
-}
-
-try_from_man_drop!(crate::String, String, into_string_unchecked);
-try_from_man_drop!(Array, Array, into_array_unchecked);
-try_from_man_drop!(Dictionary, Dictionary, into_dict_unchecked);
-
-/// Implements `TryFrom<Object>` for a type that implements `TryFrom<{prim}>`,
-/// where `{prim}` is one of the primitive data types.
-macro_rules! try_from_prim {
-    ($orig:ty, $type:ty, $variant:ident) => {
-        impl TryFrom<Object> for $type {
-            type Error = FromObjectError;
-
-            fn try_from(obj: Object) -> Result<Self, Self::Error> {
-                <$orig>::try_from(obj)?.try_into().map_err(|err| {
-                    FromObjectError::secondary::<_, $type>(
-                        ObjectKind::$variant,
-                        err,
-                    )
-                })
-            }
-        }
-    };
-}
-
-try_from_prim!(Integer, i8, Integer);
-try_from_prim!(Integer, u8, Integer);
-try_from_prim!(Integer, i16, Integer);
-try_from_prim!(Integer, u16, Integer);
-try_from_prim!(Integer, i32, Integer);
-try_from_prim!(Integer, u32, Integer);
-try_from_prim!(Integer, u64, Integer);
-try_from_prim!(Integer, i128, Integer);
-try_from_prim!(Integer, u128, Integer);
-try_from_prim!(Integer, isize, Integer);
-try_from_prim!(Integer, usize, Integer);
-try_from_prim!(crate::String, String, String);
-
 impl<A, R> From<Function<A, R>> for Object {
     fn from(fun: Function<A, R>) -> Self {
         Self::from_luaref(fun.lua_ref)
@@ -611,12 +484,13 @@ impl LuaPoppable for Object {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::FromObject;
 
     #[test]
     fn std_string_to_obj_and_back() {
         let str = String::from("foo");
         let obj = Object::from(str.clone());
-        let str_again = String::try_from(obj);
+        let str_again = String::from_obj(obj);
         assert!(str_again.is_ok());
         assert_eq!(str, str_again.unwrap());
     }

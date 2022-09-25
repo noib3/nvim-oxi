@@ -1,7 +1,7 @@
-use nvim_types::{self as nvim, Object};
 use serde::ser;
 
-use crate::Result;
+use super::Result;
+use crate::{FromObject, Object};
 
 /// A struct for serializing Rust values into Neovim `Object`s.
 #[non_exhaustive]
@@ -44,7 +44,7 @@ macro_rules! serialize_nil {
 
 impl ser::Serializer for Serializer {
     type Ok = Object;
-    type Error = crate::Error;
+    type Error = super::Error;
 
     type SerializeSeq = SerializeSeq;
     type SerializeTuple = SerializeSeq;
@@ -83,7 +83,7 @@ impl ser::Serializer for Serializer {
 
     #[inline]
     fn serialize_bytes(self, value: &[u8]) -> Result<Self::Ok> {
-        Ok(nvim::String::from_bytes(value.to_owned()).into())
+        Ok(crate::String::from_bytes(value.to_owned()).into())
     }
 
     #[inline]
@@ -199,7 +199,7 @@ pub struct SerializeSeq {
 
 impl ser::SerializeSeq for SerializeSeq {
     type Ok = Object;
-    type Error = crate::Error;
+    type Error = super::Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<()>
     where
@@ -218,7 +218,7 @@ macro_rules! serialize_seq {
     ($trait:ident, $fn:ident) => {
         impl ser::$trait for SerializeSeq {
             type Ok = Object;
-            type Error = crate::Error;
+            type Error = super::Error;
 
             fn $fn<T>(&mut self, value: &T) -> Result<()>
             where
@@ -239,19 +239,21 @@ serialize_seq!(SerializeTupleStruct, serialize_field);
 serialize_seq!(SerializeTupleVariant, serialize_field);
 
 pub struct SerializeMap {
-    key: Option<nvim::String>,
-    pairs: Vec<(nvim::String, Object)>,
+    key: Option<crate::String>,
+    pairs: Vec<(crate::String, Object)>,
 }
 
 impl ser::SerializeMap for SerializeMap {
     type Ok = Object;
-    type Error = crate::Error;
+    type Error = super::Error;
 
     fn serialize_key<T>(&mut self, key: &T) -> Result<()>
     where
         T: ser::Serialize + ?Sized,
     {
-        self.key = Some(key.serialize(Serializer)?.try_into()?);
+        let a = key.serialize(Serializer)?;
+        // TODO: don't unwrap
+        self.key = Some(crate::String::from_obj(a).unwrap());
         Ok(())
     }
 
@@ -274,7 +276,7 @@ macro_rules! serialize_map {
     ($trait:ident) => {
         impl ser::$trait for SerializeMap {
             type Ok = Object;
-            type Error = crate::Error;
+            type Error = super::Error;
 
             fn serialize_field<T>(
                 &mut self,

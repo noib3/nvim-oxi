@@ -1,7 +1,7 @@
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
-use crate::object::{self, de::utils, FromObject};
+use super::serde_utils as utils;
 
 /// Arguments passed to functions executed by commands. See
 /// [`Buffer::create_user_command`](crate::api::Buffer::create_user_command) to
@@ -49,8 +49,8 @@ pub struct CommandArgs {
 }
 
 impl FromObject for CommandArgs {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
 

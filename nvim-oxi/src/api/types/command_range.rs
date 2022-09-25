@@ -1,9 +1,9 @@
 use std::fmt;
 
-use nvim_types::Object;
+use nvim_types::{Serializer, ToObject, ToObjectResult};
 use serde::{de, ser, Serialize};
 
-use crate::object::{self, ToObject};
+// use crate::object::{self, ToObject};
 
 /// See `:h command-range` for details.
 #[non_exhaustive]
@@ -19,8 +19,8 @@ pub enum CommandRange {
 }
 
 impl ToObject for CommandRange {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
+    fn to_obj(self) -> ToObjectResult {
+        self.serialize(Serializer::new()).map_err(Into::into)
     }
 }
 

@@ -65,7 +65,8 @@ impl Error {
     #[inline]
     pub fn into_err_or_else<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
     where
-        Err: StdError + From<self::Error>,
+        Err: StdError,
+        Self: Into<Err>,
         F: FnOnce() -> Ok,
     {
         (!self.is_err()).then(f).ok_or_else(|| self.into())
@@ -74,7 +75,8 @@ impl Error {
     #[inline]
     pub fn into_err_or_flatten<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
     where
-        Err: StdError + From<self::Error>,
+        Err: StdError,
+        Self: Into<Err>,
         F: FnOnce() -> StdResult<Ok, Err>,
     {
         self.into_err_or_else(f)?

@@ -1,10 +1,9 @@
 use std::path::PathBuf;
 
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
 use crate::api::Buffer;
-use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -37,8 +36,8 @@ pub struct AutocmdCallbackArgs {
 }
 
 impl FromObject for AutocmdCallbackArgs {
-    fn from_obj(obj: Object) -> Result<Self, crate::Error> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
 

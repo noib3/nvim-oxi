@@ -1,9 +1,16 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Float, Integer, Object};
+use nvim_types::{
+    Array,
+    Deserializer,
+    Float,
+    FromObject,
+    FromObjectResult,
+    Integer,
+    Object,
+};
 use serde::Deserialize;
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};
-use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Builder, Deserialize)]
@@ -96,8 +103,8 @@ impl WindowConfigBuilder {
 }
 
 impl FromObject for WindowConfig {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
 

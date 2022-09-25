@@ -17,6 +17,9 @@ pub enum Error {
     FromObjectError(#[from] nvim_types::FromObjectError),
 
     #[error(transparent)]
+    ToObjectError(#[from] nvim_types::ToObjectError),
+
+    #[error(transparent)]
     BadUtf8Error(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]

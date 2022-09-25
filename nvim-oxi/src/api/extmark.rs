@@ -1,11 +1,10 @@
-use nvim_types::{self as nvim, Array, Dictionary, Integer};
+use nvim_types::{self as nvim, Array, Dictionary, FromObject, Integer};
 
 use super::ffi::extmark::*;
 use super::opts::*;
 use super::types::*;
 use super::Buffer;
 use crate::iterator::SuperIterator;
-use crate::object::FromObject;
 use crate::{Error, Result};
 
 impl Buffer {
@@ -122,8 +121,8 @@ impl Buffer {
             }
 
             let mut iter = tuple.into_iter();
-            let row = iter.next().expect("row is present").try_into()?;
-            let col = iter.next().expect("col is present").try_into()?;
+            let row = usize::from_obj(iter.next().expect("row is present"))?;
+            let col = usize::from_obj(iter.next().expect("col is present"))?;
             let infos = iter.next().map(ExtmarkInfos::from_obj).transpose()?;
             Ok((row, col, infos))
         })
@@ -159,13 +158,15 @@ impl Buffer {
         };
         err.into_err_or_else(move || {
             extmarks.into_iter().map(|tuple| {
-                let mut iter = Array::try_from(tuple).unwrap().into_iter();
-                let id =
-                    iter.next().expect("id is present").try_into().unwrap();
+                let mut iter = Array::from_obj(tuple).unwrap().into_iter();
+                let id = u32::from_obj(iter.next().expect("id is present"))
+                    .unwrap();
                 let row =
-                    iter.next().expect("row is present").try_into().unwrap();
+                    usize::from_obj(iter.next().expect("row is present"))
+                        .unwrap();
                 let col =
-                    iter.next().expect("col is present").try_into().unwrap();
+                    usize::from_obj(iter.next().expect("col is present"))
+                        .unwrap();
                 let infos = iter
                     .next()
                     .map(ExtmarkInfos::from_obj)
@@ -220,7 +221,7 @@ pub fn create_namespace(name: &str) -> u32 {
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
         let k = k.try_into().expect("namespace name is valid UTF-8");
-        let v = v.try_into().expect("namespace id is positive");
+        let v = u32::from_obj(v).expect("namespace id is positive");
         (k, v)
     })
 }

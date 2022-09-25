@@ -1,9 +1,16 @@
 use derive_builder::Builder;
-use nvim_types::{Array, Object};
+use nvim_types::{
+    Array,
+    Deserializer,
+    FromObject,
+    FromObjectResult,
+    Object,
+    ToObject,
+};
 use serde::Deserialize;
 
+use super::serde_utils as utils;
 use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};
-use crate::object::{self, de::utils, FromObject, ToObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder, Deserialize)]
@@ -85,8 +92,8 @@ impl CmdInfosBuilder {
 }
 
 impl FromObject for CmdInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
 

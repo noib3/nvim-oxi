@@ -1,8 +1,7 @@
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
 use super::StatuslineHighlightInfos;
-use crate::object::{self, FromObject};
 
 /// Statusline informations returned by
 /// [`api::eval_statusline`](crate::api::eval_statusline).
@@ -23,7 +22,7 @@ pub struct StatuslineInfos {
 }
 
 impl FromObject for StatuslineInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

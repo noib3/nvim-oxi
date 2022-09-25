@@ -1,8 +1,8 @@
-use nvim_types::Object;
+use nvim_types::{Serializer, ToObject, ToObjectResult};
 use serde::{Deserialize, Serialize};
 
+use super::serde_utils as utils;
 use super::SplitModifier;
-use crate::object::{self, de::utils, ToObject};
 
 /// See `:h command-modifiers` for more infos.
 #[non_exhaustive]
@@ -31,7 +31,7 @@ pub struct CommandModifiers {
 }
 
 impl ToObject for CommandModifiers {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
+    fn to_obj(self) -> ToObjectResult {
+        self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

@@ -1,7 +1,5 @@
-use nvim_types::Object;
+use nvim_types::{Serializer, ToObject, ToObjectResult};
 use serde::{Deserialize, Serialize};
-
-use crate::object::{self, ToObject};
 
 /// See `:h command-addr` for details.
 #[non_exhaustive]
@@ -19,7 +17,7 @@ pub enum CommandAddr {
 }
 
 impl ToObject for CommandAddr {
-    fn to_obj(self) -> crate::Result<Object> {
-        self.serialize(object::Serializer)
+    fn to_obj(self) -> ToObjectResult {
+        self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

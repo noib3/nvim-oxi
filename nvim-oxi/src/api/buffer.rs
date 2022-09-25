@@ -7,9 +7,13 @@ use nvim_types::{
     Array,
     BufHandle,
     Dictionary,
+    FromObject,
+    FromObjectResult,
     Function,
     Integer,
     Object,
+    ToObject,
+    ToObjectResult,
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +22,6 @@ use super::opts::*;
 use super::LUA_INTERNAL_CALL;
 use crate::api::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::iterator::SuperIterator;
-use crate::object::{FromObject, ToObject};
 use crate::trait_utils::StringOrFunction;
 use crate::{Error, Result};
 
@@ -63,15 +66,15 @@ impl From<&Buffer> for Object {
 
 impl ToObject for Buffer {
     #[inline(always)]
-    fn to_obj(self) -> Result<Object> {
+    fn to_obj(self) -> ToObjectResult {
         Ok(self.0.into())
     }
 }
 
 impl FromObject for Buffer {
     #[inline(always)]
-    fn from_obj(obj: Object) -> Result<Self> {
-        Ok(BufHandle::try_from(obj)?.into())
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Ok(BufHandle::from_obj(obj)?.into())
     }
 }
 
@@ -132,7 +135,7 @@ impl Buffer {
 
         err.into_err_or_flatten(move || {
             fun.remove_from_lua_registry();
-            R::from_obj(obj)
+            Ok(R::from_obj(obj)?)
         })
     }
 
@@ -297,7 +300,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().map(|line| nvim::String::try_from(line).unwrap())
+            lines.into_iter().map(|line| nvim::String::from_obj(line).unwrap())
         })
     }
 
@@ -311,7 +314,7 @@ impl Buffer {
         let mark =
             unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
         err.into_err_or_flatten(|| {
-            let mut iter = mark.into_iter().map(usize::try_from);
+            let mut iter = mark.into_iter().map(usize::from_obj);
             let row = iter.next().expect("row is present")?;
             let col = iter.next().expect("col is present")?;
             Ok((row, col))
@@ -349,7 +352,7 @@ impl Buffer {
         let obj = unsafe {
             nvim_buf_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Opt::from_obj(obj))
+        err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
     }
 
     /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
@@ -382,7 +385,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().map(|line| nvim::String::try_from(line).unwrap())
+            lines.into_iter().map(|line| nvim::String::from_obj(line).unwrap())
         })
     }
 
@@ -397,7 +400,7 @@ impl Buffer {
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Var::from_obj(obj))
+        err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
     }
 
     /// Binding to [`nvim_buf_is_loaded`](https://neovim.io/doc/user/api.html#nvim_buf_is_loaded()).

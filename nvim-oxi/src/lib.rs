@@ -21,7 +21,6 @@ mod toplevel;
 mod trait_utils;
 
 pub mod api;
-pub mod object;
 
 pub mod opts {
     //! Contains all the `*Opts` structs passed to functions as optional
@@ -60,16 +59,8 @@ pub mod mlua {
 
 // Re-exports.
 pub use error::{Error, Result};
-#[doc(hidden)]
-pub use nvim_types::{
-    Array,
-    Dictionary,
-    Function,
-    Object,
-    ObjectKind,
-    String,
-};
-pub use object::{FromObject, ToObject};
+pub use nvim_types::*;
+// pub use object::ToObject;
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]

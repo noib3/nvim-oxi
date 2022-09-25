@@ -1,8 +1,14 @@
-use nvim_types::{Function, Object};
+use nvim_types::{
+    Deserializer,
+    FromObject,
+    FromObjectResult,
+    Function,
+    Object,
+};
 use serde::Deserialize;
 
+use super::serde_utils as utils;
 use super::Mode;
-use crate::object::{self, de::utils, FromObject};
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
@@ -55,7 +61,7 @@ pub struct KeymapInfos {
 }
 
 impl FromObject for KeymapInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

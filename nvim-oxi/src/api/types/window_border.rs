@@ -204,10 +204,10 @@ impl<'de> de::Deserialize<'de> for WindowBorder {
 
 #[cfg(test)]
 mod tests {
+    use nvim_types::Deserializer;
     use serde::Deserialize;
 
     use super::*;
-    use crate::object::Deserializer;
 
     #[test]
     fn deserialize_none() {

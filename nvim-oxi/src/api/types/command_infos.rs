@@ -1,11 +1,16 @@
-use nvim_types::{Function, Object};
+use nvim_types::{
+    Deserializer,
+    FromObject,
+    FromObjectResult,
+    Function,
+    Object,
+};
 use serde::{
-    de::{Deserializer, Error},
+    de::{self, Error},
     Deserialize,
 };
 
 use super::{CommandAddr, CommandArgs, CommandNArgs, CommandRange};
-use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
@@ -59,7 +64,7 @@ pub struct CommandInfos {
 
 fn parse_count<'de, D>(deserializer: D) -> Result<Option<u32>, D::Error>
 where
-    D: Deserializer<'de>,
+    D: de::Deserializer<'de>,
 {
     Option::<String>::deserialize(deserializer)?
         .map(|count| {
@@ -71,7 +76,7 @@ where
 }
 
 impl FromObject for CommandInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

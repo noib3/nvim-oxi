@@ -1,9 +1,8 @@
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
 use super::ClientInfos;
 use crate::api::Buffer;
-use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
@@ -54,7 +53,7 @@ pub enum ChannelMode {
 }
 
 impl FromObject for ChannelInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

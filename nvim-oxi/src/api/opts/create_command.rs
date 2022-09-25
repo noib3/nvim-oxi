@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, Integer, NonOwning, Object};
+use nvim_types::{self as nvim, Integer, NonOwning, Object, ToObject};
 
 use crate::api::types::{
     CommandAddr,
@@ -7,7 +7,6 @@ use crate::api::types::{
     CommandNArgs,
     CommandRange,
 };
-use crate::object::ToObject;
 
 /// Options passed to `Buffer::create_user_command`.
 #[derive(Clone, Debug, Default, Builder)]

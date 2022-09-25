@@ -1,12 +1,18 @@
 use std::fmt;
 
-use nvim_types::{self as nvim, Object, TabHandle};
+use nvim_types::{
+    self as nvim,
+    FromObject,
+    FromObjectResult,
+    Object,
+    TabHandle,
+    ToObject,
+};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::tabpage::*;
 use super::Window;
 use crate::iterator::SuperIterator;
-use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 /// A newtype struct wrapping a Neovim tabpage. All the `nvim_tabpage_*`
@@ -40,8 +46,8 @@ impl From<TabPage> for Object {
 }
 
 impl FromObject for TabPage {
-    fn from_obj(obj: Object) -> Result<Self> {
-        Ok(TabHandle::try_from(obj)?.into())
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Ok(TabHandle::from_obj(obj)?.into())
     }
 }
 
@@ -84,7 +90,7 @@ impl TabPage {
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Var::from_obj(obj))
+        err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
     }
 
     /// Binding to [`nvim_tabpage_get_win`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()).

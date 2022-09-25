@@ -1,8 +1,14 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, Array, Dictionary, Object};
+use nvim_types::{
+    self as nvim,
+    Array,
+    Deserializer,
+    Dictionary,
+    FromObject,
+    FromObjectResult,
+    Object,
+};
 use serde::Deserialize;
-
-use crate::object::{self, FromObject};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Builder)]
@@ -84,7 +90,7 @@ impl From<EditorContext> for Dictionary {
 }
 
 impl FromObject for EditorContext {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

@@ -1,8 +1,7 @@
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
 use super::{ExtmarkHlMode, ExtmarkVirtTextPosition};
-use crate::object::{self, FromObject};
 
 /// Extmark infos returned by `Buffer::get_extmark_by_id`.
 #[non_exhaustive]
@@ -57,7 +56,7 @@ pub struct ExtmarkInfos {
 }
 
 impl FromObject for ExtmarkInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

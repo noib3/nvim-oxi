@@ -1,9 +1,9 @@
 use std::string::String as StdString;
 
-use nvim_types::{Object, ObjectKind};
 use serde::de::{self, IntoDeserializer};
 
-use crate::Result;
+use super::Result;
+use crate::{Object, ObjectKind};
 
 /// A struct used for deserializing Neovim `Object`s into Rust values.
 pub struct Deserializer {
@@ -17,7 +17,7 @@ impl Deserializer {
 }
 
 impl<'de> de::Deserializer<'de> for Deserializer {
-    type Error = crate::Error;
+    type Error = super::Error;
 
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
@@ -205,11 +205,11 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 }
 
 struct SeqDeserializer {
-    iter: nvim_types::ArrayIterator,
+    iter: crate::ArrayIterator,
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
-    type Error = crate::Error;
+    type Error = super::Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
     where
@@ -228,12 +228,12 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: nvim_types::DictIterator,
+    iter: crate::DictIterator,
     obj: Option<Object>,
 }
 
 impl<'de> de::MapAccess<'de> for MapDeserializer {
-    type Error = crate::Error;
+    type Error = super::Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>>
     where
@@ -270,7 +270,7 @@ struct EnumDeserializer {
 }
 
 impl<'de> de::EnumAccess<'de> for EnumDeserializer {
-    type Error = crate::Error;
+    type Error = super::Error;
     type Variant = VariantDeserializer;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant)>
@@ -288,7 +288,7 @@ struct VariantDeserializer {
 }
 
 impl<'de> de::VariantAccess<'de> for VariantDeserializer {
-    type Error = crate::Error;
+    type Error = super::Error;
 
     fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value>
     where
@@ -354,114 +354,12 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
     }
 }
 
-pub(crate) mod utils {
-    //! Utility functions for deserializing values coming from Neovim.
-
-    use serde::de::{self, Deserialize, Deserializer, IntoDeserializer};
-
-    pub(crate) fn bool_from_int<'de, D>(
-        deserializer: D,
-    ) -> Result<bool, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        match u8::deserialize(deserializer)? {
-            0 => Ok(false),
-            1 => Ok(true),
-
-            other => Err(de::Error::invalid_value(
-                de::Unexpected::Unsigned(other as u64),
-                &"zero or one",
-            )),
-        }
-    }
-
-    pub(crate) fn char_from_string<'de, D>(
-        deserializer: D,
-    ) -> Result<Option<char>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let str = String::deserialize(deserializer)?;
-        match str.len() {
-            0 => Ok(None),
-            1 => Ok(str.chars().next()),
-            other => Err(de::Error::invalid_length(
-                other,
-                &"empty string or string with a single character",
-            )),
-        }
-    }
-
-    pub(crate) fn empty_string_is_none<'de, D, T>(
-        deserializer: D,
-    ) -> Result<Option<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        let str = Option::<String>::deserialize(deserializer)?;
-
-        match str {
-            None => Ok(None),
-            Some(s) if s.is_empty() => Ok(None),
-            Some(s) => T::deserialize(s.into_deserializer()).map(Some),
-        }
-    }
-
-    pub(crate) fn minus_one_is_none<'de, D, T>(
-        deserializer: D,
-    ) -> Result<Option<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        let num = i64::deserialize(deserializer)?;
-
-        match num {
-            -1 => Ok(None),
-            n => T::deserialize(n.into_deserializer()).map(Some),
-        }
-    }
-
-    pub(crate) fn none_literal_is_none<'de, D, T>(
-        deserializer: D,
-    ) -> Result<Option<T>, D::Error>
-    where
-        D: de::Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        let str = Option::<String>::deserialize(deserializer)?;
-
-        match str {
-            None => Ok(None),
-            Some(s) if s == "none" => Ok(None),
-            Some(s) => T::deserialize(s.into_deserializer()).map(Some),
-        }
-    }
-
-    pub(crate) fn zero_is_none<'de, D, T>(
-        deserializer: D,
-    ) -> Result<Option<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        let num = i64::deserialize(deserializer)?;
-
-        match num {
-            0 => Ok(None),
-            n => T::deserialize(n.into_deserializer()).map(Some),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use nvim_types::{Array, Dictionary};
     use serde::Deserialize;
 
     use super::*;
+    use crate::{Array, Dictionary};
 
     fn d(value: impl Into<Object>) -> Result<Object> {
         Object::deserialize(Deserializer::new(value.into()))

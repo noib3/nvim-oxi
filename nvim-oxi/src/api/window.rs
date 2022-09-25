@@ -1,13 +1,22 @@
 use std::fmt;
 
 use lua_bindings::{LuaPoppable, LuaPushable};
-use nvim_types::{self as nvim, Array, Function, Integer, Object, WinHandle};
+use nvim_types::{
+    self as nvim,
+    Array,
+    FromObject,
+    FromObjectError,
+    Function,
+    Integer,
+    Object,
+    ToObject,
+    WinHandle,
+};
 use serde::{Deserialize, Serialize};
 
 use super::ffi::window::*;
 use super::LUA_INTERNAL_CALL;
 use super::{Buffer, TabPage};
-use crate::object::{FromObject, ToObject};
 use crate::Result;
 
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -47,8 +56,8 @@ impl From<&Window> for Object {
 }
 
 impl FromObject for Window {
-    fn from_obj(obj: Object) -> Result<Self> {
-        Ok(WinHandle::try_from(obj)?.into())
+    fn from_obj(obj: Object) -> std::result::Result<Self, FromObjectError> {
+        Ok(WinHandle::from_obj(obj)?.into())
     }
 }
 
@@ -83,7 +92,7 @@ impl Window {
 
         err.into_err_or_flatten(move || {
             fun.remove_from_lua_registry();
-            R::from_obj(obj)
+            Ok(R::from_obj(obj)?)
         })
     }
 
@@ -124,8 +133,8 @@ impl Window {
         let arr = unsafe { nvim_win_get_cursor(self.0, &mut err) };
         err.into_err_or_flatten(|| {
             let mut iter = arr.into_iter();
-            let line = iter.next().unwrap().try_into()?;
-            let col = iter.next().unwrap().try_into()?;
+            let line = usize::from_obj(iter.next().unwrap())?;
+            let col = usize::from_obj(iter.next().unwrap())?;
             Ok((line, col))
         })
     }
@@ -160,7 +169,7 @@ impl Window {
         let obj = unsafe {
             nvim_win_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Opt::from_obj(obj))
+        err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
     }
 
     /// Binding to [`nvim_win_get_position`](https://neovim.io/doc/user/api.html#nvim_win_get_position()).
@@ -171,8 +180,8 @@ impl Window {
         let arr = unsafe { nvim_win_get_position(self.0, &mut err) };
         err.into_err_or_flatten(|| {
             let mut iter = arr.into_iter();
-            let line = iter.next().unwrap().try_into()?;
-            let col = iter.next().unwrap().try_into()?;
+            let line = usize::from_obj(iter.next().unwrap())?;
+            let col = usize::from_obj(iter.next().unwrap())?;
             Ok((line, col))
         })
     }
@@ -197,7 +206,7 @@ impl Window {
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_win_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Var::from_obj(obj))
+        err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
     }
 
     /// Binding to [`nvim_win_get_width`](https://neovim.io/doc/user/api.html#nvim_win_get_width()).

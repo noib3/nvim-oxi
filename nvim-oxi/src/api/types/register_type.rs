@@ -1,7 +1,5 @@
-use nvim_types as nvim;
-use serde::{Serialize, Serializer};
-
-use crate::object;
+use nvim_types::{self as nvim, FromObject, Serializer};
+use serde::{ser, Serialize};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize)]
@@ -24,7 +22,7 @@ fn serialize_blockwise<S>(
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
-    S: Serializer,
+    S: ser::Serializer,
 {
     serializer.serialize_str(
         &(match width {
@@ -36,10 +34,11 @@ where
 
 impl From<RegisterType> for nvim::String {
     fn from(reg_type: RegisterType) -> Self {
-        reg_type
-            .serialize(object::Serializer)
-            .expect("`RegisterType` is serializable")
-            .try_into()
-            .expect("`RegisterType` is serialized into a string")
+        nvim::String::from_obj(
+            reg_type
+                .serialize(Serializer::new())
+                .expect("`RegisterType` is serializable"),
+        )
+        .expect("`RegisterType` is serialized into a string")
     }
 }

@@ -1,9 +1,8 @@
-use nvim_types::{self as nvim, Array, Object};
+use nvim_types::{self as nvim, Array, FromObject, Object};
 
 use super::ffi::vimscript::*;
 use super::types::*;
 use super::LUA_INTERNAL_CALL;
-use crate::object::FromObject;
 use crate::Result;
 
 /// Binding to [`nvim_call_dict_function`](https://neovim.io/doc/user/api.html#nvim_call_dict_function()).
@@ -31,7 +30,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_flatten(|| Ret::from_obj(res))
+    err.into_err_or_flatten(|| Ok(Ret::from_obj(res)?))
 }
 
 /// Binding to [`nvim_call_function`](https://neovim.io/doc/user/api.html#nvim_call_function()).
@@ -49,7 +48,7 @@ where
     let res = unsafe {
         nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| Ret::from_obj(res))
+    err.into_err_or_flatten(|| Ok(Ret::from_obj(res)?))
 }
 
 /// Binding to [`nvim_cmd`](https://neovim.io/doc/user/api.html#nvim_cmd()).
@@ -96,7 +95,7 @@ where
     let expr = nvim::String::from(expr);
     let mut err = nvim::Error::new();
     let output = unsafe { nvim_eval(expr.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| V::from_obj(output))
+    err.into_err_or_flatten(|| Ok(V::from_obj(output)?))
 }
 
 /// Binding to [`nvim_exec`](https://neovim.io/doc/user/api.html#nvim_exec()).
@@ -132,7 +131,7 @@ pub fn parse_cmd(
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| CmdInfos::from_obj(dict.into()))
+    err.into_err_or_flatten(|| Ok(CmdInfos::from_obj(dict.into())?))
 }
 
 /// Binding to [`nvim_parse_expression`](https://neovim.io/doc/user/api.html#nvim_parse_expression()).
@@ -154,5 +153,7 @@ pub fn parse_expression(
             &mut err,
         )
     };
-    err.into_err_or_flatten(|| ParsedVimLExpression::from_obj(dict.into()))
+    err.into_err_or_flatten(|| {
+        Ok(ParsedVimLExpression::from_obj(dict.into())?)
+    })
 }

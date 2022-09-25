@@ -1,7 +1,5 @@
-use nvim_types::Object;
+use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
-
-use crate::object::{self, FromObject};
 
 /// Attributes related to a highlight group.
 #[non_exhaustive]
@@ -26,7 +24,7 @@ pub struct HighlightInfos {
 }
 
 impl FromObject for HighlightInfos {
-    fn from_obj(obj: Object) -> crate::Result<Self> {
-        Self::deserialize(object::Deserializer::new(obj))
+    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
