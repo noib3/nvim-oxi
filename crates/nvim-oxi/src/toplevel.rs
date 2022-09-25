@@ -1,6 +1,6 @@
 use std::ffi::c_char;
 
-use lua_bindings::{self as lua, ffi::*, macros::cstr};
+use luajit_bindings::{self as lua, ffi::*, macros::cstr};
 use nvim_types::Function;
 
 use crate::Result;

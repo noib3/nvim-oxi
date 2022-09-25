@@ -5,7 +5,7 @@ use std::fmt;
 use std::mem::ManuallyDrop;
 
 use lua::{ffi::*, LuaPoppable, LuaPushable};
-use lua_bindings as lua;
+use luajit_bindings as lua;
 
 use crate::{
     Array,

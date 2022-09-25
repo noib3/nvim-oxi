@@ -15,7 +15,7 @@ license = "MIT"
 nightly = []
 
 [dependencies]
-lua-bindings = { version = "0.1", path = "../lua-bindings" }
+luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
 
 serde = { version = "1.0", optional = true }
 thiserror = "1.0"

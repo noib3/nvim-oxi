@@ -1,5 +1,5 @@
 use libuv_sys2::uv_loop_t;
-use lua_bindings::ffi::lua_State;
+use luajit_bindings::ffi::lua_State;
 use once_cell::unsync::OnceCell;
 
 thread_local! {

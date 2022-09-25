@@ -22,9 +22,9 @@ nightly = ["nvim-types/nightly"]
 test = ["oxi-test"]
 
 [dependencies]
-lua-bindings = { version = "0.1", path = "../lua-bindings" }
-nvim-api = { version = "0.1", path = "../nvim-api" }
 libuv-bindings = { version = "0.1", path = "../libuv-bindings", optional = true }
+luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
+nvim-api = { version = "0.1", path = "../nvim-api" }
 nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
 oxi-module = { version = "0.1", path = "../oxi-module" }
 oxi-test = { version = "0.1", path = "../oxi-test", optional = true }
@@ -41,6 +41,6 @@ tokio = { version = "1.0", features = ["full"] }
 
 [[example]]
 name = "libuv"
-path = "../examples/libuv.rs"
+path = "../../examples/libuv.rs"
 crate-type = ["cdylib"]
 required-features = ["libuv"]

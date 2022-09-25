@@ -12,4 +12,4 @@ nightly = ["nvim-oxi/nightly"]
 
 [dependencies]
 all_asserts = "2.3"
-nvim-oxi = { path = "../nvim-oxi", features = ["test"] }
+nvim-oxi = { path = "../crates/nvim-oxi", features = ["test"] }

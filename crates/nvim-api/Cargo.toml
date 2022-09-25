@@ -5,7 +5,7 @@ authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 
 [dependencies]
-lua-bindings = { version = "0.1", path = "../lua-bindings" }
+luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
 nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
 
 derive_builder = "0.11"

@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt;
 use std::marker::PhantomData;
 
-use lua_bindings::{self as lua, LuaPoppable, LuaPushable};
+use luajit_bindings::{self as lua, LuaPoppable, LuaPushable};
 
 use crate::LuaRef;
 

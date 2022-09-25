@@ -1,13 +1,7 @@
 [workspace]
 
 members = [
-  "lua-bindings",
-  "libuv-bindings",
-  "nvim-api",
-  "nvim-oxi",
-  "nvim-types",
-  "oxi-module",
-  "oxi-test",
+  "crates/*",
   "examples/*"
 ]
 

@@ -2,7 +2,7 @@
 
 use std::ffi::c_int;
 
-use lua_bindings::{self as lua, ffi::lua_State, LuaPushable};
+use luajit_bindings::{self as lua, ffi::lua_State, LuaPushable};
 
 /// The entrypoint of the plugin.
 ///

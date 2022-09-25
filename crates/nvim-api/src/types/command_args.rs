@@ -54,11 +54,11 @@ impl FromObject for CommandArgs {
     }
 }
 
-impl lua_bindings::LuaPoppable for CommandArgs {
+impl luajit_bindings::LuaPoppable for CommandArgs {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
-        lstate: *mut lua_bindings::ffi::lua_State,
+        lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Object::pop(lstate).and_then(|obj| Ok(Self::from_obj(obj)?))
     }

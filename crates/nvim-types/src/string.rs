@@ -7,7 +7,7 @@ use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
 
 use lua::{ffi::*, LuaPoppable, LuaPushable};
-use lua_bindings as lua;
+use luajit_bindings as lua;
 
 use crate::NonOwning;
 

@@ -1,7 +1,7 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-use lua_bindings::{LuaPoppable, LuaPushable};
+use luajit_bindings::{LuaPoppable, LuaPushable};
 use nvim_types::{
     self as nvim,
     Array,
@@ -82,7 +82,7 @@ impl LuaPoppable for Buffer {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
-        lstate: *mut lua_bindings::ffi::lua_State,
+        lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> std::result::Result<Self, Box<dyn std::error::Error>> {
         BufHandle::pop(lstate).map(Into::into)
     }

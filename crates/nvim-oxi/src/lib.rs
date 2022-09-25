@@ -35,7 +35,7 @@ pub mod types {
 }
 
 pub mod lua {
-    pub use lua_bindings::*;
+    pub use luajit_bindings::*;
 }
 
 #[cfg(feature = "libuv")]

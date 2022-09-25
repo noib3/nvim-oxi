@@ -41,11 +41,11 @@ impl FromObject for AutocmdCallbackArgs {
     }
 }
 
-impl lua_bindings::LuaPoppable for AutocmdCallbackArgs {
+impl luajit_bindings::LuaPoppable for AutocmdCallbackArgs {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
-        lstate: *mut lua_bindings::ffi::lua_State,
+        lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         Object::pop(lstate).and_then(|obj| Ok(Self::from_obj(obj)?))
     }
