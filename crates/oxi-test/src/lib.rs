@@ -30,84 +30,81 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #[test]
         fn #test_name() {
-            use ::std::fs;
+            let mut library_filename = String::new();
+            library_filename.push_str(::std::env::consts::DLL_PREFIX);
+            library_filename.push_str(env!("CARGO_CRATE_NAME"));
+            library_filename.push_str(::std::env::consts::DLL_SUFFIX);
 
-            #[cfg(all(unix, not(target_os = "macos")))]
-            mod consts {
-                pub const COMPILED_LIB_FILENAME: &str =
-                    concat!("lib", env!("CARGO_CRATE_NAME"), ".so");
+            let mut target_filename = String::from("__");
+            target_filename.push_str(stringify!(#test_name));
 
-                pub const TARGET_LIB_FILENAME: &str =
-                    concat!("__", stringify!(#test_name), ".so");
-            }
+            #[cfg(not(target_os = "macos"))]
+            target_filename.push_str(::std::env::consts::DLL_SUFFIX);
 
             #[cfg(target_os = "macos")]
-            mod consts {
-                pub const COMPILED_LIB_FILENAME: &str =
-                    concat!("lib", env!("CARGO_CRATE_NAME"), ".dylib");
+            target_filename.push_str(".so");
 
-                pub const TARGET_LIB_FILENAME: &str =
-                    concat!("__", stringify!(#test_name), ".so");
-            }
+            let target_dir =
+                ::std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("target")
+                    .join("debug");
 
-            #[cfg(target_os = "windows")]
-            mod consts {
-                pub const COMPILED_LIB_FILENAME: &str =
-                    concat!(env!("CARGO_CRATE_NAME"), ".dll");
+            let library_filepath = target_dir.join(library_filename);
 
-                pub const TARGET_LIB_FILENAME: &str =
-                    concat!("__", stringify!(#test_name), ".dll");
-            }
-
-            let root = ::std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-
-            let from_path = root
-                .join("target")
-                .join("debug")
-                .join(consts::COMPILED_LIB_FILENAME);
-
-            let to_path = root.join("lua").join(consts::TARGET_LIB_FILENAME);
-
-            if !from_path.exists() {
+            if !library_filepath.exists() {
                 panic!(
                     "Compiled library not found in '{}'. Please run `cargo \
                      build` before running the tests.",
-                    from_path.display()
+                    library_filepath.display()
                 )
             }
 
-            // Create the `lua` directory.
-            if !to_path.parent().unwrap().exists() {
-                // It might happen that another test created the `lua`
-                // directory between the if above returning `true` and the
-                // following call to `create_dir`.
-                if let Err(err) =
-                    ::std::fs::create_dir(to_path.parent().unwrap())
-                {
-                    match err.kind() {
-                        ::std::io::ErrorKind::AlreadyExists => {},
-                        _ => panic!("{:?}", err),
+            let target_filepath =
+                target_dir.join("oxi-test").join("lua").join(target_filename);
+
+            if !target_filepath.parent().unwrap().exists() {
+                if let Err(err) = ::std::fs::create_dir_all(
+                    target_filepath.parent().unwrap(),
+                ) {
+                    // It might happen that another test created the `lua`
+                    // directory between the first if and the `create_dir_all`.
+                    if !matches!(
+                        err.kind(),
+                        ::std::io::ErrorKind::AlreadyExists
+                    ) {
+                        panic!("{}", err)
                     }
                 }
             }
 
-            #[cfg(target_family = "unix")]
-            let res = ::std::os::unix::fs::symlink(&from_path, &to_path);
+            #[cfg(unix)]
+            let res = ::std::os::unix::fs::symlink(
+                &library_filepath,
+                &target_filepath,
+            );
 
-            #[cfg(target_family = "windows")]
-            let res = ::std::os::windows::fs::symlink_file(&from_path, &to_path);
+            #[cfg(windows)]
+            let res = ::std::os::windows::fs::symlink_file(
+                &library_filepath,
+                &target_filepath,
+            );
 
             if let Err(err) = res {
-                match err.kind() {
-                    ::std::io::ErrorKind::AlreadyExists => {},
-                    _ => panic!("{:?}", err),
+                if !matches!(err.kind(), ::std::io::ErrorKind::AlreadyExists) {
+                    panic!("{}", err)
                 }
             }
 
             let out = ::std::process::Command::new("nvim")
                 .args(["-u", "NONE", "--headless"])
                 .args(["-c", "set noswapfile"])
-                .args(["-c", &format!("set rtp+={}", root.display())])
+                .args([
+                    "-c",
+                    &format!(
+                        "set rtp+={}",
+                        target_dir.join("oxi-test").display()
+                    ),
+                ])
                 .args([
                     "-c",
                     &format!("lua require('__{}')", stringify!(#test_name)),
@@ -117,13 +114,18 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .expect("Couldn't find `nvim` binary in $PATH!");
 
             let stderr = String::from_utf8_lossy(&out.stderr);
+
             if !stderr.is_empty() {
                 // Remove the last 2 lines from stderr for a cleaner error msg.
-                let lines = stderr.lines().collect::<Vec<_>>();
-                let len = lines.len();
-                let stderr = &lines[..lines.len() - 2].join("\n");
-                // The first 31 bytes are `thread '<unnamed>' panicked at `
+                let stderr = {
+                    let lines = stderr.lines().collect::<Vec<_>>();
+                    let len = lines.len();
+                    lines[..lines.len() - 2].join("\n")
+                };
+
+                // The first 31 bytes are `thread '<unnamed>' panicked at `.
                 let (_, stderr) = stderr.split_at(31);
+
                 panic!("{}", stderr)
             }
         }
