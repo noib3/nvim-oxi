@@ -1,5 +1,4 @@
 target/
-**/Cargo.lock
 lua/
-**/*.lua
+**/Cargo.lock
 /TODO.md
