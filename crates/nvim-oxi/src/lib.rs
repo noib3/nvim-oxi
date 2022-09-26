@@ -51,16 +51,16 @@ pub mod mlua {
     /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
     /// to be able to interact with other Lua plugins.
     pub fn lua() -> &'static mlua::Lua {
-        crate::lua::with_state(|lstate| unsafe {
-            mlua::Lua::init_from_ptr(lstate as *mut _).into_static()
-        })
+        unsafe {
+            crate::lua::with_state(|lstate| {
+                mlua::Lua::init_from_ptr(lstate as *mut _).into_static()
+            })
+        }
     }
 }
 
-// Re-exports.
 pub use error::{Error, Result};
 pub use nvim_types::*;
-// pub use object::ToObject;
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]

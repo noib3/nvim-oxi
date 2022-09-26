@@ -1,28 +1,56 @@
 # Examples
 
-- `calc`: shows how to expose your plugin's core functions to Lua;
+## [`api`](./api.rs)
 
-- `api`: shows how to use the `api` module to create commands, set keymaps and
-  manipulate floating windows;
+Shows how to use the `api` module to create commands, set keymaps and
+manipulate floating windows.
 
-- `mechanic`: shows how to deserialize Lua tables into Rust objects using
-  [`serde`](https://serde.rs);
+## [`calc`](./calc.rs)
 
-- `mlua`: shows how to integrate `nvim-oxi` with the
-  [`mlua`](https://github.com/khvzak/mlua) crate;
+Shows how to expose your plugin's core functions to Lua.
 
-- `async`: shows how to use the `nvim_oxi::r#loop` module to trigger a callback
-  registered on the Neovim thread from other threads.
+```lua
+local calc = require("calc")
 
-The examples also include some snippets of Lua code that you can use to test
-the plugins from Neovim once you've compiled and loaded them following the
-steps below.
+-- All the following commands will print `42` in the Neovim message area.
 
-NOTE: all the examples are compiled **without** the `nightly` feature flag,
-which means they might not work if using a nightly version of Neovim. Consider
-using the latest stable Neovim version when testing them.
+print(calc.add(1, 41))
+print(calc.multiply(2, 21))
 
-## Crate setup
+print(calc.compute(function(a, b) return a + b; end, 1, 41))
+print(calc.compute(function(a, b) return a * b; end, 2, 21))
+```
+
+## [`mechanic`](./mechanic.rs)
+
+Shows how to deserialize Lua tables into Rust objects using
+[`serde`](https://serde.rs).
+
+```lua
+local mechanic = require("mechanic")
+
+local fixed = mechanic.fix({
+  manufacturer = "Tesla",
+  miles = 69420,
+  works = false,
+  problem = "kills_pedestrians",
+})
+
+assert(fixed.works)
+assert(fixed.problem == nil)
+```
+
+## [`mlua`](./mlua.rs)
+
+Shows how to integrate `nvim-oxi` with the
+[`mlua`](https://github.com/khvzak/mlua) crate.
+
+## [`libuv`](./libuv.rs)
+
+Shows how to use the `nvim_oxi::libuv` module to trigger a callback registered
+on the Neovim thread from other threads.
+
+# Crate setup
 
 The first step is to create a new library crate with `cargo new --lib
 {your_plugin}` and edit the generated `Cargo.toml` to include:

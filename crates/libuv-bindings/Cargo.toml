@@ -5,7 +5,8 @@ authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 
 [dependencies]
-libuv-sys2 = "1.44.2"
 luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
+
+libuv-sys2 = "1.44.2"
 once_cell = "1.15"
 thiserror = "1.0"

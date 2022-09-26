@@ -12,6 +12,6 @@ fn greetings(_: ()) -> oxi::Result<()> {
 }
 
 #[oxi::module]
-fn lua() -> oxi::Result<Dictionary> {
+fn mlua() -> oxi::Result<Dictionary> {
     Ok(Dictionary::from_iter([("greetings", Function::from_fn(greetings))]))
 }
