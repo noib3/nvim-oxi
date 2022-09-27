@@ -20,25 +20,27 @@
     };
   };
 
-  outputs = { self, ... }@inputs: with inputs;
+  outputs = inputs: with inputs;
     flake-utils.lib.eachDefaultSystem (system:
       let
+        inherit (nixpkgs.lib) lists;
+
         mkPkgs = isNightly: (import nixpkgs {
           inherit system;
           overlays = [
             rust-overlay.overlays.default
-          ] ++ nixpkgs.lib.lists.optionals isNightly [
+          ] ++ lists.optionals isNightly [
             neovim-nightly-overlay.overlay
           ];
         });
 
-        mkShell = isNightly: (
+        mkShell = { nightly }: (
           let
-            pkgs = mkPkgs isNightly;
+            pkgs = mkPkgs nightly;
             inherit (pkgs) lib stdenv;
           in
           pkgs.mkShell {
-            buildInputs = lib.lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
+            buildInputs = lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
 
             packages = with pkgs; [
               (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
@@ -52,8 +54,8 @@
       in
       {
         devShells = {
-          default = mkShell false;
-          nightly = mkShell true;
+          default = mkShell { nightly = false; };
+          nightly = mkShell { nightly = true; };
         };
       }
     );
