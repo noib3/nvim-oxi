@@ -2,7 +2,6 @@ use std::ffi::c_int;
 
 use crate::ffi::*;
 use crate::macros::count;
-use crate::utils;
 
 /// Trait implemented for types that can be popped off the Lua stack.
 pub trait LuaPoppable: Sized {
@@ -30,21 +29,10 @@ where
 
         LUA_TNONE => Err(crate::Error::pop_error(
             std::any::type_name::<T>(),
-            Some("stack is empty"),
+            "stack is empty",
         )),
 
-        _ => {
-            let typename = std::any::type_name::<T>();
-
-            Err(crate::Error::pop_error(
-                typename,
-                Some(format!(
-                    "expected {}, got {} instead",
-                    typename,
-                    utils::debug_type(lstate, -1)
-                )),
-            ))
-        },
+        _ => Err(crate::Error::pop_wrong_type_at_idx::<T>(lstate, -1)),
     }
 }
 
@@ -96,7 +84,7 @@ macro_rules! pop_try_from_integer {
                 n.map_err(|err: std::num::TryFromIntError| {
                     crate::Error::pop_error(
                         std::any::type_name::<$integer>(),
-                        Some(err.to_string()),
+                        err.to_string(),
                     )
                 })
             }
@@ -158,7 +146,7 @@ impl LuaPoppable for String {
             String::from_utf8(vec).map_err(|err| {
                 crate::Error::pop_error(
                     std::any::type_name::<String>(),
-                    Some(err.to_string()),
+                    err.to_string(),
                 )
             })
         })

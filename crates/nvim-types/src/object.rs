@@ -463,12 +463,18 @@ impl LuaPoppable for Object {
                 Ok(Object::from_luaref(luaref))
             },
 
-            LUA_TNONE => todo!(),
+            LUA_TNONE => {
+                Err(lua::Error::pop_error("Object", "stack is empty"))
+            },
 
             LUA_TLIGHTUSERDATA | LUA_TUSERDATA | LUA_TTHREAD => {
                 let typename = lua::utils::debug_type(lstate, -1);
                 lua_pop(lstate, 1);
-                todo!()
+
+                Err(lua::Error::pop_error(
+                    "Object",
+                    format!("unexpected value of type {}", typename),
+                ))
             },
 
             _ => unreachable!(),

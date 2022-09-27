@@ -72,7 +72,7 @@ macro_rules! push_try_into_integer {
                     |err: std::num::TryFromIntError| {
                         crate::Error::push_error(
                             std::any::type_name::<$integer>(),
-                            Some(err.to_string()),
+                            err.to_string(),
                         )
                     },
                 )?;

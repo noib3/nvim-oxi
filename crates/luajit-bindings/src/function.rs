@@ -31,8 +31,8 @@ where
         crate::with_state(move |lstate| {
             let fun = move |lstate| {
                 let args = A::pop(lstate)?;
-                let ret =
-                    fun(args).map_err(crate::Error::push_ciao::<R, _>)?;
+                let ret = fun(args)
+                    .map_err(crate::Error::push_error_from_err::<R, _>)?;
                 ret.push(lstate)
             };
 

@@ -61,11 +61,8 @@ impl luajit_bindings::LuaPoppable for CommandArgs {
         lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> Result<Self, luajit_bindings::Error> {
         let obj = Object::pop(lstate)?;
-        Self::from_obj(obj).map_err(|err| {
-            luajit_bindings::Error::pop_error(
-                std::any::type_name::<Self>(),
-                Some(err.to_string()),
-            )
-        })
+
+        Self::from_obj(obj)
+            .map_err(luajit_bindings::Error::pop_error_from_err::<Self, _>)
     }
 }

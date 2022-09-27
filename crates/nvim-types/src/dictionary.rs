@@ -110,8 +110,7 @@ impl LuaPoppable for Dictionary {
         if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
             || lua::utils::is_table_array(lstate, -1)
         {
-            // TODO: return early
-            todo!()
+            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
         }
 
         let len = lua_objlen(lstate, -1);
@@ -124,13 +123,10 @@ impl LuaPoppable for Dictionary {
             if lua_type(lstate, -2) != LUA_TSTRING {
                 let typename = lua::utils::debug_type(lstate, -2);
 
-                // TODO: return early
-                todo!()
-
-                // return Err(Error::custom(format!(
-                //     "encountered a {typename} key while popping a dictionary \
-                //      off the stack"
-                // )));
+                return Err(lua::Error::pop_error(
+                    "Dictionary",
+                    format!("found a key of type \"{}\"", typename),
+                ));
             }
 
             let key = {
