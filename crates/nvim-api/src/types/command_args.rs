@@ -59,7 +59,13 @@ impl luajit_bindings::LuaPoppable for CommandArgs {
 
     unsafe fn pop(
         lstate: *mut luajit_bindings::ffi::lua_State,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
-        Object::pop(lstate).and_then(|obj| Ok(Self::from_obj(obj)?))
+    ) -> Result<Self, luajit_bindings::Error> {
+        let obj = Object::pop(lstate)?;
+        Self::from_obj(obj).map_err(|err| {
+            luajit_bindings::Error::pop_error(
+                std::any::type_name::<Self>(),
+                Some(err.to_string()),
+            )
+        })
     }
 }

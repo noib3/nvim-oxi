@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::ffi::c_int;
 
 use crate::ffi::{self, lua_Integer, lua_Number, lua_State};
@@ -11,14 +10,14 @@ pub trait LuaPushable {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>>;
+    ) -> Result<c_int, crate::Error>;
 }
 
 impl LuaPushable for () {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    ) -> Result<c_int, crate::Error> {
         ffi::lua_pushnil(lstate);
         Ok(1)
     }
@@ -28,7 +27,7 @@ impl LuaPushable for bool {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    ) -> Result<c_int, crate::Error> {
         ffi::lua_pushboolean(lstate, if self { 1 } else { 0 });
         Ok(1)
     }
@@ -38,7 +37,7 @@ impl LuaPushable for lua_Integer {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    ) -> Result<c_int, crate::Error> {
         ffi::lua_pushinteger(lstate, self);
         Ok(1)
     }
@@ -52,7 +51,7 @@ macro_rules! push_into_integer {
             unsafe fn push(
                 self,
                 lstate: *mut lua_State,
-            ) -> Result<c_int, Box<dyn Error>> {
+            ) -> Result<c_int, crate::Error> {
                 let n: lua_Integer = self.into();
                 n.push(lstate)
             }
@@ -68,8 +67,15 @@ macro_rules! push_try_into_integer {
             unsafe fn push(
                 self,
                 lstate: *mut lua_State,
-            ) -> Result<c_int, Box<dyn Error>> {
-                let n: lua_Integer = self.try_into()?;
+            ) -> Result<c_int, crate::Error> {
+                let n: lua_Integer = self.try_into().map_err(
+                    |err: std::num::TryFromIntError| {
+                        crate::Error::push_error(
+                            std::any::type_name::<$integer>(),
+                            Some(err.to_string()),
+                        )
+                    },
+                )?;
                 n.push(lstate)
             }
         }
@@ -90,7 +96,7 @@ impl LuaPushable for lua_Number {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    ) -> Result<c_int, crate::Error> {
         ffi::lua_pushnumber(lstate, self);
         Ok(1)
     }
@@ -100,7 +106,7 @@ impl LuaPushable for f32 {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    ) -> Result<c_int, crate::Error> {
         (self as lua_Number).push(lstate)
     }
 }
@@ -117,7 +123,7 @@ macro_rules! push_tuple {
             unsafe fn push(
                 self,
                 lstate: *mut lua_State,
-            ) -> Result<c_int, Box<dyn Error>> {
+            ) -> Result<c_int, crate::Error> {
                 let ($($name,)*) = self;
                 $($name.push(lstate)?;)*
                 Ok(count!($($name)*))

@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
@@ -26,15 +25,12 @@ impl fmt::Display for Array {
 }
 
 impl LuaPushable for Array {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
-        lua_createtable(lstate, self.len().try_into()?, 0);
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
+        lua_createtable(lstate, self.len() as _, 0);
 
         for (i, obj) in self.into_iter().enumerate() {
             obj.push(lstate)?;
-            lua_rawseti(lstate, -2, (i + 1).try_into()?);
+            lua_rawseti(lstate, -2, (i + 1) as _);
         }
 
         Ok(1)
@@ -44,7 +40,7 @@ impl LuaPushable for Array {
 impl LuaPoppable for Array {
     const N: c_int = 1;
 
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
         if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
             || !lua::utils::is_table_array(lstate, -1)
         {

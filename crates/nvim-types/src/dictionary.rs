@@ -1,5 +1,4 @@
 use std::collections::HashMap as StdHashMap;
-use std::error::Error;
 use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
@@ -91,11 +90,8 @@ impl<S: Into<String>> std::ops::IndexMut<S> for Dictionary {
 }
 
 impl LuaPushable for Dictionary {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
-        lua::ffi::lua_createtable(lstate, 0, self.len().try_into()?);
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
+        lua::ffi::lua_createtable(lstate, 0, self.len() as _);
 
         for (key, obj) in self {
             lua::ffi::lua_pushlstring(lstate, key.as_ptr(), key.len());
@@ -110,7 +106,7 @@ impl LuaPushable for Dictionary {
 impl LuaPoppable for Dictionary {
     const N: c_int = 1;
 
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
         if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
             || lua::utils::is_table_array(lstate, -1)
         {

@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::error::Error;
 use std::ffi::{c_char, c_int, OsStr};
 use std::mem::ManuallyDrop;
 use std::path::PathBuf;
@@ -258,10 +257,7 @@ impl TryFrom<String> for StdString {
 }
 
 impl LuaPushable for String {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
         Ok(1)
     }
@@ -270,21 +266,8 @@ impl LuaPushable for String {
 impl LuaPoppable for String {
     const N: c_int = 1;
 
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
-        if lua_type(lstate, -1) != LUA_TSTRING {
-            // TODO: return early
-            todo!()
-        }
-
-        let mut len = 0;
-        let ptr = lua_tolstring(lstate, -1, &mut len);
-
-        let mut vec = Vec::<u8>::with_capacity(len);
-        std::ptr::copy(ptr as *const u8, vec.as_mut_ptr(), len);
-        vec.set_len(len);
-
-        lua_pop(lstate, 1);
-
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
+        let vec = LuaPoppable::pop(lstate)?;
         Ok(Self::from_bytes(vec))
     }
 }

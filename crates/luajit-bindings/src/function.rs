@@ -15,7 +15,7 @@ where
     E: Error + 'static,
 {
     type Callback =
-        Box<dyn Fn(*mut lua_State) -> Result<c_int, Box<dyn Error>> + 'static>;
+        Box<dyn Fn(*mut lua_State) -> Result<c_int, crate::Error> + 'static>;
 
     unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
         let fun = {
@@ -24,14 +24,15 @@ where
             &**upv
         };
 
-        fun(lstate).unwrap_or_else(|err| utils::handle_error(lstate, &*err))
+        fun(lstate).unwrap_or_else(|err| utils::handle_error(lstate, &err))
     }
 
     unsafe {
         crate::with_state(move |lstate| {
             let fun = move |lstate| {
                 let args = A::pop(lstate)?;
-                let ret = fun(args)?;
+                let ret =
+                    fun(args).map_err(crate::Error::push_ciao::<R, _>)?;
                 ret.push(lstate)
             };
 

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use luajit_bindings::{LuaPoppable, LuaPushable};
+use luajit_bindings::{self as lua, LuaPoppable, LuaPushable};
 use nvim_types::{
     self as nvim,
     Array,
@@ -66,7 +66,7 @@ impl LuaPoppable for Window {
 
     unsafe fn pop(
         lstate: *mut luajit_bindings::ffi::lua_State,
-    ) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+    ) -> std::result::Result<Self, lua::Error> {
         WinHandle::pop(lstate).map(Into::into)
     }
 }

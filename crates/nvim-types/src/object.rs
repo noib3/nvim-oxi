@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::error::Error;
 use std::ffi::c_int;
 use std::fmt;
 use std::mem::ManuallyDrop;
@@ -408,10 +407,7 @@ impl<A, R> From<Function<A, R>> for Object {
 }
 
 impl LuaPushable for Object {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, Box<dyn Error>> {
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         match self.kind() {
             ObjectKind::Nil => ().push(lstate),
             ObjectKind::Boolean => self.as_boolean_unchecked().push(lstate),
@@ -425,8 +421,7 @@ impl LuaPushable for Object {
                 let index = lua::ffi::LUA_REGISTRYINDEX;
                 let lua_ref = self.as_luaref_unchecked();
                 lua::ffi::lua_rawgeti(lstate, index, lua_ref);
-                todo!()
-                // Ok(1)
+                Ok(1)
             },
         }
     }
@@ -435,7 +430,7 @@ impl LuaPushable for Object {
 impl LuaPoppable for Object {
     const N: c_int = 1;
 
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, Box<dyn Error>> {
+    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
         match lua_type(lstate, -1) {
             LUA_TNIL => <()>::pop(lstate).map(Into::into),
 
