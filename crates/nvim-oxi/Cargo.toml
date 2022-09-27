@@ -34,7 +34,7 @@ serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 
 [dev-dependencies]
-mlua = { version = "0.8", features = ["luajit"] }
+mlua = { version = "0.8", features = ["luajit", "module", "vendored"] }
 tokio = { version = "1.0", features = ["full"] }
 
 [[example]]
