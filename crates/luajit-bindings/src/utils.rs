@@ -6,10 +6,8 @@ use crate::ffi::{self, lua_State};
 /// Does nothing if the stack is already taller than `n`, grows the stack
 /// height to `n` by adding `nil`s if it's not.
 pub unsafe fn grow_stack(lstate: *mut lua_State, n: c_int) {
-    unsafe {
-        if ffi::lua_gettop(lstate) < n {
-            ffi::lua_settop(lstate, n);
-        }
+    if ffi::lua_gettop(lstate) < n {
+        ffi::lua_settop(lstate, n);
     }
 }
 

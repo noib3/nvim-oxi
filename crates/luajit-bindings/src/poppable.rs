@@ -53,7 +53,7 @@ impl LuaPoppable for bool {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TBOOLEAN, |lstate| unsafe {
+        pop_impl(lstate, LUA_TBOOLEAN, |lstate| {
             Ok(lua_toboolean(lstate, -1) == 1)
         })
     }
@@ -63,9 +63,7 @@ impl LuaPoppable for lua_Integer {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TNUMBER, |lstate| unsafe {
-            Ok(lua_tointeger(lstate, -1))
-        })
+        pop_impl(lstate, LUA_TNUMBER, |lstate| Ok(lua_tointeger(lstate, -1)))
     }
 }
 
@@ -106,9 +104,7 @@ impl LuaPoppable for lua_Number {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TNUMBER, |lstate| unsafe {
-            Ok(lua_tonumber(lstate, -1))
-        })
+        pop_impl(lstate, LUA_TNUMBER, |lstate| Ok(lua_tonumber(lstate, -1)))
     }
 }
 
@@ -124,7 +120,7 @@ impl LuaPoppable for Vec<u8> {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TSTRING, |lstate| unsafe {
+        pop_impl(lstate, LUA_TSTRING, |lstate| {
             let mut len = 0;
             let ptr = lua_tolstring(lstate, -1, &mut len);
 
@@ -140,7 +136,7 @@ impl LuaPoppable for String {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TSTRING, |lstate| unsafe {
+        pop_impl(lstate, LUA_TSTRING, |lstate| {
             let vec = LuaPoppable::pop(lstate)?;
 
             String::from_utf8(vec).map_err(|err| {
