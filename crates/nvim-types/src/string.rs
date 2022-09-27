@@ -267,6 +267,12 @@ impl LuaPoppable for String {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
+        if lua::ffi::lua_type(lstate, -1) != lua::ffi::LUA_TSTRING
+            || lua::utils::is_table_array(lstate, -1)
+        {
+            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
+        }
+
         let vec = LuaPoppable::pop(lstate)?;
         Ok(Self::from_bytes(vec))
     }

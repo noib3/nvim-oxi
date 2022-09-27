@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::error::Error;
+use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -34,6 +35,34 @@ where
 {
     fn from(fun: F) -> Function<A, R> {
         Function::from_fn_mut(fun)
+    }
+}
+
+impl<A, R> LuaPoppable for Function<A, R> {
+    const N: c_int = 1;
+
+    unsafe fn pop(
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<Self, lua::Error> {
+        if lua::ffi::lua_type(lstate, -1) != lua::ffi::LUA_TFUNCTION
+            || lua::utils::is_table_array(lstate, -1)
+        {
+            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
+        }
+
+        let luaref = lua::ffi::luaL_ref(lstate, lua::ffi::LUA_REGISTRYINDEX);
+        Ok(Self::from_ref(luaref))
+    }
+}
+
+impl<A, R> LuaPushable for Function<A, R> {
+    unsafe fn push(
+        self,
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<c_int, lua::Error> {
+        let index = lua::ffi::LUA_REGISTRYINDEX;
+        lua::ffi::lua_rawgeti(lstate, index, self.lua_ref);
+        Ok(1)
     }
 }
 

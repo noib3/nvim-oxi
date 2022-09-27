@@ -416,12 +416,9 @@ impl LuaPushable for Object {
             ObjectKind::String => self.into_string_unchecked().push(lstate),
             ObjectKind::Array => self.into_array_unchecked().push(lstate),
             ObjectKind::Dictionary => self.into_dict_unchecked().push(lstate),
-
             ObjectKind::LuaRef => {
-                let index = lua::ffi::LUA_REGISTRYINDEX;
-                let lua_ref = self.as_luaref_unchecked();
-                lua::ffi::lua_rawgeti(lstate, index, lua_ref);
-                Ok(1)
+                Function::<(), ()>::from_ref(self.as_luaref_unchecked())
+                    .push(lstate)
             },
         }
     }
@@ -458,10 +455,7 @@ impl LuaPoppable for Object {
                 }
             },
 
-            LUA_TFUNCTION => {
-                let luaref = luaL_ref(lstate, LUA_REGISTRYINDEX);
-                Ok(Object::from_luaref(luaref))
-            },
+            LUA_TFUNCTION => Function::<(), ()>::pop(lstate).map(Into::into),
 
             LUA_TNONE => {
                 Err(lua::Error::pop_error("Object", "stack is empty"))
