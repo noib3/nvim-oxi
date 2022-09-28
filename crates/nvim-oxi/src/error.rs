@@ -1,13 +1,10 @@
-use std::fmt;
-
-use serde::{de, ser};
 use thiserror::Error as ThisError;
 
 /// Alias for a `Result` with error type [`nvim_oxi::Error`](Error).
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error returned by `nvim-oxi` functions.
-#[derive(Debug, ThisError)]
+#[derive(Clone, Debug, ThisError)]
 #[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {
     #[error(transparent)]
@@ -20,31 +17,7 @@ pub enum Error {
     ToObjectError(#[from] nvim_types::ToObjectError),
 
     #[error(transparent)]
-    BadUtf8Error(#[from] std::string::FromUtf8Error),
-
-    #[error(transparent)]
-    IntError(#[from] std::num::TryFromIntError),
-
-    #[error("{0}")]
-    SerializeError(String),
-
-    #[error("{0}")]
-    DeserializeError(String),
-
-    #[error("FnMut called recursively")]
-    LuaFunMutRecursiveCallback,
-
-    #[error("FnOnce called more than once")]
-    LuaFunOnceMoreThanOnce,
-
-    #[error("Lua runtime error: {0}")]
-    LuaRuntimeError(String),
-
-    #[error("Lua memory error: {0}")]
-    LuaMemoryError(String),
-
-    #[error("{0}")]
-    Other(String),
+    ApiError(#[from] nvim_api::Error),
 
     #[cfg(feature = "libuv")]
     #[error(transparent)]
@@ -53,22 +26,4 @@ pub enum Error {
     #[cfg(feature = "mlua")]
     #[error(transparent)]
     MluaError(#[from] mlua::Error),
-}
-
-impl ser::Error for Error {
-    fn custom<T: fmt::Display>(msg: T) -> Self {
-        Self::SerializeError(msg.to_string())
-    }
-}
-
-impl de::Error for Error {
-    fn custom<T: fmt::Display>(msg: T) -> Self {
-        Self::DeserializeError(msg.to_string())
-    }
-}
-
-impl Error {
-    pub fn custom(msg: impl fmt::Display) -> Self {
-        Self::Other(msg.to_string())
-    }
 }

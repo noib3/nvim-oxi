@@ -7,8 +7,7 @@ use thiserror::Error as ThisError;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error returned by `nvim-oxi` functions.
-#[derive(Debug, ThisError)]
-#[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
+#[derive(Clone, Debug, ThisError, Eq, PartialEq)]
 pub enum Error {
     #[error(transparent)]
     NvimError(#[from] nvim_types::Error),
@@ -31,28 +30,8 @@ pub enum Error {
     #[error("{0}")]
     DeserializeError(String),
 
-    #[error("FnMut called recursively")]
-    LuaFunMutRecursiveCallback,
-
-    #[error("FnOnce called more than once")]
-    LuaFunOnceMoreThanOnce,
-
-    #[error("Lua runtime error: {0}")]
-    LuaRuntimeError(String),
-
-    #[error("Lua memory error: {0}")]
-    LuaMemoryError(String),
-
     #[error("{0}")]
     Other(String),
-
-    #[cfg(feature = "libuv")]
-    #[error(transparent)]
-    LibuvError(#[from] nvim_libuv::Error),
-
-    #[cfg(feature = "mlua")]
-    #[error(transparent)]
-    MluaError(#[from] mlua::Error),
 }
 
 impl ser::Error for Error {

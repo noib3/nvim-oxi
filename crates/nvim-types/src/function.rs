@@ -126,12 +126,12 @@ impl<A, R> Function<A, R> {
         })
     }
 
-    pub fn call(&self, args: A) -> R
+    pub fn call(&self, args: A) -> Result<R, lua::Error>
     where
         A: LuaPushable,
         R: LuaPoppable,
     {
-        lua::function::call(self.lua_ref, args).unwrap() /* TODO */
+        lua::function::call(self.lua_ref, args)
     }
 
     /// Consumes the `Function`, removing the reference stored in the Lua

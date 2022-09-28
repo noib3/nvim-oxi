@@ -3,8 +3,10 @@ use std::ffi::{c_char, CStr, CString};
 use std::fmt;
 use std::result::Result as StdResult;
 
+use thiserror::Error as ThisError;
+
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
-#[derive(thiserror::Error, Eq, PartialEq)]
+#[derive(Clone, ThisError, Eq, PartialEq)]
 #[repr(C)]
 pub struct Error {
     r#type: ErrorType,
@@ -16,7 +18,7 @@ unsafe impl Sync for Error {}
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
 #[allow(dead_code, non_camel_case_types)]
-#[derive(Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 #[repr(C)]
 enum ErrorType {
     None = -1,

@@ -54,7 +54,7 @@ where
     unsafe {
         crate::with_state(move |lstate| {
             ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, lua_ref);
-            let nargs = args.push(lstate).unwrap()/* TODO */;
+            let nargs = args.push(lstate)?;
 
             match ffi::lua_pcall(
                 lstate,
@@ -62,7 +62,7 @@ where
                 R::N,
                 0, /* <- errorfunc */
             ) {
-                ffi::LUA_OK => Ok(R::pop(lstate).unwrap()), /* TODO */
+                ffi::LUA_OK => R::pop(lstate),
 
                 err_code => {
                     let msg = CStr::from_ptr(ffi::lua_tostring(lstate, -1))

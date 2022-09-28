@@ -40,7 +40,7 @@ fn api() -> oxi::Result<Dictionary> {
     let win: Rc<RefCell<Option<Window>>> = Rc::default();
 
     let w = Rc::clone(&win);
-    let open_window = Function::from_fn(move |()| {
+    let open_window = Function::from_fn::<_, oxi::Error>(move |()| {
         if w.borrow().is_some() {
             api::err_writeln("Window is already open");
             return Ok(());
