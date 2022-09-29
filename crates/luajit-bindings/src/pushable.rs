@@ -111,6 +111,22 @@ impl LuaPushable for f32 {
     }
 }
 
+impl<T: LuaPushable> LuaPushable for Vec<T> {
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, crate::Error> {
+        ffi::lua_createtable(lstate, self.len() as _, 0);
+
+        for (i, obj) in self.into_iter().enumerate() {
+            obj.push(lstate)?;
+            ffi::lua_rawseti(lstate, -2, (i + 1) as _);
+        }
+
+        Ok(1)
+    }
+}
+
 /// Implements `LuaPushable` for a tuple `(a, b, c, ..)` where all the elements
 /// in the tuple implement `LuaPushable`.
 macro_rules! push_tuple {

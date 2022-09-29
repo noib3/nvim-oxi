@@ -63,7 +63,7 @@ impl LuaPoppable for Array {
                 ));
             }
 
-            items.push(Object::pop(lstate)?);
+            Vec::push(&mut items, Object::pop(lstate)?);
         }
 
         lua_pop(lstate, 1);

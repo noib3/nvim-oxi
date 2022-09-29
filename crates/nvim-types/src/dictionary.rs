@@ -142,7 +142,7 @@ impl LuaPoppable for Dictionary {
 
             let value = Object::pop(lstate)?;
 
-            pairs.push((key, value));
+            Vec::push(&mut pairs, (key, value));
         }
 
         lua_pop(lstate, 1);

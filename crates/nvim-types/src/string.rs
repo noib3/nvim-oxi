@@ -42,7 +42,7 @@ impl String {
     #[inline]
     pub fn from_bytes(mut vec: Vec<u8>) -> Self {
         vec.reserve_exact(1);
-        vec.push(0);
+        Vec::push(&mut vec, 0);
 
         let size = vec.len() - 1;
         let data = vec.leak().as_mut_ptr() as *mut c_char;
