@@ -215,7 +215,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
     where
         T: de::DeserializeSeed<'de>,
     {
-        while let Some(obj) = self.iter.next() {
+        if let Some(obj) = self.iter.next() {
             return seed.deserialize(Deserializer { obj }).map(Some);
         }
 
@@ -239,7 +239,7 @@ impl<'de> de::MapAccess<'de> for MapDeserializer {
     where
         K: de::DeserializeSeed<'de>,
     {
-        while let Some((name, obj)) = self.iter.next() {
+        if let Some((name, obj)) = self.iter.next() {
             self.obj = Some(obj);
             return seed
                 .deserialize(Deserializer { obj: name.into() })
