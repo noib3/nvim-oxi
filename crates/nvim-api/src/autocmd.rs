@@ -33,7 +33,7 @@ pub fn create_augroup(
         nvim_create_augroup(
             LUA_INTERNAL_CALL,
             name.non_owning(),
-            &opts.into(),
+            &opts,
             &mut err,
         )
     };
@@ -115,7 +115,7 @@ pub fn get_autocmds(
 ) -> Result<impl SuperIterator<AutocmdInfos>> {
     let opts = opts.map(KeyDict_get_autocmds::from).unwrap_or_default();
     let mut err = nvim::Error::new();
-    let infos = unsafe { nvim_get_autocmds(&opts.into(), &mut err) };
+    let infos = unsafe { nvim_get_autocmds(&opts, &mut err) };
     err.into_err_or_else(|| {
         infos.into_iter().map(|obj| AutocmdInfos::from_obj(obj).unwrap())
     })

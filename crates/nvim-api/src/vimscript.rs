@@ -106,7 +106,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     let src = nvim::String::from(src);
     let mut err = nvim::Error::new();
     let output = unsafe {
-        nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output.into(), &mut err)
+        nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output, &mut err)
     };
     err.into_err_or_flatten(|| {
         output
