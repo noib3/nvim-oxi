@@ -109,8 +109,8 @@ pub enum ExprCaseCompareStrategy {
 #[repr(u8)]
 pub enum ExprOptScope {
     Unspecified = 0,
-    Global = 'g' as u8,
-    Local = 'l' as u8,
+    Global = b'g',
+    Local = b'l',
 }
 
 #[derive(
@@ -120,14 +120,14 @@ pub enum ExprOptScope {
 #[repr(u8)]
 pub enum ExprVarScope {
     Missing = 0,
-    Script = 's' as u8,
-    Global = 'g' as u8,
-    Vim = 'v' as u8,
-    Buffer = 'b' as u8,
-    Window = 'w' as u8,
-    Tabpage = 't' as u8,
-    Local = 'l' as u8,
-    Arguments = 'a' as u8,
+    Script = b's',
+    Global = b'g',
+    Vim = b'v',
+    Buffer = b'b',
+    Window = b'w',
+    Tabpage = b't',
+    Local = b'l',
+    Arguments = b'a',
 }
 
 /// Only used for deserialization purposes.

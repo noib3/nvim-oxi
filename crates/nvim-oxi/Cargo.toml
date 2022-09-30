@@ -18,7 +18,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 libuv = ["libuv-bindings"]
 mlua = ["dep:mlua"]
-nightly = ["nvim-types/nightly"]
+nightly = ["nvim-types/nightly", "nvim-api/nightly"]
 test = ["oxi-test"]
 
 [dependencies]

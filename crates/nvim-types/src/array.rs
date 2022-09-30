@@ -216,8 +216,7 @@ mod tests {
     #[test]
     fn empty_array() {
         let empty = Array { size: 0, capacity: 0, items: ptr::null_mut() };
-        let vec = empty.into_iter().collect::<Vec<_>>();
-        assert_eq!(0, vec.len());
+        assert_eq!(0, empty.into_iter().count());
     }
 
     #[test]

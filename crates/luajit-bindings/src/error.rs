@@ -33,12 +33,12 @@ impl Error {
         }
     }
 
-    pub fn pop_wrong_type_at_idx<T>(
+    pub unsafe fn pop_wrong_type_at_idx<T>(
         lstate: *mut crate::ffi::lua_State,
         idx: std::ffi::c_int,
     ) -> Self {
         let expected = std::any::type_name::<T>();
-        let got = unsafe { crate::utils::debug_type(lstate, idx) };
+        let got = crate::utils::debug_type(lstate, idx);
 
         Self::PopError {
             ty: expected,

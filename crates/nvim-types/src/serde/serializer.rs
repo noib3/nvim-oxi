@@ -10,6 +10,7 @@ pub struct Serializer;
 
 impl Serializer {
     #[allow(dead_code)]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self
     }

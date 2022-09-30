@@ -79,7 +79,7 @@ impl<'de> Deserialize<'de> for WindowBorderChar {
 
                     None => {
                         return Err(de::Error::custom(
-                            &"couldn't determine array length",
+                            "couldn't determine array length",
                         ))
                     },
                 }

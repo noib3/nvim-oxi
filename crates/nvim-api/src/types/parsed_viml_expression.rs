@@ -49,7 +49,7 @@ pub struct ParseExpressionError {
 }
 
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
 #[serde(from = "DeserializedVimLExpressionAST")]
 pub struct VimLExpressionAst {
     /// A tree of child nodes.
@@ -220,6 +220,12 @@ impl Ord for VimLExpressionAst {
             (l1, l2) if l1 > l2 => Ordering::Greater,
             _ => unreachable!(),
         }
+    }
+}
+
+impl PartialOrd for VimLExpressionAst {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 

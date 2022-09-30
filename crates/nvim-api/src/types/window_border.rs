@@ -180,7 +180,7 @@ impl<'de> de::Deserialize<'de> for WindowBorder {
 
                     None => {
                         return Err(de::Error::custom(
-                            &"couldn't determine array length",
+                            "couldn't determine array length",
                         ))
                     },
                 };

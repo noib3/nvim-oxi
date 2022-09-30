@@ -120,7 +120,7 @@ impl<A, R> Function<A, R> {
                     crate::Error::new() /* TODO */
                 })?
                 .take()
-                .ok_or_else(|| crate::Error::new() /* TODO */)?;
+                .ok_or_else(crate::Error::new /* TODO */)?;
 
             fun(args).map_err(crate::Error::from_err)
         })

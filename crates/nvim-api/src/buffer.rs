@@ -160,7 +160,7 @@ impl Buffer {
                 self.0,
                 name.non_owning(),
                 command.non_owning(),
-                &opts.into(),
+                &opts,
                 &mut err,
             )
         };
@@ -449,7 +449,7 @@ impl Buffer {
                 mode.non_owning(),
                 lhs.non_owning(),
                 rhs.non_owning(),
-                &opts.into(),
+                &opts,
                 &mut err,
             )
         };

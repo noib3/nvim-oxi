@@ -28,7 +28,7 @@ impl LuaPushable for bool {
         self,
         lstate: *mut lua_State,
     ) -> Result<c_int, crate::Error> {
-        ffi::lua_pushboolean(lstate, if self { 1 } else { 0 });
+        ffi::lua_pushboolean(lstate, self as _);
         Ok(1)
     }
 }
