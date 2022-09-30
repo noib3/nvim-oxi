@@ -30,7 +30,7 @@ impl<'de> de::Deserialize<'de> for CmdRange {
                 A: de::SeqAccess<'de>,
             {
                 match seq.size_hint().ok_or_else(|| {
-                    de::Error::custom(&"couldn't determine array length")
+                    de::Error::custom("couldn't determine array length")
                 })? {
                     0 => Ok(Self::Value::None),
                     1 => {
