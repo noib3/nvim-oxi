@@ -5,7 +5,7 @@ authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 
 [features]
-nightly = []
+nightly = ["nvim-types/nightly"]
 
 [dependencies]
 luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
