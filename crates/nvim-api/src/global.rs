@@ -57,7 +57,7 @@ where
         nvim_create_user_command(
             name.non_owning(),
             command.non_owning(),
-            &opts.into(),
+            &opts,
             &mut err,
         )
     };
@@ -181,9 +181,8 @@ pub fn eval_statusline(
     let str = nvim::String::from(str);
     let opts = opts.map(KeyDict_eval_statusline::from).unwrap_or_default();
     let mut err = nvim::Error::new();
-    let dict = unsafe {
-        nvim_eval_statusline(str.non_owning(), &opts.into(), &mut err)
-    };
+    let dict =
+        unsafe { nvim_eval_statusline(str.non_owning(), &opts, &mut err) };
     err.into_err_or_flatten(|| Ok(StatuslineInfos::from_obj(dict.into())?))
 }
 
@@ -247,7 +246,7 @@ pub fn get_commands(
 ) -> Result<impl SuperIterator<CommandInfos>> {
     let opts = opts.map(KeyDict_get_commands::from).unwrap_or_default();
     let mut err = nvim::Error::new();
-    let cmds = unsafe { nvim_get_commands(&opts.into(), &mut err) };
+    let cmds = unsafe { nvim_get_commands(&opts, &mut err) };
     err.into_err_or_else(|| {
         cmds.into_iter().map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
     })
@@ -259,7 +258,7 @@ pub fn get_commands(
 pub fn get_context(opts: Option<&GetContextOpts>) -> Result<EditorContext> {
     let opts = opts.map(KeyDict_context::from).unwrap_or_default();
     let mut err = nvim::Error::new();
-    let ctx = unsafe { nvim_get_context(&opts.into(), &mut err) };
+    let ctx = unsafe { nvim_get_context(&opts, &mut err) };
     err.into_err_or_flatten(|| Ok(EditorContext::from_obj(ctx.into())?))
 }
 
@@ -405,9 +404,8 @@ where
     let name = nvim::String::from(name);
     let opts = opts.map(KeyDict_option::from).unwrap_or_default();
     let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_get_option_value(name.non_owning(), &opts.into(), &mut err)
-    };
+    let obj =
+        unsafe { nvim_get_option_value(name.non_owning(), &opts, &mut err) };
     err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
 }
 
@@ -783,12 +781,7 @@ pub fn set_hl(
     let opts = opts.map(KeyDict_highlight::from).unwrap_or_default();
     let mut err = nvim::Error::new();
     unsafe {
-        nvim_set_hl(
-            ns_id as Integer,
-            name.non_owning(),
-            &opts.into(),
-            &mut err,
-        )
+        nvim_set_hl(ns_id as Integer, name.non_owning(), &opts, &mut err)
     };
     err.into_err_or_else(|| ())
 }
@@ -862,7 +855,7 @@ where
         nvim_set_option_value(
             name.non_owning(),
             value.to_obj()?.non_owning(),
-            &opts.into(),
+            &opts,
             &mut err,
         )
     };
