@@ -14,33 +14,24 @@
 
 #[doc(hidden)]
 pub mod entrypoint;
-
 mod error;
 mod toplevel;
 
 pub mod api {
+    #[doc(inline)]
     pub use nvim_api::*;
 }
 
-pub mod opts {
-    //! Contains all the `*Opts` structs passed to functions as optional
-    //! arguments.
-    pub use nvim_api::opts::*;
-}
-
-pub mod types {
-    //! Contains the Rust type definitions of objects given to and returned by
-    //! Neovim functions.
-    pub use nvim_api::types::*;
-}
-
+#[doc(hidden)]
 pub mod lua {
+    #[doc(inline)]
     pub use luajit_bindings::*;
 }
 
 #[cfg(feature = "libuv")]
 #[cfg_attr(docsrs, doc(cfg(feature = "libuv")))]
 pub mod libuv {
+    #[doc(inline)]
     pub use libuv_bindings::*;
 }
 
@@ -50,6 +41,7 @@ pub mod mlua {
     /// Returns a static reference to a
     /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
     /// to be able to interact with other Lua plugins.
+    #[doc(inline)]
     pub fn lua() -> &'static mlua::Lua {
         unsafe {
             crate::lua::with_state(|lstate| {
@@ -59,10 +51,15 @@ pub mod mlua {
     }
 }
 
+#[doc(inline)]
 pub use error::{Error, Result};
+#[doc(inline)]
 pub use nvim_types::*;
+#[doc(inline)]
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
+#[doc(inline)]
 pub use oxi_test::oxi_test as test;
+#[doc(inline)]
 pub use toplevel::*;

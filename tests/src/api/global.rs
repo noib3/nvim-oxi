@@ -1,10 +1,6 @@
 use all_asserts::*;
-use nvim_oxi::{
-    self as oxi,
-    api::{self, Buffer},
-    opts::*,
-    types::*,
-};
+use nvim_oxi as oxi;
+use nvim_oxi::api::{self, opts::*, types::*, Buffer};
 
 #[oxi::test]
 fn chan_send_fail() {

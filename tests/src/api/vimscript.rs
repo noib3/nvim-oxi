@@ -1,5 +1,6 @@
+use nvim_oxi as oxi;
 #[allow(unused_imports)]
-use nvim_oxi::{self as oxi, api, opts::*, types::*};
+use nvim_oxi::api::{self, opts::*, types::*};
 
 #[oxi::test]
 fn call_function() {

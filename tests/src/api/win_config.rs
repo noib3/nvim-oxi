@@ -1,8 +1,5 @@
-use nvim_oxi::{
-    self as oxi,
-    api::{self, Buffer, Window},
-    types::*,
-};
+use nvim_oxi as oxi;
+use nvim_oxi::api::{self, types::*, Buffer, Window};
 
 #[oxi::test]
 fn open_win_empty_config() {

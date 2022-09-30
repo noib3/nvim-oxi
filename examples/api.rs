@@ -1,12 +1,5 @@
-use nvim_oxi::{
-    self as oxi,
-    api::{self, Window},
-    opts::*,
-    print,
-    types::*,
-    Dictionary,
-    Function,
-};
+use nvim_oxi::api::{self, opts::*, types::*, Window};
+use nvim_oxi::{self as oxi, print, Dictionary, Function};
 
 #[oxi::module]
 fn api() -> oxi::Result<Dictionary> {

@@ -1,9 +1,6 @@
 use all_asserts::*;
-use nvim_oxi::{
-    self as oxi,
-    api::{self, Buffer},
-    opts::*,
-};
+use nvim_oxi as oxi;
+use nvim_oxi::api::{self, opts::*, Buffer};
 
 #[oxi::test]
 fn clear_autocmds_current_buf() {

@@ -1,8 +1,5 @@
-use nvim_oxi::{
-    self as oxi,
-    api::{self, Buffer, TabPage, Window},
-    types::*,
-};
+use nvim_oxi as oxi;
+use nvim_oxi::api::{self, types::*, Buffer, TabPage, Window};
 
 #[oxi::test]
 fn win_call() {
