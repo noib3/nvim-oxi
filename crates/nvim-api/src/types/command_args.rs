@@ -1,7 +1,7 @@
 use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
-use super::serde_utils as utils;
+use crate::serde_utils as utils;
 
 /// Arguments passed to functions executed by commands. See
 /// [`Buffer::create_user_command`](crate::api::Buffer::create_user_command) to
@@ -43,8 +43,11 @@ pub struct CommandArgs {
     pub register: Option<String>,
 
     /// Command modifiers in a more structured format.
-    #[cfg(feature = "nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
+    )]
     pub smods: super::CommandModifiers,
 }
 

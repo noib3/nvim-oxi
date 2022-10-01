@@ -87,12 +87,12 @@ fn parse_cmd_basic() {
     assert_eq!(false, mods.sandbox);
     assert_eq!(false, mods.silent);
     assert_eq!(None, mods.split);
-    assert_eq!(0, mods.tab);
+    assert_eq!(-1, mods.tab);
     assert_eq!(false, mods.vertical);
 
     assert_eq!(Some(CommandNArgs::Any), infos.nargs);
     assert_eq!(None, infos.nextcmd);
-    assert_eq!(Some(CmdRange::None), infos.range);
+    assert_eq!(None, infos.range);
 }
 
 #[oxi::test]

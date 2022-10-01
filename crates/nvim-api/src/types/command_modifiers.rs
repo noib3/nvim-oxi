@@ -1,8 +1,8 @@
 use nvim_types::{Serializer, ToObject, ToObjectResult};
 use serde::{Deserialize, Serialize};
 
-use super::serde_utils as utils;
 use super::SplitModifier;
+use crate::serde_utils as utils;
 
 /// See `:h command-modifiers` for more infos.
 #[non_exhaustive]

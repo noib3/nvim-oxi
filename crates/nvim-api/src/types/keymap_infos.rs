@@ -7,8 +7,8 @@ use nvim_types::{
 };
 use serde::Deserialize;
 
-use super::serde_utils as utils;
 use super::Mode;
+use crate::serde_utils as utils;
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]

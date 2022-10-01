@@ -25,7 +25,7 @@ extern "C" {
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/command.c#L296
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     pub(crate) fn nvim_cmd(
         channel_id: u64,
         cmd: *const crate::types::KeyDict_cmd,
@@ -51,7 +51,7 @@ extern "C" {
     ) -> String;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/command.c#L77
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,
         opts: NonOwning<Dictionary>,

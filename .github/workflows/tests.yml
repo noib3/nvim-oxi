@@ -11,9 +11,9 @@ jobs:
         neovim: [stable, nightly]
         include:
           - neovim: stable
-            features: ""
+            features: "--features neovim-0-7"
           - neovim: nightly
-            features: "--features nightly"
+            features: "--features neovim-nightly"
 
     runs-on: ${{ matrix.os }}
     steps:

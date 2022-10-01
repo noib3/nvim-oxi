@@ -30,7 +30,6 @@ mod parsed_viml_expression;
 mod paste_phase;
 mod proc_infos;
 mod register_type;
-mod serde_utils;
 mod split_modifier;
 mod statusline_highlight_infos;
 mod statusline_infos;

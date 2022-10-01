@@ -13,8 +13,11 @@ pub struct ExecAutocmdsOpts {
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
-    #[cfg(feature = "nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
+    )]
     #[builder(setter(custom))]
     data: Object,
 
@@ -36,7 +39,11 @@ impl ExecAutocmdsOpts {
 }
 
 impl ExecAutocmdsOptsBuilder {
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
+    )]
     pub fn data(&mut self, any: impl Into<Object>) -> &mut Self {
         self.data = Some(any.into());
         self
@@ -55,7 +62,7 @@ impl ExecAutocmdsOptsBuilder {
     // https://github.com/neovim/neovim/issues/19089).
     /// Patterns to match against. Cannot be used together with
     /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     pub fn patterns(&mut self, patterns: &str) -> &mut Self {
         self.patterns = Some(patterns.into());
         self
@@ -63,7 +70,7 @@ impl ExecAutocmdsOptsBuilder {
 
     /// Patterns to match against. Cannot be used together with
     /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
-    #[cfg(feature = "nightly")]
+    #[cfg(not(feature = "neovim-0-7"))]
     pub fn patterns<Patterns>(&mut self, patterns: Patterns) -> &mut Self
     where
         Patterns: crate::trait_utils::StringOrListOfStrings,
@@ -81,7 +88,7 @@ impl ExecAutocmdsOptsBuilder {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     data: NonOwning<'a, Object>,
     group: NonOwning<'a, Object>,
     buffer: Object,
@@ -92,7 +99,7 @@ pub(crate) struct KeyDict_exec_autocmds<'a> {
 impl<'a> From<&'a ExecAutocmdsOpts> for KeyDict_exec_autocmds<'a> {
     fn from(opts: &'a ExecAutocmdsOpts) -> KeyDict_exec_autocmds<'a> {
         Self {
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             data: opts.data.non_owning(),
             group: opts.group.non_owning(),
             buffer: opts.buffer.as_ref().into(),

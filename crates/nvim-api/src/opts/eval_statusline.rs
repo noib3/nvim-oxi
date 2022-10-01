@@ -27,8 +27,11 @@ pub struct EvalStatuslineOpts {
 
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
-    #[cfg(feature = "nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
+    )]
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
@@ -59,8 +62,8 @@ pub(crate) struct KeyDict_eval_statusline {
     fillchar: Object,
     maxwidth: Object,
     highlights: Object,
-    #[cfg(feature = "nightly")]
-    use_winbar: Object, // not present in 0.7.2
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    use_winbar: Object,
     use_tabline: Object,
 }
 
@@ -71,7 +74,7 @@ impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
             fillchar: opts.fillchar.into(),
             maxwidth: opts.maxwidth.into(),
             highlights: opts.highlights.into(),
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             use_winbar: opts.use_winbar.into(),
             use_tabline: opts.use_tabline.into(),
         }

@@ -18,7 +18,7 @@ mod get_option_value;
 mod get_text;
 mod notify;
 mod open_term;
-#[cfg(feature = "nightly")]
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
 mod parse_cmd;
 mod select_popup_menu_item;
 mod set_extmark;
@@ -45,7 +45,7 @@ pub use get_option_value::*;
 pub use get_text::*;
 pub use notify::*;
 pub use open_term::*;
-#[cfg(feature = "nightly")]
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
 pub use parse_cmd::*;
 pub use select_popup_menu_item::*;
 pub use set_extmark::*;

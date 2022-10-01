@@ -1,7 +1,7 @@
 use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
 use serde::Deserialize;
 
-use super::serde_utils as utils;
+use crate::serde_utils as utils;
 
 /// Informations about an attached UI.
 #[non_exhaustive]

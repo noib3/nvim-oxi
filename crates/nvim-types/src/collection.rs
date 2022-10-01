@@ -11,13 +11,13 @@ use crate::NonOwning;
 // last one.
 #[repr(C)]
 pub struct Collection<T> {
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     pub(crate) items: *mut T,
 
     pub(crate) size: usize,
     pub(crate) capacity: usize,
 
-    #[cfg(feature = "nightly")]
+    #[cfg(not(feature = "neovim-0-7"))]
     pub(crate) items: *mut T,
 }
 
@@ -113,17 +113,6 @@ impl<T> DerefMut for Collection<T> {
         self.as_mut_slice()
     }
 }
-
-// impl<I, T> Index<I> for Collection<T>
-// where
-//     I: SliceIndex<[T]>,
-// {
-//     type Output = <I as SliceIndex<[T]>>::Output;
-
-// fn index(&self, index: I) -> &Self::Output {
-//     self.deref().index(index)
-// }
-// }
 
 impl<T> From<Vec<T>> for Collection<T> {
     #[inline]

@@ -8,7 +8,9 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-nightly = ["nvim-oxi/nightly"]
+neovim-0-7 = ["nvim-oxi/neovim-0-7"]
+neovim-0-8 = ["nvim-oxi/neovim-0-8"]
+neovim-nightly = ["nvim-oxi/neovim-nightly"]
 
 [dependencies]
 all_asserts = "2.3"

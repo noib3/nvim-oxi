@@ -12,7 +12,9 @@ repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 
 [features]
-nightly = []
+neovim-0-7 = []
+neovim-0-8 = []
+neovim-nightly = []
 
 [dependencies]
 luajit-bindings = { version = "0.1", path = "../luajit-bindings" }

@@ -135,11 +135,11 @@ pub(crate) struct KeyDict_highlight<'a> {
     sp: Object,
     bold: Object,
     link: NonOwning<'a, Object>,
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     temp: Object,
     blend: Object,
     cterm: NonOwning<'a, Object>,
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     global: Object,
     italic: Object,
     special: NonOwning<'a, Object>,
@@ -149,25 +149,25 @@ pub(crate) struct KeyDict_highlight<'a> {
     reverse: Object,
     fallback: Object,
     standout: Object,
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     underdot: Object,
     nocombine: Object,
     undercurl: Object,
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     underdash: Object,
     underline: Object,
     background: NonOwning<'a, Object>,
     foreground: NonOwning<'a, Object>,
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     global_link: Object,
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     underdashed: Object,
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     underdotted: Object,
-    #[cfg(feature = "nightly")]
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     underdouble: Object,
     strikethrough: Object,
-    #[cfg(not(feature = "nightly"))]
+    #[cfg(feature = "neovim-0-7")]
     underlineline: Object,
 }
 
@@ -179,11 +179,11 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             sp: Object::nil(),
             bold: opts.bold.into(),
             link: opts.link.non_owning(),
-            #[cfg(not(feature = "nightly"))]
+            #[cfg(feature = "neovim-0-7")]
             temp: Object::nil(),
             blend: opts.blend.into(),
             cterm: opts.cterm.non_owning(),
-            #[cfg(not(feature = "nightly"))]
+            #[cfg(feature = "neovim-0-7")]
             global: Object::nil(),
             italic: opts.italic.into(),
             special: opts.special.non_owning(),
@@ -193,25 +193,25 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             reverse: opts.reverse.into(),
             fallback: Object::nil(),
             standout: opts.standout.into(),
-            #[cfg(not(feature = "nightly"))]
+            #[cfg(feature = "neovim-0-7")]
             underdot: opts.underdotted.into(),
             nocombine: opts.nocombine.into(),
             undercurl: opts.undercurl.into(),
-            #[cfg(not(feature = "nightly"))]
+            #[cfg(feature = "neovim-0-7")]
             underdash: opts.underdashed.into(),
             underline: opts.underline.into(),
             background: opts.background.non_owning(),
             foreground: opts.foreground.non_owning(),
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             global_link: Object::nil(),
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             underdashed: opts.underdashed.into(),
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             underdotted: opts.underdotted.into(),
-            #[cfg(feature = "nightly")]
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             underdouble: opts.underdouble.into(),
             strikethrough: opts.strikethrough.into(),
-            #[cfg(not(feature = "nightly"))]
+            #[cfg(feature = "neovim-0-7")]
             underlineline: opts.underdouble.into(),
         }
     }
