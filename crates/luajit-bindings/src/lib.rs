@@ -9,6 +9,6 @@ mod state;
 pub mod utils;
 
 pub use error::Error;
-pub use poppable::LuaPoppable;
-pub use pushable::LuaPushable;
+pub use poppable::Poppable;
+pub use pushable::Pushable;
 pub use state::{init, with_state};

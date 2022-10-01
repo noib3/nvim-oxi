@@ -1,6 +1,6 @@
 use std::fmt;
 
-use luajit_bindings::{self as lua, LuaPoppable, LuaPushable};
+use luajit_bindings::{self as lua, Poppable, Pushable};
 use nvim_types::{
     self as nvim,
     Array,
@@ -61,7 +61,7 @@ impl FromObject for Window {
     }
 }
 
-impl LuaPoppable for Window {
+impl Poppable for Window {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
@@ -84,7 +84,7 @@ impl Window {
     pub fn call<R, F>(&self, fun: F) -> Result<R>
     where
         F: FnOnce(()) -> Result<R> + 'static,
-        R: LuaPushable + FromObject,
+        R: Pushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();

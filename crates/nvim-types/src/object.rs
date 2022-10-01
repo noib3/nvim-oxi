@@ -3,7 +3,7 @@ use std::ffi::c_int;
 use std::fmt;
 use std::mem::ManuallyDrop;
 
-use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua::{ffi::*, Poppable, Pushable};
 use luajit_bindings as lua;
 
 use crate::{
@@ -406,7 +406,7 @@ impl<A, R> From<Function<A, R>> for Object {
     }
 }
 
-impl LuaPushable for Object {
+impl Pushable for Object {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         match self.kind() {
             ObjectKind::Nil => ().push(lstate),
@@ -424,7 +424,7 @@ impl LuaPushable for Object {
     }
 }
 
-impl LuaPoppable for Object {
+impl Poppable for Object {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {

@@ -1,7 +1,7 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-use luajit_bindings::{self as lua, LuaPoppable, LuaPushable};
+use luajit_bindings::{self as lua, Poppable, Pushable};
 use nvim_types::{
     self as nvim,
     Array,
@@ -78,7 +78,7 @@ impl FromObject for Buffer {
     }
 }
 
-impl LuaPoppable for Buffer {
+impl Poppable for Buffer {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
@@ -127,7 +127,7 @@ impl Buffer {
     pub fn call<F, R>(&self, fun: F) -> Result<R>
     where
         F: FnOnce(()) -> Result<R> + 'static,
-        R: LuaPushable + FromObject,
+        R: Pushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();

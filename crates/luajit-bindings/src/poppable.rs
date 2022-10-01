@@ -4,7 +4,7 @@ use crate::ffi::*;
 use crate::macros::count;
 
 /// Trait implemented for types that can be popped off the Lua stack.
-pub trait LuaPoppable: Sized {
+pub trait Poppable: Sized {
     /// The number of elements that will be popped off the stack.
     const N: c_int;
 
@@ -36,7 +36,7 @@ where
     }
 }
 
-impl LuaPoppable for () {
+impl Poppable for () {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -49,7 +49,7 @@ impl LuaPoppable for () {
     }
 }
 
-impl LuaPoppable for bool {
+impl Poppable for bool {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -59,7 +59,7 @@ impl LuaPoppable for bool {
     }
 }
 
-impl LuaPoppable for lua_Integer {
+impl Poppable for lua_Integer {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -71,7 +71,7 @@ impl LuaPoppable for lua_Integer {
 /// `TryFrom<lua_Integer>`.
 macro_rules! pop_try_from_integer {
     ($integer:ty) => {
-        impl LuaPoppable for $integer {
+        impl Poppable for $integer {
             const N: c_int = 1;
 
             unsafe fn pop(
@@ -100,7 +100,7 @@ pop_try_from_integer!(i64);
 pop_try_from_integer!(u64);
 pop_try_from_integer!(usize);
 
-impl LuaPoppable for lua_Number {
+impl Poppable for lua_Number {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -108,7 +108,7 @@ impl LuaPoppable for lua_Number {
     }
 }
 
-impl LuaPoppable for f32 {
+impl Poppable for f32 {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -116,7 +116,7 @@ impl LuaPoppable for f32 {
     }
 }
 
-impl LuaPoppable for Vec<u8> {
+impl Poppable for Vec<u8> {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
@@ -132,12 +132,12 @@ impl LuaPoppable for Vec<u8> {
     }
 }
 
-impl LuaPoppable for String {
+impl Poppable for String {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
         pop_impl(lstate, LUA_TSTRING, |lstate| {
-            let vec = LuaPoppable::pop(lstate)?;
+            let vec = Poppable::pop(lstate)?;
 
             String::from_utf8(vec).map_err(|err| {
                 crate::Error::pop_error(
@@ -149,7 +149,7 @@ impl LuaPoppable for String {
     }
 }
 
-impl<T: LuaPoppable> LuaPoppable for Option<T> {
+impl<T: Poppable> Poppable for Option<T> {
     // TODO: T::N could also be an option.
     const N: c_int = 1;
 
@@ -168,9 +168,9 @@ impl<T: LuaPoppable> LuaPoppable for Option<T> {
 /// in the tuple implement `LuaPoppable`.
 macro_rules! pop_tuple {
     ($($name:ident)*) => (
-        impl<$($name,)*> LuaPoppable for ($($name,)*)
+        impl<$($name,)*> Poppable for ($($name,)*)
         where
-            $($name: LuaPoppable,)*
+            $($name: Poppable,)*
         {
             const N: c_int = count!($($name)*);
 

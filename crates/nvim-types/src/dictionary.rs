@@ -3,7 +3,7 @@ use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
-use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua::{ffi::*, Poppable, Pushable};
 use luajit_bindings as lua;
 
 use super::{Collection, Object, String};
@@ -89,7 +89,7 @@ impl<S: Into<String>> std::ops::IndexMut<S> for Dictionary {
     }
 }
 
-impl LuaPushable for Dictionary {
+impl Pushable for Dictionary {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         lua::ffi::lua_createtable(lstate, 0, self.len() as _);
 
@@ -103,7 +103,7 @@ impl LuaPushable for Dictionary {
     }
 }
 
-impl LuaPoppable for Dictionary {
+impl Poppable for Dictionary {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {

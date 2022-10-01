@@ -4,7 +4,7 @@ use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
-use luajit_bindings::{self as lua, LuaPoppable, LuaPushable};
+use luajit_bindings::{self as lua, Poppable, Pushable};
 
 use crate::LuaRef;
 
@@ -29,8 +29,8 @@ impl<A, R> fmt::Debug for Function<A, R> {
 impl<A, R, F, E> From<F> for Function<A, R>
 where
     F: FnMut(A) -> Result<R, E> + 'static,
-    A: LuaPoppable,
-    R: LuaPushable,
+    A: Poppable,
+    R: Pushable,
     E: Error + 'static,
 {
     fn from(fun: F) -> Function<A, R> {
@@ -38,7 +38,7 @@ where
     }
 }
 
-impl<A, R> LuaPoppable for Function<A, R> {
+impl<A, R> Poppable for Function<A, R> {
     const N: c_int = 1;
 
     unsafe fn pop(
@@ -55,7 +55,7 @@ impl<A, R> LuaPoppable for Function<A, R> {
     }
 }
 
-impl<A, R> LuaPushable for Function<A, R> {
+impl<A, R> Pushable for Function<A, R> {
     unsafe fn push(
         self,
         lstate: *mut lua::ffi::lua_State,
@@ -79,8 +79,8 @@ impl<A, R> Function<A, R> {
     pub fn from_fn<F, E>(fun: F) -> Self
     where
         F: Fn(A) -> Result<R, E> + 'static,
-        A: LuaPoppable,
-        R: LuaPushable,
+        A: Poppable,
+        R: Pushable,
         E: Error + 'static,
     {
         Self::from_ref(lua::function::store(fun))
@@ -89,8 +89,8 @@ impl<A, R> Function<A, R> {
     pub fn from_fn_mut<F, E>(fun: F) -> Self
     where
         F: FnMut(A) -> Result<R, E> + 'static,
-        A: LuaPoppable,
-        R: LuaPushable,
+        A: Poppable,
+        R: Pushable,
         E: Error + 'static,
     {
         let fun = RefCell::new(fun);
@@ -107,8 +107,8 @@ impl<A, R> Function<A, R> {
     pub fn from_fn_once<F, E>(fun: F) -> Self
     where
         F: FnOnce(A) -> Result<R, E> + 'static,
-        A: LuaPoppable,
-        R: LuaPushable,
+        A: Poppable,
+        R: Pushable,
         E: Error + 'static,
     {
         let fun = RefCell::new(Some(fun));
@@ -128,8 +128,8 @@ impl<A, R> Function<A, R> {
 
     pub fn call(&self, args: A) -> Result<R, lua::Error>
     where
-        A: LuaPushable,
-        R: LuaPoppable,
+        A: Pushable,
+        R: Poppable,
     {
         lua::function::call(self.lua_ref, args)
     }

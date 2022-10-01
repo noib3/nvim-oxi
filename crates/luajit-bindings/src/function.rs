@@ -4,14 +4,14 @@ use std::mem;
 use std::ptr;
 
 use crate::ffi::{self, lua_State};
-use crate::{utils, LuaPoppable, LuaPushable};
+use crate::{utils, Poppable, Pushable};
 
 /// Stores a function in the Lua registry, returning its ref.
 pub fn store<F, A, R, E>(fun: F) -> c_int
 where
     F: Fn(A) -> Result<R, E> + 'static,
-    A: LuaPoppable,
-    R: LuaPushable,
+    A: Poppable,
+    R: Pushable,
     E: Error + 'static,
 {
     type Callback =
@@ -48,8 +48,8 @@ where
 /// Calls a function previously stored in the Lua registry via [store_fn].
 pub fn call<A, R>(lua_ref: c_int, args: A) -> Result<R, crate::Error>
 where
-    A: LuaPushable,
-    R: LuaPoppable,
+    A: Pushable,
+    R: Poppable,
 {
     unsafe {
         crate::with_state(move |lstate| {

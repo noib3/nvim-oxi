@@ -1,4 +1,4 @@
-use luajit_bindings::{LuaPoppable, LuaPushable};
+use luajit_bindings::{Poppable, Pushable};
 use nvim_types::{Array, Function, Object};
 
 macro_rules! impl_into {
@@ -50,8 +50,8 @@ pub trait ToFunction<A, R> {
 
 impl<A, R, F> ToFunction<A, R> for F
 where
-    A: LuaPoppable,
-    R: LuaPushable,
+    A: Poppable,
+    R: Pushable,
     F: FnMut(A) -> crate::Result<R> + 'static,
 {
     #[inline]
@@ -88,8 +88,8 @@ impl<A, R> StringOrFunction<A, R> for String {
 
 impl<A, R, F> StringOrFunction<A, R> for F
 where
-    A: LuaPoppable,
-    R: LuaPushable,
+    A: Poppable,
+    R: Pushable,
     F: FnMut(A) -> crate::Result<R> + 'static,
 {
     #[inline]

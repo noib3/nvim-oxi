@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::string::{self, String as StdString};
 use std::{fmt, slice, str};
 
-use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua::{ffi::*, Poppable, Pushable};
 use luajit_bindings as lua;
 
 use crate::NonOwning;
@@ -256,14 +256,14 @@ impl TryFrom<String> for StdString {
     }
 }
 
-impl LuaPushable for String {
+impl Pushable for String {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
         Ok(1)
     }
 }
 
-impl LuaPoppable for String {
+impl Poppable for String {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
@@ -273,7 +273,7 @@ impl LuaPoppable for String {
             return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
         }
 
-        let vec = LuaPoppable::pop(lstate)?;
+        let vec = Poppable::pop(lstate)?;
         Ok(Self::from_bytes(vec))
     }
 }

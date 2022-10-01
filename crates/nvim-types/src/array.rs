@@ -2,7 +2,7 @@ use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
-use lua::{ffi::*, LuaPoppable, LuaPushable};
+use lua::{ffi::*, Poppable, Pushable};
 use luajit_bindings as lua;
 
 use super::{Collection, Object};
@@ -24,7 +24,7 @@ impl fmt::Display for Array {
     }
 }
 
-impl LuaPushable for Array {
+impl Pushable for Array {
     unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
         lua_createtable(lstate, self.len() as _, 0);
 
@@ -37,7 +37,7 @@ impl LuaPushable for Array {
     }
 }
 
-impl LuaPoppable for Array {
+impl Poppable for Array {
     const N: c_int = 1;
 
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {

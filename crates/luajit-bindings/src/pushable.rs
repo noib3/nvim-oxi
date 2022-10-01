@@ -4,7 +4,7 @@ use crate::ffi::{self, lua_Integer, lua_Number, lua_State};
 use crate::macros::count;
 
 /// Trait implemented for types that can be pushed onto the Lua stack.
-pub trait LuaPushable {
+pub trait Pushable {
     /// Pushes all its values on the Lua stack, returning the number of values
     /// that it pushed.
     unsafe fn push(
@@ -13,7 +13,7 @@ pub trait LuaPushable {
     ) -> Result<c_int, crate::Error>;
 }
 
-impl LuaPushable for () {
+impl Pushable for () {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -23,7 +23,7 @@ impl LuaPushable for () {
     }
 }
 
-impl LuaPushable for bool {
+impl Pushable for bool {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -33,7 +33,7 @@ impl LuaPushable for bool {
     }
 }
 
-impl LuaPushable for lua_Integer {
+impl Pushable for lua_Integer {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -47,7 +47,7 @@ impl LuaPushable for lua_Integer {
 /// `Into<lua_Integer>`.
 macro_rules! push_into_integer {
     ($integer:ty) => {
-        impl LuaPushable for $integer {
+        impl Pushable for $integer {
             unsafe fn push(
                 self,
                 lstate: *mut lua_State,
@@ -63,7 +63,7 @@ macro_rules! push_into_integer {
 /// `TryInto<lua_Integer>`.
 macro_rules! push_try_into_integer {
     ($integer:ty) => {
-        impl LuaPushable for $integer {
+        impl Pushable for $integer {
             unsafe fn push(
                 self,
                 lstate: *mut lua_State,
@@ -92,7 +92,7 @@ push_try_into_integer!(i64);
 push_try_into_integer!(u64);
 push_try_into_integer!(usize);
 
-impl LuaPushable for lua_Number {
+impl Pushable for lua_Number {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -102,7 +102,7 @@ impl LuaPushable for lua_Number {
     }
 }
 
-impl LuaPushable for f32 {
+impl Pushable for f32 {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -111,7 +111,7 @@ impl LuaPushable for f32 {
     }
 }
 
-impl<T: LuaPushable> LuaPushable for Vec<T> {
+impl<T: Pushable> Pushable for Vec<T> {
     unsafe fn push(
         self,
         lstate: *mut lua_State,
@@ -131,9 +131,9 @@ impl<T: LuaPushable> LuaPushable for Vec<T> {
 /// in the tuple implement `LuaPushable`.
 macro_rules! push_tuple {
     ($($name:ident)*) => {
-        impl<$($name,)*> LuaPushable for ($($name,)*)
+        impl<$($name,)*> Pushable for ($($name,)*)
         where
-            $($name: LuaPushable,)*
+            $($name: Pushable,)*
         {
             #[allow(non_snake_case)]
             unsafe fn push(

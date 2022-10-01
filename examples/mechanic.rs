@@ -58,7 +58,7 @@ impl ToObject for Car {
     }
 }
 
-impl oxi::lua::LuaPoppable for Car {
+impl oxi::lua::Poppable for Car {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
@@ -71,7 +71,7 @@ impl oxi::lua::LuaPoppable for Car {
     }
 }
 
-impl oxi::lua::LuaPushable for Car {
+impl oxi::lua::Pushable for Car {
     unsafe fn push(
         self,
         lstate: *mut oxi::lua::ffi::lua_State,

@@ -2,7 +2,7 @@
 
 use std::ffi::c_int;
 
-use luajit_bindings::{self as lua, ffi::lua_State, LuaPushable};
+use luajit_bindings::{self as lua, ffi::lua_State, Pushable};
 
 /// The entrypoint of the plugin.
 ///
@@ -14,7 +14,7 @@ pub unsafe fn entrypoint<R>(
     body: fn() -> crate::Result<R>,
 ) -> c_int
 where
-    R: LuaPushable,
+    R: Pushable,
 {
     lua::init(lstate);
 

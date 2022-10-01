@@ -41,7 +41,7 @@ impl FromObject for AutocmdCallbackArgs {
     }
 }
 
-impl luajit_bindings::LuaPoppable for AutocmdCallbackArgs {
+impl luajit_bindings::Poppable for AutocmdCallbackArgs {
     const N: std::ffi::c_int = 1;
 
     unsafe fn pop(
