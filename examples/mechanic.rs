@@ -59,8 +59,6 @@ impl ToObject for Car {
 }
 
 impl oxi::lua::Poppable for Car {
-    const N: std::ffi::c_int = 1;
-
     unsafe fn pop(
         lstate: *mut oxi::lua::ffi::lua_State,
     ) -> Result<Self, oxi::lua::Error> {

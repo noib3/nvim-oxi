@@ -55,8 +55,6 @@ impl FromObject for CommandArgs {
 }
 
 impl luajit_bindings::Poppable for CommandArgs {
-    const N: std::ffi::c_int = 1;
-
     unsafe fn pop(
         lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> Result<Self, luajit_bindings::Error> {

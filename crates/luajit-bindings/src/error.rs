@@ -1,4 +1,8 @@
+use std::ffi::c_int;
+
 use thiserror::Error as ThisError;
+
+use crate::utils;
 
 #[derive(Clone, Debug, Eq, PartialEq, ThisError)]
 pub enum Error {
@@ -19,6 +23,9 @@ pub enum Error {
 
     #[error("Lua memory error: {0}")]
     MemoryError(String),
+
+    #[error("TODO")]
+    PopEmptyStack,
 }
 
 impl Error {
@@ -30,6 +37,19 @@ impl Error {
         Self::PopError {
             ty: std::any::type_name::<T>(),
             message: Some(err.to_string()),
+        }
+    }
+
+    pub fn pop_wrong_type<T>(expected: c_int, found: c_int) -> Self {
+        let ty = std::any::type_name::<T>();
+        let expected = utils::type_name(expected);
+        let found = utils::type_name(found);
+        Self::PopError {
+            ty,
+            message: Some(format!(
+                "expected a {}, found a {} instead",
+                expected, found
+            )),
         }
     }
 

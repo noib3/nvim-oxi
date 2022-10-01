@@ -51,8 +51,8 @@ pub mod mlua {
     }
 }
 
-#[doc(inline)]
 pub use error::{Error, Result};
+pub use luajit_bindings::print;
 #[doc(inline)]
 pub use nvim_types::*;
 #[doc(inline)]

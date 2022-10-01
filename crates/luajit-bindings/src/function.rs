@@ -56,12 +56,7 @@ where
             ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, lua_ref);
             let nargs = args.push(lstate)?;
 
-            match ffi::lua_pcall(
-                lstate,
-                nargs,
-                R::N,
-                0, /* <- errorfunc */
-            ) {
+            match ffi::lua_pcall(lstate, nargs, -1, 0 /* <- errorfunc */) {
                 ffi::LUA_OK => R::pop(lstate),
 
                 err_code => {

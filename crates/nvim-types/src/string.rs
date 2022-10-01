@@ -24,7 +24,7 @@ use crate::NonOwning;
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 //
 /// A particular string type used internally by Neovim.
-#[derive(Eq, Ord, PartialOrd)]
+#[derive(Eq, Ord, PartialOrd, Hash)]
 #[repr(C)]
 pub struct String {
     pub(crate) data: *mut c_char,
@@ -264,17 +264,8 @@ impl Pushable for String {
 }
 
 impl Poppable for String {
-    const N: c_int = 1;
-
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        if lua::ffi::lua_type(lstate, -1) != lua::ffi::LUA_TSTRING
-            || lua::utils::is_table_array(lstate, -1)
-        {
-            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
-        }
-
-        let vec = Poppable::pop(lstate)?;
-        Ok(Self::from_bytes(vec))
+        <StdString as Poppable>::pop(lstate).map(Into::into)
     }
 }
 

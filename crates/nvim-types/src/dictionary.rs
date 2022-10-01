@@ -1,4 +1,4 @@
-use std::collections::HashMap as StdHashMap;
+use std::collections::HashMap;
 use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
@@ -104,50 +104,8 @@ impl Pushable for Dictionary {
 }
 
 impl Poppable for Dictionary {
-    const N: c_int = 1;
-
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
-            || lua::utils::is_table_array(lstate, -1)
-        {
-            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
-        }
-
-        let len = lua_objlen(lstate, -1);
-        let mut pairs = Vec::<(crate::String, Object)>::with_capacity(len);
-
-        // Pushing `nil` as the first key.
-        lua_pushnil(lstate);
-
-        while lua_next(lstate, -2) != 0 {
-            if lua_type(lstate, -2) != LUA_TSTRING {
-                let typename = lua::utils::debug_type(lstate, -2);
-
-                return Err(lua::Error::pop_error(
-                    "Dictionary",
-                    format!("found a key of type \"{}\"", typename),
-                ));
-            }
-
-            let key = {
-                let mut len = 0;
-                let ptr = lua_tolstring(lstate, -2, &mut len);
-
-                let mut vec = Vec::<u8>::with_capacity(len);
-                std::ptr::copy(ptr as *const u8, vec.as_mut_ptr(), len);
-                vec.set_len(len);
-
-                crate::String::from_bytes(vec)
-            };
-
-            let value = Object::pop(lstate)?;
-
-            Vec::push(&mut pairs, (key, value));
-        }
-
-        lua_pop(lstate, 1);
-
-        Ok(Dictionary::from_iter(pairs))
+        <HashMap<crate::String, Object>>::pop(lstate).map(Into::into)
     }
 }
 
@@ -245,12 +203,12 @@ where
     }
 }
 
-impl<K, V> From<StdHashMap<K, V>> for Dictionary
+impl<K, V> From<HashMap<K, V>> for Dictionary
 where
     String: From<K>,
     Object: From<V>,
 {
-    fn from(hashmap: StdHashMap<K, V>) -> Self {
+    fn from(hashmap: HashMap<K, V>) -> Self {
         hashmap.into_iter().collect()
     }
 }

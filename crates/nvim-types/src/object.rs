@@ -425,16 +425,14 @@ impl Pushable for Object {
 }
 
 impl Poppable for Object {
-    const N: c_int = 1;
-
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
         match lua_type(lstate, -1) {
             LUA_TNIL => <()>::pop(lstate).map(Into::into),
 
-            LUA_TBOOLEAN => <bool>::pop(lstate).map(Into::into),
+            LUA_TBOOLEAN => bool::pop(lstate).map(Into::into),
 
             LUA_TNUMBER => {
-                let n = <lua_Number>::pop(lstate)?;
+                let n = lua_Number::pop(lstate)?;
 
                 // This checks that the number is in the range (i32::MIN,
                 // i32::MAX) andd that it has no fractional component.
@@ -457,9 +455,7 @@ impl Poppable for Object {
 
             LUA_TFUNCTION => Function::<(), ()>::pop(lstate).map(Into::into),
 
-            LUA_TNONE => {
-                Err(lua::Error::pop_error("Object", "stack is empty"))
-            },
+            LUA_TNONE => Err(lua::Error::PopEmptyStack),
 
             LUA_TLIGHTUSERDATA | LUA_TUSERDATA | LUA_TTHREAD => {
                 let typename = lua::utils::debug_type(lstate, -1);

@@ -1,27 +1,7 @@
-use std::ffi::c_char;
-
 use luajit_bindings::{self as lua, ffi::*, macros::cstr};
 use nvim_types::Function;
 
 use crate::Result;
-
-/// Binding to the global Lua `print` function. It uses the same syntax as
-/// Rust's `format!` macro and redirects its output to the Neovim message area.
-///
-/// # Examples
-///
-/// ```ignore
-/// use nvim_oxi as nvim;
-///
-/// nvim::print!("Goodbye {}..", String::from("Earth"));
-/// nvim::print!("Hello {planet}!", planet = "Mars");
-/// ```
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {{
-        $crate::__print(::std::fmt::format(format_args!($($arg)*)));
-    }}
-}
 
 /// Same as [`print!`] but for the [`std::dbg!`] macro
 ///
@@ -48,23 +28,6 @@ macro_rules! dbg {
     };
     ($($val:expr),+ $(,)?) => {
         ($($crate::dbg!($val)),+,)
-    };
-}
-
-/// Prints a message to the Neovim message area.
-#[doc(hidden)]
-pub fn __print(text: impl Into<String>) {
-    unsafe {
-        lua::with_state(move |lstate| {
-            let text = text.into();
-            lua_getglobal(lstate, cstr!("print"));
-            lua_pushlstring(
-                lstate,
-                text.as_ptr() as *const c_char,
-                text.len(),
-            );
-            lua_call(lstate, 1, 0);
-        })
     };
 }
 

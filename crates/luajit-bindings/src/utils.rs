@@ -61,7 +61,7 @@ pub unsafe fn debug_type(lstate: *mut lua_State, n: c_int) -> impl Display {
 pub unsafe fn debug_stack(lstate: *mut lua_State) {
     let height = ffi::lua_gettop(lstate);
 
-    let _stack_pp = (1..height + 1)
+    let stack_pp = (1..height + 1)
         .map(|n| {
             let idx = height + 1 - n;
             let value = debug_value(lstate, -n);
@@ -71,7 +71,7 @@ pub unsafe fn debug_stack(lstate: *mut lua_State) {
         .collect::<Vec<String>>()
         .join("\n");
 
-    // crate::print!("{stack_pp}");
+    crate::print!("{stack_pp}");
 }
 
 pub unsafe fn handle_error<E: std::error::Error + ?Sized>(
@@ -81,4 +81,20 @@ pub unsafe fn handle_error<E: std::error::Error + ?Sized>(
     let msg = err.to_string();
     ffi::lua_pushlstring(lstate, msg.as_ptr() as *const _, msg.len());
     ffi::lua_error(lstate);
+}
+
+pub fn type_name(ty: c_int) -> &'static str {
+    match ty {
+        ffi::LUA_TNONE => "empty stack",
+        ffi::LUA_TNIL => "nil",
+        ffi::LUA_TBOOLEAN => "boolean",
+        ffi::LUA_TLIGHTUSERDATA => "light userdata",
+        ffi::LUA_TNUMBER => "number",
+        ffi::LUA_TSTRING => "string",
+        ffi::LUA_TTABLE => "table",
+        ffi::LUA_TFUNCTION => "function",
+        ffi::LUA_TUSERDATA => "userdata",
+        ffi::LUA_TTHREAD => "thread",
+        _ => unreachable!(),
+    }
 }

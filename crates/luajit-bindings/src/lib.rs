@@ -9,6 +9,8 @@ mod state;
 pub mod utils;
 
 pub use error::Error;
+#[doc(hidden)]
+pub use macros::__print;
 pub use poppable::Poppable;
 pub use pushable::Pushable;
 pub use state::{init, with_state};

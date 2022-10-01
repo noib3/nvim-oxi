@@ -62,8 +62,6 @@ impl FromObject for Window {
 }
 
 impl Poppable for Window {
-    const N: std::ffi::c_int = 1;
-
     unsafe fn pop(
         lstate: *mut luajit_bindings::ffi::lua_State,
     ) -> std::result::Result<Self, lua::Error> {

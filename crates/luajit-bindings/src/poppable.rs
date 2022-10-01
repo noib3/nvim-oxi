@@ -1,90 +1,61 @@
-use std::ffi::c_int;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 use crate::ffi::*;
 use crate::macros::count;
+use crate::Error;
 
-/// Trait implemented for types that can be popped off the Lua stack.
+/// Trait for types that can be popped off the Lua stack.
 pub trait Poppable: Sized {
-    /// The number of elements that will be popped off the stack.
-    const N: c_int;
-
-    /// Assembles itself by popping `N` values off the stack.
-    unsafe fn pop(lua_state: *mut lua_State) -> Result<Self, crate::Error>;
-}
-
-unsafe fn pop_impl<T, F>(
-    lstate: *mut lua_State,
-    expected: c_int,
-    if_expected: F,
-) -> Result<T, crate::Error>
-where
-    F: FnOnce(*mut lua_State) -> Result<T, crate::Error>,
-{
-    match lua_type(lstate, -1) {
-        t if t == expected => {
-            let res = if_expected(lstate);
-            lua_pop(lstate, -1);
-            res
-        },
-
-        LUA_TNONE => Err(crate::Error::pop_error(
-            std::any::type_name::<T>(),
-            "stack is empty",
-        )),
-
-        _ => Err(crate::Error::pop_wrong_type_at_idx::<T>(lstate, -1)),
-    }
+    /// Pops the value at the top of the stack.
+    unsafe fn pop(lua_state: *mut lua_State) -> Result<Self, Error>;
 }
 
 impl Poppable for () {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        // NOTE:
-        //
-        // pop_impl(lstate, LUA_TNIL, |_| Ok(()))
-
-        lua_pop(lstate, -1);
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        // TODO: check type?
+        lua_pop(state, 1);
         Ok(())
     }
 }
 
 impl Poppable for bool {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TBOOLEAN, |lstate| {
-            Ok(lua_toboolean(lstate, -1) == 1)
-        })
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        match lua_type(state, -1) {
+            LUA_TBOOLEAN => {
+                lua_pop(state, 1);
+                Ok(lua_toboolean(state, -1) == 1)
+            },
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TBOOLEAN, other)),
+        }
     }
 }
 
 impl Poppable for lua_Integer {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TNUMBER, |lstate| Ok(lua_tointeger(lstate, -1)))
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        match lua_type(state, -1) {
+            LUA_TNUMBER => {
+                lua_pop(state, 1);
+                Ok(lua_tointeger(state, -1))
+            },
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),
+        }
     }
 }
 
-/// Implements `LuaPoppable` for an integer type that implements
+/// Implements `Poppable` for a integer types that implement
 /// `TryFrom<lua_Integer>`.
 macro_rules! pop_try_from_integer {
     ($integer:ty) => {
         impl Poppable for $integer {
-            const N: c_int = 1;
-
             unsafe fn pop(
                 lstate: *mut lua_State,
             ) -> Result<Self, crate::Error> {
-                let n = lua_Integer::pop(lstate)?;
-                let n = n.try_into();
-                n.map_err(|err: std::num::TryFromIntError| {
-                    crate::Error::pop_error(
-                        std::any::type_name::<$integer>(),
-                        err.to_string(),
-                    )
-                })
+                lua_Integer::pop(lstate)?
+                    .try_into()
+                    .map_err(Error::pop_error_from_err::<Self, _>)
             }
         }
     };
@@ -101,83 +72,146 @@ pop_try_from_integer!(u64);
 pop_try_from_integer!(usize);
 
 impl Poppable for lua_Number {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TNUMBER, |lstate| Ok(lua_tonumber(lstate, -1)))
-    }
-}
-
-impl Poppable for f32 {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        Ok(lua_Number::pop(lstate)? as _)
-    }
-}
-
-impl Poppable for Vec<u8> {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TSTRING, |lstate| {
-            let mut len = 0;
-            let ptr = lua_tolstring(lstate, -1, &mut len);
-
-            let mut vec = Vec::<u8>::with_capacity(len);
-            std::ptr::copy(ptr as *const u8, vec.as_mut_ptr(), len);
-            vec.set_len(len);
-            Ok(vec)
-        })
-    }
-}
-
-impl Poppable for String {
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        pop_impl(lstate, LUA_TSTRING, |lstate| {
-            let vec = Poppable::pop(lstate)?;
-
-            String::from_utf8(vec).map_err(|err| {
-                crate::Error::pop_error(
-                    std::any::type_name::<String>(),
-                    err.to_string(),
-                )
-            })
-        })
-    }
-}
-
-impl<T: Poppable> Poppable for Option<T> {
-    // TODO: T::N could also be an option.
-    const N: c_int = 1;
-
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-        match lua_type(lstate, -1) {
-            LUA_TNIL => {
-                lua_pop(lstate, -1);
-                Ok(None)
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        match lua_type(state, -1) {
+            LUA_TNUMBER => {
+                lua_pop(state, 1);
+                Ok(lua_tonumber(state, -1))
             },
-            _ => T::pop(lstate).map(Some),
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),
         }
     }
 }
 
-/// Implements `LuaPoppable` for a tuple `(a, b, c, ..)` where all the elements
-/// in the tuple implement `LuaPoppable`.
+impl Poppable for f32 {
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        lua_Number::pop(state).map(|n| n as f32)
+    }
+}
+
+impl Poppable for String {
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        match lua_type(state, -1) {
+            LUA_TSTRING | LUA_TNUMBER => {
+                let mut len = 0;
+                let ptr = lua_tolstring(state, -1, &mut len);
+
+                // NOTE: `ptr` should never be null if the value at the top of
+                // the stack is a string or a number.
+                assert!(!ptr.is_null());
+
+                let slice = std::slice::from_raw_parts(ptr as *const u8, len);
+                let str = String::from_utf8_lossy(slice).to_string();
+
+                lua_pop(state, 1);
+
+                Ok(str)
+            },
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TSTRING, other)),
+        }
+    }
+}
+
+impl<T> Poppable for Option<T>
+where
+    T: Poppable,
+{
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        match lua_type(state, -1) {
+            LUA_TNIL => {
+                lua_pop(state, 1);
+                Ok(None)
+            },
+            LUA_TNONE => Ok(None),
+            _ => T::pop(state).map(Some),
+        }
+    }
+}
+
+impl<T> Poppable for Vec<T>
+where
+    T: Poppable,
+{
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        match lua_type(state, -1) {
+            LUA_TTABLE => {
+                // TODO: check that the table is an array-like table and not a
+                // dictionary-like one.
+
+                let mut vec = Vec::with_capacity(lua_objlen(state, -1));
+
+                lua_pushnil(state);
+
+                while lua_next(state, -2) != 0 {
+                    vec.push(T::pop(state)?);
+                }
+
+                // Pop the table.
+                lua_pop(state, 1);
+
+                Ok(vec)
+            },
+
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TTABLE, other)),
+        }
+    }
+}
+
+impl<K, V> Poppable for HashMap<K, V>
+where
+    K: Poppable + Eq + Hash,
+    V: Poppable,
+{
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        match lua_type(state, -1) {
+            LUA_TTABLE => {
+                // TODO: check that the table is an dictionary-like table and
+                // not an array-like one.
+
+                let mut map = HashMap::with_capacity(lua_objlen(state, -1));
+
+                lua_pushnil(state);
+
+                while lua_next(state, -2) != 0 {
+                    let value = V::pop(state)?;
+
+                    // NOTE: the following `K::pop` will pop the key, so we
+                    // push another copy of the key on the stack so that for
+                    // the next iteration.
+                    lua_pushvalue(state, -1);
+
+                    let key = K::pop(state)?;
+
+                    map.insert(key, value);
+                }
+
+                // Pop the table.
+                lua_pop(state, 1);
+
+                Ok(map)
+            },
+
+            LUA_TNONE => Err(Error::PopEmptyStack),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TTABLE, other)),
+        }
+    }
+}
+
+/// Implements `Poppable` for a tuple `(a, b, c, ..)` where all the elements
+/// in the tuple implement `Poppable`.
 macro_rules! pop_tuple {
     ($($name:ident)*) => (
         impl<$($name,)*> Poppable for ($($name,)*)
         where
             $($name: Poppable,)*
         {
-            const N: c_int = count!($($name)*);
-
             #[allow(non_snake_case)]
-            unsafe fn pop(lstate: *mut lua_State) -> Result<Self, crate::Error> {
-                crate::utils::grow_stack(lstate, Self::N);
-                pop_reverse!(lstate, $($name)*);
+            unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+                crate::utils::grow_stack(state, count!($($name)*));
+                pop_reverse!(state, $($name)*);
                 Ok(($($name,)*))
             }
         }
@@ -185,9 +219,9 @@ macro_rules! pop_tuple {
 }
 
 macro_rules! pop_reverse {
-    ($lstate:expr, $x:ident $($xs:ident)*) => {
-        pop_reverse!($lstate, $($xs)*);
-        let $x = $x::pop($lstate)?;
+    ($lua_state:expr, $x:ident $($xs:ident)*) => {
+        pop_reverse!($lua_state, $($xs)*);
+        let $x = $x::pop($lua_state)?;
     };
 
     ($lstate:expr,) => ();

@@ -11,7 +11,7 @@ pub struct lua_State {
 
     /// This marker ensures the struct is not `Send`, `Sync` and `Unpin` (the
     /// raw pointer is neither `Send` nor `Sync`, `PhantomPinned` is not
-    /// `Unpin`.
+    /// `Unpin`).
     _marker: PhantomData<(*mut u8, PhantomPinned)>,
 }
 
@@ -110,6 +110,9 @@ extern "C" {
 
     // https://www.lua.org/manual/5.1/manual.html#lua_pushstring
     pub fn lua_pushstring(L: *mut lua_State, s: *const c_char);
+
+    // https://www.lua.org/manual/5.1/manual.html#lua_pushvalue
+    pub fn lua_pushvalue(L: *mut lua_State, index: c_int);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_rawgeti
     pub fn lua_rawgeti(L: *mut lua_State, index: c_int, n: c_int);

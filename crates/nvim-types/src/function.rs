@@ -4,7 +4,7 @@ use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
-use luajit_bindings::{self as lua, Poppable, Pushable};
+use luajit_bindings::{self as lua, ffi, Poppable, Pushable};
 
 use crate::LuaRef;
 
@@ -39,19 +39,23 @@ where
 }
 
 impl<A, R> Poppable for Function<A, R> {
-    const N: c_int = 1;
-
     unsafe fn pop(
         lstate: *mut lua::ffi::lua_State,
     ) -> Result<Self, lua::Error> {
-        if lua::ffi::lua_type(lstate, -1) != lua::ffi::LUA_TFUNCTION
-            || lua::utils::is_table_array(lstate, -1)
-        {
-            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
-        }
+        match ffi::lua_type(lstate, -1) {
+            ffi::LUA_TFUNCTION => {
+                let lua_ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
+                // TODO: check `lua_ref`.
+                Ok(Self::from_ref(lua_ref))
+            },
 
-        let luaref = lua::ffi::luaL_ref(lstate, lua::ffi::LUA_REGISTRYINDEX);
-        Ok(Self::from_ref(luaref))
+            ffi::LUA_TNONE => Err(lua::Error::PopEmptyStack),
+
+            other => Err(lua::Error::pop_wrong_type::<Self>(
+                ffi::LUA_TFUNCTION,
+                other,
+            )),
+        }
     }
 }
 

@@ -38,37 +38,8 @@ impl Pushable for Array {
 }
 
 impl Poppable for Array {
-    const N: c_int = 1;
-
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        if lua_type(lstate, -1) != lua::ffi::LUA_TTABLE
-            || !lua::utils::is_table_array(lstate, -1)
-        {
-            return Err(lua::Error::pop_wrong_type_at_idx::<Self>(lstate, -1));
-        }
-
-        let len = lua_objlen(lstate, -1);
-        let mut items = Vec::<Object>::with_capacity(len);
-
-        // Pushing `nil` as the first key.
-        lua_pushnil(lstate);
-
-        while lua_next(lstate, -2) != 0 {
-            if lua_type(lstate, -2) != LUA_TNUMBER {
-                let typename = lua::utils::debug_type(lstate, -2);
-
-                return Err(lua::Error::pop_error(
-                    "Array",
-                    format!("found a key of type \"{}\"", typename),
-                ));
-            }
-
-            Vec::push(&mut items, Object::pop(lstate)?);
-        }
-
-        lua_pop(lstate, 1);
-
-        Ok(Array::from(items))
+        <Vec<Object> as Poppable>::pop(lstate).map(Into::into)
     }
 }
 
