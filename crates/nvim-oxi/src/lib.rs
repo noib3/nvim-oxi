@@ -41,7 +41,6 @@ pub mod mlua {
     /// Returns a static reference to a
     /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
     /// to be able to interact with other Lua plugins.
-    #[doc(inline)]
     pub fn lua() -> &'static mlua::Lua {
         unsafe {
             crate::lua::with_state(|lstate| {

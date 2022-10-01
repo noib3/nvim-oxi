@@ -44,14 +44,14 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 pub fn create_user_command<Cmd>(
     name: &str,
     command: Cmd,
-    opts: Option<&CreateCommandOpts>,
+    opts: &CreateCommandOpts,
 ) -> Result<()>
 where
     Cmd: StringOrFunction<CommandArgs, ()>,
 {
     let name = nvim::String::from(name);
     let command = command.to_obj();
-    let opts = opts.map(KeyDict_user_command::from).unwrap_or_default();
+    let opts = KeyDict_user_command::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
@@ -176,10 +176,10 @@ pub fn err_writeln(str: &str) {
 /// Evaluates a string to be displayed in the statusline.
 pub fn eval_statusline(
     str: &str,
-    opts: Option<&EvalStatuslineOpts>,
+    opts: &EvalStatuslineOpts,
 ) -> Result<StatuslineInfos> {
     let str = nvim::String::from(str);
-    let opts = opts.map(KeyDict_eval_statusline::from).unwrap_or_default();
+    let opts = KeyDict_eval_statusline::from(opts);
     let mut err = nvim::Error::new();
     let dict =
         unsafe { nvim_eval_statusline(str.non_owning(), &opts, &mut err) };
@@ -242,9 +242,9 @@ pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
 /// Returns an iterator over the infos of the global ex commands. Only
 /// user-defined commands are returned, not builtin ones.
 pub fn get_commands(
-    opts: Option<&GetCommandsOpts>,
+    opts: &GetCommandsOpts,
 ) -> Result<impl SuperIterator<CommandInfos>> {
-    let opts = opts.map(KeyDict_get_commands::from).unwrap_or_default();
+    let opts = KeyDict_get_commands::from(opts);
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(&opts, &mut err) };
     err.into_err_or_else(|| {
@@ -255,8 +255,8 @@ pub fn get_commands(
 /// Binding to [`nvim_get_context`](https://neovim.io/doc/user/api.html#nvim_get_context()).
 ///
 /// Returns a snapshot of the current editor state.
-pub fn get_context(opts: Option<&GetContextOpts>) -> Result<EditorContext> {
-    let opts = opts.map(KeyDict_context::from).unwrap_or_default();
+pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
+    let opts = KeyDict_context::from(opts);
     let mut err = nvim::Error::new();
     let ctx = unsafe { nvim_get_context(&opts, &mut err) };
     err.into_err_or_flatten(|| Ok(EditorContext::from_obj(ctx.into())?))
@@ -336,10 +336,10 @@ pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
 /// of the named mark. Marks are (1,0)-indexed.
 pub fn get_mark(
     name: char,
-    opts: Option<&GetMarkOpts>,
+    opts: &GetMarkOpts,
 ) -> Result<(usize, usize, Buffer, String)> {
     let name = nvim::String::from(name);
-    let opts = opts.map(Dictionary::from).unwrap_or_default();
+    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let mark = unsafe {
         nvim_get_mark(name.non_owning(), opts.non_owning(), &mut err)
@@ -394,15 +394,12 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
 /// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
-pub fn get_option_value<Opt>(
-    name: &str,
-    opts: Option<&OptionValueOpts>,
-) -> Result<Opt>
+pub fn get_option_value<Opt>(name: &str, opts: &OptionValueOpts) -> Result<Opt>
 where
     Opt: FromObject,
 {
     let name = nvim::String::from(name);
-    let opts = opts.map(KeyDict_option::from).unwrap_or_default();
+    let opts = KeyDict_option::from(opts);
     let mut err = nvim::Error::new();
     let obj =
         unsafe { nvim_get_option_value(name.non_owning(), &opts, &mut err) };
@@ -589,10 +586,10 @@ pub fn load_context(ctx: EditorContext) {
 pub fn notify(
     msg: &str,
     log_level: LogLevel,
-    opts: Option<&NotifyOpts>,
+    opts: &NotifyOpts,
 ) -> Result<()> {
     let msg = nvim::String::from(msg);
-    let opts = opts.map(Dictionary::from).unwrap_or_default();
+    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let _ = unsafe {
         nvim_notify(
@@ -610,8 +607,8 @@ pub fn notify(
 /// Opens a terminal instance in a buffer. Returns the id of a channel that can
 /// be used to send data to the instance via
 /// [`nvim_oxi::api::chan_send`](chan_send).
-pub fn open_term(buffer: &Buffer, opts: Option<&OpenTermOpts>) -> Result<u32> {
-    let opts = opts.map(Dictionary::from).unwrap_or_default();
+pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
+    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let channel_id =
         unsafe { nvim_open_term(buffer.0, opts.non_owning(), &mut err) };
@@ -701,9 +698,9 @@ pub fn select_popupmenu_item(
     item: usize,
     insert: bool,
     finish: bool,
-    opts: Option<&SelectPopupMenuItemOpts>,
+    opts: &SelectPopupMenuItemOpts,
 ) -> Result<()> {
-    let opts = opts.map(Dictionary::from).unwrap_or_default();
+    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_select_popupmenu_item(
@@ -772,13 +769,9 @@ pub fn set_current_win(win: &Window) -> Result<()> {
 /// Binding to [`nvim_set_hl`](https://neovim.io/doc/user/api.html#nvim_set_hl()).
 ///
 /// Sets a highlight group.
-pub fn set_hl(
-    ns_id: u32,
-    name: &str,
-    opts: Option<&SetHighlightOpts>,
-) -> Result<()> {
+pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     let name = nvim::String::from(name);
-    let opts = opts.map(KeyDict_highlight::from).unwrap_or_default();
+    let opts = KeyDict_highlight::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_hl(ns_id as Integer, name.non_owning(), &opts, &mut err)
@@ -794,12 +787,12 @@ pub fn set_keymap(
     mode: Mode,
     lhs: &str,
     rhs: &str,
-    opts: Option<&SetKeymapOpts>,
+    opts: &SetKeymapOpts,
 ) -> Result<()> {
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
     let rhs = nvim::String::from(rhs);
-    let opts = opts.map(KeyDict_keymap::from).unwrap_or_default();
+    let opts = KeyDict_keymap::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_keymap(
@@ -843,13 +836,13 @@ where
 pub fn set_option_value<Opt>(
     name: &str,
     value: Opt,
-    opts: Option<&OptionValueOpts>,
+    opts: &OptionValueOpts,
 ) -> Result<()>
 where
     Opt: ToObject,
 {
     let name = nvim::String::from(name);
-    let opts = opts.map(KeyDict_option::from).unwrap_or_default();
+    let opts = KeyDict_option::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_option_value(

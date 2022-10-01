@@ -32,15 +32,22 @@ fn buf_call() {
 fn buf_create_del_user_command() {
     let mut buf = Buffer::current();
 
-    let res = buf.create_user_command("Foo", ":", None);
+    let res = buf.create_user_command("Foo", ":", &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res = buf.create_user_command("Bar", |_args| Ok(()), None);
+    let res =
+        buf.create_user_command("Bar", |_args| Ok(()), &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
-    assert_eq!(2, buf.get_commands(None).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(
+        2,
+        buf.get_commands(&Default::default())
+            .unwrap()
+            .collect::<Vec<_>>()
+            .len()
+    );
 
     assert_eq!(Ok(()), buf.del_user_command("Foo"));
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
@@ -62,7 +69,7 @@ fn loaded_n_valid() {
 #[oxi::test]
 fn new_buf_delete() {
     let buf = api::create_buf(true, false).unwrap();
-    assert_eq!(Ok(()), buf.delete(None));
+    assert_eq!(Ok(()), buf.delete(&Default::default()));
 }
 
 #[oxi::test]
@@ -75,7 +82,7 @@ fn buf_set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = buf.set_keymap(Mode::Insert, "a", "", Some(&opts));
+    let res = buf.set_keymap(Mode::Insert, "a", "", &opts);
     assert_eq!(Ok(()), res);
 
     let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();
@@ -89,7 +96,12 @@ fn buf_set_get_del_keymap() {
 fn buf_set_get_del_nvo_keymap() {
     let mut buf = Buffer::current();
 
-    let res = buf.set_keymap(Mode::NormalVisualOperator, "a", "b", None);
+    let res = buf.set_keymap(
+        Mode::NormalVisualOperator,
+        "a",
+        "b",
+        &Default::default(),
+    );
     assert_eq!(Ok(()), res);
 
     let keymaps = buf
@@ -140,7 +152,7 @@ fn set_get_del_text() {
     assert_eq!(Ok(()), buf.set_text(0, 0, 0, 0, ["foo", "bar", "baz"]));
     assert_eq!(
         vec!["foo", "bar", "baz"],
-        buf.get_text(0, 0, 2, 3, None)
+        buf.get_text(0, 0, 2, 3, &Default::default())
             .unwrap()
             .flat_map(TryFrom::try_from)
             .collect::<Vec<String>>()
@@ -151,7 +163,7 @@ fn set_get_del_text() {
 
     assert_eq!(
         1,
-        buf.get_text(0, 0, 0, 1, None)
+        buf.get_text(0, 0, 0, 1, &Default::default())
             .unwrap()
             .map(String::try_from)
             .collect::<Result<Vec<_>, _>>()

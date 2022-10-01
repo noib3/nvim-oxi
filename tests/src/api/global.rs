@@ -10,15 +10,22 @@ fn chan_send_fail() {
 
 #[oxi::test]
 fn create_del_user_command() {
-    let res = api::create_user_command("Foo", ":", None);
+    let res = api::create_user_command("Foo", ":", &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res = api::create_user_command("Bar", |_args| Ok(()), None);
+    let res =
+        api::create_user_command("Bar", |_args| Ok(()), &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
-    assert_eq!(2, api::get_commands(None).unwrap().collect::<Vec<_>>().len());
+    assert_eq!(
+        2,
+        api::get_commands(&Default::default())
+            .unwrap()
+            .collect::<Vec<_>>()
+            .len()
+    );
 
     assert_eq!(Ok(()), api::del_user_command("Foo"));
     assert_eq!(Ok(()), api::del_user_command("Bar"));
@@ -27,16 +34,17 @@ fn create_del_user_command() {
 #[oxi::test]
 fn user_command_with_count() {
     let opts = CreateCommandOpts::builder().count(32).build();
-    api::create_user_command("Foo", "echo 'foo'", Some(&opts)).unwrap();
+    api::create_user_command("Foo", "echo 'foo'", &opts).unwrap();
 
-    let res = api::get_commands(None).map(|cmds| cmds.collect::<Vec<_>>());
+    let res = api::get_commands(&Default::default())
+        .map(|cmds| cmds.collect::<Vec<_>>());
     assert!(res.is_ok(), "{res:?}");
 }
 
 #[oxi::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
-    let res = api::eval_statusline("foo", Some(&opts));
+    let res = api::eval_statusline("foo", &opts);
     assert_eq!(Ok("foo".into()), res.map(|infos| infos.str));
 }
 
@@ -57,7 +65,7 @@ fn get_colors() {
 
 #[oxi::test]
 fn get_context() {
-    let res = api::get_context(None);
+    let res = api::get_context(&Default::default());
     assert!(res.is_ok());
 }
 
@@ -90,7 +98,7 @@ fn get_option_info() {
 #[oxi::test]
 fn hl_underline() {
     let opts = SetHighlightOpts::builder().underline(true).build();
-    api::set_hl(0, "MatchParen", Some(&opts)).unwrap();
+    api::set_hl(0, "MatchParen", &opts).unwrap();
 
     let infos = api::get_hl_by_name("MatchParen", true).unwrap();
     assert_eq!(Some(true), infos.underline);
@@ -116,7 +124,7 @@ fn set_get_del_keymap() {
         .expr(true)
         .build();
 
-    let res = api::set_keymap(Mode::Insert, "a", "", Some(&opts));
+    let res = api::set_keymap(Mode::Insert, "a", "", &opts);
     assert_eq!(Ok(()), res);
 
     let keymaps = api::get_keymap(Mode::Insert).collect::<Vec<_>>();
@@ -133,7 +141,10 @@ fn set_get_del_mark() {
     let res = buf.set_mark('A', 1, 0);
     assert_eq!(Ok(()), res);
 
-    assert_eq!((1, 0, buf, "".into()), api::get_mark('A', None).unwrap());
+    assert_eq!(
+        (1, 0, buf, "".into()),
+        api::get_mark('A', &Default::default()).unwrap()
+    );
 
     let res = api::del_mark('A');
     assert_eq!(Ok(()), res);

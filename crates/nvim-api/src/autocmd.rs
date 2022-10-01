@@ -22,11 +22,8 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
 /// an existing augroup set the
 /// [`clear`](super::opts::CreateAugroupOptsBuilder::clear) field of `opts` to
 /// `false`.
-pub fn create_augroup(
-    name: &str,
-    opts: Option<&CreateAugroupOpts>,
-) -> Result<u32> {
-    let opts = opts.map(KeyDict_create_augroup::from).unwrap_or_default();
+pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
+    let opts = KeyDict_create_augroup::from(opts);
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let id = unsafe {
@@ -111,9 +108,9 @@ where
 /// events are provided, it will find all the autocommands that match any
 /// combination of them.
 pub fn get_autocmds(
-    opts: Option<&GetAutocmdsOpts>,
+    opts: &GetAutocmdsOpts,
 ) -> Result<impl SuperIterator<AutocmdInfos>> {
-    let opts = opts.map(KeyDict_get_autocmds::from).unwrap_or_default();
+    let opts = KeyDict_get_autocmds::from(opts);
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(&opts, &mut err) };
     err.into_err_or_else(|| {

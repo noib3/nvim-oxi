@@ -13,7 +13,7 @@ fn call_function() {
 fn cmd_basic() {
     let opts = CmdOpts::builder().output(true).build();
     let infos = CmdInfos::builder().cmd("echo 'foo'").build();
-    assert_eq!(Ok(None), api::cmd(&infos, Some(&opts)));
+    assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
 #[cfg(feature = "nightly")]
@@ -21,7 +21,7 @@ fn cmd_basic() {
 fn cmd_no_output() {
     let opts = CmdOpts::builder().output(false).build();
     let infos = CmdInfos::builder().cmd("echo 'foo'").build();
-    assert_eq!(Ok(None), api::cmd(&infos, Some(&opts)));
+    assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
 #[oxi::test]
@@ -58,7 +58,7 @@ fn exec() {
 fn parse_cmd_basic() {
     let opts = ParseCmdOpts::builder().build();
 
-    let res = api::parse_cmd("echo 'foo'", Some(&opts));
+    let res = api::parse_cmd("echo 'foo'", &opts);
     assert!(res.is_ok(), "{res:?}");
 
     let infos = res.unwrap();

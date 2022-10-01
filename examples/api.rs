@@ -17,10 +17,10 @@ fn api() -> oxi::Result<Dictionary> {
         Ok(())
     };
 
-    api::create_user_command("Greetings", greetings, Some(&opts))?;
+    api::create_user_command("Greetings", greetings, &opts)?;
 
     // Remaps `hi` to `hello` in insert mode.
-    api::set_keymap(Mode::Insert, "hi", "hello", None)?;
+    api::set_keymap(Mode::Insert, "hi", "hello", &Default::default())?;
 
     // Creates two functions `{open,close}_window` to open and close a
     // floating window.

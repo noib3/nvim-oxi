@@ -100,9 +100,9 @@ impl Buffer {
         &self,
         ns_id: u32,
         extmark_id: u32,
-        opts: Option<&GetExtmarkByIdOpts>,
+        opts: &GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
-        let opts = opts.map(Dictionary::from).unwrap_or_default();
+        let opts = Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let tuple = unsafe {
             nvim_buf_get_extmark_by_id(
@@ -141,10 +141,10 @@ impl Buffer {
         ns_id: u32,
         start: ExtmarkPosition,
         end: ExtmarkPosition,
-        opts: Option<&GetExtmarksOpts>,
+        opts: &GetExtmarksOpts,
     ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
     {
-        let opts = opts.map(Dictionary::from).unwrap_or_default();
+        let opts = Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(

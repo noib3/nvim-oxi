@@ -144,12 +144,12 @@ impl Buffer {
         &mut self,
         name: &str,
         command: Cmd,
-        opts: Option<&CreateCommandOpts>,
+        opts: &CreateCommandOpts,
     ) -> Result<()>
     where
         Cmd: StringOrFunction<CommandArgs, ()>,
     {
-        let opts = opts.map(KeyDict_user_command::from).unwrap_or_default();
+        let opts = KeyDict_user_command::from(opts);
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let command = command.to_obj();
@@ -226,9 +226,9 @@ impl Buffer {
     ///
     /// Deletes the buffer (not allowed while
     /// [`textlock`](https://neovim.io/doc/user/eval.html#textlock) is active).
-    pub fn delete(self, opts: Option<&BufDeleteOpts>) -> Result<()> {
+    pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
         let mut err = nvim::Error::new();
-        let opts = opts.map(Dictionary::from).unwrap_or_default();
+        let opts = Dictionary::from(opts);
         unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
         err.into_err_or_else(|| ())
     }
@@ -243,10 +243,10 @@ impl Buffer {
     /// Binding to [`nvim_buf_get_commands`](https://neovim.io/doc/user/api.html#nvim_buf_get_commands()).
     pub fn get_commands(
         &self,
-        opts: Option<&GetCommandsOpts>,
+        opts: &GetCommandsOpts,
     ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
-        let opts = opts.map(KeyDict_get_commands::from).unwrap_or_default();
+        let opts = KeyDict_get_commands::from(opts);
         let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
         err.into_err_or_else(|| {
             cmds.into_iter()
@@ -366,10 +366,10 @@ impl Buffer {
         start_col: usize,
         end_row: usize,
         end_col: usize,
-        opts: Option<&GetTextOpts>,
+        opts: &GetTextOpts,
     ) -> Result<impl SuperIterator<nvim::String>> {
         let mut err = nvim::Error::new();
-        let opts = opts.map(Dictionary::from).unwrap_or_default();
+        let opts = Dictionary::from(opts);
         let lines = unsafe {
             nvim_buf_get_text(
                 LUA_INTERNAL_CALL,
@@ -433,12 +433,12 @@ impl Buffer {
         mode: Mode,
         lhs: &str,
         rhs: &str,
-        opts: Option<&SetKeymapOpts>,
+        opts: &SetKeymapOpts,
     ) -> Result<()> {
         let mode = nvim::String::from(mode);
         let lhs = nvim::String::from(lhs);
         let rhs = nvim::String::from(rhs);
-        let opts = opts.map(KeyDict_keymap::from).unwrap_or_default();
+        let opts = KeyDict_keymap::from(opts);
         let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_set_keymap(

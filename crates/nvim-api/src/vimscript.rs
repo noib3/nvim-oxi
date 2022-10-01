@@ -62,10 +62,9 @@ where
 )]
 pub fn cmd(
     infos: &CmdInfos,
-    opts: Option<&super::opts::CmdOpts>,
+    opts: &super::opts::CmdOpts,
 ) -> Result<Option<String>> {
-    let opts =
-        opts.map(super::opts::KeyDict_cmd_opts::from).unwrap_or_default();
+    let opts = super::opts::KeyDict_cmd_opts::from(opts);
     let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
@@ -129,10 +128,10 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 )]
 pub fn parse_cmd(
     src: &str,
-    opts: Option<&super::opts::ParseCmdOpts>,
+    opts: &super::opts::ParseCmdOpts,
 ) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    let opts = opts.map(nvim::Dictionary::from).unwrap_or_default();
+    let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
