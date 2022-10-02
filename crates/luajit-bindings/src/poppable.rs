@@ -13,9 +13,14 @@ pub trait Poppable: Sized {
 
 impl Poppable for () {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
-        // TODO: check type?
-        lua_pop(state, 1);
-        Ok(())
+        match lua_type(state, -1) {
+            LUA_TNIL => {
+                lua_pop(state, 1);
+                Ok(())
+            },
+            LUA_TNONE => Ok(()),
+            other => Err(Error::pop_wrong_type::<Self>(LUA_TNIL, other)),
+        }
     }
 }
 
@@ -179,8 +184,8 @@ where
                     let value = V::pop(state)?;
 
                     // NOTE: the following `K::pop` will pop the key, so we
-                    // push another copy of the key on the stack so that for
-                    // the next iteration.
+                    // push another copy of the key on the stack for the next
+                    // iteration.
                     lua_pushvalue(state, -1);
 
                     let key = K::pop(state)?;
