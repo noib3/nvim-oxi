@@ -13,10 +13,8 @@ use crate::NonOwning;
 pub struct Collection<T> {
     #[cfg(feature = "neovim-0-7")]
     pub(crate) items: *mut T,
-
     pub(crate) size: usize,
     pub(crate) capacity: usize,
-
     #[cfg(not(feature = "neovim-0-7"))]
     pub(crate) items: *mut T,
 }
