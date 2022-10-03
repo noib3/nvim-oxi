@@ -57,7 +57,6 @@ pub unsafe fn debug_type(lstate: *mut lua_State, n: c_int) -> impl Display {
 }
 
 /// Pretty prints the contents of the Lua stack to the Neovim message area.
-#[allow(dead_code)]
 pub unsafe fn debug_stack(lstate: *mut lua_State) {
     let height = ffi::lua_gettop(lstate);
 

@@ -28,8 +28,9 @@ impl Poppable for bool {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
         match lua_type(state, -1) {
             LUA_TBOOLEAN => {
+                let b = lua_toboolean(state, -1) == 1;
                 lua_pop(state, 1);
-                Ok(lua_toboolean(state, -1) == 1)
+                Ok(b)
             },
             LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TBOOLEAN, other)),
@@ -41,8 +42,9 @@ impl Poppable for lua_Integer {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
         match lua_type(state, -1) {
             LUA_TNUMBER => {
+                let n = lua_tointeger(state, -1);
                 lua_pop(state, 1);
-                Ok(lua_tointeger(state, -1))
+                Ok(n)
             },
             LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),
@@ -80,8 +82,9 @@ impl Poppable for lua_Number {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
         match lua_type(state, -1) {
             LUA_TNUMBER => {
+                let n = lua_tonumber(state, -1);
                 lua_pop(state, 1);
-                Ok(lua_tonumber(state, -1))
+                Ok(n)
             },
             LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),

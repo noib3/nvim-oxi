@@ -1,17 +1,13 @@
 use mlua::prelude::LuaFunction;
-use nvim_oxi::{self as oxi, Dictionary, Function};
+use nvim_oxi as oxi;
 
-fn greetings(_: ()) -> oxi::Result<()> {
-    oxi::print!("Hello from Rust..");
+#[oxi::module]
+fn mlua() -> oxi::Result<()> {
+    oxi::print!("Hello from nvim-oxi..");
 
     let lua = oxi::mlua::lua();
     let print = lua.globals().get::<_, LuaFunction>("print")?;
-    print.call("..and goodbye from Lua!")?;
+    print.call("..and goodbye from mlua!")?;
 
     Ok(())
-}
-
-#[oxi::module]
-fn mlua() -> oxi::Result<Dictionary> {
-    Ok(Dictionary::from_iter([("greetings", Function::from_fn(greetings))]))
 }
