@@ -96,12 +96,22 @@ fn get_option_info() {
 }
 
 #[oxi::test]
+fn get_runtime_file() {
+    assert!(api::get_runtime_file("*", true).unwrap().next().is_some());
+}
+
+#[oxi::test]
 fn hl_underline() {
     let opts = SetHighlightOpts::builder().underline(true).build();
     api::set_hl(0, "MatchParen", &opts).unwrap();
 
     let infos = api::get_hl_by_name("MatchParen", true).unwrap();
     assert_eq!(Some(true), infos.underline);
+}
+
+#[oxi::test]
+fn list_runtime_paths() {
+    assert!(api::list_runtime_paths().unwrap().next().is_some());
 }
 
 #[oxi::test]
