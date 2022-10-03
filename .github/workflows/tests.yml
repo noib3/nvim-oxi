@@ -8,10 +8,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        neovim: [stable, nightly]
+        neovim: [v0.7.2, stable, nightly]
         include:
-          - neovim: stable
+          - neovim: v0.7.2
             features: "--features neovim-0-7"
+          - neovim: stable
+            features: "--features neovim-0-8"
           - neovim: nightly
             features: "--features neovim-nightly"
 
