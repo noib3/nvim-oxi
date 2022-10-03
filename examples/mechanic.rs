@@ -27,6 +27,10 @@ struct Car {
     works: bool,
 }
 
+fn yep() -> bool {
+    true
+}
+
 #[derive(Copy, Clone, Serialize, Deserialize)]
 enum CarManufacturer {
     Nikola,
@@ -40,10 +44,6 @@ enum CarProblem {
     DoesntMove,
     KillsPedestrians,
     Pollutes,
-}
-
-fn yep() -> bool {
-    true
 }
 
 impl FromObject for Car {
@@ -63,7 +63,6 @@ impl oxi::lua::Poppable for Car {
         lstate: *mut oxi::lua::ffi::lua_State,
     ) -> Result<Self, oxi::lua::Error> {
         let obj = Object::pop(lstate)?;
-
         Self::from_obj(obj)
             .map_err(oxi::lua::Error::pop_error_from_err::<Self, _>)
     }
@@ -97,12 +96,11 @@ fn fix(mut car: Car) -> oxi::Result<Car> {
         (Nikola, DoesntMove) => print!("Try going downhill"),
         (Tesla, KillsPedestrians) => print!("Hands on the wheel!!"),
         (Volkswagen, Pollutes) => print!("Software update?"),
-
-        _ => {
-            car.works = true;
-            car.problem = None;
-        },
+        _ => {},
     }
+
+    car.works = true;
+    car.problem = None;
 
     Ok(car)
 }
