@@ -13,12 +13,15 @@ pub trait Poppable: Sized {
 
 impl Poppable for () {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        if lua_gettop(state) == 0 {
+            return Ok(());
+        }
+
         match lua_type(state, -1) {
             LUA_TNIL => {
                 lua_pop(state, 1);
                 Ok(())
             },
-            LUA_TNONE => Ok(()),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TNIL, other)),
         }
     }
@@ -26,13 +29,16 @@ impl Poppable for () {
 
 impl Poppable for bool {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TBOOLEAN => {
                 let b = lua_toboolean(state, -1) == 1;
                 lua_pop(state, 1);
                 Ok(b)
             },
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TBOOLEAN, other)),
         }
     }
@@ -40,13 +46,16 @@ impl Poppable for bool {
 
 impl Poppable for lua_Integer {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TNUMBER => {
                 let n = lua_tointeger(state, -1);
                 lua_pop(state, 1);
                 Ok(n)
             },
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),
         }
     }
@@ -80,13 +89,16 @@ pop_try_from_integer!(usize);
 
 impl Poppable for lua_Number {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TNUMBER => {
                 let n = lua_tonumber(state, -1);
                 lua_pop(state, 1);
                 Ok(n)
             },
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TNUMBER, other)),
         }
     }
@@ -100,6 +112,10 @@ impl Poppable for f32 {
 
 impl Poppable for String {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TSTRING | LUA_TNUMBER => {
                 let mut len = 0;
@@ -116,7 +132,6 @@ impl Poppable for String {
 
                 Ok(str)
             },
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TSTRING, other)),
         }
     }
@@ -127,12 +142,15 @@ where
     T: Poppable,
 {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TNIL => {
                 lua_pop(state, 1);
                 Ok(None)
             },
-            LUA_TNONE => Ok(None),
             _ => T::pop(state).map(Some),
         }
     }
@@ -143,6 +161,10 @@ where
     T: Poppable,
 {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TTABLE => {
                 // TODO: check that the table is an array-like table and not a
@@ -162,7 +184,6 @@ where
                 Ok(vec)
             },
 
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TTABLE, other)),
         }
     }
@@ -174,6 +195,10 @@ where
     V: Poppable,
 {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+        if lua_gettop(state) == 0 {
+            return Err(Error::PopEmptyStack);
+        }
+
         match lua_type(state, -1) {
             LUA_TTABLE => {
                 // TODO: check that the table is an dictionary-like table and
@@ -202,7 +227,6 @@ where
                 Ok(map)
             },
 
-            LUA_TNONE => Err(Error::PopEmptyStack),
             other => Err(Error::pop_wrong_type::<Self>(LUA_TTABLE, other)),
         }
     }
