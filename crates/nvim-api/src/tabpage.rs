@@ -1,5 +1,6 @@
 use std::fmt;
 
+use luajit_bindings::{self as lua, Poppable, Pushable};
 use nvim_types::{
     self as nvim,
     FromObject,
@@ -42,6 +43,23 @@ impl<H: Into<TabHandle>> From<H> for TabPage {
 impl From<TabPage> for Object {
     fn from(tabpage: TabPage) -> Self {
         tabpage.0.into()
+    }
+}
+
+impl Poppable for TabPage {
+    unsafe fn pop(
+        lstate: *mut lua::ffi::lua_State,
+    ) -> std::result::Result<Self, lua::Error> {
+        TabHandle::pop(lstate).map(Into::into)
+    }
+}
+
+impl Pushable for TabPage {
+    unsafe fn push(
+        self,
+        lstate: *mut lua::ffi::lua_State,
+    ) -> std::result::Result<std::ffi::c_int, lua::Error> {
+        self.0.push(lstate)
     }
 }
 
