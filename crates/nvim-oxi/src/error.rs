@@ -8,6 +8,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {
     #[error(transparent)]
+    LuaError(#[from] luajit_bindings::Error),
+
+    #[error(transparent)]
     NvimError(#[from] nvim_types::Error),
 
     #[error(transparent)]

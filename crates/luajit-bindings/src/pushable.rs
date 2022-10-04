@@ -1,4 +1,4 @@
-use std::ffi::c_int;
+use std::ffi::{c_char, c_int};
 
 use crate::ffi::{self, lua_Integer, lua_Number, lua_State};
 use crate::macros::count;
@@ -111,7 +111,39 @@ impl Pushable for f32 {
     }
 }
 
-impl<T: Pushable> Pushable for Vec<T> {
+impl Pushable for String {
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, crate::Error> {
+        ffi::lua_pushlstring(
+            lstate,
+            self.as_ptr() as *const c_char,
+            self.len(),
+        );
+        Ok(1)
+    }
+}
+
+impl<T> Pushable for Option<T>
+where
+    T: Pushable,
+{
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, crate::Error> {
+        match self {
+            Some(t) => t.push(lstate),
+            None => ().push(lstate),
+        }
+    }
+}
+
+impl<T> Pushable for Vec<T>
+where
+    T: Pushable,
+{
     unsafe fn push(
         self,
         lstate: *mut lua_State,

@@ -40,11 +40,11 @@ pub mod libuv {
 pub mod mlua {
     /// Returns a static reference to a
     /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
-    /// to be able to interact with other Lua plugins.
+    /// which can be used to interact with Lua plugins.
     pub fn lua() -> &'static mlua::Lua {
         unsafe {
-            crate::lua::with_state(|lstate| {
-                mlua::Lua::init_from_ptr(lstate as *mut _).into_static()
+            luajit_bindings::with_state(|lua_state| {
+                mlua::Lua::init_from_ptr(lua_state as *mut _).into_static()
             })
         }
     }
