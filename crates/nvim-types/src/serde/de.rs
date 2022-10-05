@@ -1,170 +1,407 @@
-//! [`Deserialize`](serde::Deserialize) implementations for various types
-//! defined in this crate.
+use std::string::String as StdString;
 
-use std::fmt;
+use serde::de::{self, IntoDeserializer};
 
-use serde::de::{self, Deserialize, Deserializer, Visitor};
+use super::Result;
+use crate::{Object, ObjectKind};
 
-use crate::{Array, Dictionary, Function, Integer, LuaRef, Object};
+/// A struct used for deserializing Neovim `Object`s into Rust values.
+pub struct Deserializer {
+    obj: Object,
+}
 
-impl<'de, A, R> Deserialize<'de> for Function<A, R> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        use std::marker::PhantomData;
-
-        struct FunctionVisitor<A, R>(PhantomData<A>, PhantomData<R>);
-
-        impl<'de, A, R> Visitor<'de> for FunctionVisitor<A, R> {
-            type Value = Function<A, R>;
-
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("an f32 representing a Lua reference")
-            }
-
-            fn visit_f32<E>(self, value: f32) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Function::from_ref(value as LuaRef))
-            }
-        }
-
-        deserializer.deserialize_f32(FunctionVisitor(PhantomData, PhantomData))
+impl Deserializer {
+    pub fn new(obj: Object) -> Self {
+        Self { obj }
     }
 }
 
-impl<'de> Deserialize<'de> for crate::String {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+impl<'de> de::Deserializer<'de> for Deserializer {
+    type Error = super::Error;
+
+    serde::forward_to_deserialize_any! {
+        bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
+            bytes byte_buf unit unit_struct identifier ignored_any
+    }
+
+    #[inline]
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
     where
-        D: Deserializer<'de>,
+        V: de::Visitor<'de>,
     {
-        struct StringVisitor;
+        use ObjectKind::*;
+        match self.obj.kind() {
+            Nil => visitor.visit_unit(),
 
-        impl<'de> Visitor<'de> for StringVisitor {
-            type Value = crate::String;
+            Boolean => {
+                visitor.visit_bool(unsafe { self.obj.as_boolean_unchecked() })
+            },
 
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("either a string of a byte vector")
-            }
+            Integer => {
+                visitor.visit_i64(unsafe { self.obj.as_integer_unchecked() })
+            },
 
-            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(crate::String::from_bytes(b.to_owned()))
-            }
+            Float => unsafe {
+                visitor.visit_f64(self.obj.as_float_unchecked())
+            },
 
-            fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(crate::String::from(s))
-            }
+            String => {
+                let string = unsafe { self.obj.into_string_unchecked() };
+                match string.as_str() {
+                    Ok(str) => visitor.visit_str(str),
+                    _ => visitor.visit_bytes(string.as_bytes()),
+                }
+            },
+
+            Array => self.deserialize_seq(visitor),
+
+            Dictionary => self.deserialize_map(visitor),
+
+            // We map the ref representing the index of the lua function in the
+            // Lua registry to `f32`. It's definitely a hack, but Neovim rarely
+            // returns a float so it should a good place to store it to avoid
+            // collisions.
+            LuaRef => unsafe {
+                visitor.visit_f32(self.obj.as_luaref_unchecked() as f32)
+            },
         }
+    }
 
-        deserializer.deserialize_str(StringVisitor)
+    #[inline]
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.obj.kind() {
+            ObjectKind::Nil => visitor.visit_none(),
+            _ => visitor.visit_some(self),
+        }
+    }
+
+    #[inline]
+    fn deserialize_enum<V>(
+        self,
+        _name: &str,
+        _variants: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        let (variant, obj) = match self.obj.kind() {
+            ObjectKind::Dictionary => {
+                let mut iter =
+                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
+
+                let (variant, value) = match iter.len() {
+                    1 => iter.next().expect("checked length"),
+                    _ => {
+                        return Err(de::Error::invalid_value(
+                            de::Unexpected::Map,
+                            &"dictionary with a single key-value pair",
+                        ))
+                    },
+                };
+
+                (variant.into_string()?, Some(value))
+            },
+
+            ObjectKind::String => (
+                unsafe { self.obj.into_string_unchecked() }.into_string()?,
+                None,
+            ),
+
+            _ => return Err(de::Error::custom("bad enum value")),
+        };
+
+        visitor.visit_enum(EnumDeserializer { variant, obj })
+    }
+
+    #[inline]
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.obj.kind() {
+            ObjectKind::Array => {
+                let iter =
+                    unsafe { self.obj.into_array_unchecked() }.into_iter();
+                let mut deserializer = SeqDeserializer { iter };
+                visitor.visit_seq(&mut deserializer)
+            },
+
+            ty => Err(de::Error::invalid_type(
+                de::Unexpected::Other(&format!("{ty:?}")),
+                &"array",
+            )),
+        }
+    }
+
+    #[inline]
+    fn deserialize_tuple<V>(self, _len: usize, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        self.deserialize_seq(visitor)
+    }
+
+    #[inline]
+    fn deserialize_tuple_struct<V>(
+        self,
+        _name: &'static str,
+        _len: usize,
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        self.deserialize_seq(visitor)
+    }
+
+    #[inline]
+    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.obj.kind() {
+            ObjectKind::Dictionary => {
+                let iter =
+                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
+                let mut deserializer = MapDeserializer { iter, obj: None };
+                visitor.visit_map(&mut deserializer)
+            },
+
+            ty => Err(de::Error::invalid_type(
+                de::Unexpected::Other(&format!("{ty:?}")),
+                &"dictionary",
+            )),
+        }
+    }
+
+    #[inline]
+    fn deserialize_struct<V>(
+        self,
+        _name: &'static str,
+        _fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        self.deserialize_map(visitor)
+    }
+
+    #[inline]
+    fn deserialize_newtype_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        visitor.visit_newtype_struct(self)
     }
 }
 
-impl<'de> Deserialize<'de> for Object {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+struct SeqDeserializer {
+    iter: crate::ArrayIterator,
+}
+
+impl<'de> de::SeqAccess<'de> for SeqDeserializer {
+    type Error = super::Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
     where
-        D: de::Deserializer<'de>,
+        T: de::DeserializeSeed<'de>,
     {
-        struct ObjectVisitor;
-
-        macro_rules! visit_into {
-            ($fn_name:ident, $ty:ty) => {
-                fn $fn_name<E>(self, value: $ty) -> Result<Self::Value, E>
-                where
-                    E: de::Error,
-                {
-                    Ok(Object::from(value))
-                }
-            };
+        if let Some(obj) = self.iter.next() {
+            return seed.deserialize(Deserializer { obj }).map(Some);
         }
 
-        impl<'de> de::Visitor<'de> for ObjectVisitor {
-            type Value = Object;
+        Ok(None)
+    }
 
-            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("either a string of a byte vector")
-            }
+    fn size_hint(&self) -> Option<usize> {
+        Some(self.iter.len())
+    }
+}
 
-            fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Object::nil())
-            }
+struct MapDeserializer {
+    iter: crate::DictIterator,
+    obj: Option<Object>,
+}
 
-            fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(crate::String::from_bytes(b.to_owned()).into())
-            }
+impl<'de> de::MapAccess<'de> for MapDeserializer {
+    type Error = super::Error;
 
-            fn visit_u64<E>(self, n: u64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Integer::try_from(n).map(Object::from).map_err(E::custom)
-            }
-
-            fn visit_f32<E>(self, f: f32) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(Object::from_luaref(f as LuaRef))
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::SeqAccess<'de>,
-            {
-                let mut vec = Vec::<Object>::with_capacity(
-                    seq.size_hint().unwrap_or_default(),
-                );
-
-                while let Some(obj) = seq.next_element::<Object>()? {
-                    vec.push(obj);
-                }
-
-                Ok(vec.into_iter().collect::<Array>().into())
-            }
-
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: de::MapAccess<'de>,
-            {
-                let mut vec = Vec::<(crate::String, Object)>::with_capacity(
-                    map.size_hint().unwrap_or_default(),
-                );
-
-                while let Some(pair) =
-                    map.next_entry::<crate::String, Object>()?
-                {
-                    vec.push(pair);
-                }
-
-                Ok(vec.into_iter().collect::<Dictionary>().into())
-            }
-
-            visit_into!(visit_bool, bool);
-            visit_into!(visit_i8, i8);
-            visit_into!(visit_u8, u8);
-            visit_into!(visit_i16, i16);
-            visit_into!(visit_u16, u16);
-            visit_into!(visit_i32, i32);
-            visit_into!(visit_u32, u32);
-            visit_into!(visit_i64, i64);
-            visit_into!(visit_f64, f64);
-            visit_into!(visit_str, &str);
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>>
+    where
+        K: de::DeserializeSeed<'de>,
+    {
+        if let Some((name, obj)) = self.iter.next() {
+            self.obj = Some(obj);
+            return seed
+                .deserialize(Deserializer { obj: name.into() })
+                .map(Some);
         }
 
-        deserializer.deserialize_any(ObjectVisitor)
+        Ok(None)
+    }
+
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value>
+    where
+        V: de::DeserializeSeed<'de>,
+    {
+        match self.obj.take() {
+            Some(obj) => seed.deserialize(Deserializer { obj }),
+            _ => Err(de::Error::custom("object is missing")),
+        }
+    }
+
+    fn size_hint(&self) -> Option<usize> {
+        Some(self.iter.len())
+    }
+}
+
+struct EnumDeserializer {
+    variant: StdString,
+    obj: Option<Object>,
+}
+
+impl<'de> de::EnumAccess<'de> for EnumDeserializer {
+    type Error = super::Error;
+    type Variant = VariantDeserializer;
+
+    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant)>
+    where
+        V: de::DeserializeSeed<'de>,
+    {
+        let variant = self.variant.into_deserializer();
+        let deserializer = VariantDeserializer { obj: self.obj };
+        seed.deserialize(variant).map(|v| (v, deserializer))
+    }
+}
+
+struct VariantDeserializer {
+    obj: Option<Object>,
+}
+
+impl<'de> de::VariantAccess<'de> for VariantDeserializer {
+    type Error = super::Error;
+
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        match self.obj {
+            Some(obj) => seed.deserialize(Deserializer { obj }),
+
+            _ => Err(de::Error::invalid_type(
+                de::Unexpected::UnitVariant,
+                &"newtype variant",
+            )),
+        }
+    }
+
+    fn struct_variant<V>(
+        self,
+        _fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.obj {
+            Some(obj) => de::Deserializer::deserialize_map(
+                Deserializer { obj },
+                visitor,
+            ),
+
+            _ => Err(de::Error::invalid_type(
+                de::Unexpected::UnitVariant,
+                &"struct variant",
+            )),
+        }
+    }
+
+    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value>
+    where
+        V: de::Visitor<'de>,
+    {
+        match self.obj {
+            Some(obj) => de::Deserializer::deserialize_seq(
+                Deserializer { obj },
+                visitor,
+            ),
+
+            _ => Err(de::Error::invalid_type(
+                de::Unexpected::UnitVariant,
+                &"tuple variant",
+            )),
+        }
+    }
+
+    fn unit_variant(self) -> Result<()> {
+        match self.obj {
+            None => Ok(()),
+
+            _ => Err(de::Error::invalid_type(
+                de::Unexpected::NewtypeVariant,
+                &"unit variant",
+            )),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde::Deserialize;
+
+    use super::*;
+    use crate::{Array, Dictionary};
+
+    fn d(value: impl Into<Object>) -> Result<Object> {
+        Object::deserialize(Deserializer::new(value.into()))
+            .map_err(Into::into)
+    }
+
+    #[test]
+    fn deserialize_unit() {
+        assert_eq!(Ok(Object::nil()), d(()));
+    }
+
+    #[test]
+    fn deserialize_bool() {
+        assert_eq!(Ok(Object::from(true)), d(true));
+    }
+
+    #[test]
+    fn deserialize_num() {
+        assert_eq!(Ok(Object::from(42)), d(42i32));
+        assert_eq!(Ok(Object::from(42)), d(42u8));
+        assert_eq!(Ok(Object::from(42)), d(42u32));
+    }
+
+    #[test]
+    fn deserialize_str() {
+        assert_eq!(Ok(Object::from("foobar")), d("foobar"));
+        assert_eq!(Ok(Object::from("barfoo")), d(String::from("barfoo")));
+    }
+
+    #[test]
+    fn deserialize_seq() {
+        let arr = Array::from((1, 2, "foo", false));
+        assert_eq!(Ok(Object::from(arr.clone())), d(arr));
+    }
+
+    #[test]
+    fn deserialize_map() {
+        let map = Dictionary::from_iter([
+            ("foo", Object::from("foo")),
+            ("bar", Object::from(false)),
+            ("baz", Object::from(Array::from(("foo", "bar", false)))),
+        ]);
+        assert_eq!(Ok(Object::from(map.clone())), d(map));
     }
 }

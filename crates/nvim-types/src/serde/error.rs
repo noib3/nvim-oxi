@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{de, ser};
 use thiserror::Error as ThisError;
 
-pub(super) type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Clone, Debug, Eq, PartialEq, ThisError)]
 pub enum Error {

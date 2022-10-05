@@ -145,3 +145,52 @@ impl<A, R> Function<A, R> {
         lua::function::remove(self.lua_ref)
     }
 }
+
+#[cfg(feature = "serde")]
+mod serde {
+    use std::fmt;
+
+    use serde::de::{self, Deserialize, Deserializer, Visitor};
+    use serde::ser::{Serialize, Serializer};
+
+    use super::Function;
+    use crate::LuaRef;
+
+    impl<A, R> Serialize for Function<A, R> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            serializer.serialize_f32(self.lua_ref as f32)
+        }
+    }
+
+    impl<'de, A, R> Deserialize<'de> for Function<A, R> {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            use std::marker::PhantomData;
+
+            struct FunctionVisitor<A, R>(PhantomData<A>, PhantomData<R>);
+
+            impl<'de, A, R> Visitor<'de> for FunctionVisitor<A, R> {
+                type Value = Function<A, R>;
+
+                fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    f.write_str("an f32 representing a Lua reference")
+                }
+
+                fn visit_f32<E>(self, value: f32) -> Result<Self::Value, E>
+                where
+                    E: de::Error,
+                {
+                    Ok(Function::from_ref(value as LuaRef))
+                }
+            }
+
+            deserializer
+                .deserialize_f32(FunctionVisitor(PhantomData, PhantomData))
+        }
+    }
+}

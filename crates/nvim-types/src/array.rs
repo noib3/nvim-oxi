@@ -1,45 +1,38 @@
 use std::ffi::c_int;
+use std::fmt::{self, Debug, Display};
 use std::mem::ManuallyDrop;
-use std::{fmt, ptr};
+use std::ptr;
 
-use lua::{ffi::*, Poppable, Pushable};
-use luajit_bindings as lua;
+use luajit_bindings::{self as lua, ffi::lua_State};
 
 use super::{Collection, Object};
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
 //
-/// An array of Neovim [`Object`s](Object).
+/// A vector of Neovim [`Object`s](Object).
 pub type Array = Collection<Object>;
 
-impl fmt::Debug for Array {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
-
-impl fmt::Display for Array {
+impl Debug for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
 
-impl Pushable for Array {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
-        lua_createtable(lstate, self.len() as _, 0);
-
-        for (i, obj) in self.into_iter().enumerate() {
-            obj.push(lstate)?;
-            lua_rawseti(lstate, -2, (i + 1) as _);
-        }
-
-        Ok(1)
+impl Display for Array {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 
-impl Poppable for Array {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        <Vec<Object> as Poppable>::pop(lstate).map(Into::into)
+impl lua::Pushable for Array {
+    unsafe fn push(self, state: *mut lua_State) -> Result<c_int, lua::Error> {
+        <Vec<Object>>::from(self).push(state)
+    }
+}
+
+impl lua::Poppable for Array {
+    unsafe fn pop(state: *mut lua_State) -> Result<Self, lua::Error> {
+        <Vec<Object> as lua::Poppable>::pop(state).map(Into::into)
     }
 }
 
@@ -53,7 +46,6 @@ impl IntoIterator for Array {
         let arr = ManuallyDrop::new(self);
         let start = arr.items;
         let end = unsafe { start.add(arr.len()) };
-
         ArrayIterator { start, end }
     }
 }
@@ -65,13 +57,13 @@ where
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         iter.into_iter()
             .map(Into::into)
-            .filter(Object::is_some)
+            .filter(Object::is_some) // TODO: maybe  avoid this
             .collect::<Vec<Object>>()
             .into()
     }
 }
 
-/// An owning iterator over the entries of
+/// An owning iterator over the [`Object`s] of a Neovim [`Array`].
 pub struct ArrayIterator {
     start: *const Object,
     end: *const Object,
@@ -133,7 +125,9 @@ impl Drop for ArrayIterator {
     }
 }
 
-macro_rules! impl_from_tuple {
+/// Implements `From<(A, B, C, ..)> for Array` for tuples `(A, B, C, ..)` where
+/// all the elements in the tuple implement `Into<Object>`.
+macro_rules! from_tuple {
     ($($ty:ident)*) => {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
             #[allow(non_snake_case)]
@@ -144,22 +138,22 @@ macro_rules! impl_from_tuple {
     };
 }
 
-impl_from_tuple!(A);
-impl_from_tuple!(A B);
-impl_from_tuple!(A B C);
-impl_from_tuple!(A B C D);
-impl_from_tuple!(A B C D E);
-impl_from_tuple!(A B C D E F);
-impl_from_tuple!(A B C D E F G);
-impl_from_tuple!(A B C D E F G H);
-impl_from_tuple!(A B C D E F G H I);
-impl_from_tuple!(A B C D E F G H I J);
-impl_from_tuple!(A B C D E F G H I J K);
-impl_from_tuple!(A B C D E F G H I J K L);
-impl_from_tuple!(A B C D E F G H I J K L M);
-impl_from_tuple!(A B C D E F G H I J K L M N);
-impl_from_tuple!(A B C D E F G H I J K L M N O);
-impl_from_tuple!(A B C D E F G H I J K L M N O P);
+from_tuple!(A);
+from_tuple!(A B);
+from_tuple!(A B C);
+from_tuple!(A B C D);
+from_tuple!(A B C D E);
+from_tuple!(A B C D E F);
+from_tuple!(A B C D E F G);
+from_tuple!(A B C D E F G H);
+from_tuple!(A B C D E F G H I);
+from_tuple!(A B C D E F G H I J);
+from_tuple!(A B C D E F G H I J K);
+from_tuple!(A B C D E F G H I J K L);
+from_tuple!(A B C D E F G H I J K L M);
+from_tuple!(A B C D E F G H I J K L M N);
+from_tuple!(A B C D E F G H I J K L M N O);
+from_tuple!(A B C D E F G H I J K L M N O P);
 
 #[cfg(test)]
 mod tests {

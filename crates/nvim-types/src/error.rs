@@ -5,8 +5,8 @@ use std::result::Result as StdResult;
 
 use thiserror::Error as ThisError;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L62
-#[derive(Clone, ThisError, Eq, PartialEq)]
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L64
+#[derive(Clone, ThisError, Eq, PartialEq, Hash)]
 #[repr(C)]
 pub struct Error {
     r#type: ErrorType,
@@ -16,13 +16,13 @@ pub struct Error {
 unsafe impl Send for Error {}
 unsafe impl Sync for Error {}
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L26
-#[allow(dead_code, non_camel_case_types)]
-#[derive(Copy, Clone, Eq, PartialEq)]
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L27
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[repr(C)]
 enum ErrorType {
     None = -1,
     Exception,
+    #[allow(dead_code)]
     Validation,
 }
 

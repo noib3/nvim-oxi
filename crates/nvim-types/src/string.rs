@@ -269,6 +269,46 @@ impl Poppable for String {
     }
 }
 
+#[cfg(feature = "serde")]
+mod serde {
+    use std::fmt;
+
+    use serde::de::{self, Deserialize, Deserializer, Visitor};
+
+    impl<'de> Deserialize<'de> for super::String {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            struct StringVisitor;
+
+            impl<'de> Visitor<'de> for StringVisitor {
+                type Value = crate::String;
+
+                fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                    f.write_str("either a string of a byte vector")
+                }
+
+                fn visit_bytes<E>(self, b: &[u8]) -> Result<Self::Value, E>
+                where
+                    E: de::Error,
+                {
+                    Ok(crate::String::from_bytes(b.to_owned()))
+                }
+
+                fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
+                where
+                    E: de::Error,
+                {
+                    Ok(crate::String::from(s))
+                }
+            }
+
+            deserializer.deserialize_str(StringVisitor)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
