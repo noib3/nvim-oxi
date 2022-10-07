@@ -1,4 +1,9 @@
-use nvim_types::{Function, Serializer, ToObject, ToObjectResult};
+use nvim_types::{
+    conversion::{self, ToObject},
+    serde::Serializer,
+    Function,
+    Object,
+};
 use serde::Serialize;
 
 /// See `:h command-complete` for details.
@@ -47,7 +52,7 @@ pub enum CommandComplete {
 }
 
 impl ToObject for CommandComplete {
-    fn to_obj(self) -> ToObjectResult {
+    fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

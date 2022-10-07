@@ -1,19 +1,17 @@
 use std::fmt;
 use std::path::{Path, PathBuf};
+use std::result::Result as StdResult;
 
 use luajit_bindings::{self as lua, Poppable, Pushable};
 use nvim_types::{
     self as nvim,
+    conversion::{self, FromObject, ToObject},
     Array,
     BufHandle,
     Dictionary,
-    FromObject,
-    FromObjectResult,
     Function,
     Integer,
     Object,
-    ToObject,
-    ToObjectResult,
 };
 use serde::{Deserialize, Serialize};
 
@@ -64,17 +62,10 @@ impl From<&Buffer> for Object {
     }
 }
 
-impl ToObject for Buffer {
-    #[inline(always)]
-    fn to_obj(self) -> ToObjectResult {
-        Ok(self.0.into())
-    }
-}
-
 impl FromObject for Buffer {
     #[inline(always)]
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
-        Ok(BufHandle::from_obj(obj)?.into())
+    fn from_object(obj: Object) -> StdResult<Self, conversion::Error> {
+        Ok(BufHandle::from_object(obj)?.into())
     }
 }
 
@@ -142,7 +133,7 @@ impl Buffer {
 
         err.into_err_or_flatten(move || {
             fun.remove_from_lua_registry();
-            Ok(R::from_obj(obj)?)
+            Ok(R::from_object(obj)?)
         })
     }
 
@@ -259,7 +250,7 @@ impl Buffer {
         let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
         err.into_err_or_else(|| {
             cmds.into_iter()
-                .map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
+                .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
         })
     }
 
@@ -279,7 +270,7 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            maps.into_iter().map(|obj| KeymapInfos::from_obj(obj).unwrap())
+            maps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
         })
     }
 
@@ -307,7 +298,9 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().map(|line| nvim::String::from_obj(line).unwrap())
+            lines
+                .into_iter()
+                .map(|line| nvim::String::from_object(line).unwrap())
         })
     }
 
@@ -321,7 +314,7 @@ impl Buffer {
         let mark =
             unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
         err.into_err_or_flatten(|| {
-            let mut iter = mark.into_iter().map(usize::from_obj);
+            let mut iter = mark.into_iter().map(usize::from_object);
             let row = iter.next().expect("row is present")?;
             let col = iter.next().expect("col is present")?;
             Ok((row, col))
@@ -359,7 +352,7 @@ impl Buffer {
         let obj = unsafe {
             nvim_buf_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
+        err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
     }
 
     /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
@@ -392,7 +385,9 @@ impl Buffer {
             )
         };
         err.into_err_or_else(|| {
-            lines.into_iter().map(|line| nvim::String::from_obj(line).unwrap())
+            lines
+                .into_iter()
+                .map(|line| nvim::String::from_object(line).unwrap())
         })
     }
 
@@ -407,7 +402,7 @@ impl Buffer {
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
+        err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
     }
 
     /// Binding to [`nvim_buf_is_loaded`](https://neovim.io/doc/user/api.html#nvim_buf_is_loaded()).
@@ -547,7 +542,7 @@ impl Buffer {
                 LUA_INTERNAL_CALL,
                 self.0,
                 name.non_owning(),
-                value.to_obj()?.non_owning(),
+                value.to_object()?.non_owning(),
                 &mut err,
             )
         };
@@ -603,7 +598,7 @@ impl Buffer {
             nvim_buf_set_var(
                 self.0,
                 name.non_owning(),
-                value.to_obj()?.non_owning(),
+                value.to_object()?.non_owning(),
                 &mut err,
             )
         };

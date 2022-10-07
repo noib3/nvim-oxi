@@ -1,5 +1,11 @@
 use derive_builder::Builder;
-use nvim_types::{self as nvim, Integer, NonOwning, Object, ToObject};
+use nvim_types::{
+    self as nvim,
+    conversion::ToObject,
+    Integer,
+    NonOwning,
+    Object,
+};
 
 use crate::types::{CommandAddr, CommandComplete, CommandNArgs, CommandRange};
 
@@ -61,7 +67,7 @@ impl CreateCommandOpts {
 macro_rules! object_setter {
     ($name:ident, $args:ident) => {
         pub fn $name(&mut self, $name: $args) -> &mut Self {
-            self.$name = Some($name.to_obj().unwrap());
+            self.$name = Some($name.to_object().unwrap());
             self
         }
     };

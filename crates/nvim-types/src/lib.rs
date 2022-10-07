@@ -3,38 +3,26 @@ use std::ffi::{c_double, c_int};
 
 mod array;
 mod collection;
+pub mod conversion;
 mod dictionary;
 mod error;
-mod from_object;
 mod function;
 mod non_owning;
 mod object;
-mod string;
-mod to_object;
-
 #[cfg(feature = "serde")]
 #[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
-pub(crate) mod serde;
+pub mod serde;
+mod string;
 
 pub use array::{Array, ArrayIterator};
-pub(crate) use collection::*;
+pub use collection::Collection;
 pub use dictionary::{DictIterator, Dictionary};
 pub use error::Error;
-pub use from_object::{
-    Error as FromObjectError,
-    FromObject,
-    Result as FromObjectResult,
-};
 pub use function::Function;
 #[doc(hidden)]
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
 pub use string::String;
-pub use to_object::{Error as ToObjectError, ToObject, ToObjectResult};
-
-#[cfg(feature = "serde")]
-#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
-pub use crate::serde::{Deserializer, Serializer};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 #[doc(hidden)]

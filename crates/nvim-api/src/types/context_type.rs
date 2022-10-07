@@ -1,4 +1,4 @@
-use nvim_types::{self as nvim, FromObject, Serializer};
+use nvim_types::{self as nvim, conversion::FromObject, serde::Serializer};
 use serde::Serialize;
 
 #[non_exhaustive]
@@ -25,7 +25,7 @@ pub enum ContextType {
 
 impl From<ContextType> for nvim::String {
     fn from(ctx: ContextType) -> Self {
-        nvim::String::from_obj(
+        nvim::String::from_object(
             ctx.serialize(Serializer::new())
                 .expect("`ContextType` is serializable"),
         )

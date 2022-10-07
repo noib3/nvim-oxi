@@ -1,3 +1,7 @@
+//! Traits for converting between Neovim [`Object`]s and Rust types.
+
+use std::collections::HashMap;
+
 use thiserror::Error as ThisError;
 
 use crate::{
@@ -11,12 +15,10 @@ use crate::{
     ObjectKind,
 };
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 #[derive(Clone, Debug, Eq, PartialEq, ThisError)]
 pub enum Error {
     #[error("Was expecting a \"{expected}\" but received a \"{actual}\"")]
-    WrongType { expected: &'static str, actual: &'static str },
+    FromWrongType { expected: &'static str, actual: &'static str },
 
     #[error(transparent)]
     FromInt(#[from] std::num::TryFromIntError),
@@ -26,19 +28,24 @@ pub enum Error {
 
     #[cfg(feature = "serde")]
     #[error(transparent)]
-    Deserialize(#[from] crate::serde::Error),
+    Serde(#[from] crate::serde::Error),
 }
 
 pub trait FromObject: Sized {
-    fn from_obj(obj: Object) -> Result<Self>;
+    fn from_object(object: Object) -> Result<Self, Error>;
+}
+
+/// Trait implemented for types can be converted into an [`Object`].
+pub trait ToObject {
+    fn to_object(self) -> Result<Object, Error>;
 }
 
 impl FromObject for () {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Nil => Ok(()),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "nil",
                 actual: other.as_static(),
             }),
@@ -47,11 +54,11 @@ impl FromObject for () {
 }
 
 impl FromObject for Boolean {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Boolean => Ok(unsafe { obj.as_boolean_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "bool",
                 actual: other.as_static(),
             }),
@@ -60,11 +67,11 @@ impl FromObject for Boolean {
 }
 
 impl FromObject for Integer {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Integer => Ok(unsafe { obj.as_integer_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "integer",
                 actual: other.as_static(),
             }),
@@ -73,11 +80,11 @@ impl FromObject for Integer {
 }
 
 impl FromObject for Float {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Float => Ok(unsafe { obj.as_float_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "float",
                 actual: other.as_static(),
             }),
@@ -86,11 +93,11 @@ impl FromObject for Float {
 }
 
 impl FromObject for crate::String {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::String => Ok(unsafe { obj.into_string_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "string",
                 actual: other.as_static(),
             }),
@@ -99,11 +106,11 @@ impl FromObject for crate::String {
 }
 
 impl FromObject for Array {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Array => Ok(unsafe { obj.into_array_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "string",
                 actual: other.as_static(),
             }),
@@ -112,11 +119,11 @@ impl FromObject for Array {
 }
 
 impl FromObject for Dictionary {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::Dictionary => Ok(unsafe { obj.into_dict_unchecked() }),
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "string",
                 actual: other.as_static(),
             }),
@@ -125,13 +132,13 @@ impl FromObject for Dictionary {
 }
 
 impl<A, R> FromObject for Function<A, R> {
-    fn from_obj(obj: Object) -> Result<Self> {
+    fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
             ObjectKind::LuaRef => {
                 Ok(Self::from_ref(unsafe { obj.as_luaref_unchecked() }))
             },
 
-            other => Err(Error::WrongType {
+            other => Err(Error::FromWrongType {
                 expected: "function",
                 actual: other.as_static(),
             }),
@@ -143,8 +150,8 @@ impl<A, R> FromObject for Function<A, R> {
 macro_rules! from_int {
     ($integer:ty) => {
         impl FromObject for $integer {
-            fn from_obj(obj: Object) -> Result<Self> {
-                Integer::from_obj(obj).map(Into::into)
+            fn from_object(obj: Object) -> Result<Self, Error> {
+                Integer::from_object(obj).map(Into::into)
             }
         }
     };
@@ -156,8 +163,8 @@ from_int!(i128);
 macro_rules! try_from_int {
     ($integer:ty) => {
         impl FromObject for $integer {
-            fn from_obj(obj: Object) -> Result<Self> {
-                Integer::from_obj(obj).and_then(|n| Ok(n.try_into()?))
+            fn from_object(obj: Object) -> Result<Self, Error> {
+                Integer::from_object(obj).and_then(|n| Ok(n.try_into()?))
             }
         }
     };
@@ -175,26 +182,87 @@ try_from_int!(isize);
 try_from_int!(usize);
 
 impl FromObject for f32 {
-    fn from_obj(obj: Object) -> Result<Self> {
-        Ok(Float::from_obj(obj)? as _)
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        Ok(Float::from_object(obj)? as _)
     }
 }
 
 impl FromObject for String {
-    fn from_obj(obj: Object) -> Result<Self> {
-        crate::String::from_obj(obj)
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        crate::String::from_object(obj)
             .and_then(|nvim_str| Ok(nvim_str.into_string()?))
     }
 }
 
-impl<T: FromObject> FromObject for Option<T> {
-    fn from_obj(obj: Object) -> Result<Self> {
-        (!obj.is_nil()).then(|| T::from_obj(obj)).transpose()
+impl<T> FromObject for Option<T>
+where
+    T: FromObject,
+{
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        (!obj.is_nil()).then(|| T::from_object(obj)).transpose()
     }
 }
 
-impl<T: FromObject> FromObject for Vec<T> {
-    fn from_obj(obj: Object) -> Result<Self> {
-        Array::from_obj(obj)?.into_iter().map(FromObject::from_obj).collect()
+impl<T> FromObject for Vec<T>
+where
+    T: FromObject,
+{
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        Array::from_object(obj)?
+            .into_iter()
+            .map(FromObject::from_object)
+            .collect()
+    }
+}
+
+impl<T> ToObject for T
+where
+    T: Into<Object>,
+{
+    fn to_object(self) -> Result<Object, Error> {
+        Ok(self.into())
+    }
+}
+
+/// Implements `ToObject` for "big integer" types.
+macro_rules! bigint_to_obj {
+    ($type:ty) => {
+        impl ToObject for $type {
+            fn to_object(self) -> Result<Object, Error> {
+                Ok(i64::try_from(self)?.into())
+            }
+        }
+    };
+}
+
+bigint_to_obj!(u64);
+bigint_to_obj!(isize);
+bigint_to_obj!(usize);
+bigint_to_obj!(i128);
+bigint_to_obj!(u128);
+
+impl<T> ToObject for Vec<T>
+where
+    T: ToObject,
+{
+    fn to_object(self) -> Result<Object, Error> {
+        Ok(self
+            .into_iter()
+            .map(ToObject::to_object)
+            .collect::<Result<Array, Error>>()?
+            .into())
+    }
+}
+
+impl<K, V> ToObject for HashMap<K, V>
+where
+    K: Into<crate::String>,
+    V: ToObject,
+{
+    fn to_object(self) -> Result<Object, Error> {
+        self.into_iter()
+            .map(|(k, v)| Ok((k, v.to_object()?)))
+            .collect::<Result<Dictionary, Error>>()
+            .map(Into::into)
     }
 }

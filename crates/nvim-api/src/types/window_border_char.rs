@@ -110,7 +110,7 @@ fn str_to_char(str: &str) -> Option<char> {
 
 #[cfg(test)]
 mod tests {
-    use nvim_types::Deserializer;
+    use nvim_types::serde::Deserializer;
 
     use super::*;
 

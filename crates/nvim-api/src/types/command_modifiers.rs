@@ -1,4 +1,8 @@
-use nvim_types::{Serializer, ToObject, ToObjectResult};
+use nvim_types::{
+    conversion::{self, ToObject},
+    serde::Serializer,
+    Object,
+};
 use serde::{Deserialize, Serialize};
 
 use super::SplitModifier;
@@ -31,7 +35,7 @@ pub struct CommandModifiers {
 }
 
 impl ToObject for CommandModifiers {
-    fn to_obj(self) -> ToObjectResult {
+    fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

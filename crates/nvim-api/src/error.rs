@@ -13,10 +13,7 @@ pub enum Error {
     NvimError(#[from] nvim_types::Error),
 
     #[error(transparent)]
-    FromObjectError(#[from] nvim_types::FromObjectError),
-
-    #[error(transparent)]
-    ToObjectError(#[from] nvim_types::ToObjectError),
+    ObjectConversion(#[from] nvim_types::conversion::Error),
 
     #[error(transparent)]
     BadUtf8Error(#[from] std::string::FromUtf8Error),

@@ -1,11 +1,9 @@
 use derive_builder::Builder;
 use nvim_types::{
+    conversion::{self, FromObject, ToObject},
+    serde::Deserializer,
     Array,
-    Deserializer,
-    FromObject,
-    FromObjectResult,
     Object,
-    ToObject,
 };
 use serde::Deserialize;
 
@@ -99,7 +97,7 @@ impl CmdInfosBuilder {
 }
 
 impl FromObject for CmdInfos {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
@@ -127,12 +125,24 @@ impl From<&CmdInfos> for KeyDict_cmd {
             cmd: infos.cmd.clone().into(),
             reg: infos.reg.into(),
             bang: infos.bang.into(),
-            addr: infos.addr.to_obj().unwrap(),
-            mods: infos.mods.to_obj().unwrap(),
+            addr: infos
+                .addr
+                .map(|v| v.to_object().unwrap())
+                .unwrap_or_default(),
+            mods: infos
+                .mods
+                .map(|v| v.to_object().unwrap())
+                .unwrap_or_default(),
             args: Array::from_iter(infos.args.clone()).into(),
             count: infos.count.into(),
-            magic: infos.magic.into(),
-            nargs: infos.nargs.to_obj().unwrap(),
+            magic: infos
+                .magic
+                .map(|v| v.to_object().unwrap())
+                .unwrap_or_default(),
+            nargs: infos
+                .nargs
+                .map(|v| v.to_object().unwrap())
+                .unwrap_or_default(),
             range: infos.range.into(),
             nextcmd: infos.nextcmd.clone().into(),
         }

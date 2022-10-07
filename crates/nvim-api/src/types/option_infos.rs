@@ -1,4 +1,8 @@
-use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
+use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
+    Object,
+};
 use serde::Deserialize;
 
 /// Informations related to an option. Unlike in the Lua API, the `type` field
@@ -44,7 +48,7 @@ pub struct OptionInfos {
 }
 
 impl FromObject for OptionInfos {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

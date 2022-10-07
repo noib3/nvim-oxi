@@ -1,7 +1,8 @@
-use serde::ser;
+use serde::ser::{self, Error};
 
 use super::Result;
-use crate::{FromObject, Object};
+use crate::conversion::FromObject;
+use crate::Object;
 
 /// A struct for serializing Rust values into Neovim `Object`s.
 #[non_exhaustive]
@@ -254,7 +255,8 @@ impl ser::SerializeMap for SerializeMap {
     {
         let a = key.serialize(Serializer)?;
         // TODO: don't unwrap
-        self.key = Some(crate::String::from_obj(a).unwrap());
+        self.key =
+            Some(crate::String::from_object(a).map_err(super::Error::custom)?);
         Ok(())
     }
 

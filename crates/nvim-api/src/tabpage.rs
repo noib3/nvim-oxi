@@ -1,13 +1,12 @@
 use std::fmt;
+use std::result::Result as StdResult;
 
 use luajit_bindings::{self as lua, Poppable, Pushable};
 use nvim_types::{
     self as nvim,
-    FromObject,
-    FromObjectResult,
+    conversion::{self, FromObject, ToObject},
     Object,
     TabHandle,
-    ToObject,
 };
 use serde::{Deserialize, Serialize};
 
@@ -64,8 +63,8 @@ impl Pushable for TabPage {
 }
 
 impl FromObject for TabPage {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
-        Ok(TabHandle::from_obj(obj)?.into())
+    fn from_object(obj: Object) -> StdResult<Self, conversion::Error> {
+        Ok(TabHandle::from_object(obj)?.into())
     }
 }
 
@@ -108,7 +107,7 @@ impl TabPage {
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
+        err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
     }
 
     /// Binding to [`nvim_tabpage_get_win`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()).
@@ -134,7 +133,7 @@ impl TabPage {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
         err.into_err_or_else(|| {
-            list.into_iter().map(|obj| Window::from_obj(obj).unwrap())
+            list.into_iter().map(|obj| Window::from_object(obj).unwrap())
         })
     }
 
@@ -151,7 +150,7 @@ impl TabPage {
             nvim_tabpage_set_var(
                 self.0,
                 name.non_owning(),
-                value.to_obj()?.non_owning(),
+                value.to_object()?.non_owning(),
                 &mut err,
             )
         };

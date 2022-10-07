@@ -301,6 +301,12 @@ from_man_drop!(crate::String, String, string);
 from_man_drop!(Array, Array, array);
 from_man_drop!(Dictionary, Dictionary, dictionary);
 
+impl<A, R> From<Function<A, R>> for Object {
+    fn from(fun: Function<A, R>) -> Self {
+        Self::from_luaref(fun.lua_ref)
+    }
+}
+
 /// Implements `From<..>` for integer types convertible to `Integer`.
 macro_rules! from_int {
     ($type:ident) => {
@@ -379,6 +385,12 @@ where
     }
 }
 
+impl From<Cow<'_, str>> for Object {
+    fn from(moo: Cow<'_, str>) -> Self {
+        crate::String::from(moo).into()
+    }
+}
+
 impl<T> FromIterator<T> for Object
 where
     T: Into<Object>,
@@ -397,12 +409,6 @@ where
     #[inline(always)]
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
         Dictionary::from_iter(iter).into()
-    }
-}
-
-impl<A, R> From<Function<A, R>> for Object {
-    fn from(fun: Function<A, R>) -> Self {
-        Self::from_luaref(fun.lua_ref)
     }
 }
 
@@ -593,13 +599,13 @@ mod serde {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FromObject;
+    use crate::conversion::FromObject;
 
     #[test]
     fn std_string_to_obj_and_back() {
         let str = String::from("foo");
         let obj = Object::from(str.clone());
-        let str_again = String::from_obj(obj);
+        let str_again = String::from_object(obj);
         assert!(str_again.is_ok());
         assert_eq!(str, str_again.unwrap());
     }

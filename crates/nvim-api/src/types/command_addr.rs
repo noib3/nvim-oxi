@@ -1,4 +1,8 @@
-use nvim_types::{Serializer, ToObject, ToObjectResult};
+use nvim_types::{
+    conversion::{self, ToObject},
+    serde::Serializer,
+    Object,
+};
 use serde::{Deserialize, Serialize};
 
 /// See `:h command-addr` for details.
@@ -17,7 +21,7 @@ pub enum CommandAddr {
 }
 
 impl ToObject for CommandAddr {
-    fn to_obj(self) -> ToObjectResult {
+    fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

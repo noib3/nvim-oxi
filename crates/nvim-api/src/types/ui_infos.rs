@@ -1,4 +1,8 @@
-use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
+use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
+    Object,
+};
 use serde::Deserialize;
 
 use crate::serde_utils as utils;
@@ -34,7 +38,7 @@ pub struct UiInfos {
 }
 
 impl FromObject for UiInfos {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

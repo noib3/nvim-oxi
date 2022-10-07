@@ -1,4 +1,10 @@
-use nvim_types::{self as nvim, Array, Dictionary, FromObject, Integer};
+use nvim_types::{
+    self as nvim,
+    conversion::FromObject,
+    Array,
+    Dictionary,
+    Integer,
+};
 
 use super::ffi::extmark::*;
 use super::opts::*;
@@ -121,9 +127,12 @@ impl Buffer {
             }
 
             let mut iter = tuple.into_iter();
-            let row = usize::from_obj(iter.next().expect("row is present"))?;
-            let col = usize::from_obj(iter.next().expect("col is present"))?;
-            let infos = iter.next().map(ExtmarkInfos::from_obj).transpose()?;
+            let row =
+                usize::from_object(iter.next().expect("row is present"))?;
+            let col =
+                usize::from_object(iter.next().expect("col is present"))?;
+            let infos =
+                iter.next().map(ExtmarkInfos::from_object).transpose()?;
             Ok((row, col, infos))
         })
     }
@@ -158,18 +167,18 @@ impl Buffer {
         };
         err.into_err_or_else(move || {
             extmarks.into_iter().map(|tuple| {
-                let mut iter = Array::from_obj(tuple).unwrap().into_iter();
-                let id = u32::from_obj(iter.next().expect("id is present"))
+                let mut iter = Array::from_object(tuple).unwrap().into_iter();
+                let id = u32::from_object(iter.next().expect("id is present"))
                     .unwrap();
                 let row =
-                    usize::from_obj(iter.next().expect("row is present"))
+                    usize::from_object(iter.next().expect("row is present"))
                         .unwrap();
                 let col =
-                    usize::from_obj(iter.next().expect("col is present"))
+                    usize::from_object(iter.next().expect("col is present"))
                         .unwrap();
                 let infos = iter
                     .next()
-                    .map(ExtmarkInfos::from_obj)
+                    .map(ExtmarkInfos::from_object)
                     .transpose()
                     .unwrap();
                 (id, row, col, infos)
@@ -221,7 +230,7 @@ pub fn create_namespace(name: &str) -> u32 {
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
         let k = k.try_into().expect("namespace name is valid UTF-8");
-        let v = u32::from_obj(v).expect("namespace id is positive");
+        let v = u32::from_object(v).expect("namespace id is positive");
         (k, v)
     })
 }

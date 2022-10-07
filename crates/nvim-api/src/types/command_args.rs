@@ -1,4 +1,8 @@
-use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
+use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
+    Object,
+};
 use serde::Deserialize;
 
 use crate::serde_utils as utils;
@@ -52,7 +56,7 @@ pub struct CommandArgs {
 }
 
 impl FromObject for CommandArgs {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
@@ -63,7 +67,7 @@ impl luajit_bindings::Poppable for CommandArgs {
     ) -> Result<Self, luajit_bindings::Error> {
         let obj = Object::pop(lstate)?;
 
-        Self::from_obj(obj)
+        Self::from_object(obj)
             .map_err(luajit_bindings::Error::pop_error_from_err::<Self, _>)
     }
 }

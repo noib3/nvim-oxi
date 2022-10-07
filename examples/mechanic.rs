@@ -1,17 +1,6 @@
-use nvim_oxi::{
-    self as oxi,
-    api,
-    print,
-    Deserializer,
-    Dictionary,
-    FromObject,
-    FromObjectResult,
-    Function,
-    Object,
-    Serializer,
-    ToObject,
-    ToObjectResult,
-};
+use nvim_oxi::{self as oxi, api, lua, print, Dictionary, Function, Object};
+use oxi::conversion::{self, FromObject, ToObject};
+use oxi::serde::{Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -47,33 +36,33 @@ enum CarProblem {
 }
 
 impl FromObject for Car {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
 
 impl ToObject for Car {
-    fn to_obj(self) -> ToObjectResult {
+    fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
     }
 }
 
-impl oxi::lua::Poppable for Car {
+impl lua::Poppable for Car {
     unsafe fn pop(
-        lstate: *mut oxi::lua::ffi::lua_State,
-    ) -> Result<Self, oxi::lua::Error> {
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<Self, lua::Error> {
         let obj = Object::pop(lstate)?;
-        Self::from_obj(obj)
+        Self::from_object(obj)
             .map_err(oxi::lua::Error::pop_error_from_err::<Self, _>)
     }
 }
 
-impl oxi::lua::Pushable for Car {
+impl lua::Pushable for Car {
     unsafe fn push(
         self,
-        lstate: *mut oxi::lua::ffi::lua_State,
-    ) -> Result<std::ffi::c_int, oxi::lua::Error> {
-        self.to_obj()
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<std::ffi::c_int, lua::Error> {
+        self.to_object()
             .map_err(oxi::lua::Error::push_error_from_err::<Self, _>)?
             .push(lstate)
     }

@@ -1,4 +1,8 @@
-use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
+use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
+    Object,
+};
 use serde::Deserialize;
 
 #[non_exhaustive]
@@ -10,7 +14,7 @@ pub struct ProcInfos {
 }
 
 impl FromObject for ProcInfos {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

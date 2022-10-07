@@ -1,7 +1,6 @@
 use nvim_types::{
-    Deserializer,
-    FromObject,
-    FromObjectResult,
+    conversion::{self, FromObject},
+    serde::Deserializer,
     Function,
     Object,
 };
@@ -76,7 +75,7 @@ where
 }
 
 impl FromObject for CommandInfos {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

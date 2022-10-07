@@ -2,12 +2,11 @@ use std::path::{Path, PathBuf};
 
 use nvim_types::{
     self as nvim,
+    conversion::{FromObject, ToObject},
     Array,
     Dictionary,
-    FromObject,
     Integer,
     Object,
-    ToObject,
 };
 
 use super::ffi::global::*;
@@ -183,7 +182,7 @@ pub fn eval_statusline(
     let mut err = nvim::Error::new();
     let dict =
         unsafe { nvim_eval_statusline(str.non_owning(), &opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(StatuslineInfos::from_obj(dict.into())?))
+    err.into_err_or_flatten(|| Ok(StatuslineInfos::from_object(dict.into())?))
 }
 
 /// Binding to [`nvim_feedkeys`](https://neovim.io/doc/user/api.html#nvim_feedkeys()).
@@ -202,7 +201,7 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     err.into_err_or_else(|| {
         infos
             .into_iter()
-            .map(|(_, optinf)| OptionInfos::from_obj(optinf).unwrap())
+            .map(|(_, optinf)| OptionInfos::from_object(optinf).unwrap())
     })
 }
 
@@ -212,7 +211,7 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
 pub fn get_chan_info(channel_id: u32) -> Result<ChannelInfos> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_chan_info(channel_id.into(), &mut err) };
-    err.into_err_or_flatten(|| Ok(ChannelInfos::from_obj(infos.into())?))
+    err.into_err_or_flatten(|| Ok(ChannelInfos::from_object(infos.into())?))
 }
 
 /// Binding to [`nvim_get_color_by_name`](https://neovim.io/doc/user/api.html#nvim_get_color_by_name()).
@@ -233,7 +232,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 /// values (e.g. 65535).
 pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
-        (String::try_from(k).unwrap(), u32::from_obj(v).unwrap())
+        (String::try_from(k).unwrap(), u32::from_object(v).unwrap())
     })
 }
 
@@ -248,7 +247,8 @@ pub fn get_commands(
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(&opts, &mut err) };
     err.into_err_or_else(|| {
-        cmds.into_iter().map(|(_, cmd)| CommandInfos::from_obj(cmd).unwrap())
+        cmds.into_iter()
+            .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
     })
 }
 
@@ -259,7 +259,7 @@ pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let opts = KeyDict_context::from(opts);
     let mut err = nvim::Error::new();
     let ctx = unsafe { nvim_get_context(&opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(EditorContext::from_obj(ctx.into())?))
+    err.into_err_or_flatten(|| Ok(EditorContext::from_object(ctx.into())?))
 }
 
 /// Binding to [`nvim_get_current_buf`](https://neovim.io/doc/user/api.html#nvim_get_current_buf()).
@@ -298,7 +298,7 @@ pub fn get_current_win() -> Window {
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
     let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
-    err.into_err_or_flatten(|| Ok(HighlightInfos::from_obj(hl.into())?))
+    err.into_err_or_flatten(|| Ok(HighlightInfos::from_object(hl.into())?))
 }
 
 /// Binding to [`nvim_get_hl_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()).
@@ -308,7 +308,7 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let hl = unsafe { nvim_get_hl_by_name(name.non_owning(), rgb, &mut err) };
-    err.into_err_or_flatten(|| Ok(HighlightInfos::from_obj(hl.into())?))
+    err.into_err_or_flatten(|| Ok(HighlightInfos::from_object(hl.into())?))
 }
 
 /// Binding to [`nvim_get_hl_id_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_id_by_name()).
@@ -327,7 +327,7 @@ pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
     unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
         .into_iter()
-        .map(|obj| KeymapInfos::from_obj(obj).unwrap())
+        .map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_get_mark`](https://neovim.io/doc/user/api.html#nvim_get_mark()).
@@ -346,12 +346,12 @@ pub fn get_mark(
     };
     err.into_err_or_flatten(|| {
         let mut iter = mark.into_iter();
-        let row = usize::from_obj(iter.next().expect("row is present"))?;
-        let col = usize::from_obj(iter.next().expect("col is present"))?;
+        let row = usize::from_object(iter.next().expect("row is present"))?;
+        let col = usize::from_object(iter.next().expect("col is present"))?;
         let buffer =
-            Buffer::from_obj(iter.next().expect("buffer is present"))?;
+            Buffer::from_object(iter.next().expect("buffer is present"))?;
         let buffername =
-            String::from_obj(iter.next().expect("buffername is present"))?;
+            String::from_object(iter.next().expect("buffername is present"))?;
         Ok((row, col, buffer, buffername))
     })
 }
@@ -361,7 +361,7 @@ pub fn get_mark(
 /// Gets the current mode. The [`blocking`](GotMode::blocking) field of
 /// [`GotMode`] is `true` if Neovim is waiting for input.
 pub fn get_mode() -> Result<GotMode> {
-    Ok(GotMode::from_obj(unsafe { nvim_get_mode() }.into())?)
+    Ok(GotMode::from_object(unsafe { nvim_get_mode() }.into())?)
 }
 
 /// Binding to [`nvim_get_option`](https://neovim.io/doc/user/api.html#nvim_get_option()).
@@ -374,7 +374,7 @@ where
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_option(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
+    err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_option_info`](https://neovim.io/doc/user/api.html#nvim_get_option_info()).
@@ -384,7 +384,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_option_info(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(OptionInfos::from_obj(obj.into())?))
+    err.into_err_or_flatten(|| Ok(OptionInfos::from_object(obj.into())?))
 }
 
 /// Binding to [`nvim_get_option_value`](https://neovim.io/doc/user/api.html#nvim_get_option_value()).
@@ -403,7 +403,7 @@ where
     let mut err = nvim::Error::new();
     let obj =
         unsafe { nvim_get_option_value(name.non_owning(), &opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(Opt::from_obj(obj)?))
+    err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_proc`](https://neovim.io/doc/user/api.html#nvim_get_proc()).
@@ -412,7 +412,7 @@ where
 pub fn get_proc(pid: u32) -> Result<ProcInfos> {
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_proc(pid.into(), &mut err) };
-    err.into_err_or_flatten(|| Ok(ProcInfos::from_obj(obj)?))
+    err.into_err_or_flatten(|| Ok(ProcInfos::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_proc_children`](https://neovim.io/doc/user/api.html#nvim_get_proc_children()).
@@ -422,7 +422,7 @@ pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
     err.into_err_or_else(|| {
-        procs.into_iter().map(|obj| u32::from_obj(obj).unwrap())
+        procs.into_iter().map(|obj| u32::from_object(obj).unwrap())
     })
 }
 
@@ -440,7 +440,7 @@ pub fn get_runtime_file(
     err.into_err_or_else(|| {
         files
             .into_iter()
-            .map(|obj| PathBuf::from(nvim::String::from_obj(obj).unwrap()))
+            .map(|obj| PathBuf::from(nvim::String::from_object(obj).unwrap()))
     })
 }
 
@@ -454,7 +454,7 @@ where
     let mut err = nvim::Error::new();
     let name = nvim::String::from(name);
     let obj = unsafe { nvim_get_var(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
+    err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_vvar`](https://neovim.io/doc/user/api.html#nvim_get_vvar()).
@@ -467,7 +467,7 @@ where
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_vvar(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Var::from_obj(obj)?))
+    err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
 }
 
 /// Binding to [`nvim_input`](https://neovim.io/doc/user/api.html#nvim_input()).
@@ -522,7 +522,7 @@ pub fn input_mouse(
 pub fn list_bufs() -> impl SuperIterator<Buffer> {
     unsafe { nvim_list_bufs() }
         .into_iter()
-        .map(|obj| Buffer::from_obj(obj).unwrap())
+        .map(|obj| Buffer::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_chans`](https://neovim.io/doc/user/api.html#nvim_list_chans()).
@@ -531,7 +531,7 @@ pub fn list_bufs() -> impl SuperIterator<Buffer> {
 pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
     unsafe { nvim_list_chans() }
         .into_iter()
-        .map(|obj| ChannelInfos::from_obj(obj).unwrap())
+        .map(|obj| ChannelInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_runtime_paths`](https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()).
@@ -543,7 +543,7 @@ pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     err.into_err_or_else(|| {
         paths
             .into_iter()
-            .map(|obj| PathBuf::from(nvim::String::from_obj(obj).unwrap()))
+            .map(|obj| PathBuf::from(nvim::String::from_object(obj).unwrap()))
     })
 }
 
@@ -553,7 +553,7 @@ pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
 pub fn list_tabpages() -> impl SuperIterator<TabPage> {
     unsafe { nvim_list_tabpages() }
         .into_iter()
-        .map(|obj| TabPage::from_obj(obj).unwrap())
+        .map(|obj| TabPage::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_uis`](https://neovim.io/doc/user/api.html#nvim_list_uis()).
@@ -562,7 +562,7 @@ pub fn list_tabpages() -> impl SuperIterator<TabPage> {
 pub fn list_uis() -> impl SuperIterator<UiInfos> {
     unsafe { nvim_list_uis() }
         .into_iter()
-        .map(|obj| UiInfos::from_obj(obj).unwrap())
+        .map(|obj| UiInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_wins`](https://neovim.io/doc/user/api.html#nvim_list_wins()).
@@ -571,7 +571,7 @@ pub fn list_uis() -> impl SuperIterator<UiInfos> {
 pub fn list_wins() -> impl SuperIterator<Window> {
     unsafe { nvim_list_wins() }
         .into_iter()
-        .map(|obj| Window::from_obj(obj).unwrap())
+        .map(|obj| Window::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_load_context`](https://neovim.io/doc/user/api.html#nvim_load_context()).
@@ -820,7 +820,7 @@ where
         nvim_set_option(
             LUA_INTERNAL_CALL,
             name.non_owning(),
-            value.to_obj()?.non_owning(),
+            value.to_object()?.non_owning(),
             &mut err,
         )
     };
@@ -847,7 +847,7 @@ where
     unsafe {
         nvim_set_option_value(
             name.non_owning(),
-            value.to_obj()?.non_owning(),
+            value.to_object()?.non_owning(),
             &opts,
             &mut err,
         )
@@ -863,7 +863,7 @@ where
     Var: ToObject,
 {
     let name = nvim::String::from(name);
-    let value = value.to_obj()?;
+    let value = value.to_object()?;
     let mut err = nvim::Error::new();
     unsafe { nvim_set_var(name.non_owning(), value.non_owning(), &mut err) };
     err.into_err_or_else(|| ())
@@ -877,7 +877,7 @@ where
     Var: ToObject,
 {
     let name = nvim::String::from(name);
-    let value = value.to_obj()?;
+    let value = value.to_object()?;
     let mut err = nvim::Error::new();
     unsafe { nvim_set_vvar(name.non_owning(), value.non_owning(), &mut err) };
     err.into_err_or_else(|| ())

@@ -1,6 +1,10 @@
 use std::path::PathBuf;
 
-use nvim_types::{Deserializer, FromObject, FromObjectResult, Object};
+use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
+    Object,
+};
 use serde::Deserialize;
 
 use crate::Buffer;
@@ -36,7 +40,7 @@ pub struct AutocmdCallbackArgs {
 }
 
 impl FromObject for AutocmdCallbackArgs {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }
@@ -47,7 +51,7 @@ impl luajit_bindings::Poppable for AutocmdCallbackArgs {
     ) -> Result<Self, luajit_bindings::Error> {
         let obj = Object::pop(lstate)?;
 
-        Self::from_obj(obj)
+        Self::from_object(obj)
             .map_err(luajit_bindings::Error::pop_error_from_err::<Self, _>)
     }
 }

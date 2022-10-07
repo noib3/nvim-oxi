@@ -4,7 +4,7 @@ use thiserror::Error as ThisError;
 
 use crate::utils;
 
-#[derive(Clone, Debug, Eq, PartialEq, ThisError)]
+#[derive(Clone, Debug, Eq, PartialEq, ThisError, Hash)]
 pub enum Error {
     #[error(
         "Value of type {ty} couldn't be popped from the stack{}.",

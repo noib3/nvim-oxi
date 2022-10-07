@@ -1,4 +1,10 @@
-use nvim_types::{self as nvim, Array, FromObject, Integer, Object};
+use nvim_types::{
+    self as nvim,
+    conversion::FromObject,
+    Array,
+    Integer,
+    Object,
+};
 
 use super::ffi::autocmd::*;
 use super::opts::*;
@@ -114,6 +120,6 @@ pub fn get_autocmds(
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(&opts, &mut err) };
     err.into_err_or_else(|| {
-        infos.into_iter().map(|obj| AutocmdInfos::from_obj(obj).unwrap())
+        infos.into_iter().map(|obj| AutocmdInfos::from_object(obj).unwrap())
     })
 }

@@ -1,10 +1,9 @@
 use derive_builder::Builder;
 use nvim_types::{
+    conversion::{self, FromObject},
+    serde::Deserializer,
     Array,
-    Deserializer,
     Float,
-    FromObject,
-    FromObjectResult,
     Integer,
     Object,
 };
@@ -103,7 +102,7 @@ impl WindowConfigBuilder {
 }
 
 impl FromObject for WindowConfig {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

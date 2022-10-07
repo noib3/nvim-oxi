@@ -12,8 +12,7 @@
 #![deny(nonstandard_style)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-#[doc(hidden)]
-pub mod entrypoint;
+mod entrypoint;
 mod error;
 mod toplevel;
 
@@ -50,6 +49,8 @@ pub mod mlua {
     }
 }
 
+#[doc(hidden)]
+pub use entrypoint::entrypoint;
 pub use error::{Error, Result};
 pub use luajit_bindings::print;
 #[doc(inline)]

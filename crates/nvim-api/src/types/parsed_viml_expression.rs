@@ -2,10 +2,9 @@ use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
 use nvim_types::{
-    Deserializer,
+    conversion::{self, FromObject},
+    serde::Deserializer,
     Float,
-    FromObject,
-    FromObjectResult,
     Integer,
     Object,
 };
@@ -230,7 +229,7 @@ impl PartialOrd for VimLExpressionAst {
 }
 
 impl FromObject for ParsedVimLExpression {
-    fn from_obj(obj: Object) -> FromObjectResult<Self> {
+    fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
 }

@@ -204,7 +204,7 @@ impl<'de> de::Deserialize<'de> for WindowBorder {
 
 #[cfg(test)]
 mod tests {
-    use nvim_types::Deserializer;
+    use nvim_types::serde::Deserializer;
     use serde::Deserialize;
 
     use super::*;

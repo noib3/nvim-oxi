@@ -1,4 +1,8 @@
-use nvim_types::{Serializer, ToObject, ToObjectResult};
+use nvim_types::{
+    conversion::{self, ToObject},
+    serde::Serializer,
+    Object,
+};
 use serde::{Deserialize, Serialize};
 
 /// Number of arguments accepted by a command.
@@ -25,7 +29,7 @@ pub enum CommandNArgs {
 }
 
 impl ToObject for CommandNArgs {
-    fn to_obj(self) -> ToObjectResult {
+    fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
     }
 }

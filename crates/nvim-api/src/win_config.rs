@@ -1,4 +1,4 @@
-use nvim_types::{self as nvim, FromObject};
+use nvim_types::{self as nvim, conversion::FromObject};
 
 use super::ffi::win_config::*;
 use super::types::*;
@@ -34,7 +34,7 @@ impl Window {
         if let Some(handle) = win {
             dict["relative"] = handle.into();
         }
-        err.into_err_or_flatten(|| Ok(WindowConfig::from_obj(dict.into())?))
+        err.into_err_or_flatten(|| Ok(WindowConfig::from_object(dict.into())?))
     }
 
     /// Binding to [`nvim_win_get_config`](https://neovim.io/doc/user/api.html#nvim_win_get_config()).
