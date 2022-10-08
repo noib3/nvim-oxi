@@ -84,7 +84,7 @@ pub type OnReloadArgs = (String, Buffer);
 /// in `:h api-lua-detach`.
 pub type ShouldDetach = bool;
 
-/// Options passed to [`Buffer::attach`](crate::api::Buffer::attach).
+/// Options passed to [`Buffer::attach`](crate::Buffer::attach).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufAttachOpts {

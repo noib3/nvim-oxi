@@ -1,4 +1,4 @@
-# :link: nvim-oxi
+# 🔗 nvim-oxi
 
 [![Latest version]](https://crates.io/crates/nvim-oxi)
 [![Docs]](https://docs.rs/nvim-oxi)

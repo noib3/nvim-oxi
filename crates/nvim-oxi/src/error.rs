@@ -1,9 +1,9 @@
 use thiserror::Error as ThisError;
 
-/// Alias for a `Result` with error type [`nvim_oxi::Error`](Error).
+/// `nvim-oxi`'s result type.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// Error returned by `nvim-oxi` functions.
+/// `nvim-oxi`'s error type.
 #[derive(Clone, Debug, ThisError)]
 #[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {

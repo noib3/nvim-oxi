@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to [`Buffer::delete`](crate::api::Buffer::delete).
+/// Options passed to [`Buffer::delete`](crate::Buffer::delete).
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct BufDeleteOpts {

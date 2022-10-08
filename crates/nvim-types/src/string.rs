@@ -23,7 +23,7 @@ use crate::NonOwning;
 //
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 //
-/// A particular string type used internally by Neovim.
+/// Binding to the string type used by Neovim.
 #[derive(Eq, Ord, PartialOrd, Hash)]
 #[repr(C)]
 pub struct String {

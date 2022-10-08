@@ -87,8 +87,7 @@ impl Pushable for Buffer {
 }
 
 impl Buffer {
-    /// Shorthand for
-    /// [`nvim_oxi::api::get_current_buf`](crate::api::get_current_buf).
+    /// Shorthand for [`get_current_buf`](crate::get_current_buf).
     #[inline(always)]
     pub fn current() -> Self {
         crate::get_current_buf()
@@ -198,11 +197,13 @@ impl Buffer {
         })
     }
 
-    /// Binding to [`nvim_buf_del_user_command`](https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()).
+    /// Binding to [`nvim_buf_del_user_command`][1].
     ///
     /// Deletes a buffer-local user-command. Use
-    /// [`api::del_user_command`](crate::api::del_user_command) to delete a
-    /// global command.
+    /// [`del_user_command`](crate::del_user_command) to delete a global
+    /// command.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()
     pub fn del_user_command(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -428,10 +429,12 @@ impl Buffer {
         err.into_err_or_else(|| count.try_into().expect("always positive"))
     }
 
-    /// Binding to [`nvim_buf_set_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_set_keymap()).
+    /// Binding to [`nvim_buf_set_keymap`][1].
     ///
     /// Sets a buffer-local mapping for the given mode. To set a global mapping
-    /// use [`api::set_keymap`](crate::api::set_keymap) instead.
+    /// use [`set_keymap`](crate::set_keymap) instead.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_keymap()
     pub fn set_keymap(
         &mut self,
         mode: Mode,

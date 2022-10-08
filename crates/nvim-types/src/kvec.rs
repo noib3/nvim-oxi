@@ -7,10 +7,13 @@ use std::slice;
 
 use crate::NonOwning;
 
-// Up until 0.7.* `items` was the first item of the struct. From 0.8 it's the
-// last one.
+// https://github.com/attractivechaos/klib/blob/master/kvec.h#L55
+//
+/// Binding to Klib's [`kvec`][1].
+///
+/// [1]: https://github.com/attractivechaos/klib/blob/master/kvec.h
 #[repr(C)]
-pub struct Collection<T> {
+pub struct KVec<T> {
     #[cfg(feature = "neovim-0-7")]
     pub(crate) items: *mut T,
     pub(crate) size: usize,
@@ -19,14 +22,14 @@ pub struct Collection<T> {
     pub(crate) items: *mut T,
 }
 
-impl<T> Default for Collection<T> {
+impl<T> Default for KVec<T> {
     #[inline]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> Collection<T> {
+impl<T> KVec<T> {
     /// Creates a new empty `Collection`.
     #[inline]
     pub const fn new() -> Self {
@@ -75,13 +78,13 @@ impl<T> Collection<T> {
     }
 }
 
-impl<T: Clone> Clone for Collection<T> {
+impl<T: Clone> Clone for KVec<T> {
     fn clone(&self) -> Self {
         self.as_slice().to_owned().into()
     }
 }
 
-impl<T> Drop for Collection<T> {
+impl<T> Drop for KVec<T> {
     fn drop(&mut self) {
         unsafe {
             ptr::drop_in_place(ptr::slice_from_raw_parts_mut(
@@ -91,14 +94,14 @@ impl<T> Drop for Collection<T> {
     }
 }
 
-impl<T: PartialEq> PartialEq for Collection<T> {
+impl<T: PartialEq> PartialEq for KVec<T> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
     }
 }
 
-impl<T> Deref for Collection<T> {
+impl<T> Deref for KVec<T> {
     type Target = [T];
 
     fn deref(&self) -> &[T] {
@@ -106,13 +109,13 @@ impl<T> Deref for Collection<T> {
     }
 }
 
-impl<T> DerefMut for Collection<T> {
+impl<T> DerefMut for KVec<T> {
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut_slice()
     }
 }
 
-impl<T> From<Vec<T>> for Collection<T> {
+impl<T> From<Vec<T>> for KVec<T> {
     #[inline]
     fn from(vec: Vec<T>) -> Self {
         let size = vec.len();
@@ -123,9 +126,9 @@ impl<T> From<Vec<T>> for Collection<T> {
     }
 }
 
-impl<T> From<Collection<T>> for Vec<T> {
+impl<T> From<KVec<T>> for Vec<T> {
     #[inline]
-    fn from(coll: Collection<T>) -> Self {
+    fn from(coll: KVec<T>) -> Self {
         unsafe {
             if coll.items.is_null() {
                 Vec::new()

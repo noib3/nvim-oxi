@@ -5,12 +5,12 @@ use std::ptr;
 
 use luajit_bindings::{self as lua, ffi::lua_State};
 
-use super::{Collection, Object};
+use super::{KVec, Object};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
 //
-/// A vector of Neovim [`Object`s](Object).
-pub type Array = Collection<Object>;
+/// A vector of Neovim [`Object`](Object)s.
+pub type Array = KVec<Object>;
 
 impl Debug for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -63,7 +63,7 @@ where
     }
 }
 
-/// An owning iterator over the [`Object`s] of a Neovim [`Array`].
+/// An owning iterator over the [`Object`]s of a Neovim [`Array`].
 pub struct ArrayIterator {
     start: *const Object,
     end: *const Object,

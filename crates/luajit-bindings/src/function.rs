@@ -45,7 +45,7 @@ where
     }
 }
 
-/// Calls a function previously stored in the Lua registry via [store_fn].
+/// Calls a function previously stored in the Lua registry via [store].
 pub fn call<A, R>(lua_ref: c_int, args: A) -> Result<R, crate::Error>
 where
     A: Pushable,

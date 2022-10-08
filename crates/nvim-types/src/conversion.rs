@@ -31,6 +31,7 @@ pub enum Error {
     Serde(#[from] crate::serde::Error),
 }
 
+/// Trait implemented for types can be obtained from an [`Object`].
 pub trait FromObject: Sized {
     fn from_object(object: Object) -> Result<Self, Error>;
 }

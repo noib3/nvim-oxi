@@ -10,15 +10,13 @@ use syn::{parse_macro_input, Error};
 /// # Examples
 ///
 /// ```ignore
-/// use nvim_oxi as oxi;
+/// use nvim_oxi as nvim;
 ///
-/// #[oxi::module]
-/// fn foo() -> oxi::Result<()> {
+/// #[nvim::module]
+/// fn foo() -> nvim::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-///
-/// the compiled library can then be loaded from Neovim with `require("foo")`.
 #[proc_macro_attribute]
 pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as syn::AttributeArgs);

@@ -41,7 +41,7 @@ pub struct WindowConfig {
     pub external: Option<bool>,
 
     /// Enable focus by user actions like mouse events. Non-focusable windows
-    /// can be entered by `crate::api::set_current_win`.
+    /// can be entered by [`set_current_win`](crate::set_current_win).
     #[builder(setter(strip_option))]
     pub focusable: Option<bool>,
 
@@ -50,8 +50,7 @@ pub struct WindowConfig {
     pub height: Option<u32>,
 
     /// If `true` then no buffer-related autocommand events such as `BufEnter`
-    /// or `BufLeave` are fired when calling
-    /// [`api::open_win`](crate::api::open_win).
+    /// or `BufLeave` are fired when calling [`open_win`](crate::open_win).
     #[builder(setter(strip_option))]
     pub noautocmd: Option<bool>,
 

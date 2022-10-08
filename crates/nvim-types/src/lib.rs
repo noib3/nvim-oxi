@@ -2,24 +2,22 @@
 use std::ffi::{c_double, c_int};
 
 mod array;
-mod collection;
 pub mod conversion;
 mod dictionary;
 mod error;
 mod function;
+mod kvec;
 mod non_owning;
 mod object;
 #[cfg(feature = "serde")]
-#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
 pub mod serde;
 mod string;
 
 pub use array::{Array, ArrayIterator};
-pub use collection::Collection;
-pub use dictionary::{DictIterator, Dictionary};
+pub use dictionary::{DictIterator, Dictionary, KeyValuePair};
 pub use error::Error;
 pub use function::Function;
-#[doc(hidden)]
+pub use kvec::KVec;
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
 pub use string::String;

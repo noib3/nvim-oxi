@@ -9,20 +9,21 @@ use luajit_bindings::{self as lua, ffi::lua_State, Pushable};
 /// Initializes the Lua state, executes the entrypoint function and pushes the
 /// result on the stack.
 #[doc(hidden)]
-pub unsafe fn entrypoint<R>(
-    lstate: *mut lua_State,
-    body: fn() -> crate::Result<R>,
+pub unsafe fn entrypoint<R, E>(
+    lua_state: *mut lua_State,
+    body: fn() -> Result<R, E>,
 ) -> c_int
 where
     R: Pushable,
+    E: std::error::Error,
 {
-    lua::init(lstate);
+    lua::init(lua_state);
 
     #[cfg(feature = "libuv")]
-    libuv_bindings::init(lstate);
+    libuv_bindings::init(lua_state);
 
     match body() {
-        Ok(api) => api.push(lstate).unwrap(),
-        Err(err) => lua::utils::handle_error(lstate, &err),
+        Ok(api) => api.push(lua_state).unwrap(),
+        Err(err) => lua::utils::handle_error(lua_state, &err),
     }
 }

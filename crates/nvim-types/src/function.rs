@@ -8,6 +8,7 @@ use luajit_bindings::{self as lua, ffi, Poppable, Pushable};
 
 use crate::LuaRef;
 
+/// A wrapper around a Lua reference to a function stored in the Lua registry.
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct Function<A, R> {
     pub(crate) lua_ref: LuaRef,
@@ -40,16 +41,18 @@ where
 
 impl<A, R> Poppable for Function<A, R> {
     unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
+        state: *mut lua::ffi::lua_State,
     ) -> Result<Self, lua::Error> {
-        match ffi::lua_type(lstate, -1) {
+        if ffi::lua_gettop(state) == 0 {
+            return Err(lua::Error::PopEmptyStack);
+        }
+
+        match ffi::lua_type(state, -1) {
             ffi::LUA_TFUNCTION => {
-                let lua_ref = ffi::luaL_ref(lstate, ffi::LUA_REGISTRYINDEX);
+                let lua_ref = ffi::luaL_ref(state, ffi::LUA_REGISTRYINDEX);
                 // TODO: check `lua_ref`.
                 Ok(Self::from_ref(lua_ref))
             },
-
-            ffi::LUA_TNONE => Err(lua::Error::PopEmptyStack),
 
             other => Err(lua::Error::pop_wrong_type::<Self>(
                 ffi::LUA_TFUNCTION,
@@ -62,10 +65,9 @@ impl<A, R> Poppable for Function<A, R> {
 impl<A, R> Pushable for Function<A, R> {
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        state: *mut lua::ffi::lua_State,
     ) -> Result<c_int, lua::Error> {
-        let index = lua::ffi::LUA_REGISTRYINDEX;
-        lua::ffi::lua_rawgeti(lstate, index, self.lua_ref);
+        ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, self.lua_ref);
         Ok(1)
     }
 }

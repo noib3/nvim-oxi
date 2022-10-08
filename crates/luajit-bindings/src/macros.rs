@@ -20,17 +20,42 @@ macro_rules! count {
 
 pub(crate) use count;
 
-/// Binding to the global Lua `print` function. It uses the same syntax as
-/// Rust's `format!` macro and redirects its output to the Neovim message area.
+/// Same as [`std::dbg!`](dbg) but writes to the Neovim message area instead of
+/// stdout.
+///
+/// [dbg]: https://doc.rust-lang.org/std/macro.dbg.html
+#[macro_export]
+macro_rules! dbg {
+    () => {
+        $crate::print!("[{}:{}]", ::core::file!(), ::core::line!())
+    };
+    ($val:expr $(,)?) => {
+        match $val {
+            tmp => {
+                $crate::print!("[{}:{}] {} = {:#?}",
+                    ::core::file!(), ::core::line!(), ::core::stringify!($val), &tmp);
+                tmp
+            }
+        }
+    };
+    ($($val:expr),+ $(,)?) => {
+        ($($crate::dbg!($val)),+,)
+    };
+}
+
+/// Same as [`std::print!`](print) but writes to the Neovim message area
+/// instead of stdout.
 ///
 /// # Examples
 ///
 /// ```ignore
 /// use nvim_oxi as nvim;
 ///
-/// nvim::print!("Goodbye {}..", String::from("Earth"));
+/// nvim::print!("Goodbye {}..", "Earth");
 /// nvim::print!("Hello {planet}!", planet = "Mars");
 /// ```
+///
+/// [print]: https://doc.rust-lang.org/std/macro.print.html
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{

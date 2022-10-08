@@ -78,7 +78,7 @@ impl Pushable for Window {
 }
 
 impl Window {
-    /// Shorthand for [`api::get_current_win`](crate::api::get_current_win).
+    /// Shorthand for [`get_current_win`](crate::get_current_win).
     #[inline(always)]
     pub fn current() -> Self {
         crate::get_current_win()

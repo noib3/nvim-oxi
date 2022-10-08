@@ -3,6 +3,20 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{parse_macro_input, Error};
 
+/// Tests a piece of code inside a Neovim session.
+///
+/// # Examples
+///
+/// ```ignore
+/// use nvim_oxi::{self as nvim, api};
+///
+/// #[nvim::test]
+/// fn set_get_del_var() {
+///     api::set_var("foo", 42).unwrap();
+///     assert_eq!(Ok(42), api::get_var("foo"));
+///     assert_eq!(Ok(()), api::del_var("foo"));
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = parse_macro_input!(attr as syn::AttributeArgs);

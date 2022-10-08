@@ -27,6 +27,8 @@ pub struct Object {
 }
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
+//
+/// Specifies the kind of a Neovim [Object].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(C)]
 pub enum ObjectKind {
@@ -113,7 +115,6 @@ impl Object {
     }
 
     #[inline(always)]
-    #[doc(hidden)]
     pub fn from_luaref(luaref: LuaRef) -> Self {
         Self { ty: ObjectKind::LuaRef, data: ObjectData { luaref } }
     }
@@ -152,7 +153,6 @@ impl Object {
 
     /// TODO: docs
     #[inline(always)]
-    #[doc(hidden)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         self.data.luaref
     }

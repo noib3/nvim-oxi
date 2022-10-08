@@ -69,8 +69,7 @@ impl FromObject for TabPage {
 }
 
 impl TabPage {
-    /// Shorthand for
-    /// [`api::get_current_tabpage`](crate::api::get_current_tabpage).
+    /// Shorthand for [`get_current_tabpage`](crate::get_current_tabpage).
     #[inline(always)]
     pub fn current() -> Self {
         crate::get_current_tabpage()

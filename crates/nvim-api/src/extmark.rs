@@ -75,9 +75,11 @@ impl Buffer {
         err.into_err_or_else(|| ())
     }
 
-    /// Binding to [`nvim_buf_del_extmark`](https://neovim.io/doc/user/api.html#nvim_buf_del_extmark()).
+    /// Binding to [`nvim_buf_del_extmark`][1].
     ///
     /// Removes an extmark from the buffer.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_del_extmark()
     pub fn del_extmark(&mut self, ns_id: u32, extmark_id: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         let was_found = unsafe {
@@ -96,12 +98,14 @@ impl Buffer {
         })
     }
 
-    /// Binding to [`nvim_buf_get_extmark_by_id`](https://neovim.io/doc/user/api.html#nvim_buf_get_extmark_by_id()).
+    /// Binding to [`nvim_buf_get_extmark_by_id`][1].
     ///
     /// The first two elements of the returned tuple represent the 0-indexed
     /// `row, col` position of the extmark. The last element is only present if
-    /// the [`details`](crate::api::opts::GetExtmarkByIdOptsBuilder::details)
-    /// option field was set to `true`.
+    /// the [`details`](crate::opts::GetExtmarkByIdOptsBuilder::details) option
+    /// field was set to `true`.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_extmark_by_id()
     pub fn get_extmark_by_id(
         &self,
         ns_id: u32,
@@ -137,14 +141,16 @@ impl Buffer {
         })
     }
 
-    /// Bindings to `nvim_buf_get_extmarks`.
+    /// Bindings to [`nvim_buf_get_extmarks`][1].
     ///
     /// Gets all the extmarks in a buffer region specified by start and end
     /// positions. Returns an iterator over `(extmark_id, row, col, infos)`
     /// tuples in "traversal order". Like for [`Buffer::get_extmark_by_id`],
     /// the `infos` are present only if the
-    /// [`details`](crate::api::opts::GetExtmarksOptsBuilder::details) option
-    /// field was set to `true`.
+    /// [`details`](crate::opts::GetExtmarksOptsBuilder::details) option field
+    /// was set to `true`.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_extmarks()
     pub fn get_extmarks(
         &self,
         ns_id: u32,

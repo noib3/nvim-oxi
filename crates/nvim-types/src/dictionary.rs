@@ -3,17 +3,18 @@ use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 use std::{fmt, ptr};
 
-use lua::{ffi::*, Poppable, Pushable};
-use luajit_bindings as lua;
+use luajit_bindings::{self as lua, ffi::*, Poppable, Pushable};
 
-use super::{Collection, Object, String};
+use super::{KVec, Object, String};
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
 //
-/// A mapping from Neovim [`String`s](String) to [`Object`s](Object).
-pub type Dictionary = Collection<KeyValuePair>;
+/// A vector of Neovim [`KeyValuePair`] s.
+pub type Dictionary = KVec<KeyValuePair>;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L128
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L122
+//
+/// A key-value pair mapping a Neovim [`String`] to a Neovim [`Object`].
 #[derive(Clone, PartialEq)]
 #[repr(C)]
 pub struct KeyValuePair {
@@ -124,6 +125,8 @@ impl IntoIterator for Dictionary {
     }
 }
 
+/// An owning iterator over the ([`String`], [`Object`]) pairs of a Neovim
+/// [`Dictionary`].
 pub struct DictIterator {
     start: *const KeyValuePair,
     end: *const KeyValuePair,

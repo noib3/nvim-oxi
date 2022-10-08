@@ -6,6 +6,8 @@ use std::result::Result as StdResult;
 use thiserror::Error as ThisError;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L64
+//
+/// Binding to the error type used by Neovim.
 #[derive(Clone, ThisError, Eq, PartialEq, Hash)]
 #[repr(C)]
 pub struct Error {

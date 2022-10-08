@@ -8,10 +8,9 @@ use serde::Deserialize;
 use crate::serde_utils as utils;
 
 /// Arguments passed to functions executed by commands. See
-/// [`Buffer::create_user_command`](crate::api::Buffer::create_user_command) to
+/// [`Buffer::create_user_command`](crate::Buffer::create_user_command) to
 /// create a buffer-local command or
-/// [`create_user_command`](crate::api::create_user_command) to create a global
-/// one.
+/// [`create_user_command`](crate::create_user_command) to create a global one.
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct CommandArgs {

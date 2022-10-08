@@ -8,12 +8,12 @@ use serde::Deserialize;
 use super::StatuslineHighlightInfos;
 
 /// Statusline informations returned by
-/// [`api::eval_statusline`](crate::api::eval_statusline).
+/// [`eval_statusline`](crate::eval_statusline).
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct StatuslineInfos {
     /// Vector of highlight informations for the statusline populated if the
-    /// [`highlights`](crate::api::opts::EvalStatuslineOptsBuilder::highlights)
+    /// [`highlights`](crate::opts::EvalStatuslineOptsBuilder::highlights)
     /// field of  was set to `true`.
     #[serde(default)]
     pub highlights: Vec<StatuslineHighlightInfos>,
