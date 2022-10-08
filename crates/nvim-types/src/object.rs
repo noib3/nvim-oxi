@@ -28,7 +28,7 @@ pub struct Object {
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
 //
-/// Specifies the kind of a Neovim [Object].
+/// Specifies the kind of a Neovim [`Object`].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(C)]
 pub enum ObjectKind {

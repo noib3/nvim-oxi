@@ -23,9 +23,7 @@ use crate::trait_utils::StringOrFunction;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::{Error, Result};
 
-/// A newtype struct wrapping a Neovim buffer. All the `nvim_buf_*` functions
-/// taking a buffer handle as their first argument are implemented as methods
-/// on this object.
+/// A wrapper around a Neovim buffer handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Buffer(pub(crate) BufHandle);
 

@@ -1,3 +1,5 @@
+//! Contains various types given to and returned from Neovim API functions.
+
 mod autocmd_callback_args;
 mod autocmd_infos;
 mod channel_infos;

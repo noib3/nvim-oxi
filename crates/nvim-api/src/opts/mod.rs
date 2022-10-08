@@ -1,3 +1,6 @@
+//! Contains the `*Opts` structs representing the optional arguments
+//! passsed to Neovim API functions.
+
 mod buf_attach;
 mod buf_delete;
 mod clear_autocmds;

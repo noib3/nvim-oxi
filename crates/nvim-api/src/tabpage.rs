@@ -15,9 +15,7 @@ use super::Window;
 use crate::iterator::SuperIterator;
 use crate::Result;
 
-/// A newtype struct wrapping a Neovim tabpage. All the `nvim_tabpage_*`
-/// functions taking a tabpage handle as their first argument are implemented
-/// as methods on this object.
+/// A wrapper around a Neovim tab handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct TabPage(pub(crate) TabHandle);
 

@@ -18,10 +18,8 @@ use super::LUA_INTERNAL_CALL;
 use super::{Buffer, TabPage};
 use crate::Result;
 
+/// A wrapper around a Neovim window handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-/// A newtype struct wrapping a Neovim window. All the `nvim_win_*` functions
-/// taking a window handle as their first argument are implemented as methods
-/// on this object.
 pub struct Window(pub(crate) WinHandle);
 
 impl fmt::Debug for Window {

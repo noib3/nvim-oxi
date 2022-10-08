@@ -29,7 +29,8 @@ mod window;
 
 pub use autocmd::*;
 pub use buffer::*;
-pub use error::{Error, Result};
+pub use error::Error;
+use error::Result;
 pub use extmark::*;
 pub use global::*;
 pub use tabpage::*;
