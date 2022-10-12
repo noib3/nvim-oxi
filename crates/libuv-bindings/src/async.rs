@@ -1,10 +1,10 @@
-use std::error::Error;
+use std::error::Error as StdError;
 
 use libuv_sys2::{self as ffi, uv_async_t};
 
-use crate::Handle;
+use crate::{Error, Handle};
 
-type Callback = Box<dyn FnMut() -> Result<(), Box<dyn Error>> + 'static>;
+type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 
 #[derive(Clone)]
 pub struct AsyncHandle {
@@ -18,9 +18,9 @@ impl AsyncHandle {
     /// Registers a new callback on the Neovim event loop, returning an
     /// [`AsyncHandle`] which can be used to execute the callback from any
     /// thread. The callback will always be executed on the main thread.
-    pub fn new<E, Cb>(mut callback: Cb) -> Result<Self, crate::Error>
+    pub fn new<E, Cb>(mut callback: Cb) -> Result<Self, Error>
     where
-        E: Error + 'static,
+        E: StdError + 'static,
         Cb: FnMut() -> Result<(), E> + 'static,
     {
         let mut handle = Handle::new(|uv_loop, handle| unsafe {
@@ -33,7 +33,7 @@ impl AsyncHandle {
 
         let callback: Callback = Box::new(move || {
             // Type erase the callback by boxing its error.
-            callback().map_err(|err| Box::new(err) as Box<dyn Error>)
+            callback().map_err(|err| Box::new(err) as Box<dyn StdError>)
         });
 
         unsafe { handle.set_data(callback) };
@@ -53,13 +53,12 @@ impl AsyncHandle {
     /// will be called again.
     ///
     /// [libuv]: https://libuv.org/
-    pub fn send(&self) -> Result<(), crate::Error> {
+    pub fn send(&self) -> Result<(), Error> {
         let retv =
             unsafe { ffi::uv_async_send(self.handle.as_ptr() as *mut _) };
 
         if retv < 0 {
-            // TODO
-            return Err(super::Error::CouldntTriggerAsyncHandle);
+            return Err(Error::AsyncTrigger);
         }
 
         Ok(())

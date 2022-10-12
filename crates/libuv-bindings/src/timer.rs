@@ -1,12 +1,13 @@
-use std::error::Error;
+use std::error::Error as StdError;
 use std::time::Duration;
 
 use libuv_sys2::{self as ffi, uv_timer_t};
 
-use crate::Handle;
+use crate::{Error, Handle};
 
-pub(crate) type Callback =
-    Box<dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn Error>> + 'static>;
+pub(crate) type Callback = Box<
+    dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,
+>;
 
 pub struct TimerHandle {
     handle: Handle<uv_timer_t, Callback>,
@@ -27,16 +28,16 @@ impl TimerHandle {
         timeout: Duration,
         repeat: Duration,
         mut callback: Cb,
-    ) -> Result<Self, crate::Error>
+    ) -> Result<Self, Error>
     where
-        E: Error + 'static,
+        E: StdError + 'static,
         Cb: FnMut(&mut Self) -> Result<(), E> + 'static,
     {
         let mut timer = Self::new()?;
 
         let callback: Callback = Box::new(move |timer| {
             // Type erase the callback by boxing its error.
-            callback(timer).map_err(|err| Box::new(err) as Box<dyn Error>)
+            callback(timer).map_err(|err| Box::new(err) as Box<dyn StdError>)
         });
 
         unsafe { timer.handle.set_data(callback) };
@@ -51,8 +52,7 @@ impl TimerHandle {
         };
 
         if retv < 0 {
-            // TODO
-            return Err(crate::Error::CouldntCreateAsyncHandle);
+            return Err(crate::Error::TimerStart);
         }
 
         Ok(timer)
@@ -64,7 +64,7 @@ impl TimerHandle {
         callback: Cb,
     ) -> Result<Self, crate::Error>
     where
-        E: Error + 'static,
+        E: StdError + 'static,
         Cb: FnOnce() -> Result<(), E> + 'static,
     {
         let mut callback = Some(callback);
@@ -77,12 +77,11 @@ impl TimerHandle {
     }
 
     /// TODO: docs
-    pub fn stop(&mut self) -> Result<(), crate::Error> {
+    pub fn stop(&mut self) -> Result<(), Error> {
         let retv = unsafe { ffi::uv_timer_stop(self.handle.as_mut_ptr()) };
 
         if retv < 0 {
-            // TODO
-            return Err(crate::Error::CouldntCreateAsyncHandle);
+            return Err(Error::TimerStop);
         }
 
         Ok(())

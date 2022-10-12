@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use libuv_sys2::{self as ffi, uv_handle_t, uv_loop_t};
 
-use crate::Result;
+use crate::{Error, Result};
 
 /// TODO: docs
 pub(crate) struct Handle<T, D: 'static> {
@@ -27,11 +27,11 @@ impl<T, D> Handle<T, D> {
         let layout = Layout::new::<T>();
         let ptr = unsafe { alloc::alloc(layout) as *mut T };
 
-        let mut handle = Self { ptr, data: PhantomData };
-
         if ptr.is_null() {
-            return Err(crate::Error::CouldntCreateAsyncHandle); // TODO
+            return Err(Error::HandleMemAlloc);
         }
+
+        let mut handle = Self { ptr, data: PhantomData };
 
         let retv = unsafe {
             crate::with_loop(|uv_loop| initializer(uv_loop, &mut handle))
@@ -39,14 +39,14 @@ impl<T, D> Handle<T, D> {
 
         if retv < 0 {
             unsafe { alloc::dealloc(ptr as *mut u8, layout) };
-            return Err(crate::Error::CouldntCreateAsyncHandle); // TODO
+            return Err(Error::HandleInit);
         }
 
         Ok(handle)
     }
 
     pub(crate) fn as_ptr(&self) -> *const T {
-        self.ptr as _
+        self.ptr.cast()
     }
 
     pub(crate) fn as_mut_ptr(&mut self) -> *mut T {
