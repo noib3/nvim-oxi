@@ -5,7 +5,7 @@ use crate::ffi::*;
 use crate::macros::count;
 use crate::Error;
 
-/// Trait for types that can be popped off the Lua stack.
+/// Trait implemented for types that can be popped off the Lua stack.
 pub trait Poppable: Sized {
     /// Pops the value at the top of the stack.
     unsafe fn pop(lua_state: *mut lua_State) -> Result<Self, Error>;
