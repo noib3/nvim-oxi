@@ -6,6 +6,10 @@ use crate::{Error, Handle};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 
+/// Binding to libuv's [Async handle][1] used to trigger the execution of a
+/// callback in the Neovim thread.
+///
+/// [1]: http://docs.libuv.org/en/v1.x/async.html
 #[derive(Clone)]
 pub struct AsyncHandle {
     handle: Handle<uv_async_t, Callback>,

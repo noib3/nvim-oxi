@@ -9,13 +9,16 @@ pub(crate) type Callback = Box<
     dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,
 >;
 
+/// Binding to libuv's [Timer handle][1] used to schedule callbacks to be
+/// called in the future.
+///
+/// [1]: http://docs.libuv.org/en/v1.x/timer.html
 pub struct TimerHandle {
     handle: Handle<uv_timer_t, Callback>,
 }
 
 impl TimerHandle {
-    /// TODO: docs
-    fn new() -> Result<Self, crate::Error> {
+    fn new() -> Result<Self, Error> {
         let handle = Handle::new(|uv_loop, handle| unsafe {
             ffi::uv_timer_init(uv_loop, handle.as_mut_ptr())
         })?;
@@ -23,15 +26,18 @@ impl TimerHandle {
         Ok(Self { handle })
     }
 
-    /// TODO: docs
-    pub fn start<E, Cb>(
+    /// Executes a callback every `repeat` interval starting after `timeout`.
+    ///
+    /// If the timeout is zero the callback will fire on the next event loop
+    /// iteration.
+    pub fn start<Cb, E>(
         timeout: Duration,
         repeat: Duration,
         mut callback: Cb,
     ) -> Result<Self, Error>
     where
-        E: StdError + 'static,
         Cb: FnMut(&mut Self) -> Result<(), E> + 'static,
+        E: StdError + 'static,
     {
         let mut timer = Self::new()?;
 
@@ -52,20 +58,18 @@ impl TimerHandle {
         };
 
         if retv < 0 {
-            return Err(crate::Error::TimerStart);
+            return Err(Error::TimerStart);
         }
 
         Ok(timer)
     }
 
-    /// TODO: docs
-    pub fn once<E, Cb>(
-        timeout: Duration,
-        callback: Cb,
-    ) -> Result<Self, crate::Error>
+    /// Same as [`start`](TimerHandle::start) but accepts an `FnOnce` closure
+    /// which will only be called once before being automatically stopped.
+    pub fn once<Cb, E>(timeout: Duration, callback: Cb) -> Result<Self, Error>
     where
-        E: StdError + 'static,
         Cb: FnOnce() -> Result<(), E> + 'static,
+        E: StdError + 'static,
     {
         let mut callback = Some(callback);
 
@@ -76,7 +80,7 @@ impl TimerHandle {
         })
     }
 
-    /// TODO: docs
+    /// Stops the timer.
     pub fn stop(&mut self) -> Result<(), Error> {
         let retv = unsafe { ffi::uv_timer_stop(self.handle.as_mut_ptr()) };
 

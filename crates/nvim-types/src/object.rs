@@ -19,6 +19,8 @@ use crate::{
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L109
 //
+/// Binding to a Neovim object.
+///
 /// Represents any valid Neovim type.
 #[repr(C)]
 pub struct Object {
@@ -119,7 +121,6 @@ impl Object {
         Self { ty: ObjectKind::LuaRef, data: ObjectData { luaref } }
     }
 
-    /// TODO: docs
     #[inline]
     pub fn kind(&self) -> ObjectKind {
         self.ty
@@ -133,46 +134,42 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
-    /// TODO: docs
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
         self.data.boolean
     }
 
-    /// TODO: docs
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
         self.data.integer
     }
 
-    /// TODO: docs
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
         self.data.float
     }
 
-    /// TODO: docs
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         self.data.luaref
     }
 
-    /// Extracts the inner [`String`] from the object, without checking that
-    /// the object actually represents a [`String`].
+    /// Extracts the contained [`String`](crate::String) value without checking
+    /// that the object actually contains a [`String`](crate::String).
     pub unsafe fn into_string_unchecked(self) -> crate::String {
         let str = ManuallyDrop::new(self);
         crate::String { ..*str.data.string }
     }
 
-    /// Extracts the inner [`Array`] from the object, without checking that the
-    /// object actually represents an [`Array`].
+    /// Extracts the contained [`Array`] value without checking that the object
+    /// actually contains an [`Array`].
     pub unsafe fn into_array_unchecked(self) -> Array {
         let array = ManuallyDrop::new(self);
         Array { ..*array.data.array }
     }
 
-    /// Extracts the inner [`Dictionary`] from the object, without checking
-    /// that the object actually represents a [`Dictionary`].
+    /// Extracts the contained [`Dictionary`] value without checking that the
+    /// object actually contains a [`Dictionary`].
     pub unsafe fn into_dict_unchecked(self) -> Dictionary {
         let dict = ManuallyDrop::new(self);
         Dictionary { ..*dict.data.dictionary }
