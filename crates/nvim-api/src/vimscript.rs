@@ -1,9 +1,10 @@
 use nvim_types::{self as nvim, conversion::FromObject, Array, Object};
 
-use super::ffi::vimscript::*;
-use super::types::*;
-use super::LUA_INTERNAL_CALL;
+use crate::choose;
+use crate::ffi::vimscript::*;
+use crate::types::*;
 use crate::Result;
+use crate::LUA_INTERNAL_CALL;
 
 /// Binding to [`nvim_call_dict_function`](https://neovim.io/doc/user/api.html#nvim_call_dict_function()).
 ///
@@ -30,7 +31,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_flatten(|| Ok(Ret::from_object(res)?))
+    choose!(err, Ok(Ret::from_object(res)?))
 }
 
 /// Binding to [`nvim_call_function`](https://neovim.io/doc/user/api.html#nvim_call_function()).
@@ -48,7 +49,7 @@ where
     let res = unsafe {
         nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| Ok(Ret::from_object(res)?))
+    choose!(err, Ok(Ret::from_object(res)?))
 }
 
 /// Binding to [`nvim_cmd`](https://neovim.io/doc/user/api.html#nvim_cmd()).
@@ -69,7 +70,7 @@ pub fn cmd(
     let output = unsafe {
         nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts.into(), &mut err)
     };
-    err.into_err_or_flatten(|| {
+    choose!(err, {
         output
             .into_string()
             .map_err(From::from)
@@ -84,7 +85,7 @@ pub fn command(command: &str) -> Result<()> {
     let command = nvim::String::from(command);
     let mut err = nvim::Error::new();
     unsafe { nvim_command(command.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_eval`](https://neovim.io/doc/user/api.html#nvim_eval()).
@@ -97,7 +98,7 @@ where
     let expr = nvim::String::from(expr);
     let mut err = nvim::Error::new();
     let output = unsafe { nvim_eval(expr.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(V::from_object(output)?))
+    choose!(err, Ok(V::from_object(output)?))
 }
 
 /// Binding to [`nvim_exec`](https://neovim.io/doc/user/api.html#nvim_exec()).
@@ -110,7 +111,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     let output = unsafe {
         nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output, &mut err)
     };
-    err.into_err_or_flatten(|| {
+    choose!(err, {
         output
             .into_string()
             .map_err(From::from)
@@ -136,7 +137,7 @@ pub fn parse_cmd(
     let dict = unsafe {
         nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| Ok(CmdInfos::from_object(dict.into())?))
+    choose!(err, Ok(CmdInfos::from_object(dict.into())?))
 }
 
 /// Binding to [`nvim_parse_expression`](https://neovim.io/doc/user/api.html#nvim_parse_expression()).
@@ -158,7 +159,5 @@ pub fn parse_expression(
             &mut err,
         )
     };
-    err.into_err_or_flatten(|| {
-        Ok(ParsedVimLExpression::from_object(dict.into())?)
-    })
+    choose!(err, Ok(ParsedVimLExpression::from_object(dict.into())?))
 }

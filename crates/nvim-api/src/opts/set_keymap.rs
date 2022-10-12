@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, NonOwning, Object};
 
-use crate::trait_utils::ToFunction;
+use crate::ToFunction;
 
 /// Options passed to [`Buffer::set_keymap`](crate::Buffer::set_keymap)
 /// and [`api::set_keymap`](crate::set_keymap).
@@ -68,7 +68,7 @@ impl SetKeymapOptsBuilder {
     where
         F: ToFunction<(), ()>,
     {
-        self.callback = Some(fun.to_obj());
+        self.callback = Some(fun.to_object());
         self
     }
 

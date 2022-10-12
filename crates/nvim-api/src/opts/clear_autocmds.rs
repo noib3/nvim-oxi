@@ -1,8 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::{Array, NonOwning, Object};
 
-use crate::trait_utils::StringOrInt;
 use crate::Buffer;
+use crate::StringOrInt;
 
 /// Options passed to [`api::clear_autocmds`](crate::clear_autocmds).
 #[derive(Clone, Debug, Default, Builder)]
@@ -60,7 +60,7 @@ impl ClearAutocmdsOptsBuilder {
     where
         Grp: StringOrInt,
     {
-        self.group = Some(group.to_obj());
+        self.group = Some(group.to_object());
         self
     }
 

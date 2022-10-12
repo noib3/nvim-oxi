@@ -15,12 +15,13 @@ use nvim_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::ffi::buffer::*;
-use super::opts::*;
-use super::LUA_INTERNAL_CALL;
+use crate::choose;
+use crate::ffi::buffer::*;
 use crate::iterator::SuperIterator;
-use crate::trait_utils::StringOrFunction;
+use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
+use crate::StringOrFunction;
+use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
 
 /// A wrapper around a Neovim buffer handle.
@@ -110,10 +111,13 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_flatten(|| match has_attached {
-            true => Ok(()),
-            _ => Err(Error::custom("Attaching to buffer failed")),
-        })
+        choose!(
+            err,
+            match has_attached {
+                true => Ok(()),
+                _ => Err(Error::custom("Attaching to buffer failed")),
+            }
+        )
     }
 
     /// Binding to [`nvim_buf_call`](https://neovim.io/doc/user/api.html#nvim_buf_call()).
@@ -128,7 +132,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let obj = unsafe { nvim_buf_call(self.0, fun.lua_ref(), &mut err) };
 
-        err.into_err_or_flatten(move || {
+        choose!(err, {
             fun.remove_from_lua_registry();
             Ok(R::from_object(obj)?)
         })
@@ -149,7 +153,7 @@ impl Buffer {
         let opts = KeyDict_user_command::from(opts);
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let command = command.to_obj();
+        let command = command.to_object();
         unsafe {
             nvim_buf_create_user_command(
                 self.0,
@@ -159,7 +163,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_del_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_del_keymap()).
@@ -178,7 +182,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_del_mark`](https://neovim.io/doc/user/api.html#nvim_buf_del_mark()).
@@ -189,10 +193,13 @@ impl Buffer {
         let name = nvim::String::from(name);
         let was_deleted =
             unsafe { nvim_buf_del_mark(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| match was_deleted {
-            true => Ok(()),
-            _ => Err(Error::custom("Couldn't delete mark")),
-        })
+        choose!(
+            err,
+            match was_deleted {
+                true => Ok(()),
+                _ => Err(Error::custom("Couldn't delete mark")),
+            }
+        )
     }
 
     /// Binding to [`nvim_buf_del_user_command`][1].
@@ -208,17 +215,19 @@ impl Buffer {
         unsafe {
             nvim_buf_del_user_command(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
-    /// Binding to [`nvim_buf_del_var`](https://neovim.io/doc/user/api.html#nvim_buf_del_var()).
+    /// Binding to [`nvim_buf_del_var`][1].
     ///
     /// Removes a buffer-scoped (`b:`) variable.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_del_var()
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe { nvim_buf_del_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_delete`](https://neovim.io/doc/user/api.html#nvim_buf_delete()).
@@ -229,14 +238,14 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let opts = Dictionary::from(opts);
         unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_get_changedtick`](https://neovim.io/doc/user/api.html#nvim_buf_get_changedtick()).
     pub fn get_changedtick(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
-        err.into_err_or_else(|| ct.try_into().expect("always positive"))
+        choose!(err, Ok(ct.try_into().expect("always positive")))
     }
 
     /// Binding to [`nvim_buf_get_commands`](https://neovim.io/doc/user/api.html#nvim_buf_get_commands()).
@@ -247,10 +256,13 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let opts = KeyDict_get_commands::from(opts);
         let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
-        err.into_err_or_else(|| {
-            cmds.into_iter()
-                .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
-        })
+        choose!(
+            err,
+            Ok({
+                cmds.into_iter()
+                    .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
+            })
+        )
     }
 
     /// Binding to [`nvim_buf_get_keymap`](https://neovim.io/doc/user/api.html#nvim_buf_get_keymap()).
@@ -268,9 +280,13 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| {
-            maps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
-        })
+        choose!(
+            err,
+            Ok({
+                maps.into_iter()
+                    .map(|obj| KeymapInfos::from_object(obj).unwrap())
+            })
+        )
     }
 
     /// Binding to [`nvim_buf_get_lines`](https://neovim.io/doc/user/api.html#nvim_buf_get_lines()).
@@ -296,11 +312,14 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| {
-            lines
-                .into_iter()
-                .map(|line| nvim::String::from_object(line).unwrap())
-        })
+        choose!(
+            err,
+            Ok({
+                lines
+                    .into_iter()
+                    .map(|line| nvim::String::from_object(line).unwrap())
+            })
+        )
     }
 
     /// Binding to [`nvim_buf_get_mark`](https://neovim.io/doc/user/api.html#nvim_buf_get_mark()).
@@ -312,7 +331,7 @@ impl Buffer {
         let name = nvim::String::from(name);
         let mark =
             unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| {
+        choose!(err, {
             let mut iter = mark.into_iter().map(usize::from_object);
             let row = iter.next().expect("row is present")?;
             let col = iter.next().expect("col is present")?;
@@ -326,7 +345,7 @@ impl Buffer {
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = nvim::Error::new();
         let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
-        err.into_err_or_else(|| name.into())
+        choose!(err, Ok(name.into()))
     }
 
     /// Binding to [`nvim_buf_get_offset`](https://neovim.io/doc/user/api.html#nvim_buf_get_offset()).
@@ -336,7 +355,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index as Integer, &mut err) };
-        err.into_err_or_else(|| offset.try_into().expect("offset is positive"))
+        choose!(err, Ok(offset.try_into().expect("offset is positive")))
     }
 
     /// Binding to [`nvim_buf_get_option`](https://neovim.io/doc/user/api.html#nvim_buf_get_option()).
@@ -351,7 +370,7 @@ impl Buffer {
         let obj = unsafe {
             nvim_buf_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
+        choose!(err, Ok(Opt::from_object(obj)?))
     }
 
     /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
@@ -383,11 +402,14 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| {
-            lines
-                .into_iter()
-                .map(|line| nvim::String::from_object(line).unwrap())
-        })
+        choose!(
+            err,
+            Ok({
+                lines
+                    .into_iter()
+                    .map(|line| nvim::String::from_object(line).unwrap())
+            })
+        )
     }
 
     /// Binding to [`nvim_buf_get_var`](https://neovim.io/doc/user/api.html#nvim_buf_get_var()).
@@ -401,7 +423,7 @@ impl Buffer {
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
+        choose!(err, Ok(Var::from_object(obj)?))
     }
 
     /// Binding to [`nvim_buf_is_loaded`](https://neovim.io/doc/user/api.html#nvim_buf_is_loaded()).
@@ -424,7 +446,7 @@ impl Buffer {
     pub fn line_count(&self) -> Result<usize> {
         let mut err = nvim::Error::new();
         let count = unsafe { nvim_buf_line_count(self.0, &mut err) };
-        err.into_err_or_else(|| count.try_into().expect("always positive"))
+        choose!(err, Ok(count.try_into().expect("always positive")))
     }
 
     /// Binding to [`nvim_buf_set_keymap`][1].
@@ -456,7 +478,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_set_lines`](https://neovim.io/doc/user/api.html#nvim_buf_set_lines()).
@@ -487,7 +509,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_set_mark`](https://neovim.io/doc/user/api.html#nvim_buf_set_mark()).
@@ -512,10 +534,13 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_flatten(|| match mark_was_set {
-            true => Ok(()),
-            _ => Err(Error::custom("Couldn't set mark")),
-        })
+        choose!(
+            err,
+            match mark_was_set {
+                true => Ok(()),
+                _ => Err(Error::custom("Couldn't set mark")),
+            }
+        )
     }
 
     /// Binding to [`nvim_buf_set_name`](https://neovim.io/doc/user/api.html#nvim_buf_set_name()).
@@ -525,7 +550,7 @@ impl Buffer {
         let name = nvim::String::from(name.as_ref().to_owned());
         let mut err = nvim::Error::new();
         unsafe { nvim_buf_set_name(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_set_option`](https://neovim.io/doc/user/api.html#nvim_buf_set_option()).
@@ -547,7 +572,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_set_text`](https://neovim.io/doc/user/api.html#nvim_buf_set_text()).
@@ -583,12 +608,14 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
-    /// Binding to [`nvim_buf_set_var`](https://neovim.io/doc/user/api.html#nvim_buf_set_var()).
+    /// Binding to [`nvim_buf_set_var`][1].
     ///
     /// Sets a buffer-scoped (`b:`) variable.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_var()
     pub fn set_var<V>(&mut self, name: &str, value: V) -> Result<()>
     where
         V: ToObject,
@@ -603,6 +630,6 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 }

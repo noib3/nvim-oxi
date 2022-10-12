@@ -34,6 +34,7 @@ use error::Result;
 pub use extmark::*;
 pub use global::*;
 pub use tabpage::*;
+pub use trait_utils::*;
 pub use vimscript::*;
 pub use win_config::*;
 pub use window::*;
@@ -46,3 +47,23 @@ const VIML_INTERNAL_CALL: u64 = INTERNAL_CALL_MASK;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L47
 const LUA_INTERNAL_CALL: u64 = VIML_INTERNAL_CALL + 1;
+
+macro_rules! choose {
+    ($err:expr, ()) => {
+        if $err.is_err() {
+            Err($err.into())
+        } else {
+            Ok(())
+        }
+    };
+
+    ($err:expr, $other:expr) => {
+        if $err.is_err() {
+            Err($err.into())
+        } else {
+            $other
+        }
+    };
+}
+
+pub(crate) use choose;

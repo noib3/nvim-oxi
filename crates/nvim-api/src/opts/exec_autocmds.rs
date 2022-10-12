@@ -1,8 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::{NonOwning, Object};
 
-use crate::trait_utils::StringOrInt;
 use crate::Buffer;
+use crate::StringOrInt;
 
 /// Options passed to [`api::exec_autocmds`](crate::exec_autocmds).
 #[derive(Clone, Debug, Default, Builder)]
@@ -54,7 +54,7 @@ impl ExecAutocmdsOptsBuilder {
     where
         Grp: StringOrInt,
     {
-        self.group = Some(group.to_obj());
+        self.group = Some(group.to_object());
         self
     }
 
@@ -75,7 +75,7 @@ impl ExecAutocmdsOptsBuilder {
     where
         Patterns: crate::trait_utils::StringOrListOfStrings,
     {
-        self.patterns = Some(patterns.to_obj());
+        self.patterns = Some(patterns.to_object());
         self
     }
 

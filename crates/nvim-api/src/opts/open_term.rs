@@ -1,8 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, Dictionary, Object};
 
-use crate::trait_utils::ToFunction;
 use crate::Buffer;
+use crate::ToFunction;
 
 /// Arguments passed to the callback registered to
 /// [`on_input`](OpenTermOptsBuilder::on_input). The `(a, b, c, d)` tuple
@@ -40,7 +40,7 @@ impl OpenTermOptsBuilder {
     where
         F: ToFunction<OnInputArgs, ()>,
     {
-        self.on_input = Some(fun.to_obj());
+        self.on_input = Some(fun.to_object());
         self
     }
 

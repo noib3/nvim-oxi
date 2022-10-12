@@ -10,10 +10,11 @@ use nvim_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::ffi::tabpage::*;
-use super::Window;
+use crate::choose;
+use crate::ffi::tabpage::*;
 use crate::iterator::SuperIterator;
 use crate::Result;
+use crate::Window;
 
 /// A wrapper around a Neovim tab handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -80,7 +81,7 @@ impl TabPage {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe { nvim_tabpage_del_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_tabpage_get_number`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_number()).
@@ -89,12 +90,14 @@ impl TabPage {
     pub fn get_number(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let number = unsafe { nvim_tabpage_get_number(self.0, &mut err) };
-        err.into_err_or_else(|| number.try_into().expect("always positive"))
+        choose!(err, Ok(number.try_into().expect("always positive")))
     }
 
-    /// Binding to [`nvim_tabpage_get_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_var()).
+    /// Binding to [`nvim_tabpage_get_var`][1].
     ///
     /// Gets a tab-scoped (`t:`) variable.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_get_var()
     pub fn get_var<Var>(&self, name: &str) -> Result<Var>
     where
         Var: FromObject,
@@ -104,7 +107,7 @@ impl TabPage {
         let obj = unsafe {
             nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
+        choose!(err, Ok(Var::from_object(obj)?))
     }
 
     /// Binding to [`nvim_tabpage_get_win`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()).
@@ -113,7 +116,7 @@ impl TabPage {
     pub fn get_win(&self) -> Result<Window> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_tabpage_get_win(self.0, &mut err) };
-        err.into_err_or_else(|| handle.into())
+        choose!(err, Ok(handle.into()))
     }
 
     /// Binding to [`nvim_tabpage_is_valid`](https://neovim.io/doc/user/api.html#nvim_tabpage_is_valid()).
@@ -129,9 +132,12 @@ impl TabPage {
     pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
-        err.into_err_or_else(|| {
-            list.into_iter().map(|obj| Window::from_object(obj).unwrap())
-        })
+        choose!(
+            err,
+            Ok({
+                list.into_iter().map(|obj| Window::from_object(obj).unwrap())
+            })
+        )
     }
 
     /// Binding to [`nvim_tabpage_set_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_set_var()).
@@ -151,6 +157,6 @@ impl TabPage {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 }

@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
-use crate::trait_utils::ToFunction;
+use crate::ToFunction;
 use crate::{Buffer, Window};
 
 // NOTE: docs say a third argument of changedtick is passed. I don't see it.
@@ -88,7 +88,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnBufArgs, ()>,
     {
-        self.on_buf = Some(fun.to_obj());
+        self.on_buf = Some(fun.to_object());
         self
     }
 
@@ -96,7 +96,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnEndArgs, ()>,
     {
-        self.on_end = Some(fun.to_obj());
+        self.on_end = Some(fun.to_object());
         self
     }
 
@@ -104,7 +104,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnLineArgs, ()>,
     {
-        self.on_line = Some(fun.to_obj());
+        self.on_line = Some(fun.to_object());
         self
     }
 
@@ -112,7 +112,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
     {
-        self.on_start = Some(fun.to_obj());
+        self.on_start = Some(fun.to_object());
         self
     }
 
@@ -120,7 +120,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnWinArgs, DontSkipOnLines>,
     {
-        self.on_win = Some(fun.to_obj());
+        self.on_win = Some(fun.to_object());
         self
     }
 

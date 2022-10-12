@@ -1,9 +1,9 @@
 use derive_builder::Builder;
 use nvim_types::{self as nvim, Array, Function, NonOwning, Object};
 
-use crate::trait_utils::StringOrInt;
 use crate::types::AutocmdCallbackArgs;
 use crate::Buffer;
+use crate::StringOrInt;
 
 pub type ShouldDeleteAutocmd = bool;
 
@@ -82,7 +82,7 @@ impl CreateAutocmdOptsBuilder {
     where
         Grp: StringOrInt,
     {
-        self.group = Some(group.to_obj());
+        self.group = Some(group.to_object());
         self
     }
 

@@ -1,7 +1,6 @@
 use std::error::Error as StdError;
 use std::ffi::{c_char, CStr, CString};
 use std::fmt;
-use std::result::Result as StdResult;
 
 use thiserror::Error as ThisError;
 
@@ -64,32 +63,14 @@ impl fmt::Display for Error {
 }
 
 impl Error {
-    /// Returns `Ok(f())` if it's not actually an error, or moves into a
-    /// generic `std::error::Error` if it is.
-    #[inline]
-    pub fn into_err_or_else<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
-    where
-        Err: StdError,
-        Self: Into<Err>,
-        F: FnOnce() -> Ok,
-    {
-        (!self.is_err()).then(f).ok_or_else(|| self.into())
-    }
-
-    #[inline]
-    pub fn into_err_or_flatten<Ok, Err, F>(self, f: F) -> StdResult<Ok, Err>
-    where
-        Err: StdError,
-        Self: Into<Err>,
-        F: FnOnce() -> StdResult<Ok, Err>,
-    {
-        self.into_err_or_else(f)?
+    pub(crate) fn from_str<S: Into<String>>(s: S) -> Self {
+        let c_string = CString::new(s.into()).unwrap_or_default();
+        let ptr = c_string.into_raw() /* TODO: memory leak */;
+        Self { r#type: ErrorType::Exception, msg: ptr }
     }
 
     pub fn from_err<E: StdError>(err: E) -> Self {
-        let c_string = CString::new(err.to_string()).unwrap_or_default();
-        let ptr = c_string.into_raw() /* TODO: memory leak */;
-        Self { r#type: ErrorType::Exception, msg: ptr }
+        Self::from_str(err.to_string())
     }
 
     pub fn is_err(&self) -> bool {

@@ -1,9 +1,10 @@
 use nvim_types::{self as nvim, conversion::FromObject};
 
-use super::ffi::win_config::*;
-use super::types::*;
-use super::{Buffer, Window};
+use crate::choose;
+use crate::ffi::win_config::*;
+use crate::types::*;
 use crate::Result;
+use crate::{Buffer, Window};
 
 /// Binding to [`nvim_open_win`](https://neovim.io/doc/user/api.html#nvim_open_win()).
 ///
@@ -16,7 +17,7 @@ pub fn open_win(
     let mut err = nvim::Error::new();
     let handle =
         unsafe { nvim_open_win(buf.0, enter, &config.into(), &mut err) };
-    err.into_err_or_else(|| handle.into())
+    choose!(err, Ok(handle.into()))
 }
 
 impl Window {
@@ -34,7 +35,7 @@ impl Window {
         if let Some(handle) = win {
             dict["relative"] = handle.into();
         }
-        err.into_err_or_flatten(|| Ok(WindowConfig::from_object(dict.into())?))
+        choose!(err, Ok(WindowConfig::from_object(dict.into())?))
     }
 
     /// Binding to [`nvim_win_get_config`](https://neovim.io/doc/user/api.html#nvim_win_get_config()).
@@ -43,6 +44,6 @@ impl Window {
     pub fn set_config(&mut self, config: &WindowConfig) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_config(self.0, &config.into(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 }

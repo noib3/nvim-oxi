@@ -9,12 +9,13 @@ use nvim_types::{
     Object,
 };
 
-use super::ffi::global::*;
-use super::opts::*;
-use super::types::*;
-use super::LUA_INTERNAL_CALL;
+use crate::choose;
+use crate::ffi::global::*;
 use crate::iterator::SuperIterator;
-use crate::trait_utils::StringOrFunction;
+use crate::opts::*;
+use crate::types::*;
+use crate::StringOrFunction;
+use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage, Window};
 use crate::{Error, Result};
 
@@ -25,7 +26,7 @@ pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
     let mut err = nvim::Error::new();
     let data = nvim::String::from(data);
     unsafe { nvim_chan_send(channel_id.into(), data.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_create_buf`](https://neovim.io/doc/user/api.html#nvim_create_buf()).
@@ -34,7 +35,7 @@ pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = nvim::Error::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
-    err.into_err_or_else(|| handle.into())
+    choose!(err, Ok(handle.into()))
 }
 
 /// Binding to [`nvim_create_user_command`](https://neovim.io/doc/user/api.html#nvim_create_user_command()).
@@ -49,7 +50,7 @@ where
     Cmd: StringOrFunction<CommandArgs, ()>,
 {
     let name = nvim::String::from(name);
-    let command = command.to_obj();
+    let command = command.to_object();
     let opts = KeyDict_user_command::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
@@ -60,7 +61,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_current_line`](https://neovim.io/doc/user/api.html#nvim_del_current_line()).
@@ -69,7 +70,7 @@ where
 pub fn del_current_line() -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_del_current_line(&mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_keymap`](https://neovim.io/doc/user/api.html#nvim_del_keymap()).
@@ -88,7 +89,7 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_mark`](https://neovim.io/doc/user/api.html#nvim_del_mark()).
@@ -100,10 +101,13 @@ pub fn del_mark(name: char) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let was_deleted = unsafe { nvim_del_mark(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| match was_deleted {
-        true => Ok(()),
-        _ => Err(Error::custom("Couldn't delete mark")),
-    })
+    choose!(
+        err,
+        match was_deleted {
+            true => Ok(()),
+            _ => Err(Error::custom("Couldn't delete mark")),
+        }
+    )
 }
 
 /// Binding to [`nvim_del_user_command`](https://neovim.io/doc/user/api.html#nvim_del_user_command()).
@@ -114,7 +118,7 @@ pub fn del_user_command(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     unsafe { nvim_del_user_command(name.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_var`](https://neovim.io/doc/user/api.html#nvim_del_var()).
@@ -124,7 +128,7 @@ pub fn del_var(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     unsafe { nvim_del_var(name.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_echo`](https://neovim.io/doc/user/api.html#nvim_echo()).
@@ -150,7 +154,7 @@ where
     unsafe {
         nvim_echo(chunks.non_owning(), history, opts.non_owning(), &mut err)
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_err_write`](https://neovim.io/doc/user/api.html#nvim_err_write()).
@@ -182,7 +186,7 @@ pub fn eval_statusline(
     let mut err = nvim::Error::new();
     let dict =
         unsafe { nvim_eval_statusline(str.non_owning(), &opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(StatuslineInfos::from_object(dict.into())?))
+    choose!(err, Ok(StatuslineInfos::from_object(dict.into())?))
 }
 
 /// Binding to [`nvim_feedkeys`](https://neovim.io/doc/user/api.html#nvim_feedkeys()).
@@ -198,11 +202,14 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
 pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_all_options_info(&mut err) };
-    err.into_err_or_else(|| {
-        infos
-            .into_iter()
-            .map(|(_, optinf)| OptionInfos::from_object(optinf).unwrap())
-    })
+    choose!(
+        err,
+        Ok({
+            infos
+                .into_iter()
+                .map(|(_, optinf)| OptionInfos::from_object(optinf).unwrap())
+        })
+    )
 }
 
 /// Binding to [`nvim_get_chan_info`](https://neovim.io/doc/user/api.html#nvim_get_chan_info()).
@@ -211,7 +218,7 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
 pub fn get_chan_info(channel_id: u32) -> Result<ChannelInfos> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_chan_info(channel_id.into(), &mut err) };
-    err.into_err_or_flatten(|| Ok(ChannelInfos::from_object(infos.into())?))
+    choose!(err, Ok(ChannelInfos::from_object(infos.into())?))
 }
 
 /// Binding to [`nvim_get_color_by_name`](https://neovim.io/doc/user/api.html#nvim_get_color_by_name()).
@@ -246,10 +253,13 @@ pub fn get_commands(
     let opts = KeyDict_get_commands::from(opts);
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(&opts, &mut err) };
-    err.into_err_or_else(|| {
-        cmds.into_iter()
-            .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
-    })
+    choose!(
+        err,
+        Ok({
+            cmds.into_iter()
+                .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
+        })
+    )
 }
 
 /// Binding to [`nvim_get_context`](https://neovim.io/doc/user/api.html#nvim_get_context()).
@@ -259,7 +269,7 @@ pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let opts = KeyDict_context::from(opts);
     let mut err = nvim::Error::new();
     let ctx = unsafe { nvim_get_context(&opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(EditorContext::from_object(ctx.into())?))
+    choose!(err, Ok(EditorContext::from_object(ctx.into())?))
 }
 
 /// Binding to [`nvim_get_current_buf`](https://neovim.io/doc/user/api.html#nvim_get_current_buf()).
@@ -275,7 +285,7 @@ pub fn get_current_buf() -> Buffer {
 pub fn get_current_line() -> Result<String> {
     let mut err = nvim::Error::new();
     let str = unsafe { nvim_get_current_line(&mut err) };
-    err.into_err_or_flatten(|| str.try_into().map_err(From::from))
+    choose!(err, str.try_into().map_err(From::from))
 }
 
 /// Binding to [`nvim_get_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_get_current_tabpage()).
@@ -298,7 +308,7 @@ pub fn get_current_win() -> Window {
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
     let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
-    err.into_err_or_flatten(|| Ok(HighlightInfos::from_object(hl.into())?))
+    choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
 /// Binding to [`nvim_get_hl_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()).
@@ -308,7 +318,7 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let hl = unsafe { nvim_get_hl_by_name(name.non_owning(), rgb, &mut err) };
-    err.into_err_or_flatten(|| Ok(HighlightInfos::from_object(hl.into())?))
+    choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
 /// Binding to [`nvim_get_hl_id_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_id_by_name()).
@@ -344,7 +354,7 @@ pub fn get_mark(
     let mark = unsafe {
         nvim_get_mark(name.non_owning(), opts.non_owning(), &mut err)
     };
-    err.into_err_or_flatten(|| {
+    choose!(err, {
         let mut iter = mark.into_iter();
         let row = usize::from_object(iter.next().expect("row is present"))?;
         let col = usize::from_object(iter.next().expect("col is present"))?;
@@ -374,7 +384,7 @@ where
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_option(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
+    choose!(err, Ok(Opt::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_option_info`](https://neovim.io/doc/user/api.html#nvim_get_option_info()).
@@ -384,7 +394,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_option_info(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(OptionInfos::from_object(obj.into())?))
+    choose!(err, Ok(OptionInfos::from_object(obj.into())?))
 }
 
 /// Binding to [`nvim_get_option_value`](https://neovim.io/doc/user/api.html#nvim_get_option_value()).
@@ -403,7 +413,7 @@ where
     let mut err = nvim::Error::new();
     let obj =
         unsafe { nvim_get_option_value(name.non_owning(), &opts, &mut err) };
-    err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
+    choose!(err, Ok(Opt::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_proc`](https://neovim.io/doc/user/api.html#nvim_get_proc()).
@@ -412,7 +422,7 @@ where
 pub fn get_proc(pid: u32) -> Result<ProcInfos> {
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_proc(pid.into(), &mut err) };
-    err.into_err_or_flatten(|| Ok(ProcInfos::from_object(obj)?))
+    choose!(err, Ok(ProcInfos::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_proc_children`](https://neovim.io/doc/user/api.html#nvim_get_proc_children()).
@@ -421,9 +431,10 @@ pub fn get_proc(pid: u32) -> Result<ProcInfos> {
 pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
-    err.into_err_or_else(|| {
-        procs.into_iter().map(|obj| u32::from_object(obj).unwrap())
-    })
+    choose!(
+        err,
+        Ok(procs.into_iter().map(|obj| u32::from_object(obj).unwrap()))
+    )
 }
 
 /// Binding to [`nvim_get_runtime_file`](https://neovim.io/doc/user/api.html#nvim_get_runtime_file()).
@@ -437,11 +448,14 @@ pub fn get_runtime_file(
     let mut err = nvim::Error::new();
     let files =
         unsafe { nvim_get_runtime_file(name.non_owning(), get_all, &mut err) };
-    err.into_err_or_else(|| {
-        files
-            .into_iter()
-            .map(|obj| PathBuf::from(nvim::String::from_object(obj).unwrap()))
-    })
+    choose!(
+        err,
+        Ok({
+            files.into_iter().map(|obj| {
+                PathBuf::from(nvim::String::from_object(obj).unwrap())
+            })
+        })
+    )
 }
 
 /// Binding to [`nvim_get_var`](https://neovim.io/doc/user/api.html#nvim_get_var()).
@@ -454,7 +468,7 @@ where
     let mut err = nvim::Error::new();
     let name = nvim::String::from(name);
     let obj = unsafe { nvim_get_var(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
+    choose!(err, Ok(Var::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_vvar`](https://neovim.io/doc/user/api.html#nvim_get_vvar()).
@@ -467,7 +481,7 @@ where
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_vvar(name.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
+    choose!(err, Ok(Var::from_object(obj)?))
 }
 
 /// Binding to [`nvim_input`](https://neovim.io/doc/user/api.html#nvim_input()).
@@ -511,7 +525,7 @@ pub fn input_mouse(
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
@@ -540,11 +554,14 @@ pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
 pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     let mut err = nvim::Error::new();
     let paths = unsafe { nvim_list_runtime_paths(&mut err) };
-    err.into_err_or_else(|| {
-        paths
-            .into_iter()
-            .map(|obj| PathBuf::from(nvim::String::from_object(obj).unwrap()))
-    })
+    choose!(
+        err,
+        Ok({
+            paths.into_iter().map(|obj| {
+                PathBuf::from(nvim::String::from_object(obj).unwrap())
+            })
+        })
+    )
 }
 
 /// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
@@ -599,7 +616,7 @@ pub fn notify(
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_open_term`](https://neovim.io/doc/user/api.html#nvim_open_term()).
@@ -612,10 +629,13 @@ pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
     let mut err = nvim::Error::new();
     let channel_id =
         unsafe { nvim_open_term(buffer.0, opts.non_owning(), &mut err) };
-    err.into_err_or_flatten(|| match channel_id {
-        0 => Err(Error::custom("Couldn't create terminal instance")),
-        other => Ok(other.try_into().expect("always positive")),
-    })
+    choose!(
+        err,
+        match channel_id {
+            0 => Err(Error::custom("Couldn't create terminal instance")),
+            other => Ok(other.try_into().expect("always positive")),
+        }
+    )
 }
 
 /// Binding to [`nvim_out_write`](https://neovim.io/doc/user/api.html#nvim_out_write()).
@@ -641,7 +661,7 @@ where
     let go_on = unsafe {
         nvim_paste(data.into().non_owning(), crlf, phase as Integer, &mut err)
     };
-    err.into_err_or_else(|| go_on)
+    choose!(err, Ok(go_on))
 }
 
 /// Binding to [`nvim_put`](https://neovim.io/doc/user/api.html#nvim_put()).
@@ -669,7 +689,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_replace_termcodes`](https://neovim.io/doc/user/api.html#nvim_replace_termcodes()).
@@ -711,7 +731,7 @@ pub fn select_popupmenu_item(
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_current_buf`](https://neovim.io/doc/user/api.html#nvim_set_current_buf()).
@@ -720,7 +740,7 @@ pub fn select_popupmenu_item(
 pub fn set_current_buf(buf: &Buffer) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_buf(buf.0, &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_current_dir`](https://neovim.io/doc/user/api.html#nvim_set_current_dir()).
@@ -733,7 +753,7 @@ where
     let dir = nvim::String::from(dir.as_ref().to_owned());
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_dir(dir.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_current_line`](https://neovim.io/doc/user/api.html#nvim_set_current_line()).
@@ -745,7 +765,7 @@ where
 {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_line(line.into().non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_set_current_tabpage()).
@@ -754,7 +774,7 @@ where
 pub fn set_current_tabpage(tabpage: &TabPage) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_tabpage(tabpage.0, &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_current_win`](https://neovim.io/doc/user/api.html#nvim_set_current_win()).
@@ -763,7 +783,7 @@ pub fn set_current_tabpage(tabpage: &TabPage) -> Result<()> {
 pub fn set_current_win(win: &Window) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_win(win.0, &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_hl`](https://neovim.io/doc/user/api.html#nvim_set_hl()).
@@ -776,7 +796,7 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     unsafe {
         nvim_set_hl(ns_id as Integer, name.non_owning(), &opts, &mut err)
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_keymap`](https://neovim.io/doc/user/api.html#nvim_set_keymap()).
@@ -804,7 +824,7 @@ pub fn set_keymap(
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_option`](https://neovim.io/doc/user/api.html#nvim_set_option()).
@@ -824,7 +844,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_option_value`](https://neovim.io/doc/user/api.html#nvim_set_option_value()).
@@ -852,7 +872,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_var`](https://neovim.io/doc/user/api.html#nvim_set_var()).
@@ -866,7 +886,7 @@ where
     let value = value.to_object()?;
     let mut err = nvim::Error::new();
     unsafe { nvim_set_var(name.non_owning(), value.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_set_vvar`](https://neovim.io/doc/user/api.html#nvim_set_vvar()).
@@ -880,7 +900,7 @@ where
     let value = value.to_object()?;
     let mut err = nvim::Error::new();
     unsafe { nvim_set_vvar(name.non_owning(), value.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_strwidth`](https://neovim.io/doc/user/api.html#nvim_strwidth()).
@@ -891,5 +911,5 @@ pub fn strwidth(text: &str) -> Result<usize> {
     let text = nvim::String::from(text);
     let mut err = nvim::Error::new();
     let width = unsafe { nvim_strwidth(text.non_owning(), &mut err) };
-    err.into_err_or_else(|| width.try_into().expect("always positive"))
+    choose!(err, Ok(width.try_into().expect("always positive")))
 }

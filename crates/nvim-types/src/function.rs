@@ -1,12 +1,12 @@
 use std::cell::RefCell;
-use std::error::Error;
+use std::error::Error as StdError;
 use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
 use luajit_bindings::{self as lua, ffi, Poppable, Pushable};
 
-use crate::LuaRef;
+use crate::{Error, LuaRef};
 
 /// A wrapper around a Lua reference to a function stored in the Lua registry.
 #[derive(Clone, Eq, PartialEq, Hash)]
@@ -32,7 +32,7 @@ where
     F: FnMut(A) -> Result<R, E> + 'static,
     A: Poppable,
     R: Pushable,
-    E: Error + 'static,
+    E: StdError + 'static,
 {
     fn from(fun: F) -> Function<A, R> {
         Function::from_fn_mut(fun)
@@ -87,7 +87,7 @@ impl<A, R> Function<A, R> {
         F: Fn(A) -> Result<R, E> + 'static,
         A: Poppable,
         R: Pushable,
-        E: Error + 'static,
+        E: StdError + 'static,
     {
         Self::from_ref(lua::function::store(fun))
     }
@@ -97,16 +97,14 @@ impl<A, R> Function<A, R> {
         F: FnMut(A) -> Result<R, E> + 'static,
         A: Poppable,
         R: Pushable,
-        E: Error + 'static,
+        E: StdError + 'static,
     {
         let fun = RefCell::new(fun);
 
         Self::from_fn(move |args| {
-            let fun = &mut *fun.try_borrow_mut().map_err(|_| {
-                crate::Error::new() /* TODO */
-            })?;
+            let fun = &mut *fun.try_borrow_mut().map_err(Error::from_err)?;
 
-            fun(args).map_err(crate::Error::from_err)
+            fun(args).map_err(Error::from_err)
         })
     }
 
@@ -115,20 +113,20 @@ impl<A, R> Function<A, R> {
         F: FnOnce(A) -> Result<R, E> + 'static,
         A: Poppable,
         R: Pushable,
-        E: Error + 'static,
+        E: StdError + 'static,
     {
         let fun = RefCell::new(Some(fun));
 
         Self::from_fn(move |args| {
             let fun = fun
                 .try_borrow_mut()
-                .map_err(|_| {
-                    crate::Error::new() /* TODO */
-                })?
+                .map_err(Error::from_err)?
                 .take()
-                .ok_or_else(crate::Error::new /* TODO */)?;
+                .ok_or_else(|| {
+                    Error::from_str("Cannot call function twice")
+                })?;
 
-            fun(args).map_err(crate::Error::from_err)
+            fun(args).map_err(Error::from_err)
         })
     }
 

@@ -1,8 +1,8 @@
 use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
-use crate::trait_utils::ToFunction;
 use crate::Buffer;
+use crate::ToFunction;
 
 /// Arguments passed to the callback registered to
 /// [`on_lines`](BufAttachOptsBuilder::on_lines). The `(a, b, c, d, e, f, g, h,
@@ -129,7 +129,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnBytesArgs, ShouldDetach>,
     {
-        self.on_bytes = Some(fun.to_obj());
+        self.on_bytes = Some(fun.to_object());
         self
     }
 
@@ -138,7 +138,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnChangedtickArgs, ShouldDetach>,
     {
-        self.on_changedtick = Some(fun.to_obj());
+        self.on_changedtick = Some(fun.to_object());
         self
     }
 
@@ -147,7 +147,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnDetachArgs, ShouldDetach>,
     {
-        self.on_detach = Some(fun.to_obj());
+        self.on_detach = Some(fun.to_object());
         self
     }
 
@@ -156,7 +156,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnLinesArgs, ShouldDetach>,
     {
-        self.on_lines = Some(fun.to_obj());
+        self.on_lines = Some(fun.to_object());
         self
     }
 
@@ -166,7 +166,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnReloadArgs, ShouldDetach>,
     {
-        self.on_reload = Some(fun.to_obj());
+        self.on_reload = Some(fun.to_object());
         self
     }
 

@@ -10,6 +10,7 @@ use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
 use super::LUA_INTERNAL_CALL;
+use crate::choose;
 use crate::iterator::SuperIterator;
 use crate::Result;
 
@@ -21,7 +22,7 @@ use crate::Result;
 pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_clear_autocmds(&opts.into(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_create_augroup`][1].
@@ -44,7 +45,7 @@ pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
             &mut err,
         )
     };
-    err.into_err_or_else(|| id.try_into().expect("always positive"))
+    choose!(err, Ok(id.try_into().expect("always positive")))
 }
 
 /// Binding to [`nvim_create_autocmd`][1].
@@ -69,7 +70,7 @@ where
             &mut err,
         )
     };
-    err.into_err_or_else(|| id.try_into().expect("always positive"))
+    choose!(err, Ok(id.try_into().expect("always positive")))
 }
 
 /// Binding to [`nvim_del_augroup_by_id`][1].
@@ -80,7 +81,7 @@ where
 pub fn del_augroup_by_id(id: u32) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_del_augroup_by_id(id as Integer, &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_augroup_by_name`][1].
@@ -92,7 +93,7 @@ pub fn del_augroup_by_name(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     unsafe { nvim_del_augroup_by_name(name.non_owning(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_autocmd`][1].
@@ -103,7 +104,7 @@ pub fn del_augroup_by_name(name: &str) -> Result<()> {
 pub fn del_autocmd(id: u32) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_del_autocmd(id as Integer, &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_exec_autocmds`][1].
@@ -119,7 +120,7 @@ where
     let events = Object::from(Array::from_iter(events));
     let mut err = nvim::Error::new();
     unsafe { nvim_exec_autocmds(events.non_owning(), &opts.into(), &mut err) };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }
 
 /// Binding to [`nvim_get_autocmds`][1].
@@ -135,7 +136,12 @@ pub fn get_autocmds(
     let opts = KeyDict_get_autocmds::from(opts);
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(&opts, &mut err) };
-    err.into_err_or_else(|| {
-        infos.into_iter().map(|obj| AutocmdInfos::from_object(obj).unwrap())
-    })
+    choose!(
+        err,
+        Ok({
+            infos
+                .into_iter()
+                .map(|obj| AutocmdInfos::from_object(obj).unwrap())
+        })
+    )
 }

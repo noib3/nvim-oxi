@@ -6,11 +6,12 @@ use nvim_types::{
     Integer,
 };
 
-use super::ffi::extmark::*;
-use super::opts::*;
-use super::types::*;
-use super::Buffer;
+use crate::choose;
+use crate::ffi::extmark::*;
 use crate::iterator::SuperIterator;
+use crate::opts::*;
+use crate::types::*;
+use crate::Buffer;
 use crate::{Error, Result};
 
 impl Buffer {
@@ -46,7 +47,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ns_id)
+        choose!(err, Ok(ns_id))
     }
 
     /// Binding to [`nvim_buf_clear_namespace`](https://neovim.io/doc/user/api.html#nvim_buf_clear_namespace()).
@@ -72,7 +73,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_del_extmark`][1].
@@ -90,12 +91,15 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_flatten(|| match was_found {
-            true => Ok(()),
-            _ => Err(Error::custom(format!(
-                "No extmark with id {extmark_id} was found"
-            ))),
-        })
+        choose!(
+            err,
+            match was_found {
+                true => Ok(()),
+                _ => Err(Error::custom(format!(
+                    "No extmark with id {extmark_id} was found"
+                ))),
+            }
+        )
     }
 
     /// Binding to [`nvim_buf_get_extmark_by_id`][1].
@@ -123,7 +127,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_flatten(move || {
+        choose!(err, {
             if tuple.is_empty() {
                 return Err(Error::custom(format!(
                     "No extmark with id {extmark_id} was found"
@@ -171,25 +175,32 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(move || {
-            extmarks.into_iter().map(|tuple| {
-                let mut iter = Array::from_object(tuple).unwrap().into_iter();
-                let id = u32::from_object(iter.next().expect("id is present"))
+        choose!(
+            err,
+            Ok({
+                extmarks.into_iter().map(|tuple| {
+                    let mut iter =
+                        Array::from_object(tuple).unwrap().into_iter();
+                    let id =
+                        u32::from_object(iter.next().expect("id is present"))
+                            .unwrap();
+                    let row = usize::from_object(
+                        iter.next().expect("row is present"),
+                    )
                     .unwrap();
-                let row =
-                    usize::from_object(iter.next().expect("row is present"))
-                        .unwrap();
-                let col =
-                    usize::from_object(iter.next().expect("col is present"))
-                        .unwrap();
-                let infos = iter
-                    .next()
-                    .map(ExtmarkInfos::from_object)
-                    .transpose()
+                    let col = usize::from_object(
+                        iter.next().expect("col is present"),
+                    )
                     .unwrap();
-                (id, row, col, infos)
+                    let infos = iter
+                        .next()
+                        .map(ExtmarkInfos::from_object)
+                        .transpose()
+                        .unwrap();
+                    (id, row, col, infos)
+                })
             })
-        })
+        )
     }
 
     /// Binding to [`nvim_buf_set_extmark`](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
@@ -214,7 +225,7 @@ impl Buffer {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| id.try_into().expect("always positive"))
+        choose!(err, Ok(id.try_into().expect("always positive")))
     }
 }
 
@@ -257,5 +268,5 @@ pub fn set_decoration_provider(
             &mut err,
         )
     };
-    err.into_err_or_else(|| ())
+    choose!(err, ())
 }

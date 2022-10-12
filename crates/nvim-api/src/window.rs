@@ -13,10 +13,11 @@ use nvim_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::ffi::window::*;
-use super::LUA_INTERNAL_CALL;
-use super::{Buffer, TabPage};
+use crate::choose;
+use crate::ffi::window::*;
 use crate::Result;
+use crate::LUA_INTERNAL_CALL;
+use crate::{Buffer, TabPage};
 
 /// A wrapper around a Neovim window handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -82,9 +83,11 @@ impl Window {
         crate::get_current_win()
     }
 
-    /// Binding to [`nvim_win_call`](https://neovim.io/doc/user/api.html#nvim_win_call()).
+    /// Binding to [`nvim_win_call`][1].
     ///
     /// Calls a function with this window as the temporary current window.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_call()
     pub fn call<R, F>(&self, fun: F) -> Result<R>
     where
         F: FnOnce(()) -> Result<R> + 'static,
@@ -94,7 +97,7 @@ impl Window {
         let mut err = nvim::Error::new();
         let obj = unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
 
-        err.into_err_or_flatten(move || {
+        choose!(err, {
             fun.remove_from_lua_registry();
             Ok(R::from_object(obj)?)
         })
@@ -107,7 +110,7 @@ impl Window {
     pub fn close(self, force: bool) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_close(self.0, force, &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_del_var`](https://neovim.io/doc/user/api.html#nvim_win_del_var()).
@@ -117,7 +120,7 @@ impl Window {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe { nvim_win_del_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_get_buf`](https://neovim.io/doc/user/api.html#nvim_win_get_buf()).
@@ -126,7 +129,7 @@ impl Window {
     pub fn get_buf(&self) -> Result<Buffer> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_win_get_buf(self.0, &mut err) };
-        err.into_err_or_else(|| handle.into())
+        choose!(err, Ok(handle.into()))
     }
 
     /// Binding to [`nvim_win_get_cursor`](https://neovim.io/doc/user/api.html#nvim_win_get_cursor()).
@@ -135,7 +138,7 @@ impl Window {
     pub fn get_cursor(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
         let arr = unsafe { nvim_win_get_cursor(self.0, &mut err) };
-        err.into_err_or_flatten(|| {
+        choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
             let col = usize::from_object(iter.next().unwrap())?;
@@ -149,7 +152,7 @@ impl Window {
     pub fn get_height(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let height = unsafe { nvim_win_get_height(self.0, &mut err) };
-        err.into_err_or_else(|| height.try_into().expect("always positive"))
+        choose!(err, Ok(height.try_into().expect("always positive")))
     }
 
     /// Binding to [`nvim_win_get_number`](https://neovim.io/doc/user/api.html#nvim_win_get_number()).
@@ -158,7 +161,7 @@ impl Window {
     pub fn get_number(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let nr = unsafe { nvim_win_get_number(self.0, &mut err) };
-        err.into_err_or_else(|| nr.try_into().expect("always positive"))
+        choose!(err, Ok(nr.try_into().expect("always positive")))
     }
 
     /// Binding to [`nvim_win_get_option`](https://neovim.io/doc/user/api.html#nvim_win_get_option()).
@@ -173,7 +176,7 @@ impl Window {
         let obj = unsafe {
             nvim_win_get_option(self.0, name.non_owning(), &mut err)
         };
-        err.into_err_or_flatten(|| Ok(Opt::from_object(obj)?))
+        choose!(err, Ok(Opt::from_object(obj)?))
     }
 
     /// Binding to [`nvim_win_get_position`](https://neovim.io/doc/user/api.html#nvim_win_get_position()).
@@ -182,7 +185,7 @@ impl Window {
     pub fn get_position(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
         let arr = unsafe { nvim_win_get_position(self.0, &mut err) };
-        err.into_err_or_flatten(|| {
+        choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
             let col = usize::from_object(iter.next().unwrap())?;
@@ -196,7 +199,7 @@ impl Window {
     pub fn get_tabpage(&self) -> Result<TabPage> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_win_get_tabpage(self.0, &mut err) };
-        err.into_err_or_else(|| handle.into())
+        choose!(err, Ok(handle.into()))
     }
 
     /// Binding to [`nvim_win_get_var`](https://neovim.io/doc/user/api.html#nvim_win_get_var()).
@@ -210,7 +213,7 @@ impl Window {
         let name = nvim::String::from(name);
         let obj =
             unsafe { nvim_win_get_var(self.0, name.non_owning(), &mut err) };
-        err.into_err_or_flatten(|| Ok(Var::from_object(obj)?))
+        choose!(err, Ok(Var::from_object(obj)?))
     }
 
     /// Binding to [`nvim_win_get_width`](https://neovim.io/doc/user/api.html#nvim_win_get_width()).
@@ -219,7 +222,7 @@ impl Window {
     pub fn get_width(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let width = unsafe { nvim_win_get_width(self.0, &mut err) };
-        err.into_err_or_else(|| width.try_into().expect("always positive"))
+        choose!(err, Ok(width.try_into().expect("always positive")))
     }
 
     /// Binding to [`nvim_win_hide`](https://neovim.io/doc/user/api.html#nvim_win_hide()).
@@ -228,7 +231,7 @@ impl Window {
     pub fn hide(self) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_hide(self.0, &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_is_valid`](https://neovim.io/doc/user/api.html#nvim_win_is_valid()).
@@ -244,7 +247,7 @@ impl Window {
     pub fn set_buf(&mut self, buffer: &Buffer) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_buf(self.0, buffer.0, &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_set_cursor`](https://neovim.io/doc/user/api.html#nvim_win_set_cursor()).
@@ -255,7 +258,7 @@ impl Window {
         let mut err = nvim::Error::new();
         let pos = Array::from_iter([line as Integer, col as Integer]);
         unsafe { nvim_win_set_cursor(self.0, pos.non_owning(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_set_height`](https://neovim.io/doc/user/api.html#nvim_win_set_height()).
@@ -264,7 +267,7 @@ impl Window {
     pub fn set_height(&mut self, height: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_height(self.0, height.into(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_set_option`](https://neovim.io/doc/user/api.html#nvim_win_set_option()).
@@ -286,7 +289,7 @@ impl Window {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_set_var`](https://neovim.io/doc/user/api.html#nvim_win_set_var()).
@@ -306,7 +309,7 @@ impl Window {
                 &mut err,
             )
         };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 
     /// Binding to [`nvim_win_set_width`](https://neovim.io/doc/user/api.html#nvim_win_set_width()).
@@ -315,6 +318,6 @@ impl Window {
     pub fn set_width(&mut self, width: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_width(self.0, width.into(), &mut err) };
-        err.into_err_or_else(|| ())
+        choose!(err, ())
     }
 }
