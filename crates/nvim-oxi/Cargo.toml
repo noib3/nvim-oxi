@@ -1,6 +1,6 @@
 [package]
 name = "nvim-oxi"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 rust-version = "1.62"
@@ -12,7 +12,7 @@ license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["neovim-0-8", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
