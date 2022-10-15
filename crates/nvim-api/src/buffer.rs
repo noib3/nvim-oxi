@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::RangeBounds;
 use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;
 
@@ -20,6 +21,7 @@ use crate::ffi::buffer::*;
 use crate::iterator::SuperIterator;
 use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
+use crate::utils;
 use crate::StringOrFunction;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
@@ -289,25 +291,28 @@ impl Buffer {
         )
     }
 
-    /// Binding to [`nvim_buf_get_lines`](https://neovim.io/doc/user/api.html#nvim_buf_get_lines()).
+    /// Binding to [`nvim_buf_get_lines`][1].
     ///
     /// Gets a line range from the buffer. Indexing is zero-based,
-    /// end-exclusive. Out of bounds indices are clamped to the nearest valid
-    /// value, unless `strict_indexing` is set, in which case passing an
-    /// invalid index will cause an error.
-    pub fn get_lines(
+    /// end-exclusive.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_lines()
+    pub fn get_lines<R>(
         &self,
-        start: usize,
-        end: usize,
+        line_range: R,
         strict_indexing: bool,
-    ) -> Result<impl SuperIterator<nvim::String>> {
+    ) -> Result<impl SuperIterator<nvim::String>>
+    where
+        R: RangeBounds<usize>,
+    {
         let mut err = nvim::Error::new();
+        let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
             nvim_buf_get_lines(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start.try_into()?,
-                end.try_into()?,
+                start,
+                end,
                 strict_indexing,
                 &mut err,
             )
@@ -380,23 +385,26 @@ impl Buffer {
     ///
     /// Indexing is zero-based, with both row and column indices being
     /// end-exclusive.
-    pub fn get_text(
+    pub fn get_text<R>(
         &self,
-        start_row: usize,
+        line_range: R,
         start_col: usize,
-        end_row: usize,
         end_col: usize,
         opts: &GetTextOpts,
-    ) -> Result<impl SuperIterator<nvim::String>> {
+    ) -> Result<impl SuperIterator<nvim::String>>
+    where
+        R: RangeBounds<usize>,
+    {
         let mut err = nvim::Error::new();
         let opts = Dictionary::from(opts);
+        let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
             nvim_buf_get_text(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start_row.try_into()?,
+                start,
                 start_col.try_into()?,
-                end_row.try_into()?,
+                end,
                 end_col.try_into()?,
                 opts.non_owning(),
                 &mut err,
@@ -481,29 +489,32 @@ impl Buffer {
         choose!(err, ())
     }
 
-    /// Binding to [`nvim_buf_set_lines`](https://neovim.io/doc/user/api.html#nvim_buf_set_lines()).
+    /// Binding to [`nvim_buf_set_lines`][1].
     ///
     /// Sets (replaces) a line-range in the buffer. Indexing is zero-based,
     /// end-exclusive.
-    pub fn set_lines<Line, Lines>(
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_lines()
+    pub fn set_lines<Line, Lines, R>(
         &mut self,
-        start: usize,
-        end: usize,
+        line_range: R,
         strict_indexing: bool,
         replacement: Lines,
     ) -> Result<()>
     where
+        R: RangeBounds<usize>,
         Lines: IntoIterator<Item = Line>,
         Line: Into<nvim::String>,
     {
         let rpl = replacement.into_iter().map(Into::into).collect::<Array>();
         let mut err = nvim::Error::new();
+        let (start, end) = utils::range_to_limits(line_range);
         unsafe {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start.try_into()?,
-                end.try_into()?,
+                start,
+                end,
                 strict_indexing,
                 rpl.non_owning(),
                 &mut err,
@@ -579,26 +590,27 @@ impl Buffer {
     ///
     /// Sets (replaces) a range in the buffer. Indexing is zero-based, with
     /// both row and column indices being end-exclusive.
-    pub fn set_text<Line, Lines>(
+    pub fn set_text<Line, Lines, R>(
         &mut self,
-        start_row: usize,
+        line_range: R,
         start_col: usize,
-        end_row: usize,
         end_col: usize,
         replacement: Lines,
     ) -> Result<()>
     where
+        R: RangeBounds<usize>,
         Lines: IntoIterator<Item = Line>,
         Line: Into<nvim::String>,
     {
         let mut err = nvim::Error::new();
+        let (start, end) = utils::range_to_limits(line_range);
         unsafe {
             nvim_buf_set_text(
                 LUA_INTERNAL_CALL,
                 self.0,
-                start_row.try_into()?,
+                start,
                 start_col.try_into()?,
-                end_row.try_into()?,
+                end,
                 end_col.try_into()?,
                 replacement
                     .into_iter()

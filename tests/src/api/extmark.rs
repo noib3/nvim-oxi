@@ -5,7 +5,7 @@ use nvim_oxi::api::{self, opts::*, types::*, Buffer};
 fn add_highlight() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
-    let res = buf.add_highlight(id, "Normal", 0, 0, 1);
+    let res = buf.add_highlight(id, "Normal", 0, ..);
     assert!(res.is_ok(), "{res:?}");
 }
 
@@ -13,7 +13,7 @@ fn add_highlight() {
 fn clear_namespace() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
-    let res = buf.clear_namespace(id, 0, usize::MAX);
+    let res = buf.clear_namespace(id, ..);
     assert_eq!(Ok(()), res);
 }
 

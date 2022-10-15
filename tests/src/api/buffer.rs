@@ -118,17 +118,17 @@ fn buf_set_get_del_nvo_keymap() {
 fn set_get_del_lines() {
     let mut buf = Buffer::current();
 
-    assert_eq!(Ok(()), buf.set_lines(0, 0, true, ["foo", "bar", "baz"]));
+    assert_eq!(Ok(()), buf.set_lines(.., true, ["foo", "bar", "baz"]));
     assert_eq!(
-        vec!["foo", "bar", "baz", ""],
-        buf.get_lines(0, 4, true)
+        vec!["foo", "bar", "baz"],
+        buf.get_lines(.., true)
             .unwrap()
-            .flat_map(TryFrom::try_from)
+            .flat_map(String::try_from)
             .collect::<Vec<String>>()
     );
-    assert_eq!(Ok(4), buf.line_count());
+    assert_eq!(Ok(3), buf.line_count());
 
-    assert_eq!(Ok(()), buf.set_lines::<String, _>(0, 4, true, []));
+    assert_eq!(Ok(()), buf.set_lines::<String, _, _>(.., true, []));
     assert_eq!(Ok(1), buf.line_count());
 }
 
@@ -149,21 +149,29 @@ fn buf_set_get_del_mark() {
 fn set_get_del_text() {
     let mut buf = Buffer::current();
 
-    assert_eq!(Ok(()), buf.set_text(0, 0, 0, 0, ["foo", "bar", "baz"]));
+    assert_eq!(Ok(()), buf.set_text(.., 0, 0, ["foo", "bar", "baz"]));
     assert_eq!(
         vec!["foo", "bar", "baz"],
-        buf.get_text(0, 0, 2, 3, &Default::default())
+        buf.get_text(.., 0, 3, &Default::default())
             .unwrap()
-            .flat_map(TryFrom::try_from)
+            .flat_map(String::try_from)
             .collect::<Vec<String>>()
     );
     assert_eq!(Ok(3), buf.line_count());
 
-    assert_eq!(Ok(()), buf.set_text::<String, _>(0, 0, 2, 3, []));
+    assert_eq!(
+        vec!["oo", "ba"],
+        buf.get_text(..2, 1, 2, &Default::default())
+            .unwrap()
+            .flat_map(String::try_from)
+            .collect::<Vec<String>>()
+    );
+
+    assert_eq!(Ok(()), buf.set_text::<String, _, _>(.., 0, 3, []));
 
     assert_eq!(
         1,
-        buf.get_text(0, 0, 0, 1, &Default::default())
+        buf.get_text(.., 0, 1, &Default::default())
             .unwrap()
             .map(String::try_from)
             .collect::<Result<Vec<_>, _>>()

@@ -1,3 +1,5 @@
+use std::ops::RangeBounds;
+
 use nvim_types::{
     self as nvim,
     conversion::FromObject,
@@ -11,39 +13,36 @@ use crate::ffi::extmark::*;
 use crate::iterator::SuperIterator;
 use crate::opts::*;
 use crate::types::*;
+use crate::utils;
 use crate::Buffer;
 use crate::{Error, Result};
 
 impl Buffer {
     /// Binding to [`nvim_buf_add_highlight`](https://neovim.io/doc/user/api.html#nvim_buf_add_highlight()).
     ///
-    /// Adds a highlight to the buffer. `line`, `col_start` and `col_end` are
-    /// all 0-indexed. You can also pass `-1` to `col_end` to highlight to end
-    /// of line.
-    pub fn add_highlight<I, L, S, E>(
+    /// Adds a highlight to the buffer. Both `line` and `byte_range` are
+    /// 0-indexed.
+    pub fn add_highlight<R>(
         &mut self,
-        ns_id: I,
+        ns_id: u32,
         hl_group: &str,
-        line: L,
-        col_start: S,
-        col_end: E,
+        line: usize,
+        byte_range: R,
     ) -> Result<i64>
     where
-        I: Into<Integer>,
-        L: Into<Integer>,
-        S: Into<Integer>,
-        E: Into<Integer>,
+        R: RangeBounds<usize>,
     {
         let hl_group = nvim::String::from(hl_group);
         let mut err = nvim::Error::new();
+        let (start, end) = utils::range_to_limits(byte_range);
         let ns_id = unsafe {
             nvim_buf_add_highlight(
                 self.0,
                 ns_id.into(),
                 hl_group.non_owning(),
-                line.into(),
-                col_start.into(),
-                col_end.into(),
+                line as Integer,
+                start,
+                end,
                 &mut err,
             )
         };
@@ -55,21 +54,23 @@ impl Buffer {
     /// Clears namespaced objects like highlights, extmarks, or virtual text
     /// from a region.
     ///
-    /// Lines are 0-indexed. It's possible to clear the namespace in the entire
-    /// buffer by specifying `line_start = 0` and `line_end = -1`.
-    pub fn clear_namespace(
+    /// The line range is 0-indexed.
+    pub fn clear_namespace<R>(
         &mut self,
         ns_id: u32,
-        line_start: usize,
-        line_end: usize,
-    ) -> Result<()> {
+        line_range: R,
+    ) -> Result<()>
+    where
+        R: RangeBounds<usize>,
+    {
         let mut err = nvim::Error::new();
+        let (start, end) = utils::range_to_limits(line_range);
         unsafe {
             nvim_buf_clear_namespace(
                 self.0,
                 ns_id as Integer,
-                line_start as Integer,
-                line_end as Integer,
+                start,
+                end,
                 &mut err,
             )
         };

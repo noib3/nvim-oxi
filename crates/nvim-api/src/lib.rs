@@ -23,6 +23,7 @@ pub(crate) mod serde_utils;
 mod tabpage;
 mod trait_utils;
 pub mod types;
+pub(crate) mod utils;
 mod vimscript;
 mod win_config;
 mod window;
