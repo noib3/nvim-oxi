@@ -33,11 +33,11 @@ oxi-module = { version = "0.2.0", path = "../oxi-module" }
 oxi-test = { version = "0.2.0", path = "../oxi-test", optional = true }
 
 mlua = { version = "0.8", optional = true }
-serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
 
 [dev-dependencies]
 mlua = { version = "0.8", features = ["luajit", "module", "vendored"] }
+serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
 
 [[example]]
