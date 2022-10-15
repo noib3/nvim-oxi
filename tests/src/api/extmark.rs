@@ -30,7 +30,7 @@ fn get_extmarks() {
         .hl_group("Bar")
         .hl_mode(ExtmarkHlMode::Combine)
         .virt_lines([[("foo", "Foo"), ("bar", "Bar")]])
-        .virt_text([("foo", ["Foo", "Bar"])])
+        .virt_text([("foo", vec!["Foo", "Bar"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 

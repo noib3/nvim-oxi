@@ -2,6 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use nvim_types::{self as nvim, Array, Integer, Object};
 
+use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
 #[derive(Clone, Debug, Default)]
@@ -154,13 +155,13 @@ impl SetExtmarkOpts {
         ChunkyCnk: IntoIterator<Item = Cnk>,
         Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
-        Hl: Into<Object>,
+        Hl: StringOrListOfStrings,
     {
         self.0.virt_lines = virt_lines
             .into_iter()
             .map(|chnky| {
                 Array::from_iter(chnky.into_iter().map(|(txt, hl)| {
-                    Array::from_iter([Object::from(txt.into()), hl.into()])
+                    Array::from_iter([txt.into().into(), hl.to_object()])
                 }))
             })
             .collect::<Array>()
@@ -178,18 +179,16 @@ impl SetExtmarkOpts {
     }
 
     #[inline(always)]
-    pub fn set_virt_text<Txt, Hl, Hls, Cnk>(&mut self, virt_text: Cnk)
+    pub fn set_virt_text<Txt, Hl, Cnk>(&mut self, virt_text: Cnk)
     where
-        Cnk: IntoIterator<Item = (Txt, Hls)>,
+        Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
-        Hls: IntoIterator<Item = Hl>,
-        Hl: Into<Object>,
+        Hl: StringOrListOfStrings,
     {
         self.0.virt_text = virt_text
             .into_iter()
-            .map(|(txt, hls)| {
-                let hls = Array::from_iter(hls);
-                Array::from_iter([Object::from(txt.into()), hls.into()])
+            .map(|(txt, hl)| {
+                Array::from_iter([txt.into().into(), hl.to_object()])
             })
             .collect::<Array>()
             .into();
@@ -377,7 +376,7 @@ impl SetExtmarkOptsBuilder {
         ChunkyCnk: IntoIterator<Item = Cnk>,
         Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
-        Hl: Into<Object>,
+        Hl: StringOrListOfStrings,
     {
         self.set_virt_lines(virt_lines);
         self
@@ -409,12 +408,11 @@ impl SetExtmarkOptsBuilder {
     /// be a string or an integer, the latter obtained using
     /// [`api::get_hl_id_by_name`](crate::get_hl_id_by_name).
     #[inline(always)]
-    pub fn virt_text<Txt, Hl, Hls, Cnk>(&mut self, virt_text: Cnk) -> &mut Self
+    pub fn virt_text<Txt, Hl, Cnk>(&mut self, virt_text: Cnk) -> &mut Self
     where
-        Cnk: IntoIterator<Item = (Txt, Hls)>,
+        Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
-        Hls: IntoIterator<Item = Hl>,
-        Hl: Into<Object>,
+        Hl: StringOrListOfStrings,
     {
         self.set_virt_text(virt_text);
         self
