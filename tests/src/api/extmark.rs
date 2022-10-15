@@ -37,7 +37,7 @@ fn get_extmarks() {
         // return an error w/ msg `Chunk is not an array`. Open issue upstream.
         //
         // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
-        // .virt_text([("foo", ["Foo", "Bar"])])
+        .virt_text([("foo", ["Foo", "Bar"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
@@ -50,6 +50,7 @@ fn get_extmarks() {
     let res = buf
         .get_extmarks(ns_id, start, end, &opts)
         .map(|iter| iter.collect::<Vec<_>>());
+
     assert!(res.is_ok(), "{res:?}");
 
     let extmarks = res.unwrap();
@@ -66,12 +67,11 @@ fn get_extmarks() {
     assert_eq!(Some(0), infos.end_row);
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
-    // TODO: uncomment when above gets resolved.
-    // assert_eq!(
-    //     Some(vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())]),
-    //     infos.virt_text
-    // );
-    // assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
+    assert_eq!(
+        Some(vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())]),
+        infos.virt_text
+    );
+    assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
 
 #[oxi::test]
@@ -143,10 +143,9 @@ fn set_get_del_extmark() {
         // lua vim.api.nvim_buf_set_extmark(0, ns, 0, 0, {virt_text={"foo", {"Foo"}}})
         // ```
         // return an error w/ msg `Chunk is not an array`. Open issue upstream.
-        //
         // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
-        // .virt_text([("foo", ["Foo"])])
-        // .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
+        .virt_text([("foo", vec!["Foo"]), ("bar", vec!["Bar", "Baz"])])
+        .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
 
     let res = buf.set_extmark(ns_id, 0, 0, &opts);
@@ -168,12 +167,15 @@ fn set_get_del_extmark() {
     assert_eq!(Some(0), infos.end_row);
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
-    // TODO: uncomment when above gets resolved.
-    // assert_eq!(
-    //     Some(vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())]),
-    //     infos.virt_text
-    // );
-    // assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
+    assert_eq!(
+        Some(vec![
+            ("foo".into(), "Foo".into()),
+            ("".into(), "Bar".into()),
+            ("bar".into(), "Baz".into())
+        ]),
+        infos.virt_text
+    );
+    assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 
     let res = buf.del_extmark(ns_id, extmark_id);
     assert_eq!(Ok(()), res);
