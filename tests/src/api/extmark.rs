@@ -29,14 +29,7 @@ fn get_extmarks() {
         .end_row(0)
         .hl_group("Bar")
         .hl_mode(ExtmarkHlMode::Combine)
-        // TODO (same for virt_lines): both
-        // ```
-        // lua vim.api.nvim_buf_set_extmark(0, ns, 0, 0, {virt_text={"foo", "Foo"}})
-        // lua vim.api.nvim_buf_set_extmark(0, ns, 0, 0, {virt_text={"foo", {"Foo"}}})
-        // ```
-        // return an error w/ msg `Chunk is not an array`. Open issue upstream.
-        //
-        // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
+        .virt_lines([[("foo", "Foo"), ("bar", "Bar")]])
         .virt_text([("foo", ["Foo", "Bar"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();
@@ -137,13 +130,7 @@ fn set_get_del_extmark() {
         .end_row(0)
         .hl_group("Bar")
         .hl_mode(ExtmarkHlMode::Combine)
-        // TODO (same for virt_lines): both
-        // ```
-        // lua vim.api.nvim_buf_set_extmark(0, ns, 0, 0, {virt_text={"foo", "Foo"}})
-        // lua vim.api.nvim_buf_set_extmark(0, ns, 0, 0, {virt_text={"foo", {"Foo"}}})
-        // ```
-        // return an error w/ msg `Chunk is not an array`. Open issue upstream.
-        // .virt_lines([("foo", "Foo"), ("bar", "Bar")])
+        .virt_lines([[("foo", "Foo"), ("bar", "Bar")]])
         .virt_text([("foo", vec!["Foo"]), ("bar", vec!["Bar", "Baz"])])
         .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
         .build();

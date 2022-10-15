@@ -147,16 +147,21 @@ impl SetExtmarkOpts {
     }
 
     #[inline(always)]
-    pub fn set_virt_lines<Txt, Hl, Cnk>(&mut self, virt_lines: Cnk)
-    where
+    pub fn set_virt_lines<Txt, Hl, Cnk, ChunkyCnk>(
+        &mut self,
+        virt_lines: ChunkyCnk,
+    ) where
+        ChunkyCnk: IntoIterator<Item = Cnk>,
         Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
         Hl: Into<Object>,
     {
         self.0.virt_lines = virt_lines
             .into_iter()
-            .map(|(txt, hl)| {
-                Array::from_iter([Object::from(txt.into()), hl.into()])
+            .map(|chnky| {
+                Array::from_iter(chnky.into_iter().map(|(txt, hl)| {
+                    Array::from_iter([Object::from(txt.into()), hl.into()])
+                }))
             })
             .collect::<Array>()
             .into();
@@ -364,8 +369,12 @@ impl SetExtmarkOptsBuilder {
 
     /// Virtual lines to add next to the mark.
     #[inline(always)]
-    pub fn virt_lines<Txt, Hl, Cnk>(&mut self, virt_lines: Cnk) -> &mut Self
+    pub fn virt_lines<Txt, Hl, Cnk, ChunkyCnk>(
+        &mut self,
+        virt_lines: ChunkyCnk,
+    ) -> &mut Self
     where
+        ChunkyCnk: IntoIterator<Item = Cnk>,
         Cnk: IntoIterator<Item = (Txt, Hl)>,
         Txt: Into<nvim::String>,
         Hl: Into<Object>,

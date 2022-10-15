@@ -38,7 +38,7 @@ pub struct ExtmarkInfos {
     pub ui_watched: Option<bool>,
 
     #[serde(default)]
-    pub virt_lines: Option<Vec<(String, String)>>,
+    pub virt_lines: Option<Vec<Vec<(String, String)>>>,
 
     #[serde(default)]
     pub virt_lines_above: Option<bool>,
