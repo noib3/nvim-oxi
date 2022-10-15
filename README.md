@@ -8,7 +8,7 @@
 [Latest version]: https://img.shields.io/crates/v/nvim-oxi.svg
 [Docs]: https://docs.rs/nvim-oxi/badge.svg
 [MSRV]: https://img.shields.io/badge/rustc-1.62+-brightgreen.svg?&logo=rust
-[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/tests.yml/badge.svg
+[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/tests.yaml/badge.svg
 
 ## What
 
