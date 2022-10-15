@@ -1,6 +1,6 @@
 [package]
 name = "nvim-types"
-version = "0.1.1"
+version = "0.2.0"
 authors = [
   "Steve Loveless <steve.loveless@gmail.com>",
   "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
@@ -17,7 +17,7 @@ neovim-0-8 = []
 neovim-nightly = []
 
 [dependencies]
-luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
+luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
 
 serde = { version = "1.0", optional = true }
 thiserror = "1.0"

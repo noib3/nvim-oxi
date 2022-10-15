@@ -5,7 +5,7 @@
 //!
 //! [Neovim]: https://neovim.io
 
-#![doc(html_root_url = "https://docs.rs/nvim_oxi/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/nvim_oxi/0.2.0")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(future_incompatible)]
 #![deny(nonstandard_style)]
@@ -83,13 +83,9 @@ pub mod mlua {
 pub use entrypoint::entrypoint;
 pub use error::{Error, Result};
 pub use luajit_bindings::{dbg, print};
-#[doc(inline)]
 pub use nvim_types::*;
-#[doc(inline)]
 pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
-#[doc(inline)]
 pub use oxi_test::oxi_test as test;
-#[doc(inline)]
 pub use toplevel::*;

@@ -1,12 +1,12 @@
 [package]
 name = "nvim-oxi"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 rust-version = "1.62"
 description = "Rust bindings to all things Neovim."
 documentation = "https://docs.rs/nvim_oxi"
-readme = "../README.md"
+readme = "../../README.md"
 repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
@@ -25,12 +25,12 @@ mlua = ["dep:mlua"]
 test = ["oxi-test"]
 
 [dependencies]
-libuv-bindings = { version = "0.1", path = "../libuv-bindings", optional = true }
-luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
-nvim-api = { version = "0.1", path = "../nvim-api" }
-nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
-oxi-module = { version = "0.1", path = "../oxi-module" }
-oxi-test = { version = "0.1", path = "../oxi-test", optional = true }
+libuv-bindings = { version = "0.2.0", path = "../libuv-bindings", optional = true }
+luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
+nvim-api = { version = "0.2.0", path = "../nvim-api" }
+nvim-types = { version = "0.2.0", path = "../nvim-types", features = ["serde"] }
+oxi-module = { version = "0.2.0", path = "../oxi-module" }
+oxi-test = { version = "0.2.0", path = "../oxi-test", optional = true }
 
 mlua = { version = "0.8", optional = true }
 serde = { version = "1.0", features = ["derive"] }

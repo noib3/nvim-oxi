@@ -1,8 +1,11 @@
 [package]
 name = "nvim-api"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
+description = "Neovim API bindings"
+repository = "https://github.com/noib3/nvim-oxi"
+license = "MIT"
 
 [features]
 neovim-0-7 = ["nvim-types/neovim-0-7"]
@@ -10,8 +13,8 @@ neovim-0-8 = ["nvim-types/neovim-0-8"]
 neovim-nightly = ["nvim-types/neovim-nightly"]
 
 [dependencies]
-luajit-bindings = { version = "0.1", path = "../luajit-bindings" }
-nvim-types = { version = "0.1", path = "../nvim-types", features = ["serde"] }
+luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
+nvim-types = { version = "0.2.0", path = "../nvim-types", features = ["serde"] }
 
 derive_builder = "0.11"
 serde = { version = "1.0", features = ["derive"] }

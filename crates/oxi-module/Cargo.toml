@@ -1,6 +1,6 @@
 [package]
 name = "oxi-module"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
 edition = "2021"
 description = "Proc macro for the `nvim-oxi` crate."
