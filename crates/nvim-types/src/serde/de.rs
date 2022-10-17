@@ -37,7 +37,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                 visitor.visit_bool(unsafe { self.obj.as_boolean_unchecked() })
             },
 
-            Integer => {
+            Integer | Buffer | Window | TabPage => {
                 visitor.visit_i64(unsafe { self.obj.as_integer_unchecked() })
             },
 

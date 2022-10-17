@@ -1,6 +1,6 @@
 use all_asserts::*;
 use nvim_oxi as oxi;
-use nvim_oxi::api::{self, opts::*, types::*, Buffer};
+use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
 
 #[oxi::test]
 fn chan_send_fail() {
@@ -29,16 +29,6 @@ fn create_del_user_command() {
 
     assert_eq!(Ok(()), api::del_user_command("Foo"));
     assert_eq!(Ok(()), api::del_user_command("Bar"));
-}
-
-#[oxi::test]
-fn user_command_with_count() {
-    let opts = CreateCommandOpts::builder().count(32).build();
-    api::create_user_command("Foo", "echo 'foo'", &opts).unwrap();
-
-    let res = api::get_commands(&Default::default())
-        .map(|cmds| cmds.collect::<Vec<_>>());
-    assert!(res.is_ok(), "{res:?}");
 }
 
 #[oxi::test]
@@ -110,8 +100,33 @@ fn hl_underline() {
 }
 
 #[oxi::test]
+fn list_bufs() {
+    let _ = api::create_buf(true, false);
+    let _ = api::create_buf(true, false);
+
+    let bufs = api::list_bufs().collect::<Vec<_>>();
+
+    assert_eq!(3, bufs.len());
+    assert_eq!(vec![Buffer::from(1), Buffer::from(2), Buffer::from(3)], bufs);
+}
+
+#[oxi::test]
 fn list_runtime_paths() {
     assert!(api::list_runtime_paths().unwrap().next().is_some());
+}
+
+#[oxi::test]
+fn list_wins() {
+    api::command("vsp").unwrap();
+    api::command("vsp").unwrap();
+
+    let wins = api::list_wins().collect::<Vec<_>>();
+
+    assert_eq!(3, wins.len());
+    assert_eq!(
+        vec![Window::from(1002), Window::from(1001), Window::from(1000)],
+        wins
+    );
 }
 
 #[oxi::test]
@@ -179,4 +194,15 @@ fn set_get_option() {
 #[oxi::test]
 fn strwidth() {
     assert_eq!(Ok(2), api::strwidth("｜"));
+}
+
+#[oxi::test]
+fn user_command_with_count() {
+    let opts = CreateCommandOpts::builder().count(32).build();
+    api::create_user_command("Foo", "echo 'foo'", &opts).unwrap();
+
+    let res = api::get_commands(&Default::default())
+        .map(|cmds| cmds.collect::<Vec<_>>());
+
+    assert!(res.is_ok(), "{res:?}");
 }

@@ -42,6 +42,9 @@ pub enum ObjectKind {
     Array,
     Dictionary,
     LuaRef,
+    Buffer,
+    Window,
+    TabPage,
 }
 
 impl ObjectKind {
@@ -55,6 +58,9 @@ impl ObjectKind {
             Self::Array => "array",
             Self::Dictionary => "dictionary",
             Self::LuaRef => "luaref",
+            Self::Buffer => "buffer",
+            Self::Window => "window",
+            Self::TabPage => "tabpage",
         }
     }
 }
@@ -89,7 +95,9 @@ impl fmt::Display for Object {
         match self.ty {
             Nil => f.write_str("()"),
             Boolean => write!(f, "{}", unsafe { self.data.boolean }),
-            Integer => write!(f, "{}", unsafe { self.data.integer }),
+            Integer | Buffer | Window | TabPage => {
+                write!(f, "{}", unsafe { self.data.integer })
+            },
             Float => write!(f, "{}", unsafe { self.data.float }),
             String => write!(f, "\"{}\"", unsafe { &*self.data.string }),
             Array => write!(f, "{}", unsafe { &*self.data.array }),
@@ -203,7 +211,10 @@ impl Clone for Object {
         match self.ty {
             ObjectKind::Nil => Self::nil(),
             ObjectKind::Boolean => clone_copy!(self, boolean),
-            ObjectKind::Integer => clone_copy!(self, integer),
+            ObjectKind::Integer
+            | ObjectKind::Buffer
+            | ObjectKind::Window
+            | ObjectKind::TabPage => clone_copy!(self, integer),
             ObjectKind::Float => clone_copy!(self, float),
             ObjectKind::String => clone_drop!(self, string, crate::String),
             ObjectKind::Array => clone_drop!(self, array, Array),
@@ -246,7 +257,9 @@ impl PartialEq<Self> for Object {
             match self.ty {
                 Nil => true,
                 Boolean => lhs.boolean == rhs.boolean,
-                Integer => lhs.boolean == rhs.boolean,
+                Integer | Buffer | Window | TabPage => {
+                    lhs.integer == rhs.integer
+                },
                 Float => lhs.float == rhs.float,
                 String => lhs.string == rhs.string,
                 Array => lhs.array == rhs.array,
@@ -414,7 +427,10 @@ impl Pushable for Object {
         match self.kind() {
             ObjectKind::Nil => ().push(lstate),
             ObjectKind::Boolean => self.as_boolean_unchecked().push(lstate),
-            ObjectKind::Integer => self.as_integer_unchecked().push(lstate),
+            ObjectKind::Integer
+            | ObjectKind::Buffer
+            | ObjectKind::Window
+            | ObjectKind::TabPage => self.as_integer_unchecked().push(lstate),
             ObjectKind::Float => self.as_float_unchecked().push(lstate),
             ObjectKind::String => self.into_string_unchecked().push(lstate),
             ObjectKind::Array => self.into_array_unchecked().push(lstate),

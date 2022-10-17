@@ -9,13 +9,13 @@ use std::mem::ManuallyDrop;
 #[doc(hidden)]
 #[repr(transparent)]
 pub struct NonOwning<'a, T> {
-    _inner: ManuallyDrop<T>,
-    _lt: PhantomData<&'a ()>,
+    inner: ManuallyDrop<T>,
+    lt: PhantomData<&'a ()>,
 }
 
 impl<'a, T> NonOwning<'a, T> {
     pub const fn new(value: T) -> Self {
-        Self { _inner: ManuallyDrop::new(value), _lt: PhantomData }
+        Self { inner: ManuallyDrop::new(value), lt: PhantomData }
     }
 }
 
@@ -24,7 +24,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self._inner.fmt(f)
+        self.inner.fmt(f)
     }
 }
 
@@ -33,6 +33,6 @@ where
     T: Default,
 {
     fn default() -> Self {
-        Self { _inner: ManuallyDrop::new(T::default()), _lt: PhantomData }
+        Self { inner: ManuallyDrop::new(T::default()), lt: PhantomData }
     }
 }

@@ -70,7 +70,10 @@ impl FromObject for Boolean {
 impl FromObject for Integer {
     fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
-            ObjectKind::Integer => Ok(unsafe { obj.as_integer_unchecked() }),
+            ObjectKind::Integer
+            | ObjectKind::Buffer
+            | ObjectKind::Window
+            | ObjectKind::TabPage => Ok(unsafe { obj.as_integer_unchecked() }),
 
             other => Err(Error::FromWrongType {
                 expected: "integer",

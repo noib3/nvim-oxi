@@ -7,7 +7,7 @@ use luajit_bindings::{self as lua, ffi::lua_State};
 
 use super::{KVec, Object};
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
+// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L89
 //
 /// A vector of Neovim [`Object`](Object)s.
 pub type Array = KVec<Object>;

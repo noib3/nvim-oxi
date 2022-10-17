@@ -223,7 +223,7 @@ extern "C" {
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L930
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L791
     pub(crate) fn nvim_list_bufs() -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1724
