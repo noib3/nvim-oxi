@@ -22,5 +22,5 @@ pub unsafe fn with_state<F, R>(fun: F) -> R
 where
     F: FnOnce(*mut lua_State) -> R,
 {
-    LUA.with(move |lstate| fun(*lstate.get().unwrap_unchecked()))
+    LUA.with(move |lstate| fun(*lstate.get().unwrap()))
 }

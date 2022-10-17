@@ -28,5 +28,5 @@ pub(crate) unsafe fn with_loop<F, R>(fun: F) -> R
 where
     F: FnOnce(*mut uv_loop_t) -> R,
 {
-    LOOP.with(move |uv_loop| fun(*uv_loop.get().unwrap_unchecked()))
+    LOOP.with(move |uv_loop| fun(*uv_loop.get().unwrap()))
 }
