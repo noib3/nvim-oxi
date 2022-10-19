@@ -41,6 +41,12 @@ pub trait ToObject {
     fn to_object(self) -> Result<Object, Error>;
 }
 
+impl FromObject for Object {
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        Ok(obj)
+    }
+}
+
 impl FromObject for () {
     fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {
