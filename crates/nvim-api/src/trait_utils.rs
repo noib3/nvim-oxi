@@ -1,3 +1,6 @@
+use std::error::Error as StdError;
+use std::sync::Arc;
+
 use luajit_bindings::{Poppable, Pushable};
 use nvim_types::{Array, Function, Object};
 
@@ -102,5 +105,15 @@ impl<A, R> StringOrFunction<A, R> for Function<A, R> {
     #[inline]
     fn to_object(self) -> Object {
         self.into()
+    }
+}
+
+pub trait ToApiError {
+    fn to_api_error(self) -> crate::Error;
+}
+
+impl<E: Into<Box<dyn StdError + Send + Sync>>> ToApiError for E {
+    fn to_api_error(self) -> crate::Error {
+        crate::Error::External(Arc::from(self.into()))
     }
 }

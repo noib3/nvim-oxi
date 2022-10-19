@@ -23,6 +23,7 @@ use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::utils;
 use crate::StringOrFunction;
+use crate::ToApiError;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
 
@@ -368,14 +369,15 @@ impl Buffer {
     /// Gets a buffer option value.
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
-        Opt: FromObject,
+        Opt: TryFrom<Object>,
+        Opt::Error: std::error::Error + ToApiError,
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
             nvim_buf_get_option(self.0, name.non_owning(), &mut err)
         };
-        choose!(err, Ok(Opt::from_object(obj)?))
+        choose!(err, Opt::try_from(obj).map_err(ToApiError::to_api_error))
     }
 
     /// Binding to [`nvim_buf_get_text`](https://neovim.io/doc/user/api.html#nvim_buf_get_text()).
