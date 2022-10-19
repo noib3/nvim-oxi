@@ -79,6 +79,13 @@ pub mod mlua {
     }
 }
 
+#[cfg(feature = "diagnostic")]
+#[cfg_attr(docsrs, doc(cfg(feature = "diagnostic")))]
+pub mod diagnostic {
+    #[doc(inline)]
+    pub use nvim_diagnostic::*;
+}
+
 #[doc(hidden)]
 pub use entrypoint::entrypoint;
 pub use error::{Error, Result};

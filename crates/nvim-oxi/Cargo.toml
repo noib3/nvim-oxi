@@ -20,6 +20,7 @@ neovim-0-7 = ["nvim-types/neovim-0-7", "nvim-api/neovim-0-7"]
 neovim-0-8 = ["nvim-types/neovim-0-8", "nvim-api/neovim-0-8"]
 neovim-nightly = ["nvim-types/neovim-nightly", "nvim-api/neovim-nightly"]
 
+diagnostic = ["nvim-diagnostic"]
 libuv = ["libuv-bindings"]
 mlua = ["dep:mlua"]
 test = ["oxi-test"]
@@ -27,6 +28,7 @@ test = ["oxi-test"]
 [dependencies]
 libuv-bindings = { version = "0.2.0", path = "../libuv-bindings", optional = true }
 luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
+nvim-diagnostic = { version = "0.1.0", path = "../nvim-diagnostic", optional = true }
 nvim-api = { version = "0.2.0", path = "../nvim-api" }
 nvim-types = { version = "0.2.0", path = "../nvim-types", features = ["serde"] }
 oxi-module = { version = "0.2.0", path = "../oxi-module" }
