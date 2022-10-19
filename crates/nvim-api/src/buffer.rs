@@ -88,6 +88,10 @@ impl Pushable for Buffer {
 }
 
 impl Buffer {
+    pub fn handle(&self) -> BufHandle {
+        self.0
+    }
+
     /// Shorthand for [`get_current_buf`](crate::get_current_buf).
     #[inline(always)]
     pub fn current() -> Self {
