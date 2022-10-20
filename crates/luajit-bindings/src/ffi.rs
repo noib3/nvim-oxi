@@ -67,9 +67,12 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_getmetatable
     pub fn lua_getmetatable(L: *mut lua_State, index: c_int) -> c_int;
 
+    // https://www.lua.org/manual/5.1/manual.html#lua_gettable
+    pub fn lua_gettable(L: *mut lua_State, tp: c_int);
+
     // https://www.lua.org/manual/5.1/manual.html#lua_gettop
     pub fn lua_gettop(L: *mut lua_State) -> c_int;
-
+    
     // https://www.lua.org/manual/5.1/manual.html#lua_newuserdata
     pub fn lua_newuserdata(L: *mut lua_State, size: usize) -> *mut c_void;
 
@@ -152,9 +155,6 @@ extern "C" {
     pub fn lua_typename(L: *mut lua_State, tp: c_int) -> *const c_char;
 
     // Lua auxiliary library.
-    
-    // https://www.lua.org/manual/5.3/manual.html#lua_gettable
-    pub fn lua_gettable(L: *mut lua_State, tp: c_int):
     
     // https://www.lua.org/manual/5.1/manual.html#luaL_error
     pub fn luaL_error(L: *mut lua_State, fmt: *const c_char, ...) -> !;
