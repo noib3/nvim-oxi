@@ -38,9 +38,16 @@ mlua = { version = "0.8", optional = true }
 thiserror = "1.0"
 
 [dev-dependencies]
-mlua = { version = "0.8", features = ["luajit", "module", "vendored"] }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
+
+[target.'cfg(target_family = "windows")'.dev-dependencies.mlua]
+version = "0.8"
+features = ["luajit", "module"]
+
+[target.'cfg(target_family = "unix")'.dev-dependencies.mlua]
+version = "0.8"
+features = ["luajit", "module", "vendored"]
 
 [[example]]
 name = "api"
