@@ -25,8 +25,15 @@ impl Display for Array {
 }
 
 impl lua::Pushable for Array {
-    unsafe fn push(self, state: *mut lua_State) -> Result<c_int, lua::Error> {
-        <Vec<Object>>::from(self).push(state)
+    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
+        lua::ffi::lua_createtable(lstate, self.len() as _, 0);
+
+        for (idx, obj) in self.into_iter().enumerate() {
+            obj.push(lstate)?;
+            lua::ffi::lua_rawseti(lstate, -2, (idx + 1) as _);
+        }
+
+        Ok(1)
     }
 }
 
