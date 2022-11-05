@@ -1,19 +1,10 @@
 use nvim_types::{
-    Array,
-    BufHandle,
-    Dictionary,
-    Error,
-    Integer,
-    LuaRef,
-    NonOwning,
-    Object,
-    String,
+    Array, BufHandle, Dictionary, Error, Integer, LuaRef, NonOwning, Object,
+    Str, String,
 };
 
 use crate::opts::{
-    KeyDict_get_commands,
-    KeyDict_keymap,
-    KeyDict_user_command,
+    KeyDict_get_commands, KeyDict_keymap, KeyDict_user_command,
 };
 
 extern "C" {
@@ -118,8 +109,7 @@ extern "C" {
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
-    pub(crate) fn nvim_buf_get_name(buf: BufHandle, err: *mut Error)
-        -> String;
+    pub(crate) fn nvim_buf_get_name(buf: BufHandle, err: *mut Error) -> Str;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L876
     pub(crate) fn nvim_buf_get_offset(
