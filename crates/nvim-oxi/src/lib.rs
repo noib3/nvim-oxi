@@ -95,4 +95,37 @@ pub use oxi_module::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
 pub use oxi_test::oxi_test as test;
+#[cfg(feature = "test")]
+#[doc(hidden)]
+pub mod __test {
+    use std::path::{Path, PathBuf};
+
+    pub fn get_target_dir(manifest_dir: &Path) -> PathBuf {
+        use miniserde::json;
+
+        let output = ::std::process::Command::new(
+            ::std::env::var("CARGO")
+                .ok()
+                .unwrap_or_else(|| "cargo".to_string()),
+        )
+        .arg("metadata")
+        .arg("--format-version=1")
+        .arg("--no-deps")
+        .current_dir(manifest_dir)
+        .output()
+        .unwrap();
+
+        let object: json::Object =
+            json::from_str(&String::from_utf8(output.stdout).unwrap())
+                .unwrap();
+
+        let target_dir = match object.get("target_directory").unwrap() {
+            json::Value::String(s) => s,
+            _ => panic!("Must be string value"),
+        };
+
+        target_dir.into()
+    }
+}
+
 pub use toplevel::*;
