@@ -58,10 +58,8 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
             #[cfg(target_os = "macos")]
             target_filename.push_str(".so");
 
-            let target_dir =
-                ::std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                    .join("target")
-                    .join("debug");
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+            let target_dir = nvim_oxi::__test::get_target_dir(manifest_dir.as_ref()).join("debug");
 
             let library_filepath = target_dir.join(library_filename);
 
