@@ -314,6 +314,9 @@ impl Buffer {
                 start,
                 end,
                 strict_indexing,
+                #[cfg(feature = "neovim-nightly")]
+                // The nvim_buf_get_lines() function returns no line if we use an actual lstate here
+                std::ptr::null_mut(),
                 &mut err,
             )
         };
@@ -407,6 +410,9 @@ impl Buffer {
                 end,
                 end_col.try_into()?,
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                // The nvim_buf_get_text() function returns no line if we use an actual lstate here
+                std::ptr::null_mut(),
                 &mut err,
             )
         };

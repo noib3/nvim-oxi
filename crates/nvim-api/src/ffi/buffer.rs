@@ -107,6 +107,8 @@ extern "C" {
         start: Integer,
         end: Integer,
         strict_indexing: bool,
+        #[cfg(feature = "neovim-nightly")]
+        lstate: *mut luajit_bindings::ffi::lua_State,
         err: *mut Error,
     ) -> Array;
 
@@ -144,6 +146,8 @@ extern "C" {
         end_row: Integer,
         end_col: Integer,
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")]
+        lstate: *mut luajit_bindings::ffi::lua_State,
         err: *mut Error,
     ) -> Array;
 
