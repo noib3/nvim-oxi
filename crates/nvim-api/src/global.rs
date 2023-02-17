@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+#[cfg(not(feature = "neovim-0-7"))]
+use nvim_types::Arena;
 use nvim_types::{
     self as nvim,
     conversion::{FromObject, ToObject},
@@ -309,7 +311,15 @@ pub fn get_current_win() -> Window {
 /// Gets a highlight definition by id.
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
-    let hl = unsafe { nvim_get_hl_by_id(hl_id.into(), rgb, &mut err) };
+    let hl = unsafe {
+        nvim_get_hl_by_id(
+            hl_id.into(),
+            rgb,
+            #[cfg(not(feature = "neovim-0-7"))]
+            &mut Arena::empty(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
@@ -319,7 +329,15 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
 pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let hl = unsafe { nvim_get_hl_by_name(name.non_owning(), rgb, &mut err) };
+    let hl = unsafe {
+        nvim_get_hl_by_name(
+            name.non_owning(),
+            rgb,
+            #[cfg(not(feature = "neovim-0-7"))]
+            &mut Arena::empty(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
@@ -385,7 +403,14 @@ where
 {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let obj = unsafe { nvim_get_option(name.non_owning(), &mut err) };
+    let obj = unsafe {
+        nvim_get_option(
+            name.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            &mut Arena::empty(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 

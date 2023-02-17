@@ -199,6 +199,7 @@ impl Buffer {
             err,
             match was_deleted {
                 true => Ok(()),
+
                 _ => Err(Error::custom("Couldn't delete mark")),
             }
         )
@@ -352,7 +353,14 @@ impl Buffer {
     /// Returns the full filepath of the buffer.
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = nvim::Error::new();
-        let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
+        let name = unsafe {
+            nvim_buf_get_name(
+                self.0,
+                #[cfg(not(feature = "neovim-0-7"))]
+                &mut nvim_types::Arena::empty(),
+                &mut err,
+            )
+        };
         choose!(err, Ok(name.into()))
     }
 
@@ -376,7 +384,13 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
-            nvim_buf_get_option(self.0, name.non_owning(), &mut err)
+            nvim_buf_get_option(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                &mut nvim_types::Arena::empty(),
+                &mut err,
+            )
         };
         choose!(err, Ok(Opt::from_object(obj)?))
     }

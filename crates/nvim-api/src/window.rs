@@ -174,7 +174,13 @@ impl Window {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
-            nvim_win_get_option(self.0, name.non_owning(), &mut err)
+            nvim_win_get_option(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                &mut nvim_types::Arena::empty(),
+                &mut err,
+            )
         };
         choose!(err, Ok(Opt::from_object(obj)?))
     }
