@@ -2,12 +2,13 @@ use nvim_types::{
     conversion::{self, FromObject},
     serde::Deserializer,
     Object,
+    String,
 };
 use serde::Deserialize;
 
 /// Attributes related to a highlight group.
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Default)]
 pub struct HighlightInfos {
     pub background: Option<u32>,
     pub bg_indexed: Option<bool>,
@@ -25,6 +26,7 @@ pub struct HighlightInfos {
     pub underdot: Option<bool>,
     pub underline: Option<bool>,
     pub underlineline: Option<bool>,
+    pub altfont: Option<String>,
 }
 
 impl FromObject for HighlightInfos {

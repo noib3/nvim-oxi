@@ -64,6 +64,15 @@ pub struct SetHighlightOpts {
 
     #[builder(setter(strip_option))]
     underline: Option<bool>,
+
+    #[builder(setter(custom))]
+    altfont: Object,
+
+    #[builder(setter(strip_option))]
+    bg_indexed: Option<bool>,
+
+    #[builder(setter(strip_option))]
+    fg_indexed: Option<bool>,
 }
 
 impl SetHighlightOpts {
@@ -110,6 +119,11 @@ impl SetHighlightOptsBuilder {
         self
     }
 
+    pub fn altfont(&mut self, altfont: &str) -> &mut Self {
+        self.altfont = Some(nvim::String::from(altfont).into());
+        self
+    }
+
     pub fn build(&mut self) -> SetHighlightOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
@@ -146,6 +160,8 @@ pub(crate) struct KeyDict_highlight<'a> {
     ctermbg: NonOwning<'a, Object>,
     ctermfg: NonOwning<'a, Object>,
     default_: Object,
+    #[cfg(feature = "neovim-nightly")]
+    altfont: NonOwning<'a, Object>,
     reverse: Object,
     fallback: Object,
     standout: Object,
@@ -157,7 +173,11 @@ pub(crate) struct KeyDict_highlight<'a> {
     underdash: Object,
     underline: Object,
     background: NonOwning<'a, Object>,
+    #[cfg(feature = "neovim-nightly")]
+    bg_indexed: Object,
     foreground: NonOwning<'a, Object>,
+    #[cfg(feature = "neovim-nightly")]
+    fg_indexed: Object,
     #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     global_link: Object,
     #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
@@ -190,6 +210,8 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             ctermbg: opts.ctermbg.non_owning(),
             ctermfg: opts.ctermfg.non_owning(),
             default_: opts.default.into(),
+            #[cfg(feature = "neovim-nightly")]
+            altfont: opts.altfont.non_owning(),
             reverse: opts.reverse.into(),
             fallback: Object::nil(),
             standout: opts.standout.into(),
@@ -201,7 +223,11 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             underdash: opts.underdashed.into(),
             underline: opts.underline.into(),
             background: opts.background.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            bg_indexed: opts.bg_indexed.into(),
             foreground: opts.foreground.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            fg_indexed: opts.fg_indexed.into(),
             #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             global_link: Object::nil(),
             #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
