@@ -74,6 +74,16 @@ pub struct WindowConfig {
     /// with lower indices.
     #[builder(setter(strip_option))]
     pub zindex: Option<u32>,
+
+    /// TODO
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(setter(strip_option))]
+    pub title: Option<super::WindowTitle>,
+
+    /// TODO
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(setter(strip_option))]
+    pub title_pos: Option<super::WindowTitlePosition>,
 }
 
 impl WindowConfig {
@@ -106,7 +116,7 @@ impl FromObject for WindowConfig {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_float_config {
@@ -114,6 +124,8 @@ pub(crate) struct KeyDict_float_config {
     row: Object,
     win: Object,
     style: Object,
+    #[cfg(feature = "neovim-nightly")]
+    title: Object,
     width: Object,
     height: Object,
     zindex: Object,
@@ -124,6 +136,8 @@ pub(crate) struct KeyDict_float_config {
     relative: Object,
     focusable: Object,
     noautocmd: Object,
+    #[cfg(feature = "neovim-nightly")]
+    title_pos: Object,
 }
 
 impl From<&WindowConfig> for KeyDict_float_config {
@@ -145,6 +159,8 @@ impl From<&WindowConfig> for KeyDict_float_config {
             row: config.row.into(),
             win,
             style: config.style.into(),
+            #[cfg(feature = "neovim-nightly")]
+            title: config.title.as_ref().into(),
             width: config.width.into(),
             height: config.height.into(),
             zindex: config.zindex.into(),
@@ -155,6 +171,8 @@ impl From<&WindowConfig> for KeyDict_float_config {
             relative: config.relative.as_ref().into(),
             focusable: config.focusable.into(),
             noautocmd: config.noautocmd.into(),
+            #[cfg(feature = "neovim-nightly")]
+            title_pos: config.title_pos.as_ref().into(),
         }
     }
 }

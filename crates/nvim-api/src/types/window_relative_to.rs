@@ -17,6 +17,9 @@ pub enum WindowRelativeTo {
 
     /// Positions the window relative to the current cursor position.
     Cursor,
+
+    /// Positions the window relative to the current mouse cursor position..
+    Mouse,
 }
 
 impl From<&WindowRelativeTo> for Object {
@@ -26,6 +29,7 @@ impl From<&WindowRelativeTo> for Object {
             Editor => "editor",
             Window(_) => "win",
             Cursor => "cursor",
+            Mouse => "mouse",
         })
     }
 }

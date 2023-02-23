@@ -43,6 +43,8 @@ mod window_border_char;
 mod window_config;
 mod window_relative_to;
 mod window_style;
+mod window_title;
+mod window_title_position;
 
 pub use autocmd_callback_args::*;
 pub use autocmd_infos::*;
@@ -87,3 +89,5 @@ pub use window_border_char::*;
 pub use window_config::*;
 pub use window_relative_to::*;
 pub use window_style::*;
+pub use window_title::*;
+pub use window_title_position::*;
