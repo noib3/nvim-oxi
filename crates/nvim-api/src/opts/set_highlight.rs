@@ -65,8 +65,8 @@ pub struct SetHighlightOpts {
     #[builder(setter(strip_option))]
     underline: Option<bool>,
 
-    #[builder(setter(custom))]
-    altfont: Object,
+    #[builder(setter(strip_option))]
+    altfont: Option<bool>,
 
     #[builder(setter(strip_option))]
     bg_indexed: Option<bool>,
@@ -119,11 +119,6 @@ impl SetHighlightOptsBuilder {
         self
     }
 
-    pub fn altfont(&mut self, altfont: &str) -> &mut Self {
-        self.altfont = Some(nvim::String::from(altfont).into());
-        self
-    }
-
     pub fn build(&mut self) -> SetHighlightOpts {
         self.fallible_build().expect("never fails, all fields have defaults")
     }
@@ -161,7 +156,7 @@ pub(crate) struct KeyDict_highlight<'a> {
     ctermfg: NonOwning<'a, Object>,
     default_: Object,
     #[cfg(feature = "neovim-nightly")]
-    altfont: NonOwning<'a, Object>,
+    altfont: Object,
     reverse: Object,
     fallback: Object,
     standout: Object,
@@ -211,7 +206,7 @@ impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
             ctermfg: opts.ctermfg.non_owning(),
             default_: opts.default.into(),
             #[cfg(feature = "neovim-nightly")]
-            altfont: opts.altfont.non_owning(),
+            altfont: opts.altfont.into(),
             reverse: opts.reverse.into(),
             fallback: Object::nil(),
             standout: opts.standout.into(),

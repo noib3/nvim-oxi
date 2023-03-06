@@ -27,7 +27,7 @@ use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
 
 /// A wrapper around a Neovim buffer handle.
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Buffer(pub(crate) BufHandle);
 
 impl fmt::Debug for Buffer {

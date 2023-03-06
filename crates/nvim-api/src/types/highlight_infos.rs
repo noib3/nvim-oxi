@@ -2,7 +2,6 @@ use nvim_types::{
     conversion::{self, FromObject},
     serde::Deserializer,
     Object,
-    String,
 };
 use serde::Deserialize;
 
@@ -26,7 +25,7 @@ pub struct HighlightInfos {
     pub underdot: Option<bool>,
     pub underline: Option<bool>,
     pub underlineline: Option<bool>,
-    pub altfont: Option<String>,
+    pub altfont: Option<bool>,
 }
 
 impl FromObject for HighlightInfos {
