@@ -7,7 +7,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [windows-latest, ubuntu-latest, macos-latest]
         os: [ubuntu-latest, macos-latest]
         neovim: [v0.7.2, stable, nightly]
         include:
@@ -19,6 +18,7 @@ jobs:
             features: "--features neovim-nightly"
 
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v2
       - name: Install Neovim ${{ matrix.neovim }}
@@ -40,3 +40,31 @@ jobs:
       - name: Run integration tests
         run: cargo test ${{ matrix.features }}
         working-directory: ./tests
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - run: cargo clippy --features neovim-nightly -- -D warnings
+
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: RUSTFLAGS="-D warnings" RUSTDOCFLAGS="--cfg docsrs" cargo doc --features neovim-nightly
+
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo fmt --check
