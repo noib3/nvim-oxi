@@ -55,6 +55,8 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
+            #[cfg(feature = "neovim-nightly")]
+            LUA_INTERNAL_CALL,
             name.non_owning(),
             command.non_owning(),
             &opts,

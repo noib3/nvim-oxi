@@ -30,6 +30,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L2487
     pub(crate) fn nvim_create_user_command(
+        #[cfg(feature = "neovim-nightly")] channel_id: u64,
         name: NonOwning<String>,
         command: NonOwning<Object>,
         opts: *const KeyDict_user_command,
