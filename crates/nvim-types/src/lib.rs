@@ -11,8 +11,10 @@ mod non_owning;
 mod object;
 #[cfg(feature = "serde")]
 pub mod serde;
+mod str;
 mod string;
 
+pub use crate::str::Str;
 pub use array::{Array, ArrayIterator};
 pub use dictionary::{DictIterator, Dictionary, KeyValuePair};
 pub use error::Error;
