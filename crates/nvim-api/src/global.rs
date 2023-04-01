@@ -560,7 +560,7 @@ pub fn input_mouse(
     choose!(err, ())
 }
 
-/// Binding to [`nvim_list_bufs`].
+/// Binding to [`nvim_list_bufs`][1].
 ///
 /// Gets the current list of [`Buffer`]s, including unlisted (unloaded/deleted)
 /// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a

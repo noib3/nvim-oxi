@@ -11,6 +11,8 @@
 //! `nvim_tabpage_*` are implemented as methods on the [`Buffer`], [`Window`]
 //! and [`TabPage`] objects respectively.
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 mod autocmd;
 mod buffer;
 mod error;
