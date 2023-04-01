@@ -9,6 +9,8 @@ use nvim_types::{
     String,
 };
 
+#[cfg(not(feature = "neovim-0-7"))]
+use crate::opts::KeyDict_set_decoration_provider;
 use crate::opts::KeyDict_set_extmark;
 
 extern "C" {
@@ -75,10 +77,12 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L63
     pub(crate) fn nvim_get_namespaces() -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L987
+    // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/extmark.c#L1000
     pub(crate) fn nvim_set_decoration_provider(
         ns_id: Integer,
-        opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-0-7")] opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-0-7"))]
+        opts: *const KeyDict_set_decoration_provider,
         err: *mut Error,
     );
 }

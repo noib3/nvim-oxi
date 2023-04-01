@@ -1,5 +1,7 @@
 use derive_builder::Builder;
-use nvim_types::{Dictionary, Object};
+#[cfg(not(feature = "neovim-0-7"))]
+use nvim_types::NonOwning;
+use nvim_types::Object;
 
 use crate::ToFunction;
 use crate::{Buffer, Window};
@@ -65,8 +67,16 @@ pub struct DecorationProviderOpts {
     #[builder(setter(custom))]
     on_end: Object,
 
+    #[cfg(not(feature = "neovim-0-7"))]
+    #[builder(setter(skip))]
+    on_hl_def: Object,
+
     #[builder(setter(custom))]
     on_line: Object,
+
+    #[cfg(not(feature = "neovim-0-7"))]
+    #[builder(setter(skip))]
+    on_spell_nav: Object,
 
     #[builder(setter(custom))]
     on_start: Object,
@@ -129,7 +139,8 @@ impl DecorationProviderOptsBuilder {
     }
 }
 
-impl From<&DecorationProviderOpts> for Dictionary {
+#[cfg(feature = "neovim-0-7")]
+impl From<&DecorationProviderOpts> for nvim_types::Dictionary {
     fn from(opts: &DecorationProviderOpts) -> Self {
         Self::from_iter([
             ("on_buf", opts.on_buf.clone()),
@@ -138,5 +149,37 @@ impl From<&DecorationProviderOpts> for Dictionary {
             ("on_start", opts.on_start.clone()),
             ("on_win", opts.on_win.clone()),
         ])
+    }
+}
+
+#[cfg(not(feature = "neovim-0-7"))]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_set_decoration_provider<'a> {
+    on_buf: NonOwning<'a, Object>,
+    on_end: NonOwning<'a, Object>,
+    on_win: NonOwning<'a, Object>,
+    on_line: NonOwning<'a, Object>,
+    on_start: NonOwning<'a, Object>,
+    _on_hl_def: NonOwning<'a, Object>,
+    _on_spell_nav: NonOwning<'a, Object>,
+}
+
+#[cfg(not(feature = "neovim-0-7"))]
+impl<'a> From<&'a DecorationProviderOpts>
+    for KeyDict_set_decoration_provider<'a>
+{
+    #[inline(always)]
+    fn from(opts: &'a DecorationProviderOpts) -> Self {
+        Self {
+            on_buf: opts.on_buf.non_owning(),
+            on_end: opts.on_end.non_owning(),
+            on_win: opts.on_win.non_owning(),
+            on_line: opts.on_line.non_owning(),
+            on_start: opts.on_start.non_owning(),
+            _on_hl_def: opts.on_hl_def.non_owning(),
+            _on_spell_nav: opts.on_spell_nav.non_owning(),
+        }
     }
 }

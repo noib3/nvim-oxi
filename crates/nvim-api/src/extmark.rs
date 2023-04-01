@@ -260,12 +260,18 @@ pub fn set_decoration_provider(
     ns_id: u32,
     opts: &DecorationProviderOpts,
 ) -> Result<()> {
+    #[cfg(feature = "neovim-0-7")]
     let opts = Dictionary::from(opts);
+    #[cfg(not(feature = "neovim-0-7"))]
+    let opts = KeyDict_set_decoration_provider::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_decoration_provider(
             ns_id as Integer,
+            #[cfg(feature = "neovim-0-7")]
             opts.non_owning(),
+            #[cfg(not(feature = "neovim-0-7"))]
+            &opts,
             &mut err,
         )
     };
