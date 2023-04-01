@@ -29,6 +29,7 @@ pub fn oxi_module(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let item = parse_macro_input!(item as syn::ItemFn);
 
+    #[allow(clippy::redundant_clone)]
     let module_name = item.sig.ident.clone();
 
     let lua_module =

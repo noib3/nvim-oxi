@@ -166,6 +166,7 @@ impl Object {
     /// that the object actually contains a [`String`](crate::String).
     pub unsafe fn into_string_unchecked(self) -> crate::String {
         let str = ManuallyDrop::new(self);
+        #[allow(clippy::unnecessary_struct_initialization)]
         crate::String { ..*str.data.string }
     }
 
@@ -173,6 +174,7 @@ impl Object {
     /// actually contains an [`Array`].
     pub unsafe fn into_array_unchecked(self) -> Array {
         let array = ManuallyDrop::new(self);
+        #[allow(clippy::unnecessary_struct_initialization)]
         Array { ..*array.data.array }
     }
 
@@ -180,6 +182,7 @@ impl Object {
     /// object actually contains a [`Dictionary`].
     pub unsafe fn into_dict_unchecked(self) -> Dictionary {
         let dict = ManuallyDrop::new(self);
+        #[allow(clippy::unnecessary_struct_initialization)]
         Dictionary { ..*dict.data.dictionary }
     }
 }

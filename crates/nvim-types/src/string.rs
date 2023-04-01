@@ -24,7 +24,7 @@ use crate::NonOwning;
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
 //
 /// Binding to the string type used by Neovim.
-#[derive(Eq, Ord, PartialOrd, Hash)]
+#[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
     pub(crate) data: *mut c_char,
@@ -245,6 +245,13 @@ impl PartialEq<StdString> for String {
     #[inline]
     fn eq(&self, other: &StdString) -> bool {
         self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl core::hash::Hash for String {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.as_bytes().hash(state);
+        self.size.hash(state);
     }
 }
 

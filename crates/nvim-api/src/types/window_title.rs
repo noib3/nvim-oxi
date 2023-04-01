@@ -18,7 +18,7 @@ impl From<&WindowTitle> for Object {
         match title {
             WindowTitle::SimpleString(value) => value.clone().into(),
             WindowTitle::ListOfText(list) => list
-                .into_iter()
+                .iter()
                 .map(|(txt, hl)| {
                     Array::from_iter(
                         [txt.clone().into(), hl.into()] as [Object; 2]
