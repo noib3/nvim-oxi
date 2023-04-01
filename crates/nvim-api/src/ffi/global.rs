@@ -1,5 +1,3 @@
-#[cfg(not(feature = "neovim-0-7"))]
-use nvim_types::Arena;
 use nvim_types::{
     Array,
     BufHandle,
@@ -136,7 +134,7 @@ extern "C" {
     pub(crate) fn nvim_get_hl_by_id(
         hl_id: Integer,
         rgb: bool,
-        #[cfg(not(feature = "neovim-0-7"))] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-7"))] arena: *mut core::ffi::c_void,
         error: *mut Error,
     ) -> Dictionary;
 
@@ -144,7 +142,7 @@ extern "C" {
     pub(crate) fn nvim_get_hl_by_name(
         name: NonOwning<String>,
         rgb: bool,
-        #[cfg(not(feature = "neovim-0-7"))] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-7"))] arena: *mut core::ffi::c_void,
         error: *mut Error,
     ) -> Dictionary;
 
@@ -170,7 +168,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L682
     pub(crate) fn nvim_get_option(
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-nightly")] arena: *mut core::ffi::c_void,
         err: *mut Error,
     ) -> Object;
 

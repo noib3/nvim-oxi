@@ -178,7 +178,7 @@ impl Window {
                 self.0,
                 name.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
-                &mut nvim_types::Arena::empty(),
+                core::ptr::null_mut(),
                 &mut err,
             )
         };

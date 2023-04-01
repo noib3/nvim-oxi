@@ -1,7 +1,5 @@
 use std::path::{Path, PathBuf};
 
-#[cfg(not(feature = "neovim-0-7"))]
-use nvim_types::Arena;
 use nvim_types::{
     self as nvim,
     conversion::{FromObject, ToObject},
@@ -306,20 +304,27 @@ pub fn get_current_win() -> Window {
     unsafe { nvim_get_current_win() }.into()
 }
 
-/// Binding to [`nvim_get_hl_by_id`](https://neovim.io/doc/user/api.html#nvim_get_hl_by_id()).
+/// Binding to [`nvim_get_hl_by_id`][1].
 ///
 /// Gets a highlight definition by id.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_id()
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
+
     let hl = unsafe {
         nvim_get_hl_by_id(
             hl_id.into(),
             rgb,
             #[cfg(not(feature = "neovim-0-7"))]
-            &mut Arena::empty(),
+            core::ptr::null_mut(),
             &mut err,
         )
+        // Neovim uses `xmalloc()` to allocate the dictionary when the arena is
+        // null.
+        .drop_with_free()
     };
+
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
@@ -334,9 +339,12 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
             name.non_owning(),
             rgb,
             #[cfg(not(feature = "neovim-0-7"))]
-            &mut Arena::empty(),
+            core::ptr::null_mut(),
             &mut err,
         )
+        // Neovim uses `xmalloc()` to allocate the dictionary when the arena is
+        // null.
+        .drop_with_free()
     };
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
@@ -412,7 +420,7 @@ where
         nvim_get_option(
             name.non_owning(),
             #[cfg(feature = "neovim-nightly")]
-            &mut Arena::empty(),
+            core::ptr::null_mut(),
             &mut err,
         )
     };

@@ -1,8 +1,6 @@
 #![allow(clippy::missing_safety_doc)]
 use std::ffi::{c_double, c_int};
 
-#[cfg(not(feature = "0-7"))]
-mod arena;
 mod array;
 pub mod conversion;
 mod dictionary;
@@ -15,8 +13,6 @@ mod object;
 pub mod serde;
 mod string;
 
-#[cfg(not(feature = "0-7"))]
-pub use arena::Arena;
 pub use array::{Array, ArrayIterator};
 pub use dictionary::{DictIterator, Dictionary, KeyValuePair};
 pub use error::Error;

@@ -231,13 +231,16 @@ impl Clone for Object {
 
 impl Drop for Object {
     fn drop(&mut self) {
-        use ObjectKind::*;
         match self.ty {
-            String => unsafe { ManuallyDrop::drop(&mut self.data.string) },
+            ObjectKind::String => unsafe {
+                ManuallyDrop::drop(&mut self.data.string)
+            },
 
-            Array => unsafe { ManuallyDrop::drop(&mut self.data.array) },
+            ObjectKind::Array => unsafe {
+                ManuallyDrop::drop(&mut self.data.array)
+            },
 
-            Dictionary => unsafe {
+            ObjectKind::Dictionary => unsafe {
                 ManuallyDrop::drop(&mut self.data.dictionary)
             },
 

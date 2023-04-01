@@ -1,5 +1,3 @@
-#[cfg(not(feature = "neovim-0-7"))]
-use nvim_types::Arena;
 use nvim_types::{
     Array,
     BufHandle,
@@ -125,7 +123,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1086
     pub(crate) fn nvim_buf_get_name(
         buf: BufHandle,
-        #[cfg(not(feature = "neovim-0-7"))] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-7"))] arena: *mut core::ffi::c_void,
         err: *mut Error,
     ) -> String;
 
@@ -140,7 +138,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-nightly")] arena: *mut core::ffi::c_void,
         err: *mut Error,
     ) -> Object;
 

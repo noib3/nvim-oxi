@@ -61,6 +61,23 @@ impl<T> KVec<T> {
         unsafe { slice::from_raw_parts_mut(self.items, self.size) }
     }
 
+    /// Drops the collection using `libc::free()` instead of calling `Drop`,
+    /// returning a new copy that can be dropped as usual.
+    ///
+    /// This must always be called on the output of a Neovim function that
+    /// returns either an `Array` or a `Dictionary` allocated with
+    /// `malloc()`.
+    #[inline]
+    pub unsafe fn drop_with_free(self) -> Self
+    where
+        T: Clone,
+    {
+        let new = self.clone();
+        libc::free(self.items as *mut libc::c_void);
+        core::mem::forget(self);
+        new
+    }
+
     #[inline]
     pub(crate) unsafe fn from_raw_parts(
         ptr: *mut T,

@@ -17,6 +17,7 @@ neovim-0-8 = []
 neovim-nightly = []
 
 [dependencies]
+libc = "0.2"
 luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
 
 serde = { version = "1.0", optional = true }

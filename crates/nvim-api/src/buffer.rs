@@ -360,7 +360,7 @@ impl Buffer {
             nvim_buf_get_name(
                 self.0,
                 #[cfg(not(feature = "neovim-0-7"))]
-                &mut nvim_types::Arena::empty(),
+                core::ptr::null_mut(),
                 &mut err,
             )
         };
@@ -391,7 +391,7 @@ impl Buffer {
                 self.0,
                 name.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
-                &mut nvim_types::Arena::empty(),
+                std::ptr::null_mut(),
                 &mut err,
             )
         };
