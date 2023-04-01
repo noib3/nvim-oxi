@@ -158,6 +158,8 @@ impl Buffer {
         let command = command.to_object();
         unsafe {
             nvim_buf_create_user_command(
+                #[cfg(feature = "neovim-nightly")]
+                LUA_INTERNAL_CALL,
                 self.0,
                 name.non_owning(),
                 command.non_owning(),

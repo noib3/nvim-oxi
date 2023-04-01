@@ -35,8 +35,9 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L1383
+    // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/command.c#L936
     pub(crate) fn nvim_buf_create_user_command(
+        #[cfg(feature = "neovim-nightly")] channel_id: u64,
         buf: BufHandle,
         name: NonOwning<String>,
         command: NonOwning<Object>,

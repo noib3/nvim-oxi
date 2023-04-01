@@ -41,7 +41,7 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     nargs: Object,
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-7"))]
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
@@ -126,7 +126,7 @@ pub(crate) struct KeyDict_user_command<'a> {
     force: Object,
     nargs: NonOwning<'a, Object>,
     range: NonOwning<'a, Object>,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-7"))]
     preview: NonOwning<'a, Object>,
     complete: NonOwning<'a, Object>,
     register_: Object,
@@ -144,7 +144,7 @@ impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command<'a> {
             force: opts.force.into(),
             nargs: opts.nargs.non_owning(),
             range: opts.range.non_owning(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+            #[cfg(not(feature = "neovim-0-7"))]
             preview: opts.preview.non_owning(),
             complete: opts.complete.non_owning(),
             register_: opts.register.into(),
