@@ -151,9 +151,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L109
     pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L1525
+    // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/vim.c#L1425
     pub(crate) fn nvim_get_keymap(
-        channel_id: u64,
+        #[cfg(feature = "neovim-0-7")] channel_id: u64,
         mode: NonOwning<String>,
     ) -> Array;
 

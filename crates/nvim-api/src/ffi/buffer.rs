@@ -94,9 +94,9 @@ extern "C" {
         err: *mut Error,
     ) -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/buffer.c#L940
+    // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/buffer.c#L952
     pub(crate) fn nvim_buf_get_keymap(
-        channel_id: u64,
+        #[cfg(feature = "neovim-0-7")] channel_id: u64,
         buf: BufHandle,
         mode: NonOwning<String>,
         err: *mut Error,

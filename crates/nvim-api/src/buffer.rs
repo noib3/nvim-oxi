@@ -277,6 +277,7 @@ impl Buffer {
         let mode = nvim::String::from(mode);
         let maps = unsafe {
             nvim_buf_get_keymap(
+                #[cfg(feature = "neovim-0-7")]
                 LUA_INTERNAL_CALL,
                 self.0,
                 mode.non_owning(),

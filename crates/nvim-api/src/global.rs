@@ -355,9 +355,14 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
 /// Returns an iterator over the global mapping definitions.
 pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
-    unsafe { nvim_get_keymap(LUA_INTERNAL_CALL, mode.non_owning()) }
-        .into_iter()
-        .map(|obj| KeymapInfos::from_object(obj).unwrap())
+    let keymaps = unsafe {
+        nvim_get_keymap(
+            #[cfg(feature = "neovim-0-7")]
+            LUA_INTERNAL_CALL,
+            mode.non_owning(),
+        )
+    };
+    keymaps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_get_mark`](https://neovim.io/doc/user/api.html#nvim_get_mark()).
