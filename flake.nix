@@ -8,11 +8,6 @@
       url = "github:numtide/flake-utils";
     };
 
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -26,9 +21,7 @@
 
         mkPkgs = isNightly: (import nixpkgs {
           inherit system;
-          overlays = [
-            rust-overlay.overlays.default
-          ] ++ lists.optionals isNightly [
+          overlays = lists.optionals isNightly [
             neovim-nightly-overlay.overlay
           ];
         });
@@ -42,7 +35,6 @@
             buildInputs = lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
 
             packages = with pkgs; [
-              (rust-bin.selectLatestNightlyWith (toolchain: toolchain.default))
               gcc
               luajit
               neovim
