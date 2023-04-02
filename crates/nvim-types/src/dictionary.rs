@@ -1,224 +1,316 @@
-use std::collections::HashMap;
-use std::ffi::c_int;
-use std::mem::ManuallyDrop;
-use std::{fmt, ptr};
+use luajit_bindings as lua;
 
-use luajit_bindings::{self as lua, ffi::*, Poppable, Pushable};
+use crate::kvec::{self, KVec};
+use crate::NonOwning;
+use crate::Object;
 
-use super::{KVec, Object, String};
+/// A vector of Neovim
+/// `(`[`String`](crate::String)`, `[`Object`](crate::Object)`)` pairs.
+#[derive(Clone, Default, PartialEq)]
+#[repr(transparent)]
+pub struct Dictionary(pub(super) KVec<KeyValuePair>);
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L95
-//
-/// A vector of Neovim [`KeyValuePair`] s.
-pub type Dictionary = KVec<KeyValuePair>;
-
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L122
-//
 /// A key-value pair mapping a Neovim [`String`] to a Neovim [`Object`].
+//
+// https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/private/defs.h#L122-L125
 #[derive(Clone, PartialEq)]
 #[repr(C)]
-pub struct KeyValuePair {
-    pub(crate) key: String,
-    pub(crate) value: Object,
+pub(super) struct KeyValuePair {
+    key: crate::String,
+    value: Object,
 }
 
-impl fmt::Debug for KeyValuePair {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
-
-impl fmt::Display for KeyValuePair {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.key, self.value)
-    }
-}
-
-impl<K, V> From<(K, V)> for KeyValuePair
-where
-    K: Into<String>,
-    V: Into<Object>,
-{
-    fn from((k, v): (K, V)) -> Self {
-        Self { key: k.into(), value: v.into() }
+impl core::fmt::Debug for Dictionary {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        f.debug_map().entries(self.iter()).finish()
     }
 }
 
 impl Dictionary {
+    /// Returns a reference to the value corresponding to the key.
+    #[inline]
     pub fn get<Q>(&self, query: &Q) -> Option<&Object>
     where
-        String: PartialEq<Q>,
+        Q: ?Sized + PartialEq<crate::String>,
     {
-        self.iter()
-            .find_map(|pair| (&pair.key == query).then_some(&pair.value))
+        self.iter().find_map(|(key, value)| (query == key).then_some(value))
     }
 
+    /// Returns a mutable reference to the value corresponding to the key.
+    #[inline]
     pub fn get_mut<Q>(&mut self, query: &Q) -> Option<&mut Object>
     where
-        String: PartialEq<Q>,
+        Q: ?Sized + PartialEq<crate::String>,
     {
         self.iter_mut()
-            .find_map(|pair| (&pair.key == query).then_some(&mut pair.value))
+            .find_map(|(key, value)| (query == key).then_some(value))
+    }
+
+    /// Returns `true` if the dictionary contains no elements.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns an iterator over the `(String, Object)` pairs of the
+    /// dictionary.
+    #[inline]
+    pub fn iter(&self) -> DictIter<'_> {
+        DictIter(self.0.iter())
+    }
+
+    /// Returns a mutable iterator over the `(String, Object)` pairs of the
+    /// dictionary.
+    #[inline]
+    pub fn iter_mut(&mut self) -> DictIterMut<'_> {
+        DictIterMut(self.0.iter_mut())
+    }
+
+    /// Returns the number of elements in the dictionary.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Creates a new, empty `Dictionary`.
+    #[inline]
+    pub fn new() -> Self {
+        Self(KVec::new())
+    }
+
+    /// Returns a non-owning version of this `Array`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        #[allow(clippy::unnecessary_struct_initialization)]
+        NonOwning::new(Self(KVec { ..self.0 }))
     }
 }
 
-impl fmt::Debug for Dictionary {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_map()
-            .entries(self.iter().map(|pair| (&pair.key, &pair.value)))
-            .finish()
-    }
-}
-
-impl fmt::Display for Dictionary {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(self, f)
-    }
-}
-
-impl<S: Into<String>> std::ops::Index<S> for Dictionary {
+impl<S> core::ops::Index<S> for Dictionary
+where
+    S: PartialEq<crate::String>,
+{
     type Output = Object;
 
+    #[inline]
     fn index(&self, index: S) -> &Self::Output {
-        self.get(&index.into()).unwrap()
+        self.get(&index).unwrap()
     }
 }
 
-impl<S: Into<String>> std::ops::IndexMut<S> for Dictionary {
+impl<S> core::ops::IndexMut<S> for Dictionary
+where
+    S: PartialEq<crate::String>,
+{
+    #[inline]
     fn index_mut(&mut self, index: S) -> &mut Self::Output {
-        self.get_mut(&index.into()).unwrap()
+        self.get_mut(&index).unwrap()
     }
 }
 
-impl Pushable for Dictionary {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
-        lua::ffi::lua_createtable(lstate, 0, self.len() as _);
-
-        for (key, obj) in self {
-            lua::ffi::lua_pushlstring(lstate, key.as_ptr(), key.len());
-            obj.push(lstate)?;
-            lua::ffi::lua_rawset(lstate, -3);
-        }
-
-        Ok(1)
-    }
-}
-
-impl Poppable for Dictionary {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        <HashMap<crate::String, Object>>::pop(lstate).map(Into::into)
+impl<K, V> FromIterator<(K, V)> for Dictionary
+where
+    K: Into<crate::String>,
+    V: Into<Object>,
+{
+    #[inline]
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
+        Self(
+            iter.into_iter()
+                .filter_map(|(k, v)| {
+                    let value = v.into();
+                    value
+                        .is_some()
+                        .then(|| KeyValuePair { key: k.into(), value })
+                })
+                .collect(),
+        )
     }
 }
 
 impl IntoIterator for Dictionary {
+    type Item = (crate::String, Object);
     type IntoIter = DictIterator;
-    type Item = <DictIterator as Iterator>::Item;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        // Wrap `self` in `ManuallyDrop` to avoid running destructor.
-        let arr = ManuallyDrop::new(self);
-        let start = arr.items;
-        let end = unsafe { start.add(arr.len()) };
-
-        DictIterator { start, end }
+        DictIterator(self.0.into_iter())
     }
 }
 
-/// An owning iterator over the ([`String`], [`Object`]) pairs of a Neovim
-/// [`Dictionary`].
-pub struct DictIterator {
-    start: *const KeyValuePair,
-    end: *const KeyValuePair,
-}
+/// An owning iterator over the `(String, Object)` pairs of a [`Dictionary`].
+#[derive(Clone)]
+pub struct DictIterator(kvec::IntoIter<KeyValuePair>);
 
 impl Iterator for DictIterator {
-    type Item = (String, Object);
+    type Item = (crate::String, Object);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.start == self.end {
-            return None;
-        }
-        let current = self.start;
-        self.start = unsafe { self.start.offset(1) };
-        let KeyValuePair { key, value } = unsafe { ptr::read(current) };
-        Some((key, value))
+        self.0.next().map(|pair| (pair.key, pair.value))
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let exact = self.len();
-        (exact, Some(exact))
-    }
-
-    #[inline]
-    fn count(self) -> usize {
-        self.len()
+        self.0.size_hint()
     }
 }
 
 impl ExactSizeIterator for DictIterator {
     #[inline]
     fn len(&self) -> usize {
-        unsafe { self.end.offset_from(self.start) as usize }
+        self.0.len()
     }
 }
 
 impl DoubleEndedIterator for DictIterator {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.start == self.end {
-            return None;
+        self.0.next_back().map(|pair| (pair.key, pair.value))
+    }
+}
+
+impl core::iter::FusedIterator for DictIterator {}
+
+/// An iterator over the `(String, Object)` pairs of a [`Dictionary`].
+#[derive(Clone)]
+pub struct DictIter<'a>(core::slice::Iter<'a, KeyValuePair>);
+
+impl<'a> Iterator for DictIter<'a> {
+    type Item = (&'a crate::String, &'a Object);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|pair| (&pair.key, &pair.value))
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
+}
+
+impl ExactSizeIterator for DictIter<'_> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl DoubleEndedIterator for DictIter<'_> {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.next_back().map(|pair| (&pair.key, &pair.value))
+    }
+}
+
+impl core::iter::FusedIterator for DictIter<'_> {}
+
+/// A mutable iterator over the `(String, Object)` pairs of a [`Dictionary`].
+pub struct DictIterMut<'a>(core::slice::IterMut<'a, KeyValuePair>);
+
+impl<'a> Iterator for DictIterMut<'a> {
+    type Item = (&'a mut crate::String, &'a mut Object);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|pair| (&mut pair.key, &mut pair.value))
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
+}
+
+impl ExactSizeIterator for DictIterMut<'_> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl DoubleEndedIterator for DictIterMut<'_> {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.next_back().map(|pair| (&mut pair.key, &mut pair.value))
+    }
+}
+
+impl core::iter::FusedIterator for DictIterMut<'_> {}
+
+impl lua::Poppable for Dictionary {
+    #[inline]
+    unsafe fn pop(
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<Self, lua::Error> {
+        use lua::ffi::*;
+
+        if lua_gettop(lstate) == 0 {
+            return Err(lua::Error::PopEmptyStack);
+        } else if lua_type(lstate, -1) != LUA_TTABLE {
+            let ty = lua_type(lstate, -1);
+            return Err(lua::Error::pop_wrong_type::<Self>(LUA_TTABLE, ty));
         }
-        let current = self.end;
-        self.end = unsafe { self.end.offset(-1) };
-        let KeyValuePair { key, value } = unsafe { ptr::read(current) };
-        Some((key, value))
-    }
-}
 
-impl std::iter::FusedIterator for DictIterator {}
+        let mut kvec = KVec::with_capacity(lua_objlen(lstate, -1));
 
-impl Drop for DictIterator {
-    fn drop(&mut self) {
-        while self.start != self.end {
-            unsafe {
-                ptr::drop_in_place(self.start as *mut Object);
-                self.start = self.start.offset(1);
-            }
+        lua_pushnil(lstate);
+
+        while lua_next(lstate, -2) != 0 {
+            let value = Object::pop(lstate)?;
+
+            // The following `String::pop()` will pop the key, so we push
+            // another copy on the stack for the next iteration.
+            lua_pushvalue(lstate, -1);
+
+            let key = crate::String::pop(lstate)?;
+
+            kvec.push(KeyValuePair { key, value });
         }
+
+        // Pop the table.
+        lua_pop(lstate, 1);
+
+        Ok(Self(kvec))
     }
 }
 
-impl<K, V> FromIterator<(K, V)> for Dictionary
-where
-    K: Into<String>,
-    V: Into<Object>,
-{
-    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
-        iter.into_iter()
-            .map(|(k, v)| (k, v.into()))
-            .filter(|(_, obj)| obj.is_some())
-            .map(KeyValuePair::from)
-            .collect::<Vec<KeyValuePair>>()
-            .into()
-    }
-}
+impl lua::Pushable for Dictionary {
+    #[inline]
+    unsafe fn push(
+        self,
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<core::ffi::c_int, lua::Error> {
+        use lua::ffi::*;
 
-impl<K, V> From<HashMap<K, V>> for Dictionary
-where
-    String: From<K>,
-    Object: From<V>,
-{
-    fn from(hashmap: HashMap<K, V>) -> Self {
-        hashmap.into_iter().collect()
+        lua_createtable(lstate, 0, self.len() as _);
+
+        for (key, obj) in self {
+            lua_pushlstring(lstate, key.as_ptr(), key.len());
+            obj.push(lstate)?;
+            lua_rawset(lstate, -3);
+        }
+
+        Ok(1)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Dictionary, Object, String as NvimString};
+    use super::*;
+    use crate::{Object, String as NvimString};
+
+    #[test]
+    fn dict_layout() {
+        use core::alloc::Layout;
+
+        assert_eq!(
+            Layout::new::<Dictionary>(),
+            Layout::new::<KVec<KeyValuePair>>()
+        );
+    }
 
     #[test]
     fn iter_basic() {
@@ -257,29 +349,5 @@ mod tests {
             Some((NvimString::from("foo"), Object::from("Foo"))),
             iter.next()
         );
-    }
-
-    #[test]
-    fn debug_dict() {
-        let dict = Dictionary::from_iter([
-            ("a", Object::from(1)),
-            ("b", Object::from(true)),
-            ("c", Object::from("foobar")),
-        ]);
-
-        assert_eq!(
-            String::from("{a: 1, b: true, c: \"foobar\"}"),
-            format!("{dict}")
-        );
-    }
-
-    #[test]
-    fn debug_nested_dict() {
-        let dict = Dictionary::from_iter([(
-            "foo",
-            Object::from(Dictionary::from_iter([("a", 1)])),
-        )]);
-
-        assert_eq!(String::from("{foo: {a: 1}}"), format!("{dict}"));
     }
 }

@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::ffi::c_int;
-use std::fmt;
 use std::mem::ManuallyDrop;
 
 use lua::{ffi::*, Poppable, Pushable};
@@ -83,27 +82,34 @@ impl Default for Object {
     }
 }
 
-impl fmt::Debug for Object {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
-    }
-}
+impl core::fmt::Debug for Object {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        let field: &dyn core::fmt::Debug = match self.ty {
+            ObjectKind::Nil => &"()",
 
-impl fmt::Display for Object {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ObjectKind::*;
-        match self.ty {
-            Nil => f.write_str("()"),
-            Boolean => write!(f, "{}", unsafe { self.data.boolean }),
-            Integer | Buffer | Window | TabPage => {
-                write!(f, "{}", unsafe { self.data.integer })
+            ObjectKind::Boolean => unsafe { &self.data.boolean },
+
+            ObjectKind::Integer
+            | ObjectKind::Buffer
+            | ObjectKind::Window
+            | ObjectKind::TabPage => unsafe { &self.data.integer },
+
+            ObjectKind::Float => unsafe { &self.data.float },
+
+            ObjectKind::String => unsafe { &*self.data.string },
+
+            ObjectKind::Array => unsafe { &*self.data.array },
+
+            ObjectKind::Dictionary => unsafe { &*self.data.dictionary },
+
+            ObjectKind::LuaRef => {
+                let luaref = unsafe { self.data.luaref };
+                return write!(f, "Object(LuaRef({}))", luaref);
             },
-            Float => write!(f, "{}", unsafe { self.data.float }),
-            String => write!(f, "\"{}\"", unsafe { &*self.data.string }),
-            Array => write!(f, "{}", unsafe { &*self.data.array }),
-            Dictionary => write!(f, "{}", unsafe { &*self.data.dictionary }),
-            LuaRef => write!(f, "LuaRef({})", unsafe { self.data.luaref }),
-        }
+        };
+
+        f.debug_tuple("Object").field(field).finish()
     }
 }
 
@@ -142,48 +148,75 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
+    /// # Safety
+    ///
+    /// TODO
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
         self.data.boolean
     }
 
+    /// # Safety
+    ///
+    /// TODO
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
         self.data.integer
     }
 
+    /// # Safety
+    ///
+    /// TODO
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
         self.data.float
     }
 
+    /// # Safety
+    ///
+    /// TODO
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         self.data.luaref
     }
 
+    /// # Safety
+    ///
+    /// TODO
+    ///
     /// Extracts the contained [`String`](crate::String) value without checking
     /// that the object actually contains a [`String`](crate::String).
     pub unsafe fn into_string_unchecked(self) -> crate::String {
-        let str = ManuallyDrop::new(self);
         #[allow(clippy::unnecessary_struct_initialization)]
-        crate::String { ..*str.data.string }
+        let s = crate::String { ..*self.data.string };
+        core::mem::forget(self);
+        s
     }
 
+    /// # Safety
+    ///
+    /// TODO
+    ///
     /// Extracts the contained [`Array`] value without checking that the object
     /// actually contains an [`Array`].
     pub unsafe fn into_array_unchecked(self) -> Array {
-        let array = ManuallyDrop::new(self);
         #[allow(clippy::unnecessary_struct_initialization)]
-        Array { ..*array.data.array }
+        let array = Array(crate::kvec::KVec { ..self.data.array.0 });
+        core::mem::forget(self);
+        array
     }
 
+    /// # Safety
+    ///
+    /// TODO
+    ///
     /// Extracts the contained [`Dictionary`] value without checking that the
     /// object actually contains a [`Dictionary`].
     pub unsafe fn into_dict_unchecked(self) -> Dictionary {
-        let dict = ManuallyDrop::new(self);
         #[allow(clippy::unnecessary_struct_initialization)]
-        Dictionary { ..*dict.data.dictionary }
+        let dict = Dictionary(crate::kvec::KVec { ..self.data.dictionary.0 });
+        core::mem::forget(self);
+        dict
     }
 }
 
@@ -627,64 +660,5 @@ mod tests {
         let str_again = String::from_object(obj);
         assert!(str_again.is_ok());
         assert_eq!(str, str_again.unwrap());
-    }
-
-    #[test]
-    fn print_nil() {
-        let obj = Object::nil();
-        assert_eq!("()", &format!("{obj:?}"));
-        assert_eq!("()", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_boolean() {
-        let obj = Object::from(true);
-        assert_eq!("true", &format!("{obj:?}"));
-        assert_eq!("true", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_integer() {
-        let obj = Object::from(42);
-        assert_eq!("42", &format!("{obj:?}"));
-        assert_eq!("42", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_float() {
-        let obj = Object::from(42.1);
-        assert_eq!("42.1", &format!("{obj:?}"));
-        assert_eq!("42.1", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_string() {
-        let obj = Object::from("foobar");
-        assert_eq!("\"foobar\"", &format!("{obj:?}"));
-        assert_eq!("\"foobar\"", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_array() {
-        let obj = Object::from(Array::from((42.1, true, "foo")));
-        assert_eq!("[42.1, true, \"foo\"]", &format!("{obj:?}"));
-        assert_eq!("[42.1, true, \"foo\"]", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_dict() {
-        let obj = Object::from(Dictionary::from_iter([
-            ("foo", Object::from("bar")),
-            ("baz", Object::from(19)),
-        ]));
-        assert_eq!("{foo: \"bar\", baz: 19}", &format!("{obj:?}"));
-        assert_eq!("{foo: \"bar\", baz: 19}", &format!("{obj}"));
-    }
-
-    #[test]
-    fn print_luaref() {
-        let obj = Object::from_luaref(42);
-        assert_eq!("LuaRef(42)", &format!("{obj:?}"));
-        assert_eq!("LuaRef(42)", &format!("{obj}"));
     }
 }

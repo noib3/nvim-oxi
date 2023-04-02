@@ -141,8 +141,10 @@ fn set_exec_del_autocmd() {
     let id = api::create_autocmd(["BufAdd, BufDelete"], &opts)
         .expect("create_autocmd failed");
 
-    let opts = ExecAutocmdsOpts::builder().build();
-    assert_eq!(Ok(()), api::exec_autocmds(["BufAdd"], &opts));
+    assert_eq!(
+        Ok(()),
+        api::exec_autocmds(["BufAdd"], &ExecAutocmdsOpts::default())
+    );
 
     assert_eq!(Ok(()), api::del_autocmd(id));
 }

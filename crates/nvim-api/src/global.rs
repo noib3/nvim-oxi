@@ -320,9 +320,6 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
             core::ptr::null_mut(),
             &mut err,
         )
-        // Neovim uses `xmalloc()` to allocate the dictionary when the arena is
-        // null.
-        .drop_with_free()
     };
 
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
@@ -342,9 +339,6 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
             core::ptr::null_mut(),
             &mut err,
         )
-        // Neovim uses `xmalloc()` to allocate the dictionary when the arena is
-        // null.
-        .drop_with_free()
     };
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }

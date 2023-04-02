@@ -1,139 +1,163 @@
-use std::ffi::c_int;
-use std::fmt::{self, Debug, Display};
-use std::mem::ManuallyDrop;
-use std::ptr;
+use luajit_bindings as lua;
 
-use luajit_bindings::{self as lua, ffi::lua_State};
+use crate::kvec::{self, KVec};
+use crate::NonOwning;
+use crate::Object;
 
-use super::{KVec, Object};
+/// A vector of Neovim [`Object`]s.
+#[derive(Clone, Default, PartialEq)]
+#[repr(transparent)]
+pub struct Array(pub(super) KVec<Object>);
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L89
-//
-/// A vector of Neovim [`Object`](Object)s.
-pub type Array = KVec<Object>;
-
-impl Debug for Array {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl core::fmt::Debug for Array {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
 
-impl Display for Array {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
+impl Array {
+    /// Returns the number of elements in the array.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns `true` if the array contains no elements.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns an iterator over the `Object`s of the array.
+    #[inline]
+    pub fn iter(&self) -> core::slice::Iter<'_, Object> {
+        self.0.as_slice().iter()
+    }
+
+    /// Creates a new, empty `Array`.
+    #[inline]
+    pub fn new() -> Self {
+        Self(KVec::new())
+    }
+
+    /// Returns a non-owning version of this `Array`.
+    #[inline]
+    pub fn non_owning(&self) -> NonOwning<'_, Self> {
+        #[allow(clippy::unnecessary_struct_initialization)]
+        NonOwning::new(Self(KVec { ..self.0 }))
     }
 }
 
-impl lua::Pushable for Array {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
-        lua::ffi::lua_createtable(lstate, self.len() as _, 0);
-
-        for (idx, obj) in self.into_iter().enumerate() {
-            obj.push(lstate)?;
-            lua::ffi::lua_rawseti(lstate, -2, (idx + 1) as _);
-        }
-
-        Ok(1)
-    }
-}
-
-impl lua::Poppable for Array {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, lua::Error> {
-        <Vec<Object> as lua::Poppable>::pop(state).map(Into::into)
+impl<T: Into<Object>> FromIterator<T> for Array {
+    #[inline]
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        Self(
+            iter.into_iter()
+                .map(Into::into)
+                .filter(|obj| obj.is_some())
+                .collect(),
+        )
     }
 }
 
 impl IntoIterator for Array {
+    type Item = Object;
     type IntoIter = ArrayIterator;
-    type Item = <ArrayIterator as Iterator>::Item;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        // Wrap `self` in `ManuallyDrop` to avoid running destructor.
-        let arr = ManuallyDrop::new(self);
-        let start = arr.items;
-        let end = unsafe { start.add(arr.len()) };
-        ArrayIterator { start, end }
+        ArrayIterator(self.0.into_iter())
     }
 }
 
-impl<T> FromIterator<T> for Array
-where
-    T: Into<Object>,
-{
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        iter.into_iter()
-            .map(Into::into)
-            .filter(Object::is_some) // TODO: maybe  avoid this
-            .collect::<Vec<Object>>()
-            .into()
-    }
-}
-
-/// An owning iterator over the [`Object`]s of a Neovim [`Array`].
-pub struct ArrayIterator {
-    start: *const Object,
-    end: *const Object,
-}
+/// An owning iterator over the `Object`s of a [`Array`].
+#[derive(Clone)]
+pub struct ArrayIterator(kvec::IntoIter<Object>);
 
 impl Iterator for ArrayIterator {
     type Item = Object;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.start == self.end {
-            return None;
-        }
-        let current = self.start;
-        self.start = unsafe { self.start.offset(1) };
-        Some(unsafe { ptr::read(current) })
+        self.0.next()
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let exact = self.len();
-        (exact, Some(exact))
-    }
-
-    #[inline]
-    fn count(self) -> usize {
-        self.len()
+        self.0.size_hint()
     }
 }
 
 impl ExactSizeIterator for ArrayIterator {
+    #[inline]
     fn len(&self) -> usize {
-        unsafe { self.end.offset_from(self.start) as usize }
+        self.0.len()
     }
 }
 
 impl DoubleEndedIterator for ArrayIterator {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.start == self.end {
-            return None;
-        }
-        let current = self.end;
-        self.end = unsafe { self.end.offset(-1) };
-        Some(unsafe { ptr::read(current) })
+        self.0.next_back()
     }
 }
 
-impl std::iter::FusedIterator for ArrayIterator {}
+impl core::iter::FusedIterator for ArrayIterator {}
 
-impl Drop for ArrayIterator {
-    fn drop(&mut self) {
-        while self.start != self.end {
-            unsafe {
-                ptr::drop_in_place(self.start as *mut Object);
-                self.start = self.start.offset(1);
-            }
+impl lua::Poppable for Array {
+    #[inline]
+    unsafe fn pop(
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<Self, lua::Error> {
+        use lua::ffi::*;
+
+        if lua_gettop(lstate) == 0 {
+            return Err(lua::Error::PopEmptyStack);
+        } else if lua_type(lstate, -1) != LUA_TTABLE {
+            let ty = lua_type(lstate, -1);
+            return Err(lua::Error::pop_wrong_type::<Self>(LUA_TTABLE, ty));
         }
+
+        // TODO: check that the table is an array-like table and not a
+        // dictionary-like one?
+
+        let mut kvec = KVec::with_capacity(lua_objlen(lstate, -1));
+
+        lua_pushnil(lstate);
+
+        while lua_next(lstate, -2) != 0 {
+            kvec.push(Object::pop(lstate)?);
+        }
+
+        // Pop the table.
+        lua_pop(lstate, 1);
+
+        Ok(Self(kvec))
     }
 }
 
-/// Implements `From<(A, B, C, ..)> for Array` for tuples `(A, B, C, ..)` where
-/// all the elements in the tuple implement `Into<Object>`.
+impl lua::Pushable for Array {
+    #[inline]
+    unsafe fn push(
+        self,
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<core::ffi::c_int, lua::Error> {
+        use lua::ffi::*;
+
+        lua_createtable(lstate, self.len() as _, 0);
+
+        for (idx, obj) in self.into_iter().enumerate() {
+            obj.push(lstate)?;
+            lua_rawseti(lstate, -2, (idx + 1) as _);
+        }
+
+        Ok(1)
+    }
+}
+
+/// Implements `From<(A, B, C, ..)>` for tuples `(A, B, C, ..)` where all the
+/// elements in the tuple are `Into<Object>`.
 macro_rules! from_tuple {
     ($($ty:ident)*) => {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
@@ -167,6 +191,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn array_layout() {
+        use core::alloc::Layout;
+
+        assert_eq!(Layout::new::<Array>(), Layout::new::<KVec<Object>>());
+    }
+
+    #[test]
     fn iter_basic() {
         let array = Array::from_iter(["Foo", "Bar", "Baz"]);
 
@@ -187,19 +218,7 @@ mod tests {
 
     #[test]
     fn empty_array() {
-        let empty = Array { size: 0, capacity: 0, items: ptr::null_mut() };
+        let empty = Array::default();
         assert_eq!(0, empty.into_iter().count());
-    }
-
-    #[test]
-    fn debug_array() {
-        let arr = Array::from((1, 2, 3, "a", true));
-        assert_eq!(String::from("[1, 2, 3, \"a\", true]"), format!("{arr}"));
-    }
-
-    #[test]
-    fn debug_nested_array() {
-        let arr = Array::from_iter([Array::from((1, 2, 3))]);
-        assert_eq!(String::from("[[1, 2, 3]]"), format!("{arr}"));
     }
 }

@@ -1,5 +1,4 @@
-#![allow(clippy::missing_safety_doc)]
-use std::ffi::{c_double, c_int};
+//! Rust bindings to the C types used by Neovim's API.
 
 mod array;
 pub mod conversion;
@@ -13,14 +12,21 @@ mod object;
 pub mod serde;
 mod string;
 
-pub use array::{Array, ArrayIterator};
-pub use dictionary::{DictIterator, Dictionary, KeyValuePair};
+pub use array::Array;
+pub use dictionary::Dictionary;
 pub use error::Error;
 pub use function::Function;
-pub use kvec::KVec;
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
 pub use string::String;
+
+pub mod iter {
+    //! Iterators over [`Array`](crate::Array)s and
+    //! [`Dictionary`](crate::Dictionary)s.
+
+    pub use super::array::ArrayIterator;
+    pub use super::dictionary::{DictIter, DictIterMut, DictIterator};
+}
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
 #[doc(hidden)]
@@ -32,15 +38,15 @@ pub type Integer = i64;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L69
 #[doc(hidden)]
-pub type Float = c_double;
+pub type Float = core::ffi::c_double;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/types.h#L23
 #[doc(hidden)]
-pub type LuaRef = c_int;
+pub type LuaRef = core::ffi::c_int;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/types.h#L18
 #[allow(non_camel_case_types)]
-type handle_T = c_int;
+type handle_T = core::ffi::c_int;
 
 // https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L82
 #[doc(hidden)]

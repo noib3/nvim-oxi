@@ -205,7 +205,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 }
 
 struct SeqDeserializer {
-    iter: crate::ArrayIterator,
+    iter: crate::iter::ArrayIterator,
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
@@ -228,7 +228,7 @@ impl<'de> de::SeqAccess<'de> for SeqDeserializer {
 }
 
 struct MapDeserializer {
-    iter: crate::DictIterator,
+    iter: crate::iter::DictIterator,
     obj: Option<Object>,
 }
 

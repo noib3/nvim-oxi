@@ -55,7 +55,17 @@ extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub fn lua_call(L: *mut lua_State, nargs: c_int, nresults: c_int);
 
-    // https://www.lua.org/manual/5.1/manual.html#lua_createtable
+    /// Binding to [`lua_createtable`] (-0, +1).
+    ///
+    /// Creates a new empty table and pushes it onto the stack. The new table
+    /// has space pre-allocated for `narr` array elements and `nrec` non-array
+    /// elements.
+    ///
+    /// This pre-allocation is useful when you know exactly how many
+    /// elements the table will have. Otherwise you can use the function
+    /// [`lua_newtable`].
+    ///
+    /// [`lua_createtable`]: https://www.lua.org/manual/5.1/manual.html#lua_createtable
     pub fn lua_createtable(L: *mut lua_State, narr: c_int, nrec: c_int);
 
     // https://www.lua.org/manual/5.1/manual.html#lua_error

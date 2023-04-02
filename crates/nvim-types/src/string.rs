@@ -234,10 +234,24 @@ impl PartialEq<str> for String {
     }
 }
 
+impl PartialEq<String> for str {
+    #[inline]
+    fn eq(&self, other: &String) -> bool {
+        other == self
+    }
+}
+
 impl PartialEq<&str> for String {
     #[inline]
     fn eq(&self, other: &&str) -> bool {
         self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl PartialEq<String> for &str {
+    #[inline]
+    fn eq(&self, other: &String) -> bool {
+        other == self
     }
 }
 
