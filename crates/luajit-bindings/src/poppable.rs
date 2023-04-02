@@ -12,17 +12,15 @@ pub trait Poppable: Sized {
 }
 
 impl Poppable for () {
+    #[inline(always)]
     unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
         if lua_gettop(state) == 0 {
-            return Ok(());
-        }
-
-        match lua_type(state, -1) {
-            LUA_TNIL => {
-                lua_pop(state, 1);
-                Ok(())
-            },
-            other => Err(Error::pop_wrong_type::<Self>(LUA_TNIL, other)),
+            Ok(())
+        } else if lua_type(state, -1) == LUA_TNIL {
+            lua_pop(state, 1);
+            Ok(())
+        } else {
+            Err(Error::pop_wrong_type::<Self>(LUA_TNIL, lua_type(state, -1)))
         }
     }
 }
