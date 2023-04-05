@@ -154,10 +154,11 @@ impl Clone for String {
 
 impl Drop for String {
     fn drop(&mut self) {
-        // One extra for null terminator.
-        let _ = unsafe {
-            Vec::from_raw_parts(self.data, self.size + 1, self.size + 1)
-        };
+        // There's no way to know if the pointer we get from Neovim
+        // points to some `malloc`ed memory or to a static/borrowed string.
+        //
+        // TODO: we're leaking memory here if the pointer points to allocated
+        // memory.
     }
 }
 
