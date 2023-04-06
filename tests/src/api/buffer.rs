@@ -123,12 +123,12 @@ fn set_get_del_lines() {
         vec!["foo", "bar", "baz"],
         buf.get_lines(.., true)
             .unwrap()
-            .flat_map(String::try_from)
+            .map(|s| s.to_string_lossy().into())
             .collect::<Vec<String>>()
     );
     assert_eq!(Ok(3), buf.line_count());
 
-    assert_eq!(Ok(()), buf.set_lines::<String, _, _>(.., true, []));
+    assert_eq!(Ok(()), buf.set_lines::<&str, _, _>(.., true, []));
     assert_eq!(Ok(1), buf.line_count());
 }
 
@@ -154,7 +154,7 @@ fn set_get_del_text() {
         vec!["foo", "bar", "baz"],
         buf.get_text(.., 0, 3, &Default::default())
             .unwrap()
-            .flat_map(String::try_from)
+            .map(|s| s.to_string_lossy().into())
             .collect::<Vec<String>>()
     );
     assert_eq!(Ok(3), buf.line_count());
@@ -163,20 +163,15 @@ fn set_get_del_text() {
         vec!["oo", "ba"],
         buf.get_text(..2, 1, 2, &Default::default())
             .unwrap()
-            .flat_map(String::try_from)
+            .map(|s| s.to_string_lossy().into())
             .collect::<Vec<String>>()
     );
 
-    assert_eq!(Ok(()), buf.set_text::<String, _, _>(.., 0, 3, []));
+    assert_eq!(Ok(()), buf.set_text::<&str, _, _>(.., 0, 3, []));
 
     assert_eq!(
         1,
-        buf.get_text(.., 0, 1, &Default::default())
-            .unwrap()
-            .map(String::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap()
-            .len()
+        buf.get_text(.., 0, 1, &Default::default()).unwrap().count()
     );
 
     assert_eq!(Ok(1), buf.line_count());

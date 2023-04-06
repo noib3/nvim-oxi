@@ -85,7 +85,7 @@ impl ser::Serializer for Serializer {
 
     #[inline]
     fn serialize_bytes(self, value: &[u8]) -> Result<Self::Ok> {
-        Ok(crate::String::from_bytes(value.to_owned()).into())
+        Ok(crate::String::from_bytes(value).into())
     }
 
     #[inline]

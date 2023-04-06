@@ -231,7 +231,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
     let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
     (color != -1).then(|| color.try_into().unwrap()).ok_or_else(|| {
-        Error::custom(format!("{name} is not a valid color name"))
+        Error::custom(format!("{name:?} is not a valid color name"))
     })
 }
 
@@ -241,7 +241,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 /// values (e.g. 65535).
 pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
-        (String::try_from(k).unwrap(), u32::from_object(v).unwrap())
+        (k.to_string_lossy().into(), u32::from_object(v).unwrap())
     })
 }
 
@@ -286,8 +286,8 @@ pub fn get_current_buf() -> Buffer {
 /// Gets the current line in the current bufferr.
 pub fn get_current_line() -> Result<String> {
     let mut err = nvim::Error::new();
-    let str = unsafe { nvim_get_current_line(&mut err) };
-    choose!(err, str.try_into().map_err(From::from))
+    let s = unsafe { nvim_get_current_line(&mut err) };
+    choose!(err, Ok(s.to_string_lossy().into()))
 }
 
 /// Binding to [`nvim_get_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_get_current_tabpage()).
@@ -478,7 +478,7 @@ pub fn get_runtime_file(
     name: impl AsRef<Path>,
     get_all: bool,
 ) -> Result<impl SuperIterator<PathBuf>> {
-    let name = nvim::String::from(name.as_ref().to_owned());
+    let name = nvim::String::from(name.as_ref());
     let mut err = nvim::Error::new();
     let files =
         unsafe { nvim_get_runtime_file(name.non_owning(), get_all, &mut err) };
@@ -786,7 +786,7 @@ pub fn set_current_dir<Dir>(dir: Dir) -> Result<()>
 where
     Dir: AsRef<Path>,
 {
-    let dir = nvim::String::from(dir.as_ref().to_owned());
+    let dir = nvim::String::from(dir.as_ref());
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_dir(dir.non_owning(), &mut err) };
     choose!(err, ())

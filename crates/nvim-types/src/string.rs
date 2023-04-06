@@ -1,130 +1,21 @@
-use std::borrow::Cow;
-use std::ffi::{c_char, c_int, OsStr};
-use std::mem::ManuallyDrop;
-use std::path::PathBuf;
-use std::string::{self, String as StdString};
-use std::{fmt, slice, str};
+//! This module contains the binding to Neovim's `String` type.
 
-use lua::{ffi::*, Poppable, Pushable};
+use core::{ffi, slice};
+use std::borrow::Cow;
+
 use luajit_bindings as lua;
 
 use crate::NonOwning;
 
-// Neovim's `String`s:
-//   - are null-terminated;
-//   - *can* contain null bytes (confirmed by bfredl on matrix);
-//   - they store a `size` field just like Rust strings, which *doesn't*
-//     include the last `\0`;
-//   - unlike Rust strings, they are *not* guaranteed to always contain valid
-//     UTF-8 byte sequences;
-//
-// See https://github.com/neovim/neovim/blob/master/src/nvim/api/private/helpers.c#L478
-// for how a C string gets converted into a Neovim string.
-//
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L77
-//
 /// Binding to the string type used by Neovim.
+///
+/// Unlike Rust's `String`, this type is not guaranteed to contain valid UTF-8
+/// byte sequences, it can contain null bytes, and it is null-terminated.
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
-    pub(crate) data: *mut c_char,
-    pub(crate) size: usize,
-}
-
-impl String {
-    #[inline]
-    /// Creates a new empty string.
-    pub fn new() -> Self {
-        Self { data: std::ptr::null_mut(), size: 0 }
-    }
-
-    /// Creates a [`String`] from a byte vector.
-    #[inline]
-    pub fn from_bytes(mut vec: Vec<u8>) -> Self {
-        vec.reserve_exact(1);
-        Vec::push(&mut vec, 0);
-
-        let size = vec.len() - 1;
-        let data = vec.leak().as_mut_ptr() as *mut c_char;
-
-        Self { data, size }
-    }
-
-    /// Returns `true` if the `String` has a length of zero, and `false`
-    /// otherwise.
-    #[inline]
-    pub const fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    /// Returns the byte length of the `String`, *not* including the final null
-    /// byte.
-    #[inline]
-    pub const fn len(&self) -> usize {
-        self.size
-    }
-
-    /// Returns a pointer pointing to the byte of the string.
-    #[inline]
-    pub const fn as_ptr(&self) -> *const c_char {
-        self.data as *const c_char
-    }
-
-    /// Returns a byte slice of this `String`'s contents.
-    #[inline]
-    pub fn as_bytes(&self) -> &[u8] {
-        if self.data.is_null() {
-            &[]
-        } else {
-            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
-        }
-    }
-
-    /// Returns a string slice of this `String`'s contents. Fails if it doesn't
-    /// contain a valid UTF-8 byte sequence.
-    #[inline]
-    pub fn as_str(&self) -> Result<&str, str::Utf8Error> {
-        str::from_utf8(self.as_bytes())
-    }
-
-    /// Converts the `String` into Rust's `std::string::String`. If it already
-    /// holds a valid UTF-8 byte sequence no allocation is made. If it doesn't
-    /// the `String` is copied and all invalid sequences are replaced with `�`.
-    #[inline]
-    pub fn to_string_lossy(&self) -> Cow<'_, str> {
-        StdString::from_utf8_lossy(self.as_bytes())
-    }
-
-    /// Converts the `String` into a byte vector, consuming it.
-    #[inline]
-    pub fn into_bytes(self) -> Vec<u8> {
-        if self.data.is_null() {
-            Vec::new()
-        } else {
-            unsafe {
-                let mdrop = ManuallyDrop::new(self);
-                Vec::from_raw_parts(
-                    mdrop.data.cast::<u8>(),
-                    mdrop.size,
-                    mdrop.size,
-                )
-            }
-        }
-    }
-
-    /// Converts the `String` into Rust's `std::string::String`, consuming it.
-    /// Fails if it doesn't contain a valid UTF-8 byte sequence.
-    #[inline]
-    pub fn into_string(self) -> Result<StdString, string::FromUtf8Error> {
-        StdString::from_utf8(self.into_bytes())
-    }
-
-    /// Makes a non-owning version of this `String`.
-    #[inline]
-    #[doc(hidden)]
-    pub fn non_owning(&self) -> NonOwning<'_, String> {
-        NonOwning::new(Self { ..*self })
-    }
+    pub(super) data: *mut ffi::c_char,
+    pub(super) size: usize,
 }
 
 impl Default for String {
@@ -134,21 +25,89 @@ impl Default for String {
     }
 }
 
-impl fmt::Debug for String {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
+impl core::fmt::Debug for String {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.to_string_lossy().as_ref())
     }
 }
 
-impl fmt::Display for String {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&self.to_string_lossy())
+impl String {
+    #[inline]
+    pub fn as_bytes(&self) -> &[u8] {
+        if self.data.is_null() {
+            &[]
+        } else {
+            assert!(self.len() <= isize::MAX as usize);
+            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+        }
+    }
+
+    /// Returns a pointer to the `String`'s buffer.
+    #[inline]
+    pub fn as_ptr(&self) -> *const ffi::c_char {
+        self.data as _
+    }
+
+    /// Creates a `String` from a byte slice by allocating `bytes.len() + 1`
+    /// bytes of memory and copying the contents of `bytes` into it, followed
+    /// by a null byte.
+    #[inline]
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        let data =
+            unsafe { libc::malloc(bytes.len() + 1) as *mut ffi::c_char };
+
+        unsafe {
+            libc::memcpy(
+                data as *mut _,
+                bytes.as_ptr() as *const _,
+                bytes.len(),
+            )
+        };
+
+        unsafe { *data.add(bytes.len()) = 0 };
+
+        Self { data: data as *mut _, size: bytes.len() }
+    }
+
+    /// Returns `true` if the `String` has a length of zero.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Returns the length of the `String`, *not* including the final null byte.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    /// Creates a new, empty `String`.
+    #[inline]
+    pub fn new() -> Self {
+        Self { data: core::ptr::null_mut(), size: 0 }
+    }
+
+    /// Makes a non-owning version of this `String`.
+    #[inline]
+    #[doc(hidden)]
+    pub fn non_owning(&self) -> NonOwning<'_, String> {
+        NonOwning::new(Self { ..*self })
+    }
+
+    /// Converts the `String` into Rust's `std::string::String`. If it already
+    /// holds a valid UTF-8 byte sequence no allocation is made. If it doesn't
+    /// the `String` is copied and all invalid sequences are replaced with `�`.
+    #[inline]
+    pub fn to_string_lossy(&self) -> Cow<'_, str> {
+        std::string::String::from_utf8_lossy(self.as_bytes())
     }
 }
 
 impl Clone for String {
+    #[inline]
     fn clone(&self) -> Self {
-        Self::from_bytes(self.as_bytes().to_owned())
+        Self::from_bytes(self.as_bytes())
     }
 }
 
@@ -162,54 +121,33 @@ impl Drop for String {
     }
 }
 
-impl From<StdString> for String {
-    #[inline]
-    fn from(string: StdString) -> Self {
-        Self::from_bytes(string.into_bytes())
-    }
-}
-
 impl From<&str> for String {
     #[inline]
-    fn from(str: &str) -> Self {
-        Self::from_bytes(str.as_bytes().to_owned())
+    fn from(s: &str) -> Self {
+        Self::from_bytes(s.as_bytes())
     }
 }
 
 impl From<char> for String {
     #[inline]
     fn from(ch: char) -> Self {
-        ch.to_string().into()
+        ch.to_string().as_str().into()
     }
 }
 
-impl From<Cow<'_, str>> for String {
+impl From<&std::path::Path> for String {
     #[inline]
-    fn from(moo: Cow<'_, str>) -> Self {
-        moo.into_owned().into()
-    }
-}
-
-impl From<Vec<u8>> for String {
-    #[inline]
-    fn from(vec: Vec<u8>) -> Self {
-        Self::from_bytes(vec)
-    }
-}
-
-impl From<PathBuf> for String {
-    #[inline]
-    fn from(path: PathBuf) -> Self {
-        path.display().to_string().into()
+    fn from(path: &std::path::Path) -> Self {
+        path.display().to_string().as_str().into()
     }
 }
 
 #[cfg(not(windows))]
-impl From<String> for PathBuf {
+impl From<String> for std::path::PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
         use std::os::unix::ffi::OsStrExt;
-        OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
+        std::ffi::OsStr::from_bytes(nstr.as_bytes()).to_owned().into()
     }
 }
 
@@ -217,7 +155,9 @@ impl From<String> for PathBuf {
 impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
-        StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
+        std::string::String::from_utf8_lossy(nstr.as_bytes())
+            .into_owned()
+            .into()
     }
 }
 
@@ -256,9 +196,9 @@ impl PartialEq<String> for &str {
     }
 }
 
-impl PartialEq<StdString> for String {
+impl PartialEq<std::string::String> for String {
     #[inline]
-    fn eq(&self, other: &StdString) -> bool {
+    fn eq(&self, other: &std::string::String) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
@@ -270,24 +210,47 @@ impl core::hash::Hash for String {
     }
 }
 
-impl TryFrom<String> for StdString {
-    type Error = std::string::FromUtf8Error;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        StdString::from_utf8(s.into_bytes())
-    }
-}
-
-impl Pushable for String {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
+impl lua::Pushable for String {
+    #[inline]
+    unsafe fn push(
+        self,
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<ffi::c_int, lua::Error> {
         lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
         Ok(1)
     }
 }
 
-impl Poppable for String {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
-        <StdString as Poppable>::pop(lstate).map(Into::into)
+impl lua::Poppable for String {
+    #[inline]
+    unsafe fn pop(
+        lstate: *mut lua::ffi::lua_State,
+    ) -> Result<Self, lua::Error> {
+        use lua::ffi::*;
+
+        if lua_gettop(lstate) < 0 {
+            return Err(lua::Error::PopEmptyStack);
+        }
+
+        let ty = lua_type(lstate, -1);
+
+        if ty != LUA_TSTRING && ty != LUA_TNUMBER {
+            return Err(lua::Error::pop_wrong_type::<Self>(LUA_TSTRING, ty));
+        }
+
+        let mut len = 0;
+        let ptr = lua_tolstring(lstate, -1, &mut len);
+
+        // The pointer shouldn't be null if the type value at the top of thr
+        // stack is a string or a number, but we'll check anyway.
+        assert!(!ptr.is_null());
+
+        let slice = std::slice::from_raw_parts(ptr as *const u8, len as usize);
+        let s = String::from_bytes(slice);
+
+        lua_pop(lstate, 1);
+
+        Ok(s)
     }
 }
 
@@ -315,7 +278,7 @@ mod serde {
                 where
                     E: de::Error,
                 {
-                    Ok(crate::String::from_bytes(b.to_owned()))
+                    Ok(crate::String::from_bytes(b))
                 }
 
                 fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
@@ -336,13 +299,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn as_bytes() {
+        let s = String::from("hello");
+        assert_eq!(s.as_bytes(), &[b'h', b'e', b'l', b'l', b'o'][..]);
+    }
+
+    #[test]
     fn partial_eq() {
         let lhs = String::from("foo bar baz");
         let rhs = String::from("foo bar baz");
         assert_eq!(lhs, rhs);
 
         let lhs = String::from("foo bar baz");
-        let rhs = String::from("bar foo baz");
+        let rhs = std::string::String::from("bar foo baz");
         assert_ne!(lhs, rhs);
 
         let lhs = String::from("€");
@@ -360,18 +329,11 @@ mod tests {
 
     #[test]
     fn from_string() {
-        let foo = StdString::from("foo bar baz");
+        let foo = std::string::String::from("foo bar baz");
 
-        let lhs = String::from(foo.as_ref());
-        let rhs = String::from(foo);
+        let lhs = String::from(foo.as_str());
+        let rhs = String::from(foo.as_str());
 
         assert_eq!(lhs, rhs);
-    }
-
-    #[test]
-    fn to_bytes() {
-        let s = String::from("hello");
-        let bytes = s.into_bytes();
-        assert_eq!(&[104, 101, 108, 108, 111][..], &bytes[..]);
     }
 }

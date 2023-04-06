@@ -247,7 +247,7 @@ pub fn create_namespace(name: &str) -> u32 {
 /// and ids tuples `(name, id)`.
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
-        let k = k.try_into().expect("namespace name is valid UTF-8");
+        let k = k.to_string_lossy().into();
         let v = u32::from_object(v).expect("namespace id is positive");
         (k, v)
     })

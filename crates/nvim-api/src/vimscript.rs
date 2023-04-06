@@ -70,10 +70,7 @@ pub fn cmd(
     let output =
         unsafe { nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts, &mut err) };
     choose!(err, {
-        output
-            .into_string()
-            .map_err(From::from)
-            .map(|output| (!output.is_empty()).then_some(output))
+        Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
     })
 }
 
@@ -111,10 +108,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
         nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output, &mut err)
     };
     choose!(err, {
-        output
-            .into_string()
-            .map_err(From::from)
-            .map(|output| (!output.is_empty()).then_some(output))
+        Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
     })
 }
 

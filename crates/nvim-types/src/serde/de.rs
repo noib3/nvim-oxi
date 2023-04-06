@@ -47,10 +47,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
             String => {
                 let string = unsafe { self.obj.into_string_unchecked() };
-                match string.as_str() {
-                    Ok(str) => visitor.visit_str(str),
-                    _ => visitor.visit_bytes(string.as_bytes()),
-                }
+                visitor.visit_str(string.to_string_lossy().as_ref())
             },
 
             Array => self.deserialize_seq(visitor),
@@ -88,7 +85,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        let (variant, obj) = match self.obj.kind() {
+        let (s, obj) = match self.obj.kind() {
             ObjectKind::Dictionary => {
                 let mut iter =
                     unsafe { self.obj.into_dict_unchecked() }.into_iter();
@@ -103,18 +100,20 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                     },
                 };
 
-                (variant.into_string()?, Some(value))
+                (variant, Some(value))
             },
 
-            ObjectKind::String => (
-                unsafe { self.obj.into_string_unchecked() }.into_string()?,
-                None,
-            ),
+            ObjectKind::String => {
+                (unsafe { self.obj.into_string_unchecked() }, None)
+            },
 
             _ => return Err(de::Error::custom("bad enum value")),
         };
 
-        visitor.visit_enum(EnumDeserializer { variant, obj })
+        visitor.visit_enum(EnumDeserializer {
+            variant: s.to_string_lossy().into(),
+            obj,
+        })
     }
 
     #[inline]

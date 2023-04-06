@@ -385,7 +385,7 @@ impl From<f32> for Object {
 impl From<String> for Object {
     #[inline(always)]
     fn from(s: String) -> Self {
-        crate::String::from(s).into()
+        crate::String::from(s.as_str()).into()
     }
 }
 
@@ -436,7 +436,7 @@ where
 
 impl From<Cow<'_, str>> for Object {
     fn from(moo: Cow<'_, str>) -> Self {
-        crate::String::from(moo).into()
+        crate::String::from(moo.as_ref()).into()
     }
 }
 
@@ -575,7 +575,7 @@ mod serde {
                 where
                     E: de::Error,
                 {
-                    Ok(crate::String::from_bytes(b.to_owned()).into())
+                    Ok(crate::String::from_bytes(b).into())
                 }
 
                 fn visit_u64<E>(self, n: u64) -> Result<Self::Value, E>

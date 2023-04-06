@@ -200,7 +200,7 @@ impl FromObject for f32 {
 impl FromObject for String {
     fn from_object(obj: Object) -> Result<Self, Error> {
         crate::String::from_object(obj)
-            .and_then(|nvim_str| Ok(nvim_str.into_string()?))
+            .map(|nvim_str| nvim_str.to_string_lossy().into())
     }
 }
 
