@@ -1,25 +1,25 @@
 #[cfg(not(any(
-    feature = "neovim-0-7",
     feature = "neovim-0-8",
+    feature = "neovim-0-9",
     feature = "neovim-nightly"
 )))]
 compile_error!(
-    "You must enable one of the features: neovim-0-7, neovim-0-8, \
+    "You must enable one of the features: neovim-0-8, neovim-0-9, \
      neovim-nightly"
 );
 
 #[cfg(all(
-    feature = "neovim-0-7",
-    any(feature = "neovim-0-8", feature = "neovim-nightly")
+    feature = "neovim-0-8",
+    any(feature = "neovim-0-9", feature = "neovim-nightly")
 ))]
 compile_error!(
-    "You can only enable one of the features: neovim-0-7, neovim-0-8, \
+    "You can only enable one of the features: neovim-0-8, neovim-0-9, \
      neovim-nightly"
 );
 
-#[cfg(all(feature = "neovim-0-8", feature = "neovim-nightly"))]
+#[cfg(all(feature = "neovim-0-9", feature = "neovim-nightly"))]
 compile_error!(
-    "You can only enable one of the features: neovim-0-7, neovim-0-8, \
+    "You can only enable one of the features: neovim-0-8, neovim-0-9, \
      neovim-nightly"
 );
 

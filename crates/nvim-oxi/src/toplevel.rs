@@ -14,7 +14,7 @@ pub fn schedule<F>(fun: F)
 where
     F: FnOnce(()) -> Result<()> + 'static,
 {
-    // https://github.com/neovim/neovim/blob/master/src/nvim/lua/executor.c#L316
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/lua/executor.c#L363
     //
     // Unfortunately the `nlua_schedule` C function is not exported, so we have
     // to call the Lua function instead.

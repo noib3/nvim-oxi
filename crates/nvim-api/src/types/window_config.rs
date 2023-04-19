@@ -76,12 +76,12 @@ pub struct WindowConfig {
     pub zindex: Option<u32>,
 
     /// TODO
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(not(feature = "neovim-0-8"))]
     #[builder(setter(strip_option))]
     pub title: Option<super::WindowTitle>,
 
     /// TODO
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(not(feature = "neovim-0-8"))]
     #[builder(setter(strip_option))]
     pub title_pos: Option<super::WindowTitlePosition>,
 }
@@ -116,6 +116,7 @@ impl FromObject for WindowConfig {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -124,7 +125,7 @@ pub(crate) struct KeyDict_float_config {
     row: Object,
     win: Object,
     style: Object,
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(not(feature = "neovim-0-8"))]
     title: Object,
     width: Object,
     height: Object,
@@ -136,8 +137,33 @@ pub(crate) struct KeyDict_float_config {
     relative: Object,
     focusable: Object,
     noautocmd: Object,
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(not(feature = "neovim-0-8"))]
     title_pos: Object,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_float_config {
+    row: Object,
+    col: Object,
+    width: Object,
+    height: Object,
+    anchor: Object,
+    relative: Object,
+    win: Object,
+    bufpos: Object,
+    external: Object,
+    focusable: Object,
+    zindex: Object,
+    #[cfg(not(feature = "neovim-0-8"))]
+    border: Object,
+    title: Object,
+    #[cfg(not(feature = "neovim-0-8"))]
+    title_pos: Object,
+    style: Object,
+    noautocmd: Object,
 }
 
 impl From<&WindowConfig> for KeyDict_float_config {
@@ -159,7 +185,7 @@ impl From<&WindowConfig> for KeyDict_float_config {
             row: config.row.into(),
             win,
             style: config.style.into(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(not(feature = "neovim-0-8"))]
             title: config.title.as_ref().into(),
             width: config.width.into(),
             height: config.height.into(),
@@ -171,7 +197,7 @@ impl From<&WindowConfig> for KeyDict_float_config {
             relative: config.relative.as_ref().into(),
             focusable: config.focusable.into(),
             noautocmd: config.noautocmd.into(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(not(feature = "neovim-0-8"))]
             title_pos: config.title_pos.as_ref().into(),
         }
     }

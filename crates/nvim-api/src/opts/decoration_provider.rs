@@ -1,5 +1,4 @@
 use derive_builder::Builder;
-#[cfg(not(feature = "neovim-0-7"))]
 use nvim_types::NonOwning;
 use nvim_types::Object;
 
@@ -67,14 +66,12 @@ pub struct DecorationProviderOpts {
     #[builder(setter(custom))]
     on_end: Object,
 
-    #[cfg(not(feature = "neovim-0-7"))]
     #[builder(setter(skip))]
     on_hl_def: Object,
 
     #[builder(setter(custom))]
     on_line: Object,
 
-    #[cfg(not(feature = "neovim-0-7"))]
     #[builder(setter(skip))]
     on_spell_nav: Object,
 
@@ -139,20 +136,7 @@ impl DecorationProviderOptsBuilder {
     }
 }
 
-#[cfg(feature = "neovim-0-7")]
-impl From<&DecorationProviderOpts> for nvim_types::Dictionary {
-    fn from(opts: &DecorationProviderOpts) -> Self {
-        Self::from_iter([
-            ("on_buf", opts.on_buf.clone()),
-            ("on_end", opts.on_end.clone()),
-            ("on_line", opts.on_line.clone()),
-            ("on_start", opts.on_start.clone()),
-            ("on_win", opts.on_win.clone()),
-        ])
-    }
-}
-
-#[cfg(not(feature = "neovim-0-7"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -166,7 +150,20 @@ pub(crate) struct KeyDict_set_decoration_provider<'a> {
     _on_spell_nav: NonOwning<'a, Object>,
 }
 
-#[cfg(not(feature = "neovim-0-7"))]
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_set_decoration_provider<'a> {
+    on_start: NonOwning<'a, Object>,
+    on_buf: NonOwning<'a, Object>,
+    on_win: NonOwning<'a, Object>,
+    on_line: NonOwning<'a, Object>,
+    on_end: NonOwning<'a, Object>,
+    _on_hl_def: NonOwning<'a, Object>,
+    _on_spell_nav: NonOwning<'a, Object>,
+}
+
 impl<'a> From<&'a DecorationProviderOpts>
     for KeyDict_set_decoration_provider<'a>
 {

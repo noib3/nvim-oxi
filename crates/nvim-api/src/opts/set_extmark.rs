@@ -5,12 +5,12 @@ use nvim_types::{self as nvim, Array, Integer, Object};
 use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_set_extmark {
     id: Object,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     spell: Object,
     hl_eol: Object,
     strict: Object,
@@ -25,7 +25,6 @@ pub(crate) struct KeyDict_set_extmark {
     ephemeral: Object,
     sign_text: Object,
     virt_text: Object,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     ui_watched: Object,
     virt_lines: Object,
     line_hl_group: Object,
@@ -39,6 +38,41 @@ pub(crate) struct KeyDict_set_extmark {
     virt_text_win_col: Object,
     virt_lines_leftcol: Object,
     cursorline_hl_group: Object,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_set_extmark {
+    id: Object,
+    /// The docs don't mention this but it's there.
+    end_line: Object,
+    end_row: Object,
+    end_col: Object,
+    hl_group: Object,
+    virt_text: Object,
+    virt_text_pos: Object,
+    virt_text_win_col: Object,
+    virt_text_hide: Object,
+    hl_eol: Object,
+    hl_mode: Object,
+    ephemeral: Object,
+    priority: Object,
+    right_gravity: Object,
+    end_right_gravity: Object,
+    virt_lines: Object,
+    virt_lines_above: Object,
+    virt_lines_leftcol: Object,
+    strict: Object,
+    sign_text: Object,
+    sign_hl_group: Object,
+    number_hl_group: Object,
+    line_hl_group: Object,
+    cursorline_hl_group: Object,
+    conceal: Object,
+    spell: Object,
+    ui_watched: Object,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -137,11 +171,6 @@ impl SetExtmarkOpts {
         self.0.strict = strict.into();
     }
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[inline(always)]
     pub fn set_ui_watched(&mut self, ui_watched: bool) {
         self.0.ui_watched = ui_watched.into();
@@ -355,11 +384,6 @@ impl SetExtmarkOptsBuilder {
 
     /// Whether the mark should be drawn by an external UI. When `true` the UI
     /// will receive `win_extmark` events.
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[inline(always)]
     pub fn ui_watched(&mut self, ui_watched: bool) -> &mut Self {
         self.set_ui_watched(ui_watched);

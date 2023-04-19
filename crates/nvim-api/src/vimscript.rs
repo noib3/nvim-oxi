@@ -56,11 +56,6 @@ where
 ///
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-)]
 pub fn cmd(
     infos: &CmdInfos,
     opts: &super::opts::CmdOpts,
@@ -115,11 +110,6 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 /// Binding to [`nvim_parse_cmd`](https://neovim.io/doc/user/api.html#nvim_parse_cmd()).
 ///
 /// Parses the command line.
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-)]
 pub fn parse_cmd(
     src: &str,
     opts: &super::opts::ParseCmdOpts,

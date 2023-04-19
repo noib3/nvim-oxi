@@ -41,11 +41,6 @@ pub struct CreateCommandOpts {
     #[builder(setter(custom))]
     nargs: Object,
 
-    #[cfg(not(feature = "neovim-0-7"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(custom))]
     preview: Object,
 
@@ -85,11 +80,6 @@ impl CreateCommandOptsBuilder {
         self
     }
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     pub fn preview<F>(&mut self, fun: F) -> &mut Self
     where
         F: Into<
@@ -112,8 +102,7 @@ impl CreateCommandOptsBuilder {
     }
 }
 
-// To see the generated key dicts you need to build Neovim and look in
-// `/build/src/nvim/auto/keysets_defs.generated.h`.
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -126,11 +115,29 @@ pub(crate) struct KeyDict_user_command<'a> {
     force: Object,
     nargs: NonOwning<'a, Object>,
     range: NonOwning<'a, Object>,
-    #[cfg(not(feature = "neovim-0-7"))]
     preview: NonOwning<'a, Object>,
     complete: NonOwning<'a, Object>,
     register_: Object,
     keepscript: Object,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_user_command<'a> {
+    addr: NonOwning<'a, Object>,
+    bang: Object,
+    bar: Object,
+    complete: NonOwning<'a, Object>,
+    count: Object,
+    desc: NonOwning<'a, Object>,
+    force: Object,
+    keepscript: Object,
+    nargs: NonOwning<'a, Object>,
+    preview: NonOwning<'a, Object>,
+    range: NonOwning<'a, Object>,
+    register_: Object,
 }
 
 impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command<'a> {
@@ -144,7 +151,6 @@ impl<'a> From<&'a CreateCommandOpts> for KeyDict_user_command<'a> {
             force: opts.force.into(),
             nargs: opts.nargs.non_owning(),
             range: opts.range.non_owning(),
-            #[cfg(not(feature = "neovim-0-7"))]
             preview: opts.preview.non_owning(),
             complete: opts.complete.non_owning(),
             register_: opts.register.into(),

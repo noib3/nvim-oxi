@@ -20,6 +20,14 @@ pub struct EvalStatuslineOpts {
     #[builder(setter(strip_option))]
     maxwidth: Option<u32>,
 
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
+    )]
+    #[builder(setter(strip_option))]
+    use_statuscol_lnum: Option<bool>,
+
     /// Evaluate the tabline instead of the statusline. When `true` the
     /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
     #[builder(setter(strip_option))]
@@ -27,11 +35,6 @@ pub struct EvalStatuslineOpts {
 
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(strip_option))]
     use_winbar: Option<bool>,
 
@@ -54,6 +57,7 @@ impl EvalStatuslineOptsBuilder {
     }
 }
 
+#[cfg(feature = "neovim-0-8")]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -62,9 +66,22 @@ pub(crate) struct KeyDict_eval_statusline {
     fillchar: Object,
     maxwidth: Object,
     highlights: Object,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     use_winbar: Object,
     use_tabline: Object,
+}
+
+#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_eval_statusline {
+    winid: Object,
+    maxwidth: Object,
+    fillchar: Object,
+    highlights: Object,
+    use_winbar: Object,
+    use_tabline: Object,
+    use_statuscol_lnum: Object,
 }
 
 impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
@@ -74,9 +91,10 @@ impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
             fillchar: opts.fillchar.into(),
             maxwidth: opts.maxwidth.into(),
             highlights: opts.highlights.into(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             use_winbar: opts.use_winbar.into(),
             use_tabline: opts.use_tabline.into(),
+            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+            use_statuscol_lnum: opts.use_statuscol_lnum.into(),
         }
     }
 }

@@ -16,9 +16,9 @@ features = ["neovim-0-8", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-neovim-0-7 = ["nvim-types/neovim-0-7", "nvim-api/neovim-0-7"]
-neovim-0-8 = ["nvim-types/neovim-0-8", "nvim-api/neovim-0-8"]
-neovim-nightly = ["nvim-types/neovim-nightly", "nvim-api/neovim-nightly"]
+neovim-0-8 = ["nvim-api/neovim-0-8"]
+neovim-0-9 = ["nvim-api/neovim-0-9"]
+neovim-nightly = ["nvim-api/neovim-nightly"]
 
 diagnostic = ["nvim-diagnostic"]
 libuv = ["libuv-bindings"]

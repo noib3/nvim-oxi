@@ -69,6 +69,7 @@ impl ClearAutocmdsOptsBuilder {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -76,6 +77,17 @@ pub(crate) struct KeyDict_clear_autocmds<'a> {
     event: NonOwning<'a, Object>,
     group: NonOwning<'a, Object>,
     buffer: Object,
+    pattern: NonOwning<'a, Object>,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_clear_autocmds<'a> {
+    buffer: Object,
+    event: NonOwning<'a, Object>,
+    group: NonOwning<'a, Object>,
     pattern: NonOwning<'a, Object>,
 }
 

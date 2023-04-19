@@ -16,7 +16,7 @@ use crate::{
     NonOwning,
 };
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L109
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L109-L120
 //
 /// Binding to a Neovim object.
 ///
@@ -27,7 +27,7 @@ pub struct Object {
     data: ObjectData,
 }
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L94
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L94-L107
 //
 /// Specifies the kind of a Neovim [`Object`].
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -64,7 +64,7 @@ impl ObjectKind {
     }
 }
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L111
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L111-L119
 #[repr(C)]
 union ObjectData {
     boolean: Boolean,

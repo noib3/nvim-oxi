@@ -102,6 +102,7 @@ impl FromObject for CmdInfos {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -116,6 +117,24 @@ pub(crate) struct KeyDict_cmd {
     magic: Object,
     nargs: Object,
     range: Object,
+    nextcmd: Object,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default, Debug)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_cmd {
+    cmd: Object,
+    range: Object,
+    count: Object,
+    reg: Object,
+    bang: Object,
+    args: Object,
+    magic: Object,
+    mods: Object,
+    nargs: Object,
+    addr: Object,
     nextcmd: Object,
 }
 
