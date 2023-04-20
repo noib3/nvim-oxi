@@ -1,21 +1,11 @@
-use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 /// Options passed to
-/// [`Buffer::get_extmarks`](crate::Buffer::get_extmarks).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
+#[derive(Clone, Debug, Default)]
 pub struct GetExtmarksOpts {
-    /// Whether to include the extmark's
-    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of the
-    /// tuples returned by
-    /// [`Buffer::get_extmarks`](crate::Buffer::get_extmarks).
-    #[builder(setter(strip_option))]
-    details: Option<bool>,
-
-    /// Maximum number of extmarks to return.
-    #[builder(setter(strip_option))]
-    limits: Option<u32>,
+    details: Object,
+    limits: Object,
 }
 
 impl GetExtmarksOpts {
@@ -26,17 +16,38 @@ impl GetExtmarksOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct GetExtmarksOptsBuilder(GetExtmarksOpts);
+
 impl GetExtmarksOptsBuilder {
+    /// Whether to include the extmark's
+    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of
+    /// the tuples returned by
+    /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
+    #[inline]
+    pub fn details(&mut self, details: bool) -> &mut Self {
+        self.0.details = details.into();
+        self
+    }
+
+    #[inline]
+    pub fn limits(&mut self, limits: bool) -> &mut Self {
+        self.0.limits = limits.into();
+        self
+    }
+
+    /// Maximum number of extmarks to return.
+    #[inline]
     pub fn build(&mut self) -> GetExtmarksOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl From<&GetExtmarksOpts> for Dictionary {
     fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([
-            ("details", opts.details.into()),
-            ("limits", Object::from(opts.limits)),
+            ("details", opts.details.clone()),
+            ("limits", opts.limits.clone()),
         ])
     }
 }

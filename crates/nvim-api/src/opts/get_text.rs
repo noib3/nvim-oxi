@@ -1,26 +1,29 @@
-use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to [`Buffer::get_text`](crate::Buffer::get_text).
+/// Options passed to [`Buffer::get_text()`](crate::Buffer::get_text).
 /// Currently unused.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default)]
 pub struct GetTextOpts {}
 
 impl GetTextOpts {
-    #[inline(always)]
+    #[inline]
     pub fn builder() -> GetTextOptsBuilder {
         GetTextOptsBuilder::default()
     }
 }
 
+#[derive(Clone, Default)]
+pub struct GetTextOptsBuilder(GetTextOpts);
+
 impl GetTextOptsBuilder {
+    #[inline]
     pub fn build(&mut self) -> GetTextOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl From<&GetTextOpts> for Dictionary {
+    #[inline]
     fn from(_: &GetTextOpts) -> Self {
         Dictionary::new()
     }

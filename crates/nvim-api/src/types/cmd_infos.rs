@@ -1,4 +1,3 @@
-use derive_builder::Builder;
 use nvim_types::{
     conversion::{self, FromObject, ToObject},
     serde::Deserializer,
@@ -11,65 +10,53 @@ use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};
 use crate::serde_utils as utils;
 
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder, Deserialize)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default, Deserialize)]
 pub struct CmdInfos {
     /// Value of `:command-addr`. Uses short name.
-    #[builder(setter(strip_option))]
     #[serde(default, deserialize_with = "utils::none_literal_is_none")]
-    // Setter doesn't exist bc `addr` is ignored when passed to `nvim_cmd`.
+    // No setter bc `addr` is ignored when passed to `nvim_cmd`.
     pub addr: Option<CommandAddr>,
 
     /// Command arguments.
-    #[builder(setter(custom))]
     #[serde(default)]
     pub args: Vec<String>,
 
     /// Whether the command contains a `<bang>` (`!`) modifier.
-    #[builder(setter(strip_option))]
     #[serde(default)]
     pub bang: Option<bool>,
 
     /// Command name.
-    #[builder(setter(into, strip_option))]
     #[serde(default)]
     pub cmd: Option<String>,
 
     /// Any count that was supplied to the command. `None` if command cannot
     /// take a count.
-    #[builder(setter(strip_option))]
     #[serde(default, deserialize_with = "utils::minus_one_is_none")]
     pub count: Option<u32>,
 
-    #[builder(setter(strip_option))]
     #[serde(default)]
     pub magic: Option<CmdMagic>,
 
-    #[builder(setter(strip_option))]
     #[serde(default)]
     pub mods: Option<CommandModifiers>,
 
     // Setter doesn't exist bc `nargs` is ignored when passed to `nvim_cmd`.
     /// Value of `:command-nargs`
-    #[builder(setter(skip))]
     #[serde(default)]
     pub nargs: Option<CommandNArgs>,
 
     // Setter doesn't exist bc `nextcmd` is ignored when passed to `nvim_cmd`.
     /// Next command if there are multiple commands separated by a `:bar`.
     /// `None` if there isn't a next command.
-    #[builder(setter(skip))]
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub nextcmd: Option<String>,
 
     /// Command range.
-    #[builder(setter(strip_option))]
     #[serde(default)]
     pub range: Option<CmdRange>,
 
     /// The optional command `<register>`. `None` if not specified or if
     /// command cannot take a register.
-    #[builder(setter(strip_option))]
     #[serde(default, deserialize_with = "utils::char_from_string")]
     pub reg: Option<char>,
 }
@@ -81,22 +68,95 @@ impl CmdInfos {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct CmdInfosBuilder(CmdInfos);
+
 impl CmdInfosBuilder {
+    /// Command arguments.
+    #[inline]
     pub fn args<S, I>(&mut self, iter: I) -> &mut Self
     where
         S: Into<String>,
         I: IntoIterator<Item = S>,
     {
-        self.args = Some(iter.into_iter().map(Into::into).collect::<Vec<_>>());
+        self.0.args = iter.into_iter().map(Into::into).collect();
         self
     }
 
+    /// Whether the command contains a `<bang>` (`!`) modifier.
+    #[inline]
+    pub fn bang(&mut self, bang: bool) -> &mut Self {
+        self.0.bang = Some(bang);
+        self
+    }
+
+    /// Command name.
+    #[inline]
+    pub fn cmd(&mut self, cmd: impl Into<String>) -> &mut Self {
+        self.0.cmd = Some(cmd.into());
+        self
+    }
+
+    /// Any count that was supplied to the command. `None` if command cannot
+    /// take a count.
+    #[inline]
+    pub fn count(&mut self, count: u32) -> &mut Self {
+        self.0.count = Some(count);
+        self
+    }
+
+    #[inline]
+    pub fn magic(&mut self, magic: CmdMagic) -> &mut Self {
+        self.0.magic = Some(magic);
+        self
+    }
+
+    #[inline]
+    pub fn mods(&mut self, mods: CommandModifiers) -> &mut Self {
+        self.0.mods = Some(mods);
+        self
+    }
+
+    // Setter doesn't exist bc `nargs` is ignored when passed to `nvim_cmd`.
+    /// Value of `:command-nargs`
+    #[inline]
+    pub fn nargs(&mut self, nargs: CommandNArgs) -> &mut Self {
+        self.0.nargs = Some(nargs);
+        self
+    }
+
+    // Setter doesn't exist bc `nextcmd` is ignored when passed to `nvim_cmd`.
+    /// Next command if there are multiple commands separated by a `:bar`.
+    /// `None` if there isn't a next command.
+    #[inline]
+    pub fn nextcmd(&mut self, nextcmd: impl Into<String>) -> &mut Self {
+        self.0.nextcmd = Some(nextcmd.into());
+        self
+    }
+
+    /// Command range.
+    #[inline]
+    pub fn range(&mut self, range: CmdRange) -> &mut Self {
+        self.0.range = Some(range);
+        self
+    }
+
+    /// The optional command `<register>`. `None` if not specified or if
+    /// command cannot take a register.
+    #[inline]
+    pub fn reg(&mut self, reg: char) -> &mut Self {
+        self.0.reg = Some(reg);
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> CmdInfos {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl FromObject for CmdInfos {
+    #[inline]
     fn from_object(obj: Object) -> Result<Self, conversion::Error> {
         Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
     }
@@ -139,6 +199,7 @@ pub(crate) struct KeyDict_cmd {
 }
 
 impl From<&CmdInfos> for KeyDict_cmd {
+    #[inline]
     fn from(infos: &CmdInfos) -> Self {
         Self {
             cmd: infos.cmd.clone().into(),

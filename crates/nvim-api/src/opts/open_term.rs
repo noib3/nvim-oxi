@@ -1,4 +1,3 @@
-use derive_builder::Builder;
 use nvim_types::{self as nvim, Dictionary, Object};
 
 use crate::Buffer;
@@ -19,33 +18,36 @@ pub type OnInputArgs = (
     nvim::String, // data input
 );
 
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default)]
 pub struct OpenTermOpts {
-    #[builder(setter(custom))]
     on_input: Object,
 }
 
 impl OpenTermOpts {
-    #[inline(always)]
     /// Creates a new [`OpenTermOptsBuilder`].
+    #[inline]
     pub fn builder() -> OpenTermOptsBuilder {
         OpenTermOptsBuilder::default()
     }
 }
 
+#[derive(Clone, Default)]
+pub struct OpenTermOptsBuilder(OpenTermOpts);
+
 impl OpenTermOptsBuilder {
     /// Callback invoked on data input (like keypresses in terminal mode).
+    #[inline]
     pub fn on_input<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnInputArgs, ()>,
     {
-        self.on_input = Some(fun.to_object());
+        self.0.on_input = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn build(&mut self) -> OpenTermOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 

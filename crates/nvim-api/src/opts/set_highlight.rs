@@ -1,147 +1,23 @@
-use derive_builder::Builder;
-use nvim_types::{self as nvim, NonOwning, Object};
+use nvim_types::{self as nvim, Object};
 
-/// Options passed to [`nvim_oxi::api::set_hl`](crate::set_hl).
-#[derive(Clone, Debug, Default, PartialEq, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
-pub struct SetHighlightOpts {
-    #[builder(setter(custom))]
-    background: Object,
-
-    #[builder(setter(strip_option))]
-    blend: Option<u8>,
-
-    #[builder(setter(strip_option))]
-    bold: Option<bool>,
-
-    #[builder(setter(custom))]
-    cterm: Object,
-
-    #[builder(setter(custom))]
-    ctermbg: Object,
-
-    #[builder(setter(custom))]
-    ctermfg: Object,
-
-    #[builder(setter(strip_option))]
-    default: Option<bool>,
-
-    #[builder(setter(custom))]
-    foreground: Object,
-
-    #[builder(setter(strip_option))]
-    italic: Option<bool>,
-
-    #[builder(setter(custom))]
-    link: Object,
-
-    #[builder(setter(strip_option))]
-    nocombine: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    reverse: Option<bool>,
-
-    #[builder(setter(custom))]
-    special: Object,
-
-    #[builder(setter(strip_option))]
-    standout: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    strikethrough: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    undercurl: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    underdashed: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    underdotted: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    underdouble: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    underline: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    altfont: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    bg_indexed: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    fg_indexed: Option<bool>,
-}
-
-impl SetHighlightOpts {
-    #[inline(always)]
-    /// Creates a new [`SetHighlightOptsBuilder`].
-    pub fn builder() -> SetHighlightOptsBuilder {
-        <SetHighlightOptsBuilder as Default>::default()
-    }
-}
-
-impl SetHighlightOptsBuilder {
-    pub fn background(&mut self, background: &str) -> &mut Self {
-        self.background = Some(nvim::String::from(background).into());
-        self
-    }
-
-    pub fn cterm(&mut self, cterm: &str) -> &mut Self {
-        self.cterm = Some(nvim::String::from(cterm).into());
-        self
-    }
-
-    pub fn ctermbg(&mut self, ctermbg: &str) -> &mut Self {
-        self.ctermbg = Some(nvim::String::from(ctermbg).into());
-        self
-    }
-
-    pub fn ctermfg(&mut self, ctermfg: &str) -> &mut Self {
-        self.ctermfg = Some(nvim::String::from(ctermfg).into());
-        self
-    }
-
-    pub fn foreground(&mut self, foreground: &str) -> &mut Self {
-        self.foreground = Some(nvim::String::from(foreground).into());
-        self
-    }
-
-    pub fn link(&mut self, link: &str) -> &mut Self {
-        self.link = Some(nvim::String::from(link).into());
-        self
-    }
-
-    pub fn special(&mut self, special: &str) -> &mut Self {
-        self.special = Some(nvim::String::from(special).into());
-        self
-    }
-
-    pub fn build(&mut self) -> SetHighlightOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
-    }
-}
-
+/// Options passed to [`set_hl()`](crate::set_hl).
 #[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
-pub(crate) struct KeyDict_highlight<'a> {
+pub struct SetHighlightOpts {
     bg: Object,
     fg: Object,
     sp: Object,
     bold: Object,
-    link: NonOwning<'a, Object>,
+    link: Object,
     blend: Object,
-    cterm: NonOwning<'a, Object>,
+    cterm: Object,
     italic: Object,
-    special: NonOwning<'a, Object>,
-    ctermbg: NonOwning<'a, Object>,
-    ctermfg: NonOwning<'a, Object>,
+    special: Object,
+    ctermbg: Object,
+    ctermfg: Object,
     default_: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     altfont: Object,
     reverse: Object,
     fallback: Object,
@@ -149,11 +25,11 @@ pub(crate) struct KeyDict_highlight<'a> {
     nocombine: Object,
     undercurl: Object,
     underline: Object,
-    background: NonOwning<'a, Object>,
-    #[cfg(not(feature = "neovim-0-8"))]
+    background: Object,
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     bg_indexed: Object,
-    foreground: NonOwning<'a, Object>,
-    #[cfg(not(feature = "neovim-0-8"))]
+    foreground: Object,
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     fg_indexed: Object,
     global_link: Object,
     underdashed: Object,
@@ -163,10 +39,9 @@ pub(crate) struct KeyDict_highlight<'a> {
 }
 
 #[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
-pub(crate) struct KeyDict_highlight<'a> {
+pub struct SetHighlightOpts {
     bold: Object,
     standout: Object,
     strikethrough: Object,
@@ -177,63 +52,184 @@ pub(crate) struct KeyDict_highlight<'a> {
     underdashed: Object,
     italic: Object,
     reverse: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     altfont: Object,
     nocombine: Object,
     default_: Object,
-    cterm: NonOwning<'a, Object>,
-    foreground: NonOwning<'a, Object>,
+    cterm: Object,
+    foreground: Object,
     fg: Object,
-    background: NonOwning<'a, Object>,
+    background: Object,
     bg: Object,
-    ctermfg: NonOwning<'a, Object>,
-    ctermbg: NonOwning<'a, Object>,
-    special: NonOwning<'a, Object>,
+    ctermfg: Object,
+    ctermbg: Object,
+    special: Object,
     sp: Object,
-    link: NonOwning<'a, Object>,
+    link: Object,
     global_link: Object,
     fallback: Object,
     blend: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     fg_indexed: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     bg_indexed: Object,
 }
 
-impl<'a> From<&'a SetHighlightOpts> for KeyDict_highlight<'a> {
-    fn from(opts: &'a SetHighlightOpts) -> Self {
-        Self {
-            bg: Object::nil(),
-            fg: Object::nil(),
-            sp: Object::nil(),
-            bold: opts.bold.into(),
-            link: opts.link.non_owning(),
-            blend: opts.blend.into(),
-            cterm: opts.cterm.non_owning(),
-            italic: opts.italic.into(),
-            special: opts.special.non_owning(),
-            ctermbg: opts.ctermbg.non_owning(),
-            ctermfg: opts.ctermfg.non_owning(),
-            default_: opts.default.into(),
-            #[cfg(not(feature = "neovim-0-8"))]
-            altfont: opts.altfont.into(),
-            reverse: opts.reverse.into(),
-            fallback: Object::nil(),
-            standout: opts.standout.into(),
-            nocombine: opts.nocombine.into(),
-            undercurl: opts.undercurl.into(),
-            underline: opts.underline.into(),
-            background: opts.background.non_owning(),
-            #[cfg(not(feature = "neovim-0-8"))]
-            bg_indexed: opts.bg_indexed.into(),
-            foreground: opts.foreground.non_owning(),
-            #[cfg(not(feature = "neovim-0-8"))]
-            fg_indexed: opts.fg_indexed.into(),
-            global_link: Object::nil(),
-            underdashed: opts.underdashed.into(),
-            underdotted: opts.underdotted.into(),
-            underdouble: opts.underdouble.into(),
-            strikethrough: opts.strikethrough.into(),
-        }
+impl SetHighlightOpts {
+    /// Creates a new [`SetHighlightOptsBuilder`].
+    #[inline]
+    pub fn builder() -> SetHighlightOptsBuilder {
+        <SetHighlightOptsBuilder as Default>::default()
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct SetHighlightOptsBuilder(SetHighlightOpts);
+
+impl SetHighlightOptsBuilder {
+    #[inline]
+    pub fn background(&mut self, background: &str) -> &mut Self {
+        self.0.background = nvim::String::from(background).into();
+        self
+    }
+
+    #[inline]
+    pub fn blend(&mut self, blend: u8) -> &mut Self {
+        self.0.blend = blend.into();
+        self
+    }
+
+    #[inline]
+    pub fn bold(&mut self, bold: bool) -> &mut Self {
+        self.0.bold = bold.into();
+        self
+    }
+
+    #[inline]
+    pub fn cterm(&mut self, cterm: &str) -> &mut Self {
+        self.0.cterm = nvim::String::from(cterm).into();
+        self
+    }
+
+    #[inline]
+    pub fn ctermbg(&mut self, ctermbg: &str) -> &mut Self {
+        self.0.ctermbg = nvim::String::from(ctermbg).into();
+        self
+    }
+
+    #[inline]
+    pub fn ctermfg(&mut self, ctermfg: &str) -> &mut Self {
+        self.0.ctermfg = nvim::String::from(ctermfg).into();
+        self
+    }
+
+    #[inline]
+    pub fn default(&mut self, default: bool) -> &mut Self {
+        self.0.default_ = default.into();
+        self
+    }
+
+    #[inline]
+    pub fn foreground(&mut self, foreground: &str) -> &mut Self {
+        self.0.foreground = nvim::String::from(foreground).into();
+        self
+    }
+
+    #[inline]
+    pub fn italic(&mut self, italic: bool) -> &mut Self {
+        self.0.italic = italic.into();
+        self
+    }
+
+    #[inline]
+    pub fn link(&mut self, link: &str) -> &mut Self {
+        self.0.link = nvim::String::from(link).into();
+        self
+    }
+
+    #[inline]
+    pub fn nocombine(&mut self, nocombine: bool) -> &mut Self {
+        self.0.nocombine = nocombine.into();
+        self
+    }
+
+    #[inline]
+    pub fn reverse(&mut self, reverse: bool) -> &mut Self {
+        self.0.reverse = reverse.into();
+        self
+    }
+
+    #[inline]
+    pub fn special(&mut self, special: &str) -> &mut Self {
+        self.0.special = nvim::String::from(special).into();
+        self
+    }
+
+    #[inline]
+    pub fn standout(&mut self, standout: bool) -> &mut Self {
+        self.0.standout = standout.into();
+        self
+    }
+
+    #[inline]
+    pub fn strikethrough(&mut self, strikethrough: bool) -> &mut Self {
+        self.0.strikethrough = strikethrough.into();
+        self
+    }
+
+    #[inline]
+    pub fn undercurl(&mut self, undercurl: bool) -> &mut Self {
+        self.0.undercurl = undercurl.into();
+        self
+    }
+
+    #[inline]
+    pub fn underdashed(&mut self, underdashed: bool) -> &mut Self {
+        self.0.underdashed = underdashed.into();
+        self
+    }
+
+    #[inline]
+    pub fn underdotted(&mut self, underdotted: bool) -> &mut Self {
+        self.0.underdotted = underdotted.into();
+        self
+    }
+
+    #[inline]
+    pub fn underdouble(&mut self, underdouble: bool) -> &mut Self {
+        self.0.underdouble = underdouble.into();
+        self
+    }
+
+    #[inline]
+    pub fn underline(&mut self, underline: bool) -> &mut Self {
+        self.0.underline = underline.into();
+        self
+    }
+
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[inline]
+    pub fn altfont(&mut self, altfont: bool) -> &mut Self {
+        self.0.altfont = altfont.into();
+        self
+    }
+
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[inline]
+    pub fn bg_indexed(&mut self, bg_indexed: bool) -> &mut Self {
+        self.0.bg_indexed = bg_indexed.into();
+        self
+    }
+
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[inline]
+    pub fn fg_indexed(&mut self, fg_indexed: bool) -> &mut Self {
+        self.0.fg_indexed = fg_indexed.into();
+        self
+    }
+
+    #[inline]
+    pub fn build(&mut self) -> SetHighlightOpts {
+        std::mem::take(&mut self.0)
     }
 }

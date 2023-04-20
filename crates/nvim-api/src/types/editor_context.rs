@@ -1,4 +1,3 @@
-use derive_builder::Builder;
 use nvim_types::{
     self as nvim,
     conversion::{self, FromObject},
@@ -10,30 +9,23 @@ use nvim_types::{
 use serde::Deserialize;
 
 #[non_exhaustive]
-#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
 pub struct EditorContext {
-    #[builder(setter(custom))]
     #[serde(default, rename = "bufs")]
     pub bufferlist: Vec<nvim::String>,
 
-    #[builder(setter(custom))]
     #[serde(default, rename = "gvars")]
     pub global_vars: Vec<nvim::String>,
 
-    #[builder(setter(custom))]
     #[serde(default, rename = "funcs")]
     pub global_and_script_local_funcs: Vec<nvim::String>,
 
-    #[builder(setter(custom))]
     #[serde(default, rename = "jumps")]
     pub jumplist: Vec<nvim::String>,
 
-    #[builder(setter(custom))]
     #[serde(default, rename = "regs")]
     pub registers: Vec<nvim::String>,
 
-    #[builder(setter(custom))]
     #[serde(default, rename = "sfuncs")]
     pub script_local_funcs: Vec<nvim::String>,
 }
@@ -45,30 +37,81 @@ impl EditorContext {
     }
 }
 
-macro_rules! strvec_setter {
-    ($name:ident) => {
-        pub fn $name<Line, Lines>(&mut self, lines: Lines) -> &mut Self
-        where
-            Lines: IntoIterator<Item = Line>,
-            Line: Into<nvim::String>,
-        {
-            self.$name =
-                Some(lines.into_iter().map(Into::into).collect::<Vec<_>>());
-            self
-        }
-    };
-}
+#[derive(Clone, Default)]
+pub struct EditorContextBuilder(EditorContext);
 
 impl EditorContextBuilder {
-    strvec_setter!(bufferlist);
-    strvec_setter!(global_vars);
-    strvec_setter!(global_and_script_local_funcs);
-    strvec_setter!(jumplist);
-    strvec_setter!(registers);
-    strvec_setter!(script_local_funcs);
+    #[inline]
+    pub fn bufferlist<Line, Lines>(&mut self, lines: Lines) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.bufferlist = lines.into_iter().map(Into::into).collect();
+        self
+    }
 
+    #[inline]
+    pub fn global_vars<Line, Lines>(&mut self, lines: Lines) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.global_vars = lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[inline]
+    pub fn global_and_script_local_funcs<Line, Lines>(
+        &mut self,
+        lines: Lines,
+    ) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.global_and_script_local_funcs =
+            lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[inline]
+    pub fn jumplist<Line, Lines>(&mut self, lines: Lines) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.jumplist = lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[inline]
+    pub fn registers<Line, Lines>(&mut self, lines: Lines) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.registers = lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[inline]
+    pub fn script_local_funcs<Line, Lines>(
+        &mut self,
+        lines: Lines,
+    ) -> &mut Self
+    where
+        Lines: IntoIterator<Item = Line>,
+        Line: Into<nvim::String>,
+    {
+        self.0.script_local_funcs =
+            lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> EditorContext {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 

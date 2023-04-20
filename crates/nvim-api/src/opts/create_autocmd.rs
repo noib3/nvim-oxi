@@ -1,5 +1,4 @@
-use derive_builder::Builder;
-use nvim_types::{self as nvim, Array, Function, NonOwning, Object};
+use nvim_types::{self as nvim, Array, Function, Object};
 
 use crate::types::AutocmdCallbackArgs;
 use crate::Buffer;
@@ -7,43 +6,34 @@ use crate::StringOrInt;
 
 pub type ShouldDeleteAutocmd = bool;
 
-/// Options passed to `crate::create_autocmd`.
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`create_autocmd()`](crate::create_autocmd).
+#[cfg(not(feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct CreateAutocmdOpts {
-    /// A specific `Buffer` for buffer-local autocommands.
-    #[builder(setter(into, strip_option))]
-    buffer: Option<Buffer>,
-
-    /// Description of the autocommand.
-    #[builder(setter(custom))]
     desc: Object,
-
-    /// Callback to execute when the autocommand is triggered. Cannot be used
-    /// together with `command`.
-    #[builder(setter(custom))]
-    callback: Object,
-
-    /// Vim command to execute when the autocommand is triggered. Cannot be
-    /// used together with `callback`.
-    #[builder(setter(custom))]
-    command: Object,
-
-    /// The autocommand group name or id to match against.
-    #[builder(setter(custom))]
+    once: Object,
     group: Object,
+    buffer: Object,
+    nested: Object,
+    command: Object,
+    pattern: Object,
+    callback: Object,
+}
 
-    /// Run nested autocommands.
-    #[builder(setter(strip_option))]
-    nested: Option<bool>,
-
-    /// Only run the autocommand once.
-    #[builder(setter(strip_option))]
-    once: Option<bool>,
-
-    /// Patterns to match against.
-    #[builder(setter(custom))]
-    patterns: Object,
+/// Options passed to [`create_autocmd()`](crate::create_autocmd).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct CreateAutocmdOpts {
+    buffer: Object,
+    callback: Object,
+    command: Object,
+    desc: Object,
+    group: Object,
+    nested: Object,
+    once: Object,
+    pattern: Object,
 }
 
 impl CreateAutocmdOpts {
@@ -53,93 +43,85 @@ impl CreateAutocmdOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct CreateAutocmdOptsBuilder(CreateAutocmdOpts);
+
 impl CreateAutocmdOptsBuilder {
+    /// A specific `Buffer` for buffer-local autocommands.
+    #[inline]
+    pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
+        self.0.buffer = buffer.into();
+        self
+    }
+
+    /// Callback to execute when the autocommand is triggered. Cannot be used
+    /// together with `command`.
+    #[inline]
     pub fn callback<F>(&mut self, callback: F) -> &mut Self
     where
         F: Into<Function<AutocmdCallbackArgs, ShouldDeleteAutocmd>>,
     {
-        self.callback = Some(callback.into().into());
+        self.0.callback = callback.into().into();
         self
     }
 
+    /// Vim command to execute when the autocommand is triggered. Cannot be
+    /// used together with `callback`.
+    #[inline]
     pub fn command<S>(&mut self, command: S) -> &mut Self
     where
         S: Into<nvim::String>,
     {
-        self.command = Some(command.into().into());
+        self.0.command = command.into().into();
         self
     }
 
+    /// Description of the autocommand.
+    #[inline]
     pub fn desc<S>(&mut self, desc: S) -> &mut Self
     where
         S: Into<nvim::String>,
     {
-        self.desc = Some(desc.into().into());
+        self.0.desc = desc.into().into();
         self
     }
 
+    /// The autocommand group name or id to match against.
+    #[inline]
     pub fn group<Grp>(&mut self, group: Grp) -> &mut Self
     where
         Grp: StringOrInt,
     {
-        self.group = Some(group.to_object());
+        self.0.group = group.to_object();
         self
     }
 
+    /// Run nested autocommands.
+    #[inline]
+    pub fn nested(&mut self, nested: bool) -> &mut Self {
+        self.0.nested = nested.into();
+        self
+    }
+
+    /// Only run the autocommand once.
+    #[inline]
+    pub fn once(&mut self, once: bool) -> &mut Self {
+        self.0.once = once.into();
+        self
+    }
+
+    /// Patterns to match against.
+    #[inline]
     pub fn patterns<'a, I>(&mut self, patterns: I) -> &mut Self
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.patterns = Some(Array::from_iter(patterns).into());
+        self.0.pattern = Array::from_iter(patterns).into();
         self
     }
 
+    #[inline]
     pub fn build(&mut self) -> CreateAutocmdOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
-    }
-}
-
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_create_autocmd<'a> {
-    desc: NonOwning<'a, Object>,
-    once: Object,
-    group: NonOwning<'a, Object>,
-    buffer: Object,
-    nested: Object,
-    command: NonOwning<'a, Object>,
-    pattern: NonOwning<'a, Object>,
-    callback: NonOwning<'a, Object>,
-}
-
-#[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_create_autocmd<'a> {
-    buffer: Object,
-    callback: NonOwning<'a, Object>,
-    command: NonOwning<'a, Object>,
-    desc: NonOwning<'a, Object>,
-    group: NonOwning<'a, Object>,
-    nested: Object,
-    once: Object,
-    pattern: NonOwning<'a, Object>,
-}
-
-impl<'a> From<&'a CreateAutocmdOpts> for KeyDict_create_autocmd<'a> {
-    fn from(opts: &'a CreateAutocmdOpts) -> Self {
-        Self {
-            desc: opts.desc.non_owning(),
-            once: opts.once.into(),
-            group: opts.group.non_owning(),
-            buffer: opts.buffer.as_ref().into(),
-            nested: opts.nested.into(),
-            command: opts.command.non_owning(),
-            pattern: opts.patterns.non_owning(),
-            callback: opts.callback.non_owning(),
-        }
+        std::mem::take(&mut self.0)
     }
 }

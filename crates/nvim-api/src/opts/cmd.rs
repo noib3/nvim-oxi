@@ -1,12 +1,10 @@
-use derive_builder::Builder;
 use nvim_types::Object;
 
-/// Options passed to `api::cmd`.
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [cmd](crate::cmd).
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct CmdOpts {
-    #[builder(setter(strip_option))]
-    output: Option<bool>,
+    output: Object,
 }
 
 impl CmdOpts {
@@ -16,21 +14,18 @@ impl CmdOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct CmdOptsBuilder(CmdOpts);
+
 impl CmdOptsBuilder {
-    pub fn build(&mut self) -> CmdOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+    #[inline]
+    pub fn output(&mut self, output: bool) -> &mut Self {
+        self.0.output = output.into();
+        self
     }
-}
 
-#[derive(Default, Debug)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_cmd_opts {
-    output: Object,
-}
-
-impl From<&CmdOpts> for KeyDict_cmd_opts {
-    fn from(opts: &CmdOpts) -> Self {
-        Self { output: opts.output.into() }
+    #[inline]
+    pub fn build(&mut self) -> CmdOpts {
+        std::mem::take(&mut self.0)
     }
 }

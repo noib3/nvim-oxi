@@ -66,10 +66,9 @@ pub fn cmd(
     infos: &CmdInfos,
     opts: &super::opts::CmdOpts,
 ) -> Result<Option<String>> {
-    let opts = super::opts::KeyDict_cmd_opts::from(opts);
     let mut err = nvim::Error::new();
     let output =
-        unsafe { nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), &opts, &mut err) };
+        unsafe { nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), opts, &mut err) };
     choose!(err, {
         Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
     })

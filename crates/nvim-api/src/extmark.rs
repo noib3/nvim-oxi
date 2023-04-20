@@ -228,7 +228,7 @@ impl Buffer {
                 ns_id as Integer,
                 line as Integer,
                 col as Integer,
-                &opts.0,
+                opts,
                 &mut err,
             )
         };
@@ -272,8 +272,7 @@ pub fn set_decoration_provider(
     ns_id: u32,
     opts: &DecorationProviderOpts,
 ) -> Result<()> {
-    let opts = KeyDict_set_decoration_provider::from(opts);
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_decoration_provider(ns_id as Integer, &opts, &mut err) };
+    unsafe { nvim_set_decoration_provider(ns_id as Integer, opts, &mut err) };
     choose!(err, ())
 }

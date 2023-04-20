@@ -21,7 +21,7 @@ use crate::Result;
 /// [1]: https://neovim.io/doc/user/api.html#nvim_clear_autocmds()
 pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     let mut err = nvim::Error::new();
-    unsafe { nvim_clear_autocmds(&opts.into(), &mut err) };
+    unsafe { nvim_clear_autocmds(opts, &mut err) };
     choose!(err, ())
 }
 
@@ -34,14 +34,13 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_create_augroup()
 pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
-    let opts = KeyDict_create_augroup::from(opts);
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let id = unsafe {
         nvim_create_augroup(
             LUA_INTERNAL_CALL,
             name.non_owning(),
-            &opts,
+            opts,
             &mut err,
         )
     };
@@ -66,7 +65,7 @@ where
         nvim_create_autocmd(
             LUA_INTERNAL_CALL,
             events.non_owning(),
-            &opts.into(),
+            opts,
             &mut err,
         )
     };
@@ -119,7 +118,7 @@ where
 {
     let events = Object::from(Array::from_iter(events));
     let mut err = nvim::Error::new();
-    unsafe { nvim_exec_autocmds(events.non_owning(), &opts.into(), &mut err) };
+    unsafe { nvim_exec_autocmds(events.non_owning(), opts, &mut err) };
     choose!(err, ())
 }
 
@@ -133,9 +132,8 @@ where
 pub fn get_autocmds(
     opts: &GetAutocmdsOpts,
 ) -> Result<impl SuperIterator<AutocmdInfos>> {
-    let opts = KeyDict_get_autocmds::from(opts);
     let mut err = nvim::Error::new();
-    let infos = unsafe { nvim_get_autocmds(&opts, &mut err) };
+    let infos = unsafe { nvim_get_autocmds(opts, &mut err) };
     choose!(
         err,
         Ok({

@@ -1,20 +1,29 @@
-use derive_builder::Builder;
-use nvim_types::{self as nvim, conversion::FromObject, NonOwning, Object};
+use nvim_types::{self as nvim, conversion::FromObject, Object};
 use serde::Serialize;
 
+use crate::{Buffer, Window};
+
 /// Options passed to
-/// [`nvim_oxi::api::set_option_value`](crate::set_option_value).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// [`set_option_value()`](crate::set_option_value).
+#[cfg(not(feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct OptionValueOpts {
-    #[builder(setter(strip_option))]
-    buffer: Option<crate::Buffer>,
-
-    #[builder(setter(custom))]
+    buffer: Object,
     scope: Object,
+    window: Object,
+}
 
-    #[builder(setter(into, strip_option))]
-    window: Option<crate::Window>,
+/// Options passed to
+/// [`set_option_value()`](crate::set_option_value).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct OptionValueOpts {
+    scope: Object,
+    window: Object,
+    buffer: Object,
+    filetype: Object,
 }
 
 impl OptionValueOpts {
@@ -24,14 +33,39 @@ impl OptionValueOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct OptionValueOptsBuilder(OptionValueOpts);
+
 impl OptionValueOptsBuilder {
-    pub fn scope(&mut self, scope: OptionScope) -> &mut Self {
-        self.scope = Some(nvim::String::from(scope).into());
+    #[inline]
+    pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
+        self.0.buffer = buffer.into();
         self
     }
 
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[inline]
+    pub fn filetype(&mut self, filetype: &str) -> &mut Self {
+        self.0.filetype = nvim::String::from(filetype).into();
+        self
+    }
+
+    #[inline]
+    pub fn scope(&mut self, scope: OptionScope) -> &mut Self {
+        self.0.scope = nvim::String::from(scope).into();
+        self
+    }
+
+    #[inline]
+    pub fn window(&mut self, window: Window) -> &mut Self {
+        self.0.window = window.into();
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> OptionValueOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
@@ -43,44 +77,12 @@ pub enum OptionScope {
 }
 
 impl From<OptionScope> for nvim::String {
+    #[inline]
     fn from(ctx: OptionScope) -> Self {
         nvim::String::from_object(
             ctx.serialize(nvim::serde::Serializer::new())
                 .expect("`OptionScope` is serializable"),
         )
         .expect("`OptionScope` is serialized into a string")
-    }
-}
-
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_option<'a> {
-    buf: Object,
-    win: Object,
-    scope: NonOwning<'a, Object>,
-}
-
-#[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_option<'a> {
-    scope: NonOwning<'a, Object>,
-    win: Object,
-    buf: Object,
-    filetype: Object,
-}
-
-impl<'a> From<&'a OptionValueOpts> for KeyDict_option<'a> {
-    fn from(opts: &'a OptionValueOpts) -> Self {
-        Self {
-            buf: opts.buffer.as_ref().into(),
-            win: opts.window.as_ref().into(),
-            scope: opts.scope.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
-            filetype: Object::nil(), // TODO: update this
-        }
     }
 }

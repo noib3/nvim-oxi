@@ -1,13 +1,10 @@
-use derive_builder::Builder;
 use nvim_types::Object;
 
-/// Options passed to `crate::api::create_augroup`.
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`create_augroup()`](crate::create_augroup).
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct CreateAugroupOpts {
-    /// Whether to clear existing commands if the group already exists.
-    #[builder(setter(strip_option))]
-    clear: Option<bool>,
+    clear: Object,
 }
 
 impl CreateAugroupOpts {
@@ -17,21 +14,19 @@ impl CreateAugroupOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct CreateAugroupOptsBuilder(CreateAugroupOpts);
+
 impl CreateAugroupOptsBuilder {
-    pub fn build(&mut self) -> CreateAugroupOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+    /// Whether to clear existing commands if the group already exists.
+    #[inline]
+    pub fn clear(&mut self, clear: bool) -> &mut Self {
+        self.0.clear = clear.into();
+        self
     }
-}
 
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_create_augroup {
-    clear: Object,
-}
-
-impl From<&CreateAugroupOpts> for KeyDict_create_augroup {
-    fn from(opts: &CreateAugroupOpts) -> Self {
-        Self { clear: opts.clear.into() }
+    #[inline]
+    pub fn build(&mut self) -> CreateAugroupOpts {
+        std::mem::take(&mut self.0)
     }
 }

@@ -1,13 +1,11 @@
-use derive_builder::Builder;
 use nvim_types::Object;
 
-/// Options passed to
-/// [`Buffer::get_commands`](crate::Buffer::get_commands) and
-/// [`get_commands`](crate::get_commands).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`Buffer::get_commands()`](crate::Buffer::get_commands)
+/// and [`get_commands()`](crate::get_commands).
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct GetCommandsOpts {
-    builtin: Option<bool>,
+    builtin: Object,
 }
 
 impl GetCommandsOpts {
@@ -17,21 +15,18 @@ impl GetCommandsOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct GetCommandsOptsBuilder(GetCommandsOpts);
+
 impl GetCommandsOptsBuilder {
-    pub fn build(&mut self) -> GetCommandsOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+    #[inline]
+    pub fn builtin(&mut self, builtin: bool) -> &mut Self {
+        self.0.builtin = builtin.into();
+        self
     }
-}
 
-#[derive(Default, Debug)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_get_commands {
-    builtin: Object,
-}
-
-impl From<&GetCommandsOpts> for KeyDict_get_commands {
-    fn from(opts: &GetCommandsOpts) -> Self {
-        Self { builtin: opts.builtin.into() }
+    #[inline]
+    pub fn build(&mut self) -> GetCommandsOpts {
+        std::mem::take(&mut self.0)
     }
 }

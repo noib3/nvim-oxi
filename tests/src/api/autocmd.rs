@@ -4,7 +4,7 @@ use nvim_oxi::api::{self, opts::*, Buffer};
 
 #[oxi::test]
 fn clear_autocmds_current_buf() {
-    let opts = ClearAutocmdsOpts::builder().buffer(0).build();
+    let opts = ClearAutocmdsOpts::builder().buffer(0.into()).build();
     assert_eq!(Ok(()), api::clear_autocmds(&opts));
 
     let opts = ClearAutocmdsOpts::builder().buffer(Buffer::current()).build();
@@ -32,7 +32,7 @@ fn clear_autocmds_events() {
 #[oxi::test]
 fn clear_autocmds_buffer_n_patterns() {
     let opts = ClearAutocmdsOpts::builder()
-        .buffer(0)
+        .buffer(0.into())
         .patterns(["*.py", "*.ts"])
         .build();
 
@@ -56,7 +56,7 @@ fn create_augroup() {
 #[oxi::test]
 fn create_autocmd() {
     let opts = CreateAutocmdOpts::builder()
-        .buffer(0)
+        .buffer(0.into())
         .desc("Does nothing, in the current buffer")
         .callback(|_args| Ok::<_, oxi::Error>(false))
         .build();
@@ -69,7 +69,7 @@ fn create_autocmd() {
 fn create_autocmd_buffer_n_patterns() {
     let opts = CreateAutocmdOpts::builder()
         .command("echo 'hi there'")
-        .buffer(0)
+        .buffer(0.into())
         .patterns(["*.py", "*.ts"])
         .build();
 
@@ -92,14 +92,14 @@ fn exec_autocmds() {
             *i += 1;
             Ok::<_, oxi::Error>(false)
         })
-        .buffer(0)
+        .buffer(Buffer::current())
         .once(true)
         .build();
 
     let id = api::create_autocmd(["BufAdd"], &opts);
     assert!(id.is_ok(), "{id:?}");
 
-    let opts = ExecAutocmdsOpts::builder().buffer(0).build();
+    let opts = ExecAutocmdsOpts::builder().buffer(Buffer::current()).build();
 
     let res = api::exec_autocmds(["BufAdd"], &opts);
     assert_eq!(Ok(()), res);

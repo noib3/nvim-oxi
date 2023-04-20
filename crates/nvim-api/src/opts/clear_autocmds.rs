@@ -1,26 +1,28 @@
-use derive_builder::Builder;
-use nvim_types::{Array, NonOwning, Object};
+use nvim_types::{Array, Object};
 
 use crate::Buffer;
 use crate::StringOrInt;
 
-/// Options passed to [`api::clear_autocmds`](crate::clear_autocmds).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
+#[cfg(not(feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct ClearAutocmdsOpts {
-    /// Only clear the autocommands local to a specific `Buffer`. Cannot be
-    /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
-    #[builder(setter(into, strip_option))]
-    buffer: Option<Buffer>,
-
-    #[builder(setter(custom))]
-    events: Object,
-
-    #[builder(setter(custom))]
+    event: Object,
     group: Object,
+    buffer: Object,
+    pattern: Object,
+}
 
-    #[builder(setter(custom))]
-    patterns: Object,
+/// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct ClearAutocmdsOpts {
+    buffer: Object,
+    event: Object,
+    group: Object,
+    pattern: Object,
 }
 
 impl ClearAutocmdsOpts {
@@ -31,14 +33,26 @@ impl ClearAutocmdsOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct ClearAutocmdsOptsBuilder(ClearAutocmdsOpts);
+
 impl ClearAutocmdsOptsBuilder {
+    /// Only clear the autocommands local to a specific `Buffer`. Cannot be
+    /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
+    #[inline]
+    pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
+        self.0.buffer = buffer.into();
+        self
+    }
+
     /// Clear all the autocommands triggered by one or more of the specified
     /// events.
+    #[inline]
     pub fn events<'a, I>(&mut self, iter: I) -> &mut Self
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.events = Some(Array::from_iter(iter).into());
+        self.0.event = Array::from_iter(iter).into();
         self
     }
 
@@ -46,58 +60,28 @@ impl ClearAutocmdsOptsBuilder {
     /// you have `"*.py"` as a pattern for a particular autocommand, you must
     /// pass that exact pattern to clear it. Cannot be used together with
     /// [`buffer`](ClearAutocmdsOptsBuilder::buffer).
+    #[inline]
     pub fn patterns<'a, I>(&mut self, iter: I) -> &mut Self
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.patterns = Some(Array::from_iter(iter).into());
+        self.0.pattern = Array::from_iter(iter).into();
         self
     }
 
     /// Only clear the autocommands belonging to a specific augroup. The
     /// augroup can be specified by both id and name.
+    #[inline]
     pub fn group<Grp>(&mut self, group: Grp) -> &mut Self
     where
         Grp: StringOrInt,
     {
-        self.group = Some(group.to_object());
+        self.0.group = group.to_object();
         self
     }
 
+    #[inline]
     pub fn build(&mut self) -> ClearAutocmdsOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
-    }
-}
-
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_clear_autocmds<'a> {
-    event: NonOwning<'a, Object>,
-    group: NonOwning<'a, Object>,
-    buffer: Object,
-    pattern: NonOwning<'a, Object>,
-}
-
-#[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_clear_autocmds<'a> {
-    buffer: Object,
-    event: NonOwning<'a, Object>,
-    group: NonOwning<'a, Object>,
-    pattern: NonOwning<'a, Object>,
-}
-
-impl<'a> From<&'a ClearAutocmdsOpts> for KeyDict_clear_autocmds<'a> {
-    fn from(opts: &'a ClearAutocmdsOpts) -> Self {
-        Self {
-            event: opts.events.non_owning(),
-            group: opts.group.non_owning(),
-            buffer: opts.buffer.as_ref().into(),
-            pattern: opts.patterns.non_owning(),
-        }
+        std::mem::take(&mut self.0)
     }
 }

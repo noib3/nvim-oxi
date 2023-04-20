@@ -9,8 +9,7 @@ use nvim_types::{
     String,
 };
 
-use crate::opts::KeyDict_set_decoration_provider;
-use crate::opts::KeyDict_set_extmark;
+use crate::opts::*;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L950
@@ -66,7 +65,7 @@ extern "C" {
         ns_id: Integer,
         line: Integer,
         col: Integer,
-        opts: *const KeyDict_set_extmark,
+        opts: *const SetExtmarkOpts,
         err: *mut Error,
     ) -> Integer;
 
@@ -79,7 +78,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L1074
     pub(crate) fn nvim_set_decoration_provider(
         ns_id: Integer,
-        opts: *const KeyDict_set_decoration_provider,
+        opts: *const DecorationProviderOpts,
         err: *mut Error,
     );
 }

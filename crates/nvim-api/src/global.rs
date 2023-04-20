@@ -57,7 +57,6 @@ where
 {
     let name = nvim::String::from(name);
     let command = command.to_object();
-    let opts = KeyDict_user_command::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
@@ -65,7 +64,7 @@ where
             LUA_INTERNAL_CALL,
             name.non_owning(),
             command.non_owning(),
-            &opts,
+            opts,
             &mut err,
         )
     };
@@ -208,10 +207,9 @@ pub fn eval_statusline(
     opts: &EvalStatuslineOpts,
 ) -> Result<StatuslineInfos> {
     let str = nvim::String::from(str);
-    let opts = KeyDict_eval_statusline::from(opts);
     let mut err = nvim::Error::new();
     let dict =
-        unsafe { nvim_eval_statusline(str.non_owning(), &opts, &mut err) };
+        unsafe { nvim_eval_statusline(str.non_owning(), opts, &mut err) };
     choose!(err, Ok(StatuslineInfos::from_object(dict.into())?))
 }
 
@@ -288,9 +286,8 @@ pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
 pub fn get_commands(
     opts: &GetCommandsOpts,
 ) -> Result<impl SuperIterator<CommandInfos>> {
-    let opts = KeyDict_get_commands::from(opts);
     let mut err = nvim::Error::new();
-    let cmds = unsafe { nvim_get_commands(&opts, &mut err) };
+    let cmds = unsafe { nvim_get_commands(opts, &mut err) };
     choose!(
         err,
         Ok({
@@ -306,9 +303,8 @@ pub fn get_commands(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_context()
 pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
-    let opts = KeyDict_context::from(opts);
     let mut err = nvim::Error::new();
-    let ctx = unsafe { nvim_get_context(&opts, &mut err) };
+    let ctx = unsafe { nvim_get_context(opts, &mut err) };
     choose!(err, Ok(EditorContext::from_object(ctx.into())?))
 }
 
@@ -494,10 +490,9 @@ where
     Opt: FromObject,
 {
     let name = nvim::String::from(name);
-    let opts = KeyDict_option::from(opts);
     let mut err = nvim::Error::new();
     let obj =
-        unsafe { nvim_get_option_value(name.non_owning(), &opts, &mut err) };
+        unsafe { nvim_get_option_value(name.non_owning(), opts, &mut err) };
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 
@@ -932,10 +927,9 @@ pub fn set_current_win(win: &Window) -> Result<()> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl()
 pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     let name = nvim::String::from(name);
-    let opts = KeyDict_highlight::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
-        nvim_set_hl(ns_id as Integer, name.non_owning(), &opts, &mut err)
+        nvim_set_hl(ns_id as Integer, name.non_owning(), opts, &mut err)
     };
     choose!(err, ())
 }
@@ -955,7 +949,6 @@ pub fn set_keymap(
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
     let rhs = nvim::String::from(rhs);
-    let opts = KeyDict_keymap::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_keymap(
@@ -963,7 +956,7 @@ pub fn set_keymap(
             mode.non_owning(),
             lhs.non_owning(),
             rhs.non_owning(),
-            &opts,
+            opts,
             &mut err,
         )
     };
@@ -1009,13 +1002,12 @@ where
     Opt: ToObject,
 {
     let name = nvim::String::from(name);
-    let opts = KeyDict_option::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_option_value(
             name.non_owning(),
             value.to_object()?.non_owning(),
-            &opts,
+            opts,
             &mut err,
         )
     };

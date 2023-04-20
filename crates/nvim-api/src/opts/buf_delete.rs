@@ -1,17 +1,10 @@
-use derive_builder::Builder;
-use nvim_types::Dictionary;
+use nvim_types::{Dictionary, Object};
 
-/// Options passed to [`Buffer::delete`](crate::Buffer::delete).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`Buffer::delete()`](crate::Buffer::delete).
+#[derive(Clone, Debug, Default)]
 pub struct BufDeleteOpts {
-    #[builder(setter(strip_option))]
-    /// Force deletion ignoring unsaved changes.
-    force: Option<bool>,
-
-    #[builder(setter(strip_option))]
-    /// If `true` the buffer will only be unloaded, not deleted.
-    unload: Option<bool>,
+    force: Object,
+    unload: Object,
 }
 
 impl BufDeleteOpts {
@@ -21,14 +14,35 @@ impl BufDeleteOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct BufDeleteOptsBuilder(BufDeleteOpts);
+
 impl BufDeleteOptsBuilder {
+    /// Force deletion ignoring unsaved changes.
+    #[inline]
+    pub fn force(&mut self, force: bool) -> &mut Self {
+        self.0.force = force.into();
+        self
+    }
+
+    /// If `true` the buffer will only be unloaded, not deleted.
+    #[inline]
+    pub fn unload(&mut self, unload: bool) -> &mut Self {
+        self.0.unload = unload.into();
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> BufDeleteOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl From<&BufDeleteOpts> for Dictionary {
     fn from(opts: &BufDeleteOpts) -> Self {
-        Self::from_iter([("force", opts.force), ("unload", opts.unload)])
+        Self::from_iter([
+            ("force", opts.force.clone()),
+            ("unload", opts.unload.clone()),
+        ])
     }
 }

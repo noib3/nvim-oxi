@@ -8,6 +8,8 @@ use nvim_types::{
     String,
 };
 
+use crate::opts::*;
+
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L283
     pub(crate) fn nvim_call_dict_function(
@@ -28,7 +30,7 @@ extern "C" {
     pub(crate) fn nvim_cmd(
         channel_id: u64,
         cmd: *const crate::types::KeyDict_cmd,
-        opts: *const crate::opts::KeyDict_cmd_opts,
+        opts: *const CmdOpts,
         err: *mut Error,
     ) -> String;
 

@@ -1,21 +1,23 @@
-use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to [`api::get_mark`](crate::get_mark). Currently unused.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Hash, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`get_mark()`](crate::get_mark). Currently unused.
+#[derive(Clone, Debug, Default)]
 pub struct GetMarkOpts {}
 
 impl GetMarkOpts {
-    #[inline(always)]
+    #[inline]
     pub fn builder() -> GetMarkOptsBuilder {
         GetMarkOptsBuilder::default()
     }
 }
 
+#[derive(Clone, Default)]
+pub struct GetMarkOptsBuilder(GetMarkOpts);
+
 impl GetMarkOptsBuilder {
+    #[inline]
     pub fn build(&mut self) -> GetMarkOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 

@@ -33,7 +33,7 @@ extern "C" {
         #[cfg(not(feature = "neovim-0-8"))] channel_id: u64,
         name: NonOwning<String>,
         command: NonOwning<Object>,
-        opts: *const KeyDict_user_command,
+        opts: *const CreateCommandOpts,
         err: *mut Error,
     );
 
@@ -80,7 +80,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L2070
     pub(crate) fn nvim_eval_statusline(
         str: NonOwning<String>,
-        opts: *const KeyDict_eval_statusline,
+        opts: *const EvalStatuslineOpts,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -108,13 +108,13 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
     pub(crate) fn nvim_get_commands(
-        opts: *const KeyDict_get_commands,
+        opts: *const GetCommandsOpts,
         error: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1308
     pub(crate) fn nvim_get_context(
-        opts: *const KeyDict_context,
+        opts: *const GetContextOpts,
         error: *mut Error,
     ) -> Dictionary;
 
@@ -178,7 +178,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L146
     pub(crate) fn nvim_get_option_value(
         name: NonOwning<String>,
-        opts: *const KeyDict_option,
+        opts: *const OptionValueOpts,
         err: *mut Error,
     ) -> Object;
 
@@ -325,7 +325,7 @@ extern "C" {
     pub(crate) fn nvim_set_hl(
         ns_id: Integer,
         name: NonOwning<String>,
-        val: *const KeyDict_highlight,
+        val: *const SetHighlightOpts,
         err: *mut Error,
     );
 
@@ -335,7 +335,7 @@ extern "C" {
         mode: NonOwning<String>,
         lhs: NonOwning<String>,
         rhs: NonOwning<String>,
-        opts: *const KeyDict_keymap,
+        opts: *const SetKeymapOpts,
         err: *mut Error,
     );
 
@@ -351,7 +351,7 @@ extern "C" {
     pub(crate) fn nvim_set_option_value(
         name: NonOwning<String>,
         value: NonOwning<Object>,
-        opts: *const KeyDict_option,
+        opts: *const OptionValueOpts,
         err: *mut Error,
     );
 

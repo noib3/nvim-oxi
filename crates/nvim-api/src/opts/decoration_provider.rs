@@ -1,5 +1,3 @@
-use derive_builder::Builder;
-use nvim_types::NonOwning;
 use nvim_types::Object;
 
 use crate::ToFunction;
@@ -56,30 +54,33 @@ pub type DontSkipRedrawCycle = bool;
 pub type DontSkipOnLines = bool;
 
 /// Options passed to
-/// [`nvim_oxi::api::set_decoration_provider`](crate::set_decoration_provider).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// [`set_decoration_provider()`](crate::set_decoration_provider).
+#[cfg(not(feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct DecorationProviderOpts {
-    #[builder(setter(custom))]
     on_buf: Object,
-
-    #[builder(setter(custom))]
     on_end: Object,
-
-    #[builder(setter(skip))]
-    on_hl_def: Object,
-
-    #[builder(setter(custom))]
-    on_line: Object,
-
-    #[builder(setter(skip))]
-    on_spell_nav: Object,
-
-    #[builder(setter(custom))]
-    on_start: Object,
-
-    #[builder(setter(custom))]
     on_win: Object,
+    on_line: Object,
+    on_start: Object,
+    _on_hl_def: Object,
+    _on_spell_nav: Object,
+}
+
+/// Options passed to
+/// [`set_decoration_provider()`](crate::set_decoration_provider).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct DecorationProviderOpts {
+    on_start: Object,
+    on_buf: Object,
+    on_win: Object,
+    on_line: Object,
+    on_end: Object,
+    _on_hl_def: Object,
+    _on_spell_nav: Object,
 }
 
 impl DecorationProviderOpts {
@@ -90,93 +91,57 @@ impl DecorationProviderOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct DecorationProviderOptsBuilder(DecorationProviderOpts);
+
 impl DecorationProviderOptsBuilder {
+    #[inline]
     pub fn on_buf<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnBufArgs, ()>,
     {
-        self.on_buf = Some(fun.to_object());
+        self.0.on_buf = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn on_end<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnEndArgs, ()>,
     {
-        self.on_end = Some(fun.to_object());
+        self.0.on_end = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn on_line<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnLineArgs, ()>,
     {
-        self.on_line = Some(fun.to_object());
+        self.0.on_line = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn on_start<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
     {
-        self.on_start = Some(fun.to_object());
+        self.0.on_start = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn on_win<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnWinArgs, DontSkipOnLines>,
     {
-        self.on_win = Some(fun.to_object());
+        self.0.on_win = fun.to_object();
         self
     }
 
+    #[inline]
     pub fn build(&mut self) -> DecorationProviderOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
-    }
-}
-
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_set_decoration_provider<'a> {
-    on_buf: NonOwning<'a, Object>,
-    on_end: NonOwning<'a, Object>,
-    on_win: NonOwning<'a, Object>,
-    on_line: NonOwning<'a, Object>,
-    on_start: NonOwning<'a, Object>,
-    _on_hl_def: NonOwning<'a, Object>,
-    _on_spell_nav: NonOwning<'a, Object>,
-}
-
-#[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_set_decoration_provider<'a> {
-    on_start: NonOwning<'a, Object>,
-    on_buf: NonOwning<'a, Object>,
-    on_win: NonOwning<'a, Object>,
-    on_line: NonOwning<'a, Object>,
-    on_end: NonOwning<'a, Object>,
-    _on_hl_def: NonOwning<'a, Object>,
-    _on_spell_nav: NonOwning<'a, Object>,
-}
-
-impl<'a> From<&'a DecorationProviderOpts>
-    for KeyDict_set_decoration_provider<'a>
-{
-    #[inline(always)]
-    fn from(opts: &'a DecorationProviderOpts) -> Self {
-        Self {
-            on_buf: opts.on_buf.non_owning(),
-            on_end: opts.on_end.non_owning(),
-            on_win: opts.on_win.non_owning(),
-            on_line: opts.on_line.non_owning(),
-            on_start: opts.on_start.non_owning(),
-            _on_hl_def: opts.on_hl_def.non_owning(),
-            _on_spell_nav: opts.on_spell_nav.non_owning(),
-        }
+        std::mem::take(&mut self.0)
     }
 }

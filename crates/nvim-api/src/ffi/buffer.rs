@@ -10,11 +10,7 @@ use nvim_types::{
     String,
 };
 
-use crate::opts::{
-    KeyDict_get_commands,
-    KeyDict_keymap,
-    KeyDict_user_command,
-};
+use crate::opts::*;
 
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L152
@@ -39,7 +35,7 @@ extern "C" {
         buf: BufHandle,
         name: NonOwning<String>,
         command: NonOwning<Object>,
-        opts: *const KeyDict_user_command,
+        opts: *const CreateCommandOpts,
         err: *mut Error,
     );
 
@@ -89,7 +85,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1243
     pub(crate) fn nvim_buf_get_commands(
         buf: BufHandle,
-        opts: *const KeyDict_get_commands,
+        opts: *const GetCommandsOpts,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -181,7 +177,7 @@ extern "C" {
         mode: NonOwning<String>,
         lhs: NonOwning<String>,
         rhs: NonOwning<String>,
-        opts: *const KeyDict_keymap,
+        opts: *const SetKeymapOpts,
         err: *mut Error,
     );
 

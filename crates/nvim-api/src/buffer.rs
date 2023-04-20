@@ -158,7 +158,6 @@ impl Buffer {
     where
         Cmd: StringOrFunction<CommandArgs, ()>,
     {
-        let opts = KeyDict_user_command::from(opts);
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let command = command.to_object();
@@ -169,7 +168,7 @@ impl Buffer {
                 self.0,
                 name.non_owning(),
                 command.non_owning(),
-                &opts,
+                opts,
                 &mut err,
             )
         };
@@ -275,8 +274,7 @@ impl Buffer {
         opts: &GetCommandsOpts,
     ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
-        let opts = KeyDict_get_commands::from(opts);
-        let cmds = unsafe { nvim_buf_get_commands(self.0, &opts, &mut err) };
+        let cmds = unsafe { nvim_buf_get_commands(self.0, opts, &mut err) };
         choose!(
             err,
             Ok({
@@ -521,7 +519,6 @@ impl Buffer {
         let mode = nvim::String::from(mode);
         let lhs = nvim::String::from(lhs);
         let rhs = nvim::String::from(rhs);
-        let opts = KeyDict_keymap::from(opts);
         let mut err = nvim::Error::new();
         unsafe {
             nvim_buf_set_keymap(
@@ -530,7 +527,7 @@ impl Buffer {
                 mode.non_owning(),
                 lhs.non_owning(),
                 rhs.non_owning(),
-                &opts,
+                opts,
                 &mut err,
             )
         };

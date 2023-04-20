@@ -1,4 +1,3 @@
-use derive_builder::Builder;
 use nvim_types::{Dictionary, Object};
 
 use crate::Buffer;
@@ -85,33 +84,15 @@ pub type OnReloadArgs = (String, Buffer);
 pub type ShouldDetach = bool;
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default)]
 pub struct BufAttachOpts {
-    #[builder(setter(custom))]
     on_bytes: Object,
-
-    #[builder(setter(custom))]
     on_changedtick: Object,
-
-    #[builder(setter(custom))]
     on_detach: Object,
-
-    #[builder(setter(custom))]
     on_lines: Object,
-
-    #[builder(setter(custom))]
     on_reload: Object,
-
-    /// Whether to also attach to command preview (i.e.
-    /// [`inccommand`](https://neovim.io/doc/user/options.html#'inccommand'))
-    /// events.
-    preview: bool,
-
-    /// Whether to include the UTF-32 and UTF-16 sizes of the replaced region
-    /// as the last arguments of the
-    /// [`on_lines`](BufAttachOptsBuilder::on_lines) callback.
-    utf_sizes: bool,
+    preview: Object,
+    utf_sizes: Object,
 }
 
 impl BufAttachOpts {
@@ -122,60 +103,88 @@ impl BufAttachOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct BufAttachOptsBuilder(BufAttachOpts);
+
 impl BufAttachOptsBuilder {
     /// Callback invoked on change. It receives more granular information about
     /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
-    pub fn on_bytes<F>(&mut self, fun: F) -> &mut Self
+    #[inline]
+    pub fn on_bytes<F>(&mut self, on_bytes: F) -> &mut Self
     where
         F: ToFunction<OnBytesArgs, ShouldDetach>,
     {
-        self.on_bytes = Some(fun.to_object());
+        self.0.on_bytes = on_bytes.to_object();
         self
     }
 
     /// Callback invoked on changedtick increment without text change.
-    pub fn on_changedtick<F>(&mut self, fun: F) -> &mut Self
+    #[inline]
+    pub fn on_changedtick<F>(&mut self, on_changedtick: F) -> &mut Self
     where
         F: ToFunction<OnChangedtickArgs, ShouldDetach>,
     {
-        self.on_changedtick = Some(fun.to_object());
+        self.0.on_changedtick = on_changedtick.to_object();
         self
     }
 
     /// Callback invoked on detach.
-    pub fn on_detach<F>(&mut self, fun: F) -> &mut Self
+    #[inline]
+    pub fn on_detach<F>(&mut self, on_detach: F) -> &mut Self
     where
         F: ToFunction<OnDetachArgs, ShouldDetach>,
     {
-        self.on_detach = Some(fun.to_object());
+        self.0.on_detach = on_detach.to_object();
         self
     }
 
     /// Callback invoked on change.
+    #[inline]
     pub fn on_lines<F>(&mut self, fun: F) -> &mut Self
     where
         F: ToFunction<OnLinesArgs, ShouldDetach>,
     {
-        self.on_lines = Some(fun.to_object());
+        self.0.on_lines = fun.to_object();
         self
     }
 
     /// Callback invoked on reload. The entire buffer content should be
     /// considered changed.
-    pub fn on_reload<F>(&mut self, fun: F) -> &mut Self
+    #[inline]
+    pub fn on_reload<F>(&mut self, on_reload: F) -> &mut Self
     where
         F: ToFunction<OnReloadArgs, ShouldDetach>,
     {
-        self.on_reload = Some(fun.to_object());
+        self.0.on_reload = on_reload.to_object();
         self
     }
 
+    /// Whether to also attach to command preview (i.e.
+    /// [`inccommand`](https://neovim.io/doc/user/options.html#'inccommand'))
+    /// events.
+    #[inline]
+    pub fn preview(&mut self, preview: bool) -> &mut Self {
+        self.0.preview = preview.into();
+        self
+    }
+
+    /// Whether to include the UTF-32 and UTF-16 sizes of the replaced region
+    /// as the last arguments of the
+    /// [`on_lines`](BufAttachOptsBuilder::on_lines) callback.
+    #[inline]
+    pub fn utf_sizes(&mut self, utf_sizes: bool) -> &mut Self {
+        self.0.utf_sizes = utf_sizes.into();
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> BufAttachOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl From<&BufAttachOpts> for Dictionary {
+    #[inline]
     fn from(opts: &BufAttachOpts) -> Self {
         // TODO: don't clone by making non-owning version of Dictionary
         Self::from_iter([
@@ -184,8 +193,8 @@ impl From<&BufAttachOpts> for Dictionary {
             ("on_detach", opts.on_detach.clone()),
             ("on_lines", opts.on_lines.clone()),
             ("on_reload", opts.on_reload.clone()),
-            ("preview", opts.preview.into()),
-            ("utf_sizes", opts.utf_sizes.into()),
+            ("preview", opts.preview.clone()),
+            ("utf_sizes", opts.utf_sizes.clone()),
         ])
     }
 }

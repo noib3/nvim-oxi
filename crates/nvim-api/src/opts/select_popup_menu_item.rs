@@ -1,23 +1,25 @@
-use derive_builder::Builder;
 use nvim_types::Dictionary;
 
 /// Options passed to
-/// [`api::select_popupmenu_item`](crate::select_popupmenu_item).
+/// [`select_popupmenu_item()`](crate::select_popupmenu_item).
 /// Currently unused.
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+#[derive(Clone, Debug, Default)]
 pub struct SelectPopupMenuItemOpts {}
 
 impl SelectPopupMenuItemOpts {
-    #[inline(always)]
+    #[inline]
     pub fn builder() -> SelectPopupMenuItemOptsBuilder {
         SelectPopupMenuItemOptsBuilder::default()
     }
 }
 
+#[derive(Clone, Default)]
+pub struct SelectPopupMenuItemOptsBuilder(SelectPopupMenuItemOpts);
+
 impl SelectPopupMenuItemOptsBuilder {
+    #[inline]
     pub fn build(&mut self) -> SelectPopupMenuItemOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 

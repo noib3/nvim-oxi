@@ -1,9 +1,7 @@
-use derive_builder::Builder;
 use nvim_types::Dictionary;
 
-/// Options passed to [`notify`](crate::notify). Currently unused.
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`notify()`](crate::notify). Currently unused.
+#[derive(Clone, Debug, Default)]
 pub struct NotifyOpts {}
 
 impl NotifyOpts {
@@ -13,9 +11,13 @@ impl NotifyOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct NotifyOptsBuilder(NotifyOpts);
+
 impl NotifyOptsBuilder {
+    #[inline]
     pub fn build(&mut self) -> NotifyOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 

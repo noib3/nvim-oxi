@@ -1,33 +1,28 @@
-use derive_builder::Builder;
-use nvim_types::{Array, NonOwning, Object};
+use nvim_types::{Array, Object};
 
+use crate::trait_utils::StringOrInt;
 use crate::Buffer;
 
-/// Options passed to [`nvim_oxi::api::get_autocmds`](crate::get_autocmds).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`get_autocmds()`](crate::get_autocmds).
+#[cfg(not(feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct GetAutocmdsOpts {
-    /// Get the autocommands local to a specific `Buffer`. Cannot be used
-    /// together with `patterns`.
-    #[builder(setter(into, strip_option))]
-    buffer: Option<Buffer>,
-
-    /// Get all the autocommands triggered by one or more of the specified
-    /// events.
-    #[builder(setter(custom))]
     events: Object,
-
-    /// Only get the autocommands belonging to a specific augroup. The
-    /// augroup can be specified by both id and name.
-    #[builder(setter(into))]
     group: Object,
-
-    /// Only get the autocommands that match specific patterns. For example, if
-    /// you have `"*.py"` as a pattern for a particular autocommand, you must
-    /// pass that exact pattern to clear it. Cannot be used together with
-    /// `buffer`.
-    #[builder(setter(custom))]
+    buffer: Object,
     patterns: Object,
+}
+
+/// Options passed to [`get_autocmds()`](crate::get_autocmds).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct GetAutocmdsOpts {
+    events: Object,
+    group: Object,
+    patterns: Object,
+    buffer: Object,
 }
 
 impl GetAutocmdsOpts {
@@ -37,56 +32,55 @@ impl GetAutocmdsOpts {
     }
 }
 
-macro_rules! string_or_table {
-    ($fn_name:ident) => {
-        pub fn $fn_name<'a, I>(&mut self, iter: I) -> &mut Self
-        where
-            I: IntoIterator<Item = &'a str>,
-        {
-            self.$fn_name = Some(Array::from_iter(iter).into());
-            self
-        }
-    };
-}
+#[derive(Clone, Default)]
+pub struct GetAutocmdsOptsBuilder(GetAutocmdsOpts);
 
 impl GetAutocmdsOptsBuilder {
-    string_or_table!(events);
-    string_or_table!(patterns);
-
-    pub fn build(&mut self) -> GetAutocmdsOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+    /// Get the autocommands local to a specific `Buffer`. Cannot be used
+    /// together with `patterns`.
+    #[inline]
+    pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
+        self.0.buffer = buffer.into();
+        self
     }
-}
 
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_get_autocmds<'a> {
-    event: NonOwning<'a, Object>,
-    group: NonOwning<'a, Object>,
-    buffer: Object,
-    pattern: NonOwning<'a, Object>,
-}
+    /// Get all the autocommands triggered by one or more of the specified
+    /// events.
+    #[inline]
+    pub fn events<'a, I>(&mut self, events: I) -> &mut Self
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        self.0.events = Array::from_iter(events).into();
+        self
+    }
 
-#[cfg(feature = "neovim-nightly")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_get_autocmds<'a> {
-    event: NonOwning<'a, Object>,
-    group: NonOwning<'a, Object>,
-    pattern: NonOwning<'a, Object>,
-    buffer: Object,
-}
+    /// Only get the autocommands belonging to a specific augroup. The
+    /// augroup can be specified by both id and name.
+    #[inline]
+    pub fn group<Group>(&mut self, group: impl Into<Object>) -> &mut Self
+    where
+        Group: StringOrInt,
+    {
+        self.0.group = group.into();
+        self
+    }
 
-impl<'a> From<&'a GetAutocmdsOpts> for KeyDict_get_autocmds<'a> {
-    fn from(opts: &'a GetAutocmdsOpts) -> Self {
-        Self {
-            event: opts.events.non_owning(),
-            group: opts.group.non_owning(),
-            buffer: opts.buffer.as_ref().into(),
-            pattern: opts.patterns.non_owning(),
-        }
+    /// Only get the autocommands that match specific patterns. For example, if
+    /// you have `"*.py"` as a pattern for a particular autocommand, you must
+    /// pass that exact pattern to clear it. Cannot be used together with
+    /// `buffer`.
+    #[inline]
+    pub fn patterns<'a, I>(&mut self, patterns: I) -> &mut Self
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        self.0.patterns = Array::from_iter(patterns).into();
+        self
+    }
+
+    #[inline]
+    pub fn build(&mut self) -> GetAutocmdsOpts {
+        std::mem::take(&mut self.0)
     }
 }

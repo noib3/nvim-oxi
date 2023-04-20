@@ -1,35 +1,41 @@
-use derive_builder::Builder;
-use nvim_types::Dictionary;
+use nvim_types::{Dictionary, Object};
 
 /// Options passed to
-/// [`Buffer::get_extmark_by_id`](crate::Buffer::get_extmark_by_id).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// [`Buffer::get_extmark_by_id()`](crate::Buffer::get_extmark_by_id).
+#[derive(Clone, Debug, Default)]
 pub struct GetExtmarkByIdOpts {
-    /// Whether to include the extmark's
-    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of the
-    /// tuple returned by
-    /// [`Buffer::get_extmark_by_id`](crate::Buffer::get_extmark_by_id).
-    #[builder(setter(strip_option))]
-    details: Option<bool>,
+    details: Object,
 }
 
 impl GetExtmarkByIdOpts {
-    #[inline(always)]
-    /// Creates a new [`GetExtmarkByIdOptsBuilder`].
+    #[inline]
     pub fn builder() -> GetExtmarkByIdOptsBuilder {
         GetExtmarkByIdOptsBuilder::default()
     }
 }
 
+#[derive(Clone, Default)]
+pub struct GetExtmarkByIdOptsBuilder(GetExtmarkByIdOpts);
+
 impl GetExtmarkByIdOptsBuilder {
+    /// Whether to include the extmark's
+    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of the
+    /// tuple returned by
+    /// [`Buffer::get_extmark_by_id`](crate::Buffer::get_extmark_by_id).
+    #[inline]
+    pub fn details(&mut self, details: bool) -> &mut Self {
+        self.0.details = details.into();
+        self
+    }
+
+    #[inline]
     pub fn build(&mut self) -> GetExtmarkByIdOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+        std::mem::take(&mut self.0)
     }
 }
 
 impl From<&GetExtmarkByIdOpts> for Dictionary {
     fn from(opts: &GetExtmarkByIdOpts) -> Self {
-        Self::from_iter([("details", opts.details)])
+        Self::from_iter([("details", opts.details.clone())])
     }
 }

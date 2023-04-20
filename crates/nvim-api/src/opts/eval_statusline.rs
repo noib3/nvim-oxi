@@ -1,46 +1,32 @@
-use derive_builder::Builder;
 use nvim_types::Object;
 
 use crate::Window;
 
-/// Options passed to [`api::eval_statusline`](crate::eval_statusline).
-#[derive(Clone, Debug, Default, Builder)]
-#[builder(default, build_fn(private, name = "fallible_build"))]
+/// Options passed to [`eval_statusline()`](crate::eval_statusline).
+#[cfg(feature = "neovim-0-8")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
 pub struct EvalStatuslineOpts {
-    /// Character used to fill blank spaces in the statusline.
-    #[builder(setter(strip_option))]
-    fillchar: Option<char>,
+    winid: Object,
+    fillchar: Object,
+    maxwidth: Object,
+    highlights: Object,
+    use_winbar: Object,
+    use_tabline: Object,
+}
 
-    /// Return statuline informations from
-    /// [`api::eval_statusline`](crate::eval_statusline).
-    #[builder(setter(strip_option))]
-    highlights: Option<bool>,
-
-    /// Maximum width for the statusline.
-    #[builder(setter(strip_option))]
-    maxwidth: Option<u32>,
-
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
-    #[builder(setter(strip_option))]
-    use_statuscol_lnum: Option<bool>,
-
-    /// Evaluate the tabline instead of the statusline. When `true` the
-    /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
-    #[builder(setter(strip_option))]
-    use_tabline: Option<bool>,
-
-    /// Evaluate the winbar instead of the statusline. Mutually exclusive with
-    /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
-    #[builder(setter(strip_option))]
-    use_winbar: Option<bool>,
-
-    /// Window to use as context for the statusline.
-    #[builder(setter(into, strip_option))]
-    window: Option<Window>,
+/// Options passed to [`eval_statusline()`](crate::eval_statusline).
+#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct EvalStatuslineOpts {
+    winid: Object,
+    maxwidth: Object,
+    fillchar: Object,
+    highlights: Object,
+    use_tabline: Object,
+    use_winbar: Object,
+    use_statuscol_lnum: Object,
 }
 
 impl EvalStatuslineOpts {
@@ -51,50 +37,71 @@ impl EvalStatuslineOpts {
     }
 }
 
+#[derive(Clone, Default)]
+pub struct EvalStatuslineOptsBuilder(EvalStatuslineOpts);
+
 impl EvalStatuslineOptsBuilder {
-    pub fn build(&mut self) -> EvalStatuslineOpts {
-        self.fallible_build().expect("never fails, all fields have defaults")
+    /// Character used to fill blank spaces in the statusline.
+    #[inline]
+    pub fn fillchar(&mut self, fillchar: char) -> &mut Self {
+        self.0.fillchar = fillchar.into();
+        self
     }
-}
 
-#[cfg(feature = "neovim-0-8")]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_eval_statusline {
-    winid: Object,
-    fillchar: Object,
-    maxwidth: Object,
-    highlights: Object,
-    use_winbar: Object,
-    use_tabline: Object,
-}
+    /// Return statuline informations from
+    /// [`eval_statusline()`](crate::eval_statusline).
+    #[inline]
+    pub fn highlights(&mut self, highlights: bool) -> &mut Self {
+        self.0.highlights = highlights.into();
+        self
+    }
 
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-#[derive(Default)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct KeyDict_eval_statusline {
-    winid: Object,
-    maxwidth: Object,
-    fillchar: Object,
-    highlights: Object,
-    use_winbar: Object,
-    use_tabline: Object,
-    use_statuscol_lnum: Object,
-}
+    /// Maximum width for the statusline.
+    #[inline]
+    pub fn maxwidth(&mut self, maxwidth: u32) -> &mut Self {
+        self.0.maxwidth = maxwidth.into();
+        self
+    }
 
-impl From<&EvalStatuslineOpts> for KeyDict_eval_statusline {
-    fn from(opts: &EvalStatuslineOpts) -> Self {
-        Self {
-            winid: opts.window.as_ref().into(),
-            fillchar: opts.fillchar.into(),
-            maxwidth: opts.maxwidth.into(),
-            highlights: opts.highlights.into(),
-            use_winbar: opts.use_winbar.into(),
-            use_tabline: opts.use_tabline.into(),
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-            use_statuscol_lnum: opts.use_statuscol_lnum.into(),
-        }
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
+    )]
+    #[inline]
+    pub fn use_statuscol_lnum(
+        &mut self,
+        use_statuscol_lnum: bool,
+    ) -> &mut Self {
+        self.0.use_statuscol_lnum = use_statuscol_lnum.into();
+        self
+    }
+
+    /// Evaluate the tabline instead of the statusline. When `true` the
+    /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
+    #[inline]
+    pub fn use_tabline(&mut self, use_tabline: bool) -> &mut Self {
+        self.0.use_tabline = use_tabline.into();
+        self
+    }
+
+    /// Evaluate the winbar instead of the statusline. Mutually exclusive with
+    /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
+    #[inline]
+    pub fn use_winbar(&mut self, use_winbar: bool) -> &mut Self {
+        self.0.use_winbar = use_winbar.into();
+        self
+    }
+
+    /// Window to use as context for the statusline.
+    #[inline]
+    pub fn window(&mut self, window: Window) -> &mut Self {
+        self.0.winid = window.into();
+        self
+    }
+
+    #[inline]
+    pub fn build(&mut self) -> EvalStatuslineOpts {
+        std::mem::take(&mut self.0)
     }
 }
