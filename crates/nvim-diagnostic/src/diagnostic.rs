@@ -3,7 +3,7 @@ use std::error::Error;
 use luajit_bindings::{self as lua, ffi::*, macros::cstr, Pushable};
 use nvim_api::Buffer;
 
-/// Binding to [`vim.diagnostic.enable`][1].
+/// Binding to [`vim.diagnostic.enable()`][1].
 ///
 /// [1]: https://neovim.io/doc/user/diagnostic.html#vim.diagnostic.enable()
 pub fn enable(

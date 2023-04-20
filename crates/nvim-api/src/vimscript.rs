@@ -6,10 +6,12 @@ use crate::types::*;
 use crate::Result;
 use crate::LUA_INTERNAL_CALL;
 
-/// Binding to [`nvim_call_dict_function`](https://neovim.io/doc/user/api.html#nvim_call_dict_function()).
+/// Binding to [`nvim_call_dict_function()`]).
 ///
 /// Calls a VimL dictionary function with the given arguments, returning the
 /// result of the funtion call.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_call_dict_function()
 pub fn call_dict_function<Args, Ret>(
     dict: &str,
     func: &str,
@@ -34,10 +36,12 @@ where
     choose!(err, Ok(Ret::from_object(res)?))
 }
 
-/// Binding to [`nvim_call_function`](https://neovim.io/doc/user/api.html#nvim_call_function()).
+/// Binding to [`nvim_call_function()`].
 ///
 /// Calls a VimL function with the given arguments, returning the result of the
 /// funtion call.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_call_function()
 pub fn call_function<Args, Ret>(func: &str, args: Args) -> Result<Ret>
 where
     Args: Into<Array>,
@@ -52,10 +56,12 @@ where
     choose!(err, Ok(Ret::from_object(res)?))
 }
 
-/// Binding to [`nvim_cmd`](https://neovim.io/doc/user/api.html#nvim_cmd()).
+/// Binding to [`nvim_cmd()`][1].
 ///
 /// Executes an Ex command. Unlike `crare::api::command` it takes a structured
 /// `CmdInfos` object instead of a string.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_cmd()
 pub fn cmd(
     infos: &CmdInfos,
     opts: &super::opts::CmdOpts,
@@ -69,9 +75,11 @@ pub fn cmd(
     })
 }
 
-/// Binding to [`nvim_command`](https://neovim.io/doc/user/api.html#nvim_command()).
+/// Binding to [`nvim_command()`][1].
 ///
 /// Executes an Ex command.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_command()
 pub fn command(command: &str) -> Result<()> {
     let command = nvim::String::from(command);
     let mut err = nvim::Error::new();
@@ -79,9 +87,11 @@ pub fn command(command: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_eval`](https://neovim.io/doc/user/api.html#nvim_eval()).
+/// Binding to [`nvim_eval()`][1].
 ///
 /// Evaluates a VimL expression.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_eval()
 pub fn eval<V>(expr: &str) -> Result<V>
 where
     V: FromObject,
@@ -92,10 +102,12 @@ where
     choose!(err, Ok(V::from_object(output)?))
 }
 
-/// Binding to [`nvim_exec`](https://neovim.io/doc/user/api.html#nvim_exec()).
+/// Binding to [`nvim_exec()`][1].
 ///
 /// Executes a multiline block of Ex commands. If `output` is true the
 /// output is captured and returned.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_exec()
 pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     let src = nvim::String::from(src);
     let mut err = nvim::Error::new();
@@ -107,9 +119,11 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     })
 }
 
-/// Binding to [`nvim_parse_cmd`](https://neovim.io/doc/user/api.html#nvim_parse_cmd()).
+/// Binding to [`nvim_parse_cmd()`][1].
 ///
 /// Parses the command line.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
 pub fn parse_cmd(
     src: &str,
     opts: &super::opts::ParseCmdOpts,
@@ -123,9 +137,11 @@ pub fn parse_cmd(
     choose!(err, Ok(CmdInfos::from_object(dict.into())?))
 }
 
-/// Binding to [`nvim_parse_expression`](https://neovim.io/doc/user/api.html#nvim_parse_expression()).
+/// Binding to [`nvim_parse_expression()`][1].
 ///
 /// Parses a VimL expression.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_parse_expression()
 pub fn parse_expression(
     expr: &str,
     flags: &str,

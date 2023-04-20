@@ -18,10 +18,12 @@ use crate::Buffer;
 use crate::{Error, Result};
 
 impl Buffer {
-    /// Binding to [`nvim_buf_add_highlight`](https://neovim.io/doc/user/api.html#nvim_buf_add_highlight()).
+    /// Binding to [`nvim_buf_add_highlight()`][1].
     ///
     /// Adds a highlight to the buffer. Both `line` and `byte_range` are
     /// 0-indexed.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_add_highlight()
     pub fn add_highlight<R>(
         &mut self,
         ns_id: u32,
@@ -49,12 +51,14 @@ impl Buffer {
         choose!(err, Ok(ns_id))
     }
 
-    /// Binding to [`nvim_buf_clear_namespace`](https://neovim.io/doc/user/api.html#nvim_buf_clear_namespace()).
+    /// Binding to [`nvim_buf_clear_namespace()`][1].
     ///
     /// Clears namespaced objects like highlights, extmarks, or virtual text
     /// from a region.
     ///
     /// The line range is 0-indexed.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_clear_namespace()
     pub fn clear_namespace<R>(
         &mut self,
         ns_id: u32,
@@ -77,7 +81,7 @@ impl Buffer {
         choose!(err, ())
     }
 
-    /// Binding to [`nvim_buf_del_extmark`][1].
+    /// Binding to [`nvim_buf_del_extmark()`][1].
     ///
     /// Removes an extmark from the buffer.
     ///
@@ -103,7 +107,7 @@ impl Buffer {
         )
     }
 
-    /// Binding to [`nvim_buf_get_extmark_by_id`][1].
+    /// Binding to [`nvim_buf_get_extmark_by_id()`][1].
     ///
     /// The first two elements of the returned tuple represent the 0-indexed
     /// `row, col` position of the extmark. The last element is only present if
@@ -204,10 +208,12 @@ impl Buffer {
         )
     }
 
-    /// Binding to [`nvim_buf_set_extmark`](https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()).
+    /// Binding to [`nvim_buf_set_extmark()`][1].
     ///
     /// Creates or updates an extmark. Both `line` and `col` are 0-indexed.
     /// Returns the id of the created/updated extmark.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_extmark()
     pub fn set_extmark(
         &mut self,
         ns_id: u32,
@@ -230,10 +236,12 @@ impl Buffer {
     }
 }
 
-/// Binding to [`nvim_create_namespace`](https://neovim.io/doc/user/api.html#nvim_create_namespace()).
+/// Binding to [`nvim_create_namespace()`][1].
 ///
 /// Creates a new namespace or gets the id of an existing one. If `name`
 /// matches an existing namespace the associated id is returned.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_create_namespace()
 pub fn create_namespace(name: &str) -> u32 {
     let name = nvim::String::from(name);
     unsafe { nvim_create_namespace(name.non_owning()) }
@@ -241,10 +249,12 @@ pub fn create_namespace(name: &str) -> u32 {
         .expect("always positive")
 }
 
-/// Binding to [`nvim_get_namespaces`](https://neovim.io/doc/user/api.html#nvim_get_namespaces()).
+/// Binding to [`nvim_get_namespaces()`][1].
 ///
 /// Returns an iterator over all the existing, non-anonymous namespace names
 /// and ids tuples `(name, id)`.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
         let k = k.to_string_lossy().into();
@@ -253,9 +263,11 @@ pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     })
 }
 
-/// Binding to [`nvim_set_decoration_provider`](https://neovim.io/doc/user/api.html#nvim_set_decoration_provider()).
+/// Binding to [`nvim_set_decoration_provider()`][1].
 ///
 /// Sets or changes a decoration provider for a namespace.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_decoration_provider()
 pub fn set_decoration_provider(
     ns_id: u32,
     opts: &DecorationProviderOpts,

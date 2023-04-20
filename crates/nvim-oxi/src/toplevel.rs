@@ -3,7 +3,7 @@ use nvim_types::Function;
 
 use crate::Result;
 
-/// Binding to [`vim.schedule`][1].
+/// Binding to [`vim.schedule()`][1].
 ///
 /// Schedules a callback to be invoked soon by the main event-loop. Useful to
 /// avoid [`textlock`][2] or other temporary restrictions.

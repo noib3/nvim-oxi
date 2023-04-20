@@ -74,9 +74,11 @@ impl TabPage {
         crate::get_current_tabpage()
     }
 
-    /// Binding to [`nvim_tabpage_del_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_del_var()).
+    /// Binding to [`nvim_tabpage_del_var()`][1].
     ///
     /// Removes a tab-scoped (`t:`) variable.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_del_var()
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
@@ -84,16 +86,18 @@ impl TabPage {
         choose!(err, ())
     }
 
-    /// Binding to [`nvim_tabpage_get_number`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_number()).
+    /// Binding to [`nvim_tabpage_get_number()`][1].
     ///
     /// Gets the tabpage number.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_get_number()
     pub fn get_number(&self) -> Result<u32> {
         let mut err = nvim::Error::new();
         let number = unsafe { nvim_tabpage_get_number(self.0, &mut err) };
         choose!(err, Ok(number.try_into().expect("always positive")))
     }
 
-    /// Binding to [`nvim_tabpage_get_var`][1].
+    /// Binding to [`nvim_tabpage_get_var()`][1].
     ///
     /// Gets a tab-scoped (`t:`) variable.
     ///
@@ -110,25 +114,31 @@ impl TabPage {
         choose!(err, Ok(Var::from_object(obj)?))
     }
 
-    /// Binding to [`nvim_tabpage_get_win`](https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()).
+    /// Binding to [`nvim_tabpage_get_win()`][1].
     ///
     /// Gets the current window in a tabpage.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_get_win()
     pub fn get_win(&self) -> Result<Window> {
         let mut err = nvim::Error::new();
         let handle = unsafe { nvim_tabpage_get_win(self.0, &mut err) };
         choose!(err, Ok(handle.into()))
     }
 
-    /// Binding to [`nvim_tabpage_is_valid`](https://neovim.io/doc/user/api.html#nvim_tabpage_is_valid()).
+    /// Binding to [`nvim_tabpage_is_valid()`][1].
     ///
     /// Checks if a tabpage is valid.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_is_valid()
     pub fn is_valid(&self) -> bool {
         unsafe { nvim_tabpage_is_valid(self.0) }
     }
 
-    /// Binding to [`nvim_tabpage_list_wins`](https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()).
+    /// Binding to [`nvim_tabpage_list_wins()`][1].
     ///
     /// Gets the windows in a tabpage.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()
     pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
@@ -140,9 +150,11 @@ impl TabPage {
         )
     }
 
-    /// Binding to [`nvim_tabpage_set_var`](https://neovim.io/doc/user/api.html#nvim_tabpage_set_var()).
+    /// Binding to [`nvim_tabpage_set_var()`][1].
     ///
     /// Sets a tab-scoped (`t:`) variable.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_set_var()
     pub fn set_var<Var>(&mut self, name: &str, value: Var) -> Result<()>
     where
         Var: ToObject,

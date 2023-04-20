@@ -64,8 +64,8 @@ impl TimerHandle {
         Ok(timer)
     }
 
-    /// Same as [`start`](TimerHandle::start) but accepts an `FnOnce` closure
-    /// which will only be called once before being automatically stopped.
+    /// Same as [`start()`](TimerHandle::start) but accepts a closure that
+    /// will be called once before being automatically stopped.
     pub fn once<Cb, E>(timeout: Duration, callback: Cb) -> Result<Self, Error>
     where
         Cb: FnOnce() -> Result<(), E> + 'static,

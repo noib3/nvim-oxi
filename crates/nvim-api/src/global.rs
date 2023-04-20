@@ -19,9 +19,11 @@ use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage, Window};
 use crate::{Error, Result};
 
-/// Binding to [`nvim_chan_send`](https://neovim.io/doc/user/api.html#nvim_chan_send()).
+/// Binding to [`nvim_chan_send()`][1].
 ///
 /// Sends data to a channel.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_chan_send()
 pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
     let mut err = nvim::Error::new();
     let data = nvim::String::from(data);
@@ -29,18 +31,22 @@ pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_create_buf`](https://neovim.io/doc/user/api.html#nvim_create_buf()).
+/// Binding to [`nvim_create_buf()`][1].
 ///
 /// Creates a new, empty, unnamed buffer.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_create_buf()
 pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = nvim::Error::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
     choose!(err, Ok(handle.into()))
 }
 
-/// Binding to [`nvim_create_user_command`](https://neovim.io/doc/user/api.html#nvim_create_user_command()).
+/// Binding to [`nvim_create_user_command()`][1].
 ///
 /// Creates a new [user command](https://neovim.io/doc/user/map.html#user-commands).
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_create_user_command()
 pub fn create_user_command<Cmd>(
     name: &str,
     command: Cmd,
@@ -66,19 +72,23 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_current_line`](https://neovim.io/doc/user/api.html#nvim_del_current_line()).
+/// Binding to [`nvim_del_current_line()`][1].
 ///
 /// Deletes the current line.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_del_current_line()
 pub fn del_current_line() -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_del_current_line(&mut err) };
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_keymap`](https://neovim.io/doc/user/api.html#nvim_del_keymap()).
+/// Binding to [`nvim_del_keymap()`][1].
 ///
 /// Unmaps a global mapping for the given mode. To unmap a buffer-local mapping
 /// use [`Buffer::del_keymap`] instead.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_del_keymap()
 pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     let mode = nvim::String::from(mode);
     let lhs = nvim::String::from(lhs);
@@ -94,11 +104,13 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_mark`](https://neovim.io/doc/user/api.html#nvim_del_mark()).
+/// Binding to [`nvim_del_mark()`][1].
 ///
 /// Deletes an uppercase/file named mark. Returns an error if a lowercase or
 /// buffer-local named mark is used. Use [`Buffer::del_mark`] to delete a
 /// buffer-local mark.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_del_mark()
 pub fn del_mark(name: char) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -112,10 +124,12 @@ pub fn del_mark(name: char) -> Result<()> {
     )
 }
 
-/// Binding to [`nvim_del_user_command`](https://neovim.io/doc/user/api.html#nvim_del_user_command()).
+/// Binding to [`nvim_del_user_command()`][1].
 ///
 /// Deletes a global user-defined command.  Use [`Buffer::del_user_command`] to
 /// delete a buffer-local command.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_del_user_command()
 pub fn del_user_command(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -123,9 +137,11 @@ pub fn del_user_command(name: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_var`](https://neovim.io/doc/user/api.html#nvim_del_var()).
+/// Binding to [`nvim_del_var()`][1].
 ///
 /// Removes a global (`g:`) variable.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_del_var()
 pub fn del_var(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -133,9 +149,11 @@ pub fn del_var(name: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_echo`](https://neovim.io/doc/user/api.html#nvim_echo()).
+/// Binding to [`nvim_echo()`][1].
 ///
 /// Echoes a message to the Neovim message area.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
 pub fn echo<'hl, Text, Chunks>(chunks: Chunks, history: bool) -> Result<()>
 where
     Chunks: IntoIterator<Item = (Text, Option<&'hl str>)>,
@@ -159,26 +177,32 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_err_write`](https://neovim.io/doc/user/api.html#nvim_err_write()).
+/// Binding to [`nvim_err_write()`][1].
 ///
 /// Writes a message to the Neovim error buffer. Does not append a newline
 /// (`"\n"`); the message gets buffered and won't be displayed until a linefeed
 /// is written.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_err_write()
 pub fn err_write(str: &str) {
     unsafe { nvim_err_write(nvim::String::from(str).non_owning()) }
 }
 
-/// Binding to [`nvim_err_writeln`](https://neovim.io/doc/user/api.html#nvim_err_writeln()).
+/// Binding to [`nvim_err_writeln()`][1].
 ///
 /// Writes a message to the Neovim error buffer. Appends a newline (`"\n"`), so
 /// the buffer is flushed and displayed.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_err_writeln()
 pub fn err_writeln(str: &str) {
     unsafe { nvim_err_writeln(nvim::String::from(str).non_owning()) }
 }
 
-/// Binding to [`nvim_eval_statusline`](https://neovim.io/doc/user/api.html#nvim_eval_statusline()).
+/// Binding to [`nvim_eval_statusline()`][1].
 ///
 /// Evaluates a string to be displayed in the statusline.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_eval_statusline()
 pub fn eval_statusline(
     str: &str,
     opts: &EvalStatuslineOpts,
@@ -191,16 +215,20 @@ pub fn eval_statusline(
     choose!(err, Ok(StatuslineInfos::from_object(dict.into())?))
 }
 
-/// Binding to [`nvim_feedkeys`](https://neovim.io/doc/user/api.html#nvim_feedkeys()).
+/// Binding to [`nvim_feedkeys()`][1].
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_feedkeys()
 pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
     let keys = nvim::String::from(keys);
     let mode = nvim::String::from(mode);
     unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
 }
 
-/// Binding to [`nvim_get_all_options_info`](https://neovim.io/doc/user/api.html#nvim_get_all_options_info()).
+/// Binding to [`nvim_get_all_options_info()`][1].
 ///
 /// Gets the option information for all options.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_all_options_info()
 pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_all_options_info(&mut err) };
@@ -214,19 +242,23 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     )
 }
 
-/// Binding to [`nvim_get_chan_info`](https://neovim.io/doc/user/api.html#nvim_get_chan_info()).
+/// Binding to [`nvim_get_chan_info()`][1].
 ///
 /// Gets information about a channel.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_chan_info()
 pub fn get_chan_info(channel_id: u32) -> Result<ChannelInfos> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_chan_info(channel_id.into(), &mut err) };
     choose!(err, Ok(ChannelInfos::from_object(infos.into())?))
 }
 
-/// Binding to [`nvim_get_color_by_name`](https://neovim.io/doc/user/api.html#nvim_get_color_by_name()).
+/// Binding to [`nvim_get_color_by_name()`][1].
 ///
 /// Returns the 24-bit RGB value of a `crate::api::get_color_map` color name or
 /// "#rrggbb" hexadecimal string.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_by_name()
 pub fn get_color_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
     let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
@@ -235,20 +267,24 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
     })
 }
 
-/// Binding to [`nvim_get_color_map`](https://neovim.io/doc/user/api.html#nvim_get_color_map()).
+/// Binding to [`nvim_get_color_map()`][1].
 ///
 /// Returns an iterator over tuples representing color names and 24-bit RGB
 /// values (e.g. 65535).
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_map()
 pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
     unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
         (k.to_string_lossy().into(), u32::from_object(v).unwrap())
     })
 }
 
-/// Binding to [`nvim_get_commands`](https://neovim.io/doc/user/api.html#nvim_get_commands()).
+/// Binding to [`nvim_get_commands()`][1].
 ///
 /// Returns an iterator over the infos of the global ex commands. Only
 /// user-defined commands are returned, not builtin ones.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_commands()
 pub fn get_commands(
     opts: &GetCommandsOpts,
 ) -> Result<impl SuperIterator<CommandInfos>> {
@@ -264,9 +300,11 @@ pub fn get_commands(
     )
 }
 
-/// Binding to [`nvim_get_context`](https://neovim.io/doc/user/api.html#nvim_get_context()).
+/// Binding to [`nvim_get_context()`][1].
 ///
 /// Returns a snapshot of the current editor state.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_context()
 pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let opts = KeyDict_context::from(opts);
     let mut err = nvim::Error::new();
@@ -274,41 +312,51 @@ pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     choose!(err, Ok(EditorContext::from_object(ctx.into())?))
 }
 
-/// Binding to [`nvim_get_current_buf`](https://neovim.io/doc/user/api.html#nvim_get_current_buf()).
+/// Binding to [`nvim_get_current_buf()`][1].
 ///
 /// Gets the current buffer.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_buf()
 pub fn get_current_buf() -> Buffer {
     unsafe { nvim_get_current_buf() }.into()
 }
 
-/// Binding to [`nvim_get_current_line`](https://neovim.io/doc/user/api.html#nvim_get_current_line()).
+/// Binding to [`nvim_get_current_line()`][1].
 ///
 /// Gets the current line in the current bufferr.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_line()
 pub fn get_current_line() -> Result<String> {
     let mut err = nvim::Error::new();
     let s = unsafe { nvim_get_current_line(&mut err) };
     choose!(err, Ok(s.to_string_lossy().into()))
 }
 
-/// Binding to [`nvim_get_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_get_current_tabpage()).
+/// Binding to [`nvim_get_current_tabpage()`][1].
 ///
 /// Gets the current tabpage.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_tabpage()
 pub fn get_current_tabpage() -> TabPage {
     unsafe { nvim_get_current_tabpage() }.into()
 }
 
-/// Binding to [`nvim_get_current_win`](https://neovim.io/doc/user/api.html#nvim_get_current_win()).
+/// Binding to [`nvim_get_current_win()`][1].
 ///
 /// Gets the current window.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
 pub fn get_current_win() -> Window {
     unsafe { nvim_get_current_win() }.into()
 }
 
-/// Binding to [`nvim_get_hl_by_id`][1].
+/// Binding to [`nvim_get_hl_by_id()`][1].
 ///
 /// Gets a highlight definition by id.
 ///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_id()
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_id[1]
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
 
@@ -319,9 +367,11 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
-/// Binding to [`nvim_get_hl_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()).
+/// Binding to [`nvim_get_hl_by_name()`][1].
 ///
 /// Gets a highlight definition by name.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()
 pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -336,28 +386,34 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
-/// Binding to [`nvim_get_hl_id_by_name`](https://neovim.io/doc/user/api.html#nvim_get_hl_id_by_name()).
+/// Binding to [`nvim_get_hl_id_by_name()`][1].
 ///
 /// Gets a highlight definition by name.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_id_by_name()
 pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
     let id = unsafe { nvim_get_hl_id_by_name(name.non_owning()) };
     id.try_into().map_err(Into::into)
 }
 
-/// Binding to [`nvim_get_keymap`](https://neovim.io/doc/user/api.html#nvim_get_keymap()).
+/// Binding to [`nvim_get_keymap()`][1].
 ///
 /// Returns an iterator over the global mapping definitions.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_keymap()
 pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
     let keymaps = unsafe { nvim_get_keymap(mode.non_owning()) };
     keymaps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_get_mark`](https://neovim.io/doc/user/api.html#nvim_get_mark()).
+/// Binding to [`nvim_get_mark()`][1].
 ///
 /// Returns a tuple `(row, col, buffer, buffername)` representing the position
 /// of the named mark. Marks are (1,0)-indexed.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_mark()
 pub fn get_mark(
     name: char,
     opts: &GetMarkOpts,
@@ -380,17 +436,21 @@ pub fn get_mark(
     })
 }
 
-/// Binding to [`nvim_get_mode`](https://neovim.io/doc/user/api.html#nvim_get_mode()).
+/// Binding to [`nvim_get_mode()`][1].
 ///
 /// Gets the current mode. The [`blocking`](GotMode::blocking) field of
 /// [`GotMode`] is `true` if Neovim is waiting for input.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_mode()
 pub fn get_mode() -> Result<GotMode> {
     Ok(GotMode::from_object(unsafe { nvim_get_mode() }.into())?)
 }
 
-/// Binding to [`nvim_get_option`](https://neovim.io/doc/user/api.html#nvim_get_option()).
+/// Binding to [`nvim_get_option()`][1].
 ///
 /// Gets the value of a global option.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option()
 pub fn get_option<Opt>(name: &str) -> Result<Opt>
 where
     Opt: FromObject,
@@ -408,9 +468,11 @@ where
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 
-/// Binding to [`nvim_get_option_info`](https://neovim.io/doc/user/api.html#nvim_get_option_info()).
+/// Binding to [`nvim_get_option_info()`][1].
 ///
 /// Gets all the informations related to an option.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info()
 pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -418,13 +480,15 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     choose!(err, Ok(OptionInfos::from_object(obj.into())?))
 }
 
-/// Binding to [`nvim_get_option_value`](https://neovim.io/doc/user/api.html#nvim_get_option_value()).
+/// Binding to [`nvim_get_option_value()`][1].
 ///
 /// Gets the local value of an option if it exists, or the global value
 /// otherwise. Local values always correspond to the current buffer or window.
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
 /// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_value()
 pub fn get_option_value<Opt>(name: &str, opts: &OptionValueOpts) -> Result<Opt>
 where
     Opt: FromObject,
@@ -437,18 +501,22 @@ where
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 
-/// Binding to [`nvim_get_proc`](https://neovim.io/doc/user/api.html#nvim_get_proc()).
+/// Binding to [`nvim_get_proc()`][1].
 ///
 /// Gets informations about a process with a given `pid`.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc()
 pub fn get_proc(pid: u32) -> Result<ProcInfos> {
     let mut err = nvim::Error::new();
     let obj = unsafe { nvim_get_proc(pid.into(), &mut err) };
     choose!(err, Ok(ProcInfos::from_object(obj)?))
 }
 
-/// Binding to [`nvim_get_proc_children`](https://neovim.io/doc/user/api.html#nvim_get_proc_children()).
+/// Binding to [`nvim_get_proc_children()`][1].
 ///
 /// Gets the immediate children of process `pid`.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc_children()
 pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
@@ -458,9 +526,11 @@ pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     )
 }
 
-/// Binding to [`nvim_get_runtime_file`](https://neovim.io/doc/user/api.html#nvim_get_runtime_file()).
+/// Binding to [`nvim_get_runtime_file()`][1].
 ///
 /// Returns an iterator over all the files matching `name` in the runtime path.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_runtime_file()
 pub fn get_runtime_file(
     name: impl AsRef<Path>,
     get_all: bool,
@@ -479,9 +549,11 @@ pub fn get_runtime_file(
     )
 }
 
-/// Binding to [`nvim_get_var`](https://neovim.io/doc/user/api.html#nvim_get_var()).
+/// Binding to [`nvim_get_var()`][1].
 ///
 /// Gets a global (`g:`) variable.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_var()
 pub fn get_var<Var>(name: &str) -> Result<Var>
 where
     Var: FromObject,
@@ -492,9 +564,11 @@ where
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
-/// Binding to [`nvim_get_vvar`](https://neovim.io/doc/user/api.html#nvim_get_vvar()).
+/// Binding to [`nvim_get_vvar()`][1].
 ///
 /// Gets a `v:` variable.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_vvar()
 pub fn get_vvar<Var>(name: &str) -> Result<Var>
 where
     Var: FromObject,
@@ -505,12 +579,14 @@ where
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
-/// Binding to [`nvim_input`](https://neovim.io/doc/user/api.html#nvim_input()).
+/// Binding to [`nvim_input()`][1].
 ///
 /// Queues raw user-input. Unlike [`api::feedkeys`](feedkeys) this uses a
 /// low-level input buffer and the call is non-blocking.
 ///
 /// Returns the number of bytes written to the buffer.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_input()
 pub fn input<Input>(keys: Input) -> Result<usize>
 where
     Input: Into<nvim::String>,
@@ -520,9 +596,11 @@ where
         .map_err(From::from)
 }
 
-/// Binding to [`nvim_input_mouse`](https://neovim.io/doc/user/api.html#nvim_input_mouse()).
+/// Binding to [`nvim_input_mouse()`][1].
 ///
 /// Send mouse event from GUI. The call is non-blocking.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_input_mouse()
 pub fn input_mouse(
     button: MouseButton,
     action: MouseAction,
@@ -549,31 +627,37 @@ pub fn input_mouse(
     choose!(err, ())
 }
 
-/// Binding to [`nvim_list_bufs`][1].
+/// Binding to [`nvim_list_bufs()`][1].
 ///
-/// Gets the current list of [`Buffer`]s, including unlisted (unloaded/deleted)
+/// Gets the current list of [`Buffer`]s, including unlisted [1]
 /// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a
 /// buffer is loaded.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
+///
+/// [1]: unloaded/deleted
 pub fn list_bufs() -> impl SuperIterator<Buffer> {
     unsafe { nvim_list_bufs() }
         .into_iter()
         .map(|obj| Buffer::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_list_chans`](https://neovim.io/doc/user/api.html#nvim_list_chans()).
+/// Binding to [`nvim_list_chans()`][1].
 ///
 /// Returns an iterator over the informations about all the open channels.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_list_chans()
 pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
     unsafe { nvim_list_chans() }
         .into_iter()
         .map(|obj| ChannelInfos::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_list_runtime_paths`](https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()).
+/// Binding to [`nvim_list_runtime_paths()`][1].
 ///
 /// Gets the paths contained in https://neovim's runtimepath.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()
 pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     let mut err = nvim::Error::new();
     let paths = unsafe { nvim_list_runtime_paths(&mut err) };
@@ -587,42 +671,52 @@ pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     )
 }
 
-/// Binding to [`nvim_list_bufs`](https://neovim.io/doc/user/api.html#nvim_list_bufs()).
+/// Binding to [`nvim_list_bufs()`][1].
 ///
 /// Gets the current list of `Tabpage`s.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
 pub fn list_tabpages() -> impl SuperIterator<TabPage> {
     unsafe { nvim_list_tabpages() }
         .into_iter()
         .map(|obj| TabPage::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_list_uis`](https://neovim.io/doc/user/api.html#nvim_list_uis()).
+/// Binding to [`nvim_list_uis()`][1].
 ///
 /// Returns an iterator over the informations about all the attached UIs.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_list_uis()
 pub fn list_uis() -> impl SuperIterator<UiInfos> {
     unsafe { nvim_list_uis() }
         .into_iter()
         .map(|obj| UiInfos::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_list_wins`](https://neovim.io/doc/user/api.html#nvim_list_wins()).
+/// Binding to [`nvim_list_wins()`][1].
 ///
 /// Gets the current list of `Window`s.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_list_wins()
 pub fn list_wins() -> impl SuperIterator<Window> {
     unsafe { nvim_list_wins() }
         .into_iter()
         .map(|obj| Window::from_object(obj).unwrap())
 }
 
-/// Binding to [`nvim_load_context`](https://neovim.io/doc/user/api.html#nvim_load_context()).
+/// Binding to [`nvim_load_context()`][1].
 ///
 /// Sets the current editor state from the given [`EditorContext`].
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_load_context()
 pub fn load_context(ctx: EditorContext) {
     let ctx = Dictionary::from(ctx);
     let _ = unsafe { nvim_load_context(ctx.non_owning()) };
 }
 
-/// Binding to [`nvim_notify`](https://neovim.io/doc/user/api.html#nvim_notify()).
+/// Binding to [`nvim_notify()`][1].
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_notify()
 pub fn notify(
     msg: &str,
     log_level: LogLevel,
@@ -642,11 +736,13 @@ pub fn notify(
     choose!(err, ())
 }
 
-/// Binding to [`nvim_open_term`](https://neovim.io/doc/user/api.html#nvim_open_term()).
+/// Binding to [`nvim_open_term()`][1].
 ///
 /// Opens a terminal instance in a buffer. Returns the id of a channel that can
 /// be used to send data to the instance via
 /// [`nvim_oxi::api::chan_send`](chan_send).
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_open_term()
 pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
@@ -661,10 +757,12 @@ pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
     )
 }
 
-/// Binding to [`nvim_out_write`](https://neovim.io/doc/user/api.html#nvim_out_write()).
+/// Binding to [`nvim_out_write()`][1].
 ///
 /// Writes a message to the Vim output buffer, without appending a "\n". The
 /// message is buffered and won't be displayed until a linefeed is written.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_out_write()
 pub fn out_write<Msg>(str: Msg)
 where
     Msg: Into<nvim::String>,
@@ -672,10 +770,12 @@ where
     unsafe { nvim_out_write(str.into().non_owning()) }
 }
 
-/// Binding to [`nvim_paste`](https://neovim.io/doc/user/api.html#nvim_paste()).
+/// Binding to [`nvim_paste()`][1].
 ///
 /// Returns `true` if the client may continue the paste, `false` if it must
 /// cancel it.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_paste()
 pub fn paste<Data>(data: Data, crlf: bool, phase: PastePhase) -> Result<bool>
 where
     Data: Into<nvim::String>,
@@ -687,9 +787,11 @@ where
     choose!(err, Ok(go_on))
 }
 
-/// Binding to [`nvim_put`](https://neovim.io/doc/user/api.html#nvim_put()).
+/// Binding to [`nvim_put()`][1].
 ///
 /// Puts text at cursor, in any mode.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_put()
 pub fn put<Line, Lines>(
     lines: Lines,
     reg_type: RegisterType,
@@ -715,10 +817,12 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_replace_termcodes`](https://neovim.io/doc/user/api.html#nvim_replace_termcodes()).
+/// Binding to [`nvim_replace_termcodes()`][1].
 ///
 /// Replaces terminal codes and keycodes (`<CR>`, `<Esc>`, ...) in a string
 /// with the internal representation.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_replace_termcodes()
 pub fn replace_termcodes<Input>(
     str: Input,
     from_part: bool,
@@ -734,9 +838,11 @@ where
     }
 }
 
-/// Binding to [`nvim_select_popupmenu_item`](https://neovim.io/doc/user/api.html#nvim_select_popupmenu_item()).
+/// Binding to [`nvim_select_popupmenu_item()`][1].
 ///
 /// Selects an item in the completion popupmenu.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_select_popupmenu_item()
 pub fn select_popupmenu_item(
     item: usize,
     insert: bool,
@@ -757,18 +863,22 @@ pub fn select_popupmenu_item(
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_current_buf`](https://neovim.io/doc/user/api.html#nvim_set_current_buf()).
+/// Binding to [`nvim_set_current_buf()`][1].
 ///
 /// Sets the current buffer.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_current_buf()
 pub fn set_current_buf(buf: &Buffer) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_buf(buf.0, &mut err) };
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_current_dir`](https://neovim.io/doc/user/api.html#nvim_set_current_dir()).
+/// Binding to [`nvim_set_current_dir()`][1].
 ///
 /// Changes the global working directory.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_current_dir()
 pub fn set_current_dir<Dir>(dir: Dir) -> Result<()>
 where
     Dir: AsRef<Path>,
@@ -779,9 +889,11 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_current_line`](https://neovim.io/doc/user/api.html#nvim_set_current_line()).
+/// Binding to [`nvim_set_current_line()`][1].
 ///
 /// Sets the current line.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_current_line()
 pub fn set_current_line<Line>(line: Line) -> Result<()>
 where
     Line: Into<nvim::String>,
@@ -791,27 +903,33 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_current_tabpage`](https://neovim.io/doc/user/api.html#nvim_set_current_tabpage()).
+/// Binding to [`nvim_set_current_tabpage()`][1].
 ///
 /// Sets the current tabpage.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_current_tabpage()
 pub fn set_current_tabpage(tabpage: &TabPage) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_tabpage(tabpage.0, &mut err) };
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_current_win`](https://neovim.io/doc/user/api.html#nvim_set_current_win()).
+/// Binding to [`nvim_set_current_win()`][1].
 ///
 /// Sets the current window.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_current_win()
 pub fn set_current_win(win: &Window) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_current_win(win.0, &mut err) };
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_hl`](https://neovim.io/doc/user/api.html#nvim_set_hl()).
+/// Binding to [`nvim_set_hl()`][1].
 ///
 /// Sets a highlight group.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl()
 pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     let name = nvim::String::from(name);
     let opts = KeyDict_highlight::from(opts);
@@ -822,10 +940,12 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_keymap`](https://neovim.io/doc/user/api.html#nvim_set_keymap()).
+/// Binding to [`nvim_set_keymap()`][1].
 ///
 /// Sets a global mapping for the given mode. To set a buffer-local mapping use
 /// [`Buffer::set_keymap`] instead.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_keymap()
 pub fn set_keymap(
     mode: Mode,
     lhs: &str,
@@ -850,9 +970,11 @@ pub fn set_keymap(
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_option`](https://neovim.io/doc/user/api.html#nvim_set_option()).
+/// Binding to [`nvim_set_option()`][1].
 ///
 /// Sets the global value of an option.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_option()
 pub fn set_option<Opt>(name: &str, value: Opt) -> Result<()>
 where
     Opt: ToObject,
@@ -870,12 +992,14 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_option_value`](https://neovim.io/doc/user/api.html#nvim_set_option_value()).
+/// Binding to [`nvim_set_option_value()`][1].
 ///
 /// Sets the value of an option. The behaviour of this function matches that of
 /// `:set`: for global-local options, both the global and local value are set
 /// unless specified otherwise in the [`scope`](OptionValueOptsBuilder::scope)
 /// field of `opts`.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_option_value()
 pub fn set_option_value<Opt>(
     name: &str,
     value: Opt,
@@ -898,9 +1022,11 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_var`](https://neovim.io/doc/user/api.html#nvim_set_var()).
+/// Binding to [`nvim_set_var()`][1].
 ///
 /// Sets a global (`g:`) variable.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_var()
 pub fn set_var<Var>(name: &str, value: Var) -> Result<()>
 where
     Var: ToObject,
@@ -912,9 +1038,11 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_set_vvar`](https://neovim.io/doc/user/api.html#nvim_set_vvar()).
+/// Binding to [`nvim_set_vvar()`][1].
 ///
 /// Sets a `v:` variable, if it's not readonly.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_vvar()
 pub fn set_vvar<Var>(name: &str, value: Var) -> Result<()>
 where
     Var: ToObject,
@@ -926,10 +1054,12 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_strwidth`](https://neovim.io/doc/user/api.html#nvim_strwidth()).
+/// Binding to [`nvim_strwidth()`][1].
 ///
 /// Calculates the number of display cells occupied by `text`. Control
 /// characters like `<Tab>` count as one cell.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_strwidth()
 pub fn strwidth(text: &str) -> Result<usize> {
     let text = nvim::String::from(text);
     let mut err = nvim::Error::new();

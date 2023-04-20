@@ -14,7 +14,7 @@ use crate::choose;
 use crate::iterator::SuperIterator;
 use crate::Result;
 
-/// Binding to [`nvim_clear_autocmds`][1].
+/// Binding to [`nvim_clear_autocmds()`][1].
 ///
 /// Clears all the autocommands matched by at least one of `opts`'s fields.
 ///
@@ -25,7 +25,7 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_create_augroup`][1].
+/// Binding to [`nvim_create_augroup()`][1].
 ///
 /// Creates a new autocommand group or gets an existing one. To get the id of
 /// an existing augroup set the
@@ -48,7 +48,7 @@ pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
     choose!(err, Ok(id.try_into().expect("always positive")))
 }
 
-/// Binding to [`nvim_create_autocmd`][1].
+/// Binding to [`nvim_create_autocmd()`][1].
 ///
 /// Creates a new autocommand.
 ///
@@ -73,7 +73,7 @@ where
     choose!(err, Ok(id.try_into().expect("always positive")))
 }
 
-/// Binding to [`nvim_del_augroup_by_id`][1].
+/// Binding to [`nvim_del_augroup_by_id()`][1].
 ///
 /// Deletes an autocommand group by id.
 ///
@@ -84,7 +84,7 @@ pub fn del_augroup_by_id(id: u32) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_augroup_by_name`][1].
+/// Binding to [`nvim_del_augroup_by_name()`][1].
 ///
 /// Deletes an autocommand group by name.
 ///
@@ -96,7 +96,7 @@ pub fn del_augroup_by_name(name: &str) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_del_autocmd`][1].
+/// Binding to [`nvim_del_autocmd()`][1].
 ///
 /// Deletes an autocommand by id.
 ///
@@ -107,7 +107,7 @@ pub fn del_autocmd(id: u32) -> Result<()> {
     choose!(err, ())
 }
 
-/// Binding to [`nvim_exec_autocmds`][1].
+/// Binding to [`nvim_exec_autocmds()`][1].
 ///
 /// Executes all the autocommands registered on the given `events` that also
 /// match `opts`.
@@ -123,7 +123,7 @@ where
     choose!(err, ())
 }
 
-/// Binding to [`nvim_get_autocmds`][1].
+/// Binding to [`nvim_get_autocmds()`][1].
 ///
 /// Gets all the autocommands that match `opts`. When multiple patterns or
 /// events are provided, it will find all the autocommands that match any
