@@ -177,7 +177,7 @@ impl Window {
             nvim_win_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(not(feature = "neovim-0-8"))]
                 core::ptr::null_mut(),
                 &mut err,
             )

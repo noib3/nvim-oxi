@@ -10,15 +10,12 @@ use core::slice;
 /// Neovim uses this for its [`Array`] and [`Dictionary`] types.
 ///
 /// [`kvec`]: https://github.com/attractivechaos/klib/blob/master/kvec.h#L55
-/// [`Array`]: https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/private/defs.h#L89
-/// [`Dictionary`]: https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/private/defs.h#L92
+/// [`Array`]: https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L89
+/// [`Dictionary`]: https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L92
 #[repr(C)]
 pub(crate) struct KVec<T> {
-    #[cfg(feature = "neovim-0-7")]
-    pub(super) items: *mut T,
     pub(super) size: usize,
     pub(super) capacity: usize,
-    #[cfg(not(feature = "neovim-0-7"))]
     pub(super) items: *mut T,
 }
 

@@ -9,13 +9,13 @@ use crate::opts::{
 };
 
 extern "C" {
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L621
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L570
     pub(crate) fn nvim_clear_autocmds(
         opts: *const KeyDict_clear_autocmds,
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L701
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L649
     pub(crate) fn nvim_create_augroup(
         channel_id: u64,
         name: NonOwning<String>,
@@ -23,7 +23,7 @@ extern "C" {
         err: *mut Error,
     ) -> Integer;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L439
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L409
     pub(crate) fn nvim_create_autocmd(
         channel_id: u64,
         event: NonOwning<Object>,
@@ -31,26 +31,26 @@ extern "C" {
         err: *mut Error,
     ) -> Integer;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L735
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L683
     pub(crate) fn nvim_del_augroup_by_id(id: Integer, err: *mut Error);
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L752
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L698
     pub(crate) fn nvim_del_augroup_by_name(
         name: NonOwning<String>,
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L588
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L538
     pub(crate) fn nvim_del_autocmd(id: Integer, err: *mut Error);
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L777
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L721
     pub(crate) fn nvim_exec_autocmds(
         event: NonOwning<Object>,
         opts: *const KeyDict_exec_autocmds,
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/autocmd.c#L77
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L90
     pub(crate) fn nvim_get_autocmds(
         opts: *const KeyDict_get_autocmds,
         err: *mut Error,

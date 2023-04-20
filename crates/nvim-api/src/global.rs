@@ -55,7 +55,7 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(not(feature = "neovim-0-8"))]
             LUA_INTERNAL_CALL,
             name.non_owning(),
             command.non_owning(),
@@ -313,13 +313,7 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
 
     let hl = unsafe {
-        nvim_get_hl_by_id(
-            hl_id.into(),
-            rgb,
-            #[cfg(not(feature = "neovim-0-7"))]
-            core::ptr::null_mut(),
-            &mut err,
-        )
+        nvim_get_hl_by_id(hl_id.into(), rgb, core::ptr::null_mut(), &mut err)
     };
 
     choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
@@ -335,7 +329,6 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
         nvim_get_hl_by_name(
             name.non_owning(),
             rgb,
-            #[cfg(not(feature = "neovim-0-7"))]
             core::ptr::null_mut(),
             &mut err,
         )
@@ -357,13 +350,7 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
 /// Returns an iterator over the global mapping definitions.
 pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
-    let keymaps = unsafe {
-        nvim_get_keymap(
-            #[cfg(feature = "neovim-0-7")]
-            LUA_INTERNAL_CALL,
-            mode.non_owning(),
-        )
-    };
+    let keymaps = unsafe { nvim_get_keymap(mode.non_owning()) };
     keymaps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
@@ -413,7 +400,7 @@ where
     let obj = unsafe {
         nvim_get_option(
             name.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(not(feature = "neovim-0-8"))]
             core::ptr::null_mut(),
             &mut err,
         )

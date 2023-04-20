@@ -31,11 +31,6 @@ pub struct SetKeymapOpts {
     /// When [`expr`](SetKeymapOptsBuilder::expr) is `true`, this option can be
     /// used to replace the keycodes in the resulting string (see
     /// [nvim_oxi::api::replace_termcodes](crate::replace_termcodes)).
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(strip_option))]
     replace_keycodes: Option<bool>,
 
@@ -83,6 +78,7 @@ impl SetKeymapOptsBuilder {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -95,7 +91,22 @@ pub(crate) struct KeyDict_keymap<'a> {
     nowait: Object,
     noremap: Object,
     callback: NonOwning<'a, Object>,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
+    replace_keycodes: Object,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_keymap<'a> {
+    noremap: Object,
+    nowait: Object,
+    silent: Object,
+    script: Object,
+    expr: Object,
+    unique: Object,
+    callback: NonOwning<'a, Object>,
+    desc: NonOwning<'a, Object>,
     replace_keycodes: Object,
 }
 
@@ -110,7 +121,6 @@ impl<'a> From<&'a SetKeymapOpts> for KeyDict_keymap<'a> {
             nowait: opts.nowait.into(),
             noremap: opts.noremap.into(),
             callback: opts.callback.non_owning(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             replace_keycodes: opts.replace_keycodes.into(),
         }
     }

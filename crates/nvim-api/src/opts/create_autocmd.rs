@@ -99,6 +99,7 @@ impl CreateAutocmdOptsBuilder {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -111,6 +112,21 @@ pub(crate) struct KeyDict_create_autocmd<'a> {
     command: NonOwning<'a, Object>,
     pattern: NonOwning<'a, Object>,
     callback: NonOwning<'a, Object>,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_create_autocmd<'a> {
+    buffer: Object,
+    callback: NonOwning<'a, Object>,
+    command: NonOwning<'a, Object>,
+    desc: NonOwning<'a, Object>,
+    group: NonOwning<'a, Object>,
+    nested: Object,
+    once: Object,
+    pattern: NonOwning<'a, Object>,
 }
 
 impl<'a> From<&'a CreateAutocmdOpts> for KeyDict_create_autocmd<'a> {

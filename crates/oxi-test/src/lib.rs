@@ -125,12 +125,8 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .output()
                 .expect("Couldn't find `nvim` binary in $PATH");
 
-            if !out.status.success() {
-                if let Some(code) = out.status.code() {
-                    panic!("Neovim exited with non-zero exit code: {}", code);
-                } else {
-                    panic!("Neovim segfaulted");
-                }
+            if out.status.success() {
+                return;
             }
 
             let stderr = String::from_utf8_lossy(&out.stderr);
@@ -147,6 +143,10 @@ pub fn oxi_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 let (_, stderr) = stderr.split_at(31);
 
                 panic!("{}", stderr)
+            } else if let Some(code) = out.status.code() {
+                panic!("Neovim exited with non-zero exit code: {}", code);
+            } else {
+                panic!("Neovim segfaulted");
             }
         }
 

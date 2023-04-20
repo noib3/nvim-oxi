@@ -7,22 +7,12 @@ use serde::Serialize;
 #[derive(Clone, Debug, Default, Builder)]
 #[builder(default, build_fn(private, name = "fallible_build"))]
 pub struct OptionValueOpts {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(strip_option))]
     buffer: Option<crate::Buffer>,
 
     #[builder(setter(custom))]
     scope: Object,
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(into, strip_option))]
     window: Option<crate::Window>,
 }
@@ -62,25 +52,35 @@ impl From<OptionScope> for nvim::String {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_option<'a> {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     buf: Object,
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     win: Object,
     scope: NonOwning<'a, Object>,
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_option<'a> {
+    scope: NonOwning<'a, Object>,
+    win: Object,
+    buf: Object,
+    filetype: Object,
 }
 
 impl<'a> From<&'a OptionValueOpts> for KeyDict_option<'a> {
     fn from(opts: &'a OptionValueOpts) -> Self {
         Self {
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             buf: opts.buffer.as_ref().into(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             win: opts.window.as_ref().into(),
             scope: opts.scope.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            filetype: Object::nil(), // TODO: update this
         }
     }
 }

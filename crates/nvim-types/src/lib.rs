@@ -28,34 +28,34 @@ pub mod iter {
     pub use super::dictionary::{DictIter, DictIterMut, DictIterator};
 }
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L67
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L69
 #[doc(hidden)]
 pub type Boolean = bool;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L68
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L70
 #[doc(hidden)]
 pub type Integer = i64;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L69
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L71
 #[doc(hidden)]
 pub type Float = core::ffi::c_double;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/types.h#L23
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/types.h#L19
 #[doc(hidden)]
 pub type LuaRef = core::ffi::c_int;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/types.h#L18
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/types.h#L14
 #[allow(non_camel_case_types)]
 type handle_T = core::ffi::c_int;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L82
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L84
 #[doc(hidden)]
 pub type BufHandle = handle_T;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L83
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L85
 #[doc(hidden)]
 pub type WinHandle = handle_T;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L84
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L86
 #[doc(hidden)]
 pub type TabHandle = handle_T;

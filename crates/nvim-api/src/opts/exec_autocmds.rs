@@ -13,11 +13,6 @@ pub struct ExecAutocmdsOpts {
     #[builder(setter(into, strip_option))]
     buffer: Option<Buffer>,
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     #[builder(setter(custom))]
     data: Object,
 
@@ -39,11 +34,6 @@ impl ExecAutocmdsOpts {
 }
 
 impl ExecAutocmdsOptsBuilder {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     pub fn data(&mut self, any: impl Into<Object>) -> &mut Self {
         self.data = Some(any.into());
         self
@@ -58,19 +48,8 @@ impl ExecAutocmdsOptsBuilder {
         self
     }
 
-    // Up to 0.7 only strings were allowed (see
-    // https://github.com/neovim/neovim/issues/19089).
     /// Patterns to match against. Cannot be used together with
     /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
-    #[cfg(feature = "neovim-0-7")]
-    pub fn patterns(&mut self, patterns: &str) -> &mut Self {
-        self.patterns = Some(patterns.into());
-        self
-    }
-
-    /// Patterns to match against. Cannot be used together with
-    /// [`buffer`](ExecAutocmdsOptsBuilder::buffer).
-    #[cfg(not(feature = "neovim-0-7"))]
     pub fn patterns<Patterns>(&mut self, patterns: Patterns) -> &mut Self
     where
         Patterns: crate::trait_utils::StringOrListOfStrings,
@@ -84,11 +63,11 @@ impl ExecAutocmdsOptsBuilder {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Default)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_exec_autocmds<'a> {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
     data: NonOwning<'a, Object>,
     group: NonOwning<'a, Object>,
     buffer: Object,
@@ -96,10 +75,21 @@ pub(crate) struct KeyDict_exec_autocmds<'a> {
     modeline: Object,
 }
 
+#[cfg(feature = "neovim-nightly")]
+#[derive(Default)]
+#[allow(non_camel_case_types)]
+#[repr(C)]
+pub(crate) struct KeyDict_exec_autocmds<'a> {
+    buffer: Object,
+    group: NonOwning<'a, Object>,
+    modeline: Object,
+    pattern: NonOwning<'a, Object>,
+    data: NonOwning<'a, Object>,
+}
+
 impl<'a> From<&'a ExecAutocmdsOpts> for KeyDict_exec_autocmds<'a> {
     fn from(opts: &'a ExecAutocmdsOpts) -> KeyDict_exec_autocmds<'a> {
         Self {
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
             data: opts.data.non_owning(),
             group: opts.group.non_owning(),
             buffer: opts.buffer.as_ref().into(),

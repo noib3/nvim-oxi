@@ -11,6 +11,8 @@ use crate::NonOwning;
 ///
 /// Unlike Rust's `String`, this type is not guaranteed to contain valid UTF-8
 /// byte sequences, it can contain null bytes, and it is null-terminated.
+//
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L79-L82
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
@@ -245,7 +247,7 @@ impl lua::Poppable for String {
         // stack is a string or a number, but we'll check anyway.
         assert!(!ptr.is_null());
 
-        let slice = std::slice::from_raw_parts(ptr as *const u8, len as usize);
+        let slice = std::slice::from_raw_parts(ptr as *const u8, len);
         let s = String::from_bytes(slice);
 
         lua_pop(lstate, 1);

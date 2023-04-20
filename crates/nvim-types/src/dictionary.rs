@@ -12,7 +12,7 @@ pub struct Dictionary(pub(super) KVec<KeyValuePair>);
 
 /// A key-value pair mapping a Neovim [`String`] to a Neovim [`Object`].
 //
-// https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/private/defs.h#L122-L125
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L122-L125
 #[derive(Clone, PartialEq)]
 #[repr(C)]
 pub(super) struct KeyValuePair {

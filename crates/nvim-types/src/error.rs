@@ -4,7 +4,7 @@ use std::fmt;
 
 use thiserror::Error as ThisError;
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L64
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L64-L67
 //
 /// Binding to the error type used by Neovim.
 #[derive(Clone, ThisError, Eq, PartialEq, Hash)]
@@ -17,7 +17,7 @@ pub struct Error {
 unsafe impl Send for Error {}
 unsafe impl Sync for Error {}
 
-// https://github.com/neovim/neovim/blob/master/src/nvim/api/private/defs.h#L27
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L27-L31
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[repr(C)]
 enum ErrorType {

@@ -12,9 +12,6 @@ repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 
 [features]
-neovim-0-7 = []
-neovim-0-8 = []
-neovim-nightly = []
 serde = ["dep:serde"]
 
 [dependencies]

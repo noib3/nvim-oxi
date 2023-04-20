@@ -46,11 +46,6 @@ pub struct CommandArgs {
     pub register: Option<String>,
 
     /// Command modifiers in a more structured format.
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-8", feature = "neovim-nightly")))
-    )]
     pub smods: super::CommandModifiers,
 }
 

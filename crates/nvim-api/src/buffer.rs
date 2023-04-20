@@ -158,7 +158,7 @@ impl Buffer {
         let command = command.to_object();
         unsafe {
             nvim_buf_create_user_command(
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(not(feature = "neovim-0-8"))]
                 LUA_INTERNAL_CALL,
                 self.0,
                 name.non_owning(),
@@ -278,13 +278,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
-            nvim_buf_get_keymap(
-                #[cfg(feature = "neovim-0-7")]
-                LUA_INTERNAL_CALL,
-                self.0,
-                mode.non_owning(),
-                &mut err,
-            )
+            nvim_buf_get_keymap(self.0, mode.non_owning(), &mut err)
         };
         choose!(
             err,
@@ -318,7 +312,7 @@ impl Buffer {
                 start,
                 end,
                 strict_indexing,
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_lines() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
                 &mut err,
@@ -357,12 +351,7 @@ impl Buffer {
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = nvim::Error::new();
         let name = unsafe {
-            nvim_buf_get_name(
-                self.0,
-                #[cfg(not(feature = "neovim-0-7"))]
-                core::ptr::null_mut(),
-                &mut err,
-            )
+            nvim_buf_get_name(self.0, core::ptr::null_mut(), &mut err)
         };
         choose!(err, Ok(name.into()))
     }
@@ -390,7 +379,7 @@ impl Buffer {
             nvim_buf_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(not(feature = "neovim-0-8"))]
                 std::ptr::null_mut(),
                 &mut err,
             )
@@ -427,7 +416,7 @@ impl Buffer {
                 end,
                 end_col.try_into()?,
                 opts.non_owning(),
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
                 &mut err,

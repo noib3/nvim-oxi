@@ -8,7 +8,7 @@ fn call_function() {
     assert_eq!(Ok(7), res);
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn cmd_basic() {
     let opts = CmdOpts::builder().output(true).build();
@@ -16,7 +16,7 @@ fn cmd_basic() {
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn cmd_no_output() {
     let opts = CmdOpts::builder().output(false).build();
@@ -53,7 +53,7 @@ fn exec() {
     assert_eq!(Ok(Some("2".into())), add);
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn parse_cmd_basic() {
     let opts = ParseCmdOpts::builder().build();

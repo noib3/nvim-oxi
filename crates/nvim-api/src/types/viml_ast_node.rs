@@ -85,7 +85,7 @@ pub enum AssignmentAugmentation {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Hash, Deserialize)]
-// https://github.com/neovim/neovim/blob/master/src/nvim/viml/parser/expressions.h#L65
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/viml/parser/expressions.h#L68
 pub enum ExprComparisonType {
     Equal,
     Greater,
@@ -95,7 +95,7 @@ pub enum ExprComparisonType {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Hash, Deserialize)]
-// https://github.com/neovim/neovim/blob/master/src/nvim/viml/parser/expressions.h#L20
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/viml/parser/expressions.h#L23
 pub enum ExprCaseCompareStrategy {
     UseOption,
     MatchCase,
@@ -105,7 +105,7 @@ pub enum ExprCaseCompareStrategy {
 #[derive(
     Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Hash, Deserialize_repr,
 )]
-// https://github.com/neovim/neovim/blob/master/src/nvim/viml/parser/expressions.h#L72
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/viml/parser/expressions.h#L78
 #[repr(u8)]
 pub enum ExprOptScope {
     Unspecified = 0,
@@ -116,7 +116,7 @@ pub enum ExprOptScope {
 #[derive(
     Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Hash, Deserialize_repr,
 )]
-// https://github.com/neovim/neovim/blob/master/src/nvim/viml/parser/expressions.h#L96
+// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/viml/parser/expressions.h#L99
 #[repr(u8)]
 pub enum ExprVarScope {
     Missing = 0,
