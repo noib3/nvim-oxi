@@ -7,19 +7,19 @@ members = [
 exclude = ["tests"]
 
 [workspace.package]
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 authors = ["Riccardo Mazzarini <me@noib3.dev>"]
 rust-version = "1.62"
 description = "Rust bindings to all things Neovim"
 documentation = "https://docs.rs/nvim-oxi"
-readme = "../../README.md"
+readme = "./README.md"
 repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
 [workspace.dependencies]
-oxi-api = { version = "0.2.0", path = "./crates/oxi-api" }
-oxi-luajit = { version = "0.2.0", path = "./crates/oxi-luajit" }
-oxi-macros = { version = "0.2.0", path = "./crates/oxi-macros", features = ["module"] }
-oxi-types = { version = "0.2.0", path = "./crates/oxi-types", features = ["serde"] }
+oxi-api = { version = "0.3.0", path = "./crates/oxi-api" }
+oxi-luajit = { version = "0.3.0", path = "./crates/oxi-luajit" }
+oxi-macros = { version = "0.3.0", path = "./crates/oxi-macros", features = ["module"] }
+oxi-types = { version = "0.3.0", path = "./crates/oxi-types", features = ["serde"] }

@@ -1,15 +1,11 @@
 [package]
 name = "oxi-types"
-version = "0.2.0"
-authors = [
-  "Steve Loveless <steve.loveless@gmail.com>",
-  "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
-]
-edition = "2021"
-description = "Rust bindings to the Neovim C types."
-documentation = "https://docs.rs/oxi_types"
-repository = "https://github.com/noib3/nvim-oxi"
-license = "MIT"
+description = "Rust bindings to types used by Neovim's C API"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
 
 [features]
 serde = ["dep:serde"]
