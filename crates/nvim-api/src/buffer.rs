@@ -18,11 +18,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::choose;
 use crate::ffi::buffer::*;
-use crate::iterator::SuperIterator;
 use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::utils;
 use crate::StringOrFunction;
+use crate::SuperIterator;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
 

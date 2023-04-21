@@ -3,7 +3,7 @@ use nvim_types::{self as nvim, Array, Integer, Object};
 use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
-/// Options passed to [`set_extmark()`](crate::set_extmark).
+/// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
 #[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]

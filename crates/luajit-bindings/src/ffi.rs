@@ -63,7 +63,7 @@ extern "C" {
     ///
     /// This pre-allocation is useful when you know exactly how many
     /// elements the table will have. Otherwise you can use the function
-    /// [`lua_newtable`].
+    /// `lua_newtable`.
     ///
     /// [`lua_createtable`]: https://www.lua.org/manual/5.1/manual.html#lua_createtable
     pub fn lua_createtable(L: *mut lua_State, narr: c_int, nrec: c_int);

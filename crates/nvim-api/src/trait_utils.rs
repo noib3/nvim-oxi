@@ -1,5 +1,21 @@
+use std::iter::FusedIterator;
+
 use luajit_bindings::{Poppable, Pushable};
 use nvim_types::{Array, Function, Object};
+
+/// A super trait of most common traits implemented on iterators.
+pub trait SuperIterator<I>:
+    Iterator<Item = I> + ExactSizeIterator + DoubleEndedIterator + FusedIterator
+{
+}
+
+impl<I, T> SuperIterator<I> for T where
+    T: Iterator<Item = I>
+        + ExactSizeIterator
+        + DoubleEndedIterator
+        + FusedIterator
+{
+}
 
 macro_rules! impl_into {
     ($trait:ident, $type:ty) => {
@@ -11,7 +27,7 @@ macro_rules! impl_into {
     };
 }
 
-/// A string or an integer.
+/// A trait implemented by strings and integers.
 pub trait StringOrInt {
     fn to_object(self) -> Object;
 }
@@ -26,7 +42,7 @@ impl_into!(StringOrInt, i32);
 impl_into!(StringOrInt, u32);
 impl_into!(StringOrInt, i64);
 
-/// A string or a list of strings.
+/// A trait implemented by strings and list of strings.
 pub trait StringOrListOfStrings {
     fn to_object(self) -> Object;
 }
@@ -43,7 +59,7 @@ impl<S: Into<String>> StringOrListOfStrings for Vec<S> {
     }
 }
 
-/// A Rust closure or a [`Function`].
+/// A trait implemented by closures and [`Function`]s.
 pub trait ToFunction<A, R> {
     fn to_object(self) -> Object;
 }
@@ -67,7 +83,7 @@ impl<A, R> ToFunction<A, R> for Function<A, R> {
     }
 }
 
-/// A Rust closure, a [`Function`] or a string.
+/// A trait implemented by closures, [`Function`]s and strings.
 pub trait StringOrFunction<A, R> {
     fn to_object(self) -> Object;
 }

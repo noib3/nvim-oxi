@@ -10,11 +10,11 @@ use nvim_types::{
 
 use crate::choose;
 use crate::ffi::extmark::*;
-use crate::iterator::SuperIterator;
 use crate::opts::*;
 use crate::types::*;
 use crate::utils;
 use crate::Buffer;
+use crate::SuperIterator;
 use crate::{Error, Result};
 
 impl Buffer {

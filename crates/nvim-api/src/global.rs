@@ -11,10 +11,10 @@ use nvim_types::{
 
 use crate::choose;
 use crate::ffi::global::*;
-use crate::iterator::SuperIterator;
 use crate::opts::*;
 use crate::types::*;
 use crate::StringOrFunction;
+use crate::SuperIterator;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage, Window};
 use crate::{Error, Result};

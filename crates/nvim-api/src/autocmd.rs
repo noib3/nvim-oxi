@@ -11,8 +11,8 @@ use super::opts::*;
 use super::types::*;
 use super::LUA_INTERNAL_CALL;
 use crate::choose;
-use crate::iterator::SuperIterator;
 use crate::Result;
+use crate::SuperIterator;
 
 /// Binding to [`nvim_clear_autocmds()`][1].
 ///

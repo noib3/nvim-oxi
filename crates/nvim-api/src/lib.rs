@@ -19,7 +19,6 @@ mod error;
 mod extmark;
 mod ffi;
 mod global;
-pub(crate) mod iterator;
 pub mod opts;
 pub(crate) mod serde_utils;
 mod tabpage;

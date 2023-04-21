@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::choose;
 use crate::ffi::tabpage::*;
-use crate::iterator::SuperIterator;
 use crate::Result;
+use crate::SuperIterator;
 use crate::Window;
 
 /// A wrapper around a Neovim tab handle.

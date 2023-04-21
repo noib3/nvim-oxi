@@ -6,7 +6,7 @@ use crate::types::*;
 use crate::Result;
 use crate::LUA_INTERNAL_CALL;
 
-/// Binding to [`nvim_call_dict_function()`]).
+/// Binding to [`nvim_call_dict_function()`][1].
 ///
 /// Calls a VimL dictionary function with the given arguments, returning the
 /// result of the funtion call.
@@ -36,7 +36,7 @@ where
     choose!(err, Ok(Ret::from_object(res)?))
 }
 
-/// Binding to [`nvim_call_function()`].
+/// Binding to [`nvim_call_function()`][1].
 ///
 /// Calls a VimL function with the given arguments, returning the result of the
 /// funtion call.
