@@ -1,22 +1,18 @@
 # 🔗 nvim-oxi
 
 [![Latest version]](https://crates.io/crates/nvim-oxi)
-[![Docs]](https://docs.rs/nvim-oxi)
-[![MSRV]](https://www.rust-lang.org/)
 [![CI]](https://github.com/noib3/nvim-oxi/actions)
+[![Docs]](https://docs.rs/nvim-oxi)
 
 [Latest version]: https://img.shields.io/crates/v/nvim-oxi.svg
-[Docs]: https://docs.rs/nvim-oxi/badge.svg
-[MSRV]: https://img.shields.io/badge/rustc-1.62+-brightgreen.svg?&logo=rust
 [CI]: https://github.com/noib3/nvim-oxi/actions/workflows/ci.yml/badge.svg
+[Docs]: https://docs.rs/nvim-oxi/badge.svg
 
-## What
+nvim-oxi provides safe and idiomatic Rust bindings to the rich API exposed by
+the [Neovim](https://neovim.io) text editor.
 
-The `nvim-oxi` crate provides first-class Rust bindings to the rich API exposed
-by the [Neovim](https://neovim.io) terminal text editor.
-
-The project is mostly intended for plugin authors, although nothing's stopping
-end users from writing their Neovim configs in Rust.
+The project is mostly intended for plugin authors, although nothing's
+stopping end users from writing their Neovim configs in Rust.
 
 ## How
 
@@ -27,7 +23,7 @@ few limitations mostly due to having to (de)serialize everything to
 MessagePack-encoded messages, prohibiting things like attaching callbacks to
 keymaps or scheduling functions.
 
-`nvim-oxi` takes a different approach. It leverages Rust's foreign function
+nvim-oxi takes a different approach. It leverages Rust's foreign function
 interface (FFI) support to hook straight into the Neovim C code, allowing
 feature parity with "in process" plugins while also avoiding the need for an
 extra IO layer.
@@ -47,7 +43,7 @@ reasons:
   a fully-fledged, statically typed language with a huge ecosystem of crates
   for (de)serialization, networking, IO, green threads, etc;
 
-- `nvim-oxi` provides a fully typed API: everything from optional function
+- nvim-oxi provides a fully typed API: everything from optional function
   fields to callback arguments is checked at compile-time. This allows plugin
   authors to spend less time reading through the help docs and more time
   iterating via `cargo check`s.
@@ -55,7 +51,7 @@ reasons:
 ## Examples
 
 The [examples](https://github.com/noib3/nvim-oxi/tree/main/examples)
-directory contains several examples of how to use `nvim-oxi`. It also contains
+directory contains several examples of how to use nvim-oxi. It also contains
 instructions on how to setup your Rust crate, where to place the compiled
 artifacts and how to load the final plugin from Neovim.
 
