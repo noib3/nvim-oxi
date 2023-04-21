@@ -1,10 +1,11 @@
 [package]
 name = "oxi-macros"
-version = "0.2.0"
-edition = "2021"
-description = "Proc macros for the nvim-oxi project"
-repository = "https://github.com/noib3/nvim-oxi"
-license = "MIT"
+description = "Proc macros for nvim-oxi"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
 
 [lib]
 proc-macro = true

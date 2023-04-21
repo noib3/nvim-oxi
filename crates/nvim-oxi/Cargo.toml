@@ -1,41 +1,39 @@
 [package]
 name = "nvim-oxi"
-version = "0.2.2"
-authors = ["Riccardo Mazzarini <riccardo.mazzarini@pm.me>"]
-edition = "2021"
-rust-version = "1.62"
-description = "Rust bindings to all things Neovim."
-documentation = "https://docs.rs/nvim_oxi"
-readme = "../../README.md"
-repository = "https://github.com/noib3/nvim-oxi"
-license = "MIT"
-keywords = ["bindings", "neovim", "nvim"]
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+readme.workspace = true
 
 [package.metadata.docs.rs]
-features = ["neovim-0-8", "libuv", "mlua", "test"]
+features = ["neovim-0-9", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-neovim-0-8 = ["nvim-api/neovim-0-8"]
-neovim-0-9 = ["nvim-api/neovim-0-9"]
-neovim-nightly = ["nvim-api/neovim-nightly"]
+neovim-0-8 = ["oxi-api/neovim-0-8"]
+neovim-0-9 = ["oxi-api/neovim-0-9"]
+neovim-nightly = ["oxi-api/neovim-nightly"]
 
-diagnostic = ["nvim-diagnostic"]
-libuv = ["libuv-bindings"]
+# diagnostic = ["oxi-diagnostic"]
+libuv = ["oxi-libuv"]
 mlua = ["dep:mlua"]
 test = ["oxi-macros/test", "miniserde"]
 
 [dependencies]
-libuv-bindings = { version = "0.2.0", path = "../libuv-bindings", optional = true }
-luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
-nvim-api = { version = "0.2.0", path = "../nvim-api" }
-nvim-diagnostic = { version = "0.1.0", path = "../nvim-diagnostic", optional = true }
-nvim-types = { version = "0.2.0", path = "../nvim-types", features = ["serde"] }
-oxi-macros = { version = "0.2.0", path = "../oxi-macros", features = ["module"] }
+oxi-api = { workspace = true }
+# oxi-diagnostic = { workspace = true }
+oxi-libuv = { version = "0.2.0", path = "../oxi-libuv", optional = true }
+oxi-luajit = { workspace = true }
+oxi-macros = { workspace = true }
+oxi-types = { workspace = true }
 
+miniserde = { version = "0.1", optional = true }
 mlua = { version = "0.8", features = ["luajit"], optional = true }
 thiserror = "1.0"
-miniserde = { version = "0.1", optional = true }
 
 [dev-dependencies]
 mlua = { version = "0.8", features = ["luajit", "module", "vendored"] }

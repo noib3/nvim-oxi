@@ -1,0 +1,22 @@
+[package]
+name = "oxi-types"
+version = "0.2.0"
+authors = [
+  "Steve Loveless <steve.loveless@gmail.com>",
+  "Riccardo Mazzarini <riccardo.mazzarini@pm.me>",
+]
+edition = "2021"
+description = "Rust bindings to the Neovim C types."
+documentation = "https://docs.rs/oxi_types"
+repository = "https://github.com/noib3/nvim-oxi"
+license = "MIT"
+
+[features]
+serde = ["dep:serde"]
+
+[dependencies]
+oxi-luajit = { workspace = true }
+
+libc = "0.2"
+serde = { version = "1.0", optional = true }
+thiserror = "1.0"

@@ -1,0 +1,21 @@
+[package]
+name = "oxi-api"
+description = "Rust bindings to Neovim's C API for oxi-oxi"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
+
+[features]
+neovim-0-8 = []
+neovim-0-9 = []
+neovim-nightly = []
+
+[dependencies]
+oxi-luajit = { workspace = true }
+oxi-types = { workspace = true }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_repr = "0.1"
+thiserror = "1.0"

@@ -1,5 +1,5 @@
-use luajit_bindings::{self as lua, ffi::*, macros::cstr};
-use nvim_types::Function;
+use oxi_luajit::{self as lua, ffi::*, macros::cstr};
+use oxi_types::Function;
 
 use crate::Result;
 
