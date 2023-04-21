@@ -54,7 +54,7 @@ reasons:
 
 ## Examples
 
-The [examples](https://github.com/noib3/nvim-oxi/tree/master/examples)
+The [examples](https://github.com/noib3/nvim-oxi/tree/main/examples)
 directory contains several examples of how to use `nvim-oxi`. It also contains
 instructions on how to setup your Rust crate, where to place the compiled
 artifacts and how to load the final plugin from Neovim.
