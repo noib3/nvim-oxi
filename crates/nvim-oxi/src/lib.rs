@@ -49,6 +49,8 @@ pub mod mlua {
     //!
     //! [mlua]: https://github.com/khvzak/mlua
 
+    pub use mlua::*;
+
     /// Returns a static reference to a
     /// [`mlua::Lua`](https://docs.rs/mlua/latest/mlua/struct.Lua.html) object
     /// which can be used to interact with Lua plugins.
