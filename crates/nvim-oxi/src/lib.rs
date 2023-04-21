@@ -91,10 +91,10 @@ pub use entrypoint::entrypoint;
 pub use error::{Error, Result};
 pub use luajit_bindings::{dbg, print};
 pub use nvim_types::*;
-pub use oxi_module::oxi_module as module;
+pub use oxi_macros::oxi_module as module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
-pub use oxi_test::oxi_test as test;
+pub use oxi_macros::oxi_test as test;
 #[cfg(feature = "test")]
 #[doc(hidden)]
 pub mod __test {

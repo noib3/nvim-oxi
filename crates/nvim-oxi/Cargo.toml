@@ -23,7 +23,7 @@ neovim-nightly = ["nvim-api/neovim-nightly"]
 diagnostic = ["nvim-diagnostic"]
 libuv = ["libuv-bindings"]
 mlua = ["dep:mlua"]
-test = ["oxi-test", "dep:miniserde"]
+test = ["oxi-macros/test", "dep:miniserde"]
 
 [dependencies]
 libuv-bindings = { version = "0.2.0", path = "../libuv-bindings", optional = true }
@@ -31,8 +31,7 @@ luajit-bindings = { version = "0.2.0", path = "../luajit-bindings" }
 nvim-diagnostic = { version = "0.1.0", path = "../nvim-diagnostic", optional = true }
 nvim-api = { version = "0.2.0", path = "../nvim-api" }
 nvim-types = { version = "0.2.0", path = "../nvim-types", features = ["serde"] }
-oxi-module = { version = "0.2.0", path = "../oxi-module" }
-oxi-test = { version = "0.2.0", path = "../oxi-test", optional = true }
+oxi-macros = { version = "0.2.0", path = "../oxi-macros", features = ["module"] }
 
 mlua = { version = "0.8", optional = true }
 thiserror = "1.0"
