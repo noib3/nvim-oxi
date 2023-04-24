@@ -17,7 +17,7 @@ use crate::Buffer;
 
 /// Options passed to
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
-#[cfg(feature = "neovim-0-8")]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateCommandOpts {
@@ -37,7 +37,7 @@ pub struct CreateCommandOpts {
 
 /// Options passed to
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+#[cfg(feature = "neovim-nightly")]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateCommandOpts {
