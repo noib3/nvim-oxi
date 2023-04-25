@@ -349,6 +349,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L232
     pub(crate) fn nvim_set_option_value(
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+        channel_id: u64,
         name: NonOwning<String>,
         value: NonOwning<Object>,
         opts: *const OptionValueOpts,

@@ -1005,6 +1005,8 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_option_value(
+            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+            LUA_INTERNAL_CALL,
             name.non_owning(),
             value.to_object()?.non_owning(),
             opts,

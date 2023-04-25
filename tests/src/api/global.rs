@@ -192,6 +192,17 @@ fn set_get_option() {
 }
 
 #[oxi::test]
+fn set_get_option_value() {
+    let opts = OptionValueOpts::builder()
+        .scope(api::opts::OptionScope::Global)
+        .build();
+
+    api::set_option_value("modified", true, &opts).unwrap();
+
+    assert!(api::get_option_value::<bool>("modified", &opts).unwrap());
+}
+
+#[oxi::test]
 fn strwidth() {
     assert_eq!(Ok(2), api::strwidth("｜"));
 }
