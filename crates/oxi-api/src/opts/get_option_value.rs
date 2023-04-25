@@ -10,8 +10,8 @@ use crate::{Buffer, Window};
 #[repr(C)]
 pub struct OptionValueOpts {
     buffer: Object,
-    scope: Object,
     window: Object,
+    scope: Object,
 }
 
 /// Options passed to
