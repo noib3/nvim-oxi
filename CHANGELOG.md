@@ -6,6 +6,9 @@
 
 - a new `ExtmarkVirtTextChunk` struct;
 
+- an `Inline` variant to the `ExtmarkVirtTextPosition` enum when building for
+  `neovim-nightly`;
+
 ### Changed
 
 - the type of `ExtmarkInfos`'s `virt_text` field from
