@@ -154,7 +154,7 @@ impl From<String> for std::path::PathBuf {
 }
 
 #[cfg(windows)]
-impl From<String> for PathBuf {
+impl From<String> for std::path::PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
         std::string::String::from_utf8_lossy(nstr.as_bytes())
