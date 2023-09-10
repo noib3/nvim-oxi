@@ -101,7 +101,7 @@ fn str_to_char(str: &str) -> Option<char> {
         0 => None,
         1 => Some(str.as_bytes()[0] as char),
         // This handles multibyte characters.
-        2 | 3 | 4 => {
+        2..=4 => {
             char::decode_utf16(str.encode_utf16()).next().and_then(Result::ok)
         },
         _ => unreachable!(),
