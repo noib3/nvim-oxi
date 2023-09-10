@@ -141,7 +141,7 @@ where
 {
     unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
-            return Err(Error::PopEmptyStack);
+            return Ok(None);
         }
 
         match lua_type(state, -1) {
