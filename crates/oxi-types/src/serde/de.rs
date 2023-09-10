@@ -3,7 +3,7 @@ use std::string::String as StdString;
 use serde::de::{self, IntoDeserializer};
 
 use super::Result;
-use crate::{Object, ObjectKind};
+use crate::{Array, Dictionary, Object, ObjectKind};
 
 /// A struct used for deserializing Neovim `Object`s into Rust values.
 pub struct Deserializer {
@@ -121,19 +121,27 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        match self.obj.kind() {
-            ObjectKind::Array => {
-                let iter =
-                    unsafe { self.obj.into_array_unchecked() }.into_iter();
-                let mut deserializer = SeqDeserializer { iter };
-                visitor.visit_seq(&mut deserializer)
+        let array = match self.obj.kind() {
+            ObjectKind::Array => unsafe { self.obj.into_array_unchecked() },
+
+            // Empty dictionaries are also valid arrays.
+            ObjectKind::Dictionary
+                if (unsafe { self.obj.into_dict_unchecked() }).is_empty() =>
+            {
+                Array::new()
             },
 
-            ty => Err(de::Error::invalid_type(
-                de::Unexpected::Other(&format!("{ty:?}")),
-                &"array",
-            )),
-        }
+            other => {
+                return Err(de::Error::invalid_type(
+                    de::Unexpected::Other(&format!("{other:?}")),
+                    &"Array",
+                ))
+            },
+        };
+
+        let iter = array.into_iter();
+        let mut deserializer = SeqDeserializer { iter };
+        visitor.visit_seq(&mut deserializer)
     }
 
     #[inline]
@@ -162,19 +170,29 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     where
         V: de::Visitor<'de>,
     {
-        match self.obj.kind() {
-            ObjectKind::Dictionary => {
-                let iter =
-                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
-                let mut deserializer = MapDeserializer { iter, obj: None };
-                visitor.visit_map(&mut deserializer)
+        let dict = match self.obj.kind() {
+            ObjectKind::Dictionary => unsafe {
+                self.obj.into_dict_unchecked()
             },
 
-            ty => Err(de::Error::invalid_type(
-                de::Unexpected::Other(&format!("{ty:?}")),
-                &"dictionary",
-            )),
-        }
+            // Empty arrays are also valid dictionaries.
+            ObjectKind::Array
+                if (unsafe { self.obj.into_array_unchecked() }).is_empty() =>
+            {
+                Dictionary::new()
+            },
+
+            other => {
+                return Err(de::Error::invalid_type(
+                    de::Unexpected::Other(&format!("{other:?}")),
+                    &"Dictionary",
+                ));
+            },
+        };
+
+        let iter = dict.into_iter();
+        let mut deserializer = MapDeserializer { iter, obj: None };
+        visitor.visit_map(&mut deserializer)
     }
 
     #[inline]
