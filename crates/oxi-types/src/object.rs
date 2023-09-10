@@ -484,6 +484,10 @@ impl Pushable for Object {
 
 impl Poppable for Object {
     unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
+        if lua_gettop(lstate) == 0 {
+            return Ok(Self::nil());
+        }
+
         match lua_type(lstate, -1) {
             LUA_TNIL => <()>::pop(lstate).map(Into::into),
 
