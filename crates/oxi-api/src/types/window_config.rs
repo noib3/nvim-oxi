@@ -9,6 +9,7 @@ use oxi_types::{
 use serde::Deserialize;
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};
+use crate::Window;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
@@ -55,6 +56,10 @@ pub struct WindowConfig {
 
     /// Window width in character cells. Minimum of 1.
     pub width: Option<u32>,
+
+    /// For relative positioned windows, the [`Window`] that the window is
+    /// positioned relative to.
+    pub win: Option<Window>,
 
     /// Stacking order. Windows with higher `zindex` go in front of windows
     /// with lower indices.
@@ -155,6 +160,9 @@ impl WindowConfigBuilder {
     /// What the window is positioned relative to.
     #[inline]
     pub fn relative(&mut self, relative: WindowRelativeTo) -> &mut Self {
+        if let WindowRelativeTo::Window(win) = &relative {
+            self.0.win = Some(win.clone());
+        }
         self.0.relative = Some(relative);
         self
     }
@@ -280,11 +288,6 @@ pub(crate) struct KeyDict_float_config {
 
 impl From<&WindowConfig> for KeyDict_float_config {
     fn from(config: &WindowConfig) -> Self {
-        let win = match &config.relative {
-            Some(WindowRelativeTo::Window(win)) => win.0.into(),
-            _ => Object::nil(),
-        };
-
         let bufpos = match config.bufpos {
             Some((line, column)) => {
                 Array::from_iter([line as Integer, column as Integer]).into()
@@ -295,7 +298,7 @@ impl From<&WindowConfig> for KeyDict_float_config {
         Self {
             col: config.col.into(),
             row: config.row.into(),
-            win,
+            win: config.win.as_ref().into(),
             style: config.style.into(),
             #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             title: config.title.as_ref().into(),
