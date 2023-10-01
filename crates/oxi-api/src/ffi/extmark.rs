@@ -55,7 +55,8 @@ extern "C" {
         ns_id: Integer,
         start: Object,
         end: Object,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarksOpts,
         err: *mut Error,
     ) -> Array;
 

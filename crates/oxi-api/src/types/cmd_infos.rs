@@ -4,6 +4,8 @@ use oxi_types::{
     Array,
     Object,
 };
+#[cfg(feature = "neovim-nightly")]
+use oxi_types::{Boolean, Dictionary, Integer, String as NvimString};
 use serde::Deserialize;
 
 use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};
@@ -185,46 +187,168 @@ pub(crate) struct KeyDict_cmd {
 #[allow(non_camel_case_types)]
 #[repr(C)]
 pub(crate) struct KeyDict_cmd {
-    cmd: Object,
-    range: Object,
-    count: Object,
-    reg: Object,
-    bang: Object,
-    args: Object,
-    magic: Object,
-    mods: Object,
+    mask: u64,
+
+    /// 1st in the mask.
+    cmd: NvimString,
+
+    /// 10th in the mask.
+    range: Array,
+
+    /// 7th in the mask.
+    count: Integer,
+
+    /// 2nd in the mask.
+    reg: NvimString,
+
+    /// 3rd in the mask.
+    bang: Boolean,
+
+    /// 6th in the mask.
+    args: Array,
+
+    /// 8th in the mask.
+    magic: Dictionary,
+
+    /// 5th in the mask.
+    mods: Dictionary,
+
+    /// 9th in the mask.
     nargs: Object,
+
+    /// 4th in the mask.
     addr: Object,
+
+    /// 11th in the mask.
     nextcmd: Object,
 }
 
 impl From<&CmdInfos> for KeyDict_cmd {
     #[inline]
     fn from(infos: &CmdInfos) -> Self {
-        Self {
-            cmd: infos.cmd.clone().into(),
-            reg: infos.reg.into(),
-            bang: infos.bang.into(),
-            addr: infos
-                .addr
-                .map(|v| v.to_object().unwrap())
-                .unwrap_or_default(),
-            mods: infos
-                .mods
-                .map(|v| v.to_object().unwrap())
-                .unwrap_or_default(),
-            args: Array::from_iter(infos.args.clone()).into(),
-            count: infos.count.into(),
-            magic: infos
-                .magic
-                .map(|v| v.to_object().unwrap())
-                .unwrap_or_default(),
-            nargs: infos
-                .nargs
-                .map(|v| v.to_object().unwrap())
-                .unwrap_or_default(),
-            range: infos.range.into(),
-            nextcmd: infos.nextcmd.clone().into(),
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            Self {
+                cmd: infos.cmd.clone().into(),
+                reg: infos.reg.into(),
+                bang: infos.bang.into(),
+                addr: infos
+                    .addr
+                    .map(|v| v.to_object().unwrap())
+                    .unwrap_or_default(),
+                mods: infos
+                    .mods
+                    .map(|v| v.to_object().unwrap())
+                    .unwrap_or_default(),
+                args: Array::from_iter(infos.args.clone()).into(),
+                count: infos.count.into(),
+                magic: infos
+                    .magic
+                    .map(|v| v.to_object().unwrap())
+                    .unwrap_or_default(),
+                nargs: infos
+                    .nargs
+                    .map(|v| v.to_object().unwrap())
+                    .unwrap_or_default(),
+                range: infos.range.into(),
+                nextcmd: infos.nextcmd.clone().into(),
+            }
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            let mut mask = 0;
+
+            let cmd = if let Some(cmd) = infos.cmd.as_deref() {
+                mask |= 0b11;
+                NvimString::from(cmd)
+            } else {
+                NvimString::default()
+            };
+
+            let range = if let Some(range) = infos.range {
+                mask |= 0b10000000001;
+                Array::from(range)
+            } else {
+                Array::default()
+            };
+
+            let count = if let Some(count) = infos.count {
+                mask |= 0b10000001;
+                count as Integer
+            } else {
+                Integer::default()
+            };
+
+            let reg = if let Some(reg) = infos.reg {
+                mask |= 0b101;
+                reg.into()
+            } else {
+                NvimString::default()
+            };
+
+            let bang = if let Some(bang) = infos.bang {
+                mask |= 0b1001;
+                bang
+            } else {
+                Boolean::default()
+            };
+
+            let args = if !infos.args.is_empty() {
+                mask |= 0b1000001;
+                Array::from_iter(infos.args.clone())
+            } else {
+                Array::default()
+            };
+
+            let magic = if let Some(magic) = infos.magic {
+                mask |= 0b100000001;
+                Dictionary::from(magic)
+            } else {
+                Dictionary::default()
+            };
+
+            let mods = if let Some(mods) = infos.mods {
+                mask |= 0b100001;
+                Dictionary::from(mods)
+            } else {
+                Dictionary::default()
+            };
+
+            let nargs = if let Some(nargs) = infos.nargs {
+                mask |= 0b1000000001;
+                nargs.to_object().unwrap()
+            } else {
+                Object::default()
+            };
+
+            let addr = if let Some(addr) = infos.addr {
+                mask |= 0b10001;
+                addr.to_object().unwrap()
+            } else {
+                Object::default()
+            };
+
+            let nextcmd = if let Some(nextcmd) = infos.nextcmd.as_deref() {
+                mask |= 0b100000000001;
+                NvimString::from(nextcmd).into()
+            } else {
+                Object::default()
+            };
+
+            Self {
+                mask,
+                cmd,
+                reg,
+                bang,
+                addr,
+                mods,
+                args,
+                count,
+                magic,
+                nargs,
+                range,
+                nextcmd,
+            }
         }
     }
 }

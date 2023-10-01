@@ -168,6 +168,7 @@ impl Buffer {
         opts: &GetExtmarksOpts,
     ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
     {
+        #[cfg(not(feature = "neovim-nightly"))]
         let opts = Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
@@ -176,7 +177,10 @@ impl Buffer {
                 ns_id as Integer,
                 start.into(),
                 end.into(),
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 &mut err,
             )
         };

@@ -1,4 +1,6 @@
 use oxi_types::{self as nvim, Array, Integer, Object};
+#[cfg(feature = "neovim-nightly")]
+use oxi_types::{Boolean, String as NvimString};
 
 use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
@@ -43,34 +45,89 @@ pub struct SetExtmarkOpts {
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct SetExtmarkOpts {
-    id: Object,
+    mask: u64,
+
+    /// 1st in the mask.
+    id: Integer,
+
     /// The docs don't mention this but it's there.
-    end_line: Object,
-    end_row: Object,
-    end_col: Object,
+    /// 9th in the mask.
+    end_line: Integer,
+
+    /// 8th in the mask.
+    end_row: Integer,
+
+    /// 5th in the mask.
+    end_col: Integer,
+
+    /// 10th in the mask.
     hl_group: Object,
-    virt_text: Object,
-    virt_text_pos: Object,
-    virt_text_win_col: Object,
-    virt_text_hide: Object,
-    hl_eol: Object,
-    hl_mode: Object,
-    ephemeral: Object,
-    priority: Object,
-    right_gravity: Object,
-    end_right_gravity: Object,
-    virt_lines: Object,
-    virt_lines_above: Object,
-    virt_lines_leftcol: Object,
-    strict: Object,
-    sign_text: Object,
+
+    /// 14th in the mask.
+    virt_text: Array,
+
+    /// 20th in the mask.
+    virt_text_pos: NvimString,
+
+    /// 25th in the mask.
+    virt_text_win_col: Integer,
+
+    /// 21th in the mask.
+    virt_text_hide: Boolean,
+
+    /// 3rd in the mask.
+    hl_eol: Boolean,
+
+    /// 7th in the mask.
+    hl_mode: NvimString,
+
+    /// 12th in the mask.
+    ephemeral: Boolean,
+
+    /// 11th in the mask.
+    priority: Integer,
+
+    /// 18th in the mask.
+    right_gravity: Boolean,
+
+    /// 24th in the mask.
+    end_right_gravity: Boolean,
+
+    /// 16th in the mask.
+    virt_lines: Array,
+
+    /// 23th in the mask.
+    virt_lines_above: Boolean,
+
+    /// 26th in the mask.
+    virt_lines_leftcol: Boolean,
+
+    /// 4th in the mask.
+    strict: Boolean,
+
+    /// 13th in the mask.
+    sign_text: NvimString,
+
+    /// 19th in the mask.
     sign_hl_group: Object,
+
+    /// 22th in the mask.
     number_hl_group: Object,
+
+    /// 17th in the mask.
     line_hl_group: Object,
+
+    /// 27th in the mask.
     cursorline_hl_group: Object,
-    conceal: Object,
-    spell: Object,
-    ui_watched: Object,
+
+    /// 6th in the mask.
+    conceal: NvimString,
+
+    /// 2nd in the mask.
+    spell: Boolean,
+
+    /// 15th in the mask.
+    ui_watched: Boolean,
 }
 
 #[derive(Clone, Default)]
@@ -92,7 +149,17 @@ impl SetExtmarkOptsBuilder {
     #[inline]
     pub fn conceal(&mut self, conceal: Option<char>) -> &mut Self {
         let ch = conceal.map(nvim::String::from).unwrap_or_default();
-        self.0.conceal = ch.into();
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.conceal = ch.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.conceal = ch;
+            self.0.mask |= 0b1000001;
+        }
+
         self
     }
 
@@ -105,13 +172,28 @@ impl SetExtmarkOptsBuilder {
     ) -> &mut Self {
         self.0.cursorline_hl_group =
             nvim::String::from(cursorline_hl_group).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b1000000000000000000000000001;
+        }
         self
     }
 
     /// Ending line of the mark. 0-indexed and exclusive.
     #[inline]
     pub fn end_col(&mut self, end_col: usize) -> &mut Self {
-        self.0.end_col = (end_col as Integer).into();
+        let end_col = end_col as Integer;
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.end_col = end_col.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.end_col = end_col;
+            self.0.mask |= 0b100001;
+        }
+
         self
     }
 
@@ -120,14 +202,33 @@ impl SetExtmarkOptsBuilder {
     /// left). Defaults to left.
     #[inline]
     pub fn end_right_gravity(&mut self, end_right_gravity: bool) -> &mut Self {
-        self.0.end_right_gravity = end_right_gravity.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.end_right_gravity = end_right_gravity.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.end_right_gravity = end_right_gravity;
+            self.0.mask |= 0b1000000000000000000000001;
+        }
         self
     }
 
     /// Ending line of the mark. 0-indexed and inclusive.
     #[inline]
     pub fn end_row(&mut self, end_row: usize) -> &mut Self {
-        self.0.end_row = (end_row as Integer).into();
+        let end_row = end_row as Integer;
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.end_row = end_row.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.end_row = end_row;
+            self.0.mask |= 0b100000001;
+        }
+
         self
     }
 
@@ -137,7 +238,15 @@ impl SetExtmarkOptsBuilder {
     /// not be permanently stored in the buffer.
     #[inline]
     pub fn ephemeral(&mut self, ephemeral: bool) -> &mut Self {
-        self.0.ephemeral = ephemeral.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.ephemeral = ephemeral.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.ephemeral = ephemeral;
+            self.0.mask |= 0b1000000000001;
+        }
         self
     }
 
@@ -145,7 +254,15 @@ impl SetExtmarkOptsBuilder {
     /// multiline highlights covering the EOL of a line.
     #[inline]
     pub fn hl_eol(&mut self, hl_eol: bool) -> &mut Self {
-        self.0.hl_eol = hl_eol.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.hl_eol = hl_eol.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.hl_eol = hl_eol;
+            self.0.mask |= 0b1001;
+        }
         self
     }
 
@@ -153,20 +270,44 @@ impl SetExtmarkOptsBuilder {
     #[inline]
     pub fn hl_group(&mut self, hl_group: &str) -> &mut Self {
         self.0.hl_group = nvim::String::from(hl_group).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b10000000001;
+        }
         self
     }
 
     /// Controls how highlights are combined with the highlights of the text.
     #[inline]
     pub fn hl_mode(&mut self, hl_mode: ExtmarkHlMode) -> &mut Self {
-        self.0.hl_mode = nvim::String::from(hl_mode).into();
+        let hl_mode = nvim::String::from(hl_mode);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.hl_mode = hl_mode.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.hl_mode = hl_mode;
+            self.0.mask |= 0b10000001;
+        }
+
         self
     }
 
     /// Id of the extmark to edit.
     #[inline]
     pub fn id(&mut self, id: u32) -> &mut Self {
-        self.0.id = id.into();
+        let id = id as Integer;
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.id = id.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.id = id;
+            self.0.mask |= 0b11;
+        }
         self
     }
 
@@ -174,6 +315,10 @@ impl SetExtmarkOptsBuilder {
     #[inline]
     pub fn line_hl_group(&mut self, line_hl_group: &str) -> &mut Self {
         self.0.line_hl_group = nvim::String::from(line_hl_group).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b100000000000000001;
+        }
         self
     }
 
@@ -181,6 +326,10 @@ impl SetExtmarkOptsBuilder {
     #[inline]
     pub fn number_hl_group(&mut self, number_hl_group: &str) -> &mut Self {
         self.0.number_hl_group = nvim::String::from(number_hl_group).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b10000000000000000000001;
+        }
         self
     }
 
@@ -188,15 +337,32 @@ impl SetExtmarkOptsBuilder {
     /// highlights use a value of 100.
     #[inline]
     pub fn priority(&mut self, priority: u32) -> &mut Self {
-        self.0.priority = priority.into();
+        let priority = priority as Integer;
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.priority = priority.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.priority = priority;
+            self.0.mask |= 0b100000000001;
+        }
         self
     }
 
     /// Indicates the direction the extmark will be shifted in when new text is
     /// inserted (`true` for right, `false` for left). Defaults to right.
     #[inline]
-    pub fn right_gravity(&mut self, right_gravity: u32) -> &mut Self {
-        self.0.right_gravity = right_gravity.into();
+    pub fn right_gravity(&mut self, right_gravity: bool) -> &mut Self {
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.right_gravity = right_gravity.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.right_gravity = right_gravity;
+            self.0.mask |= 0b1000000000000000001;
+        }
         self
     }
 
@@ -204,13 +370,28 @@ impl SetExtmarkOptsBuilder {
     #[inline]
     pub fn sign_hl_group(&mut self, sign_hl_group: &str) -> &mut Self {
         self.0.sign_hl_group = nvim::String::from(sign_hl_group).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b10000000000000000001;
+        }
         self
     }
 
     /// Text to display in the sign column. Should take up 1-2 display cells.
     #[inline]
     pub fn sign_text(&mut self, sign_text: &str) -> &mut Self {
-        self.0.sign_text = nvim::String::from(sign_text).into();
+        let sign_text = nvim::String::from(sign_text);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.sign_text = sign_text.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.sign_text = sign_text;
+            self.0.mask |= 0b10000000000001;
+        }
+
         self
     }
 
@@ -219,7 +400,15 @@ impl SetExtmarkOptsBuilder {
     /// to `true`.
     #[inline]
     pub fn strict(&mut self, strict: bool) -> &mut Self {
-        self.0.strict = strict.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.strict = strict.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.strict = strict;
+            self.0.mask |= 0b10001;
+        }
         self
     }
 
@@ -227,7 +416,15 @@ impl SetExtmarkOptsBuilder {
     /// will receive `win_extmark` events.
     #[inline]
     pub fn ui_watched(&mut self, ui_watched: bool) -> &mut Self {
-        self.0.ui_watched = ui_watched.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.ui_watched = ui_watched.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.ui_watched = ui_watched;
+            self.0.mask |= 0b1000000000000001;
+        }
         self
     }
 
@@ -243,15 +440,25 @@ impl SetExtmarkOptsBuilder {
         Txt: Into<nvim::String>,
         Hl: StringOrListOfStrings,
     {
-        self.0.virt_lines = virt_lines
+        let virt_lines = virt_lines
             .into_iter()
             .map(|chnky| {
                 Array::from_iter(chnky.into_iter().map(|(txt, hl)| {
                     Array::from_iter([txt.into().into(), hl.to_object()])
                 }))
             })
-            .collect::<Array>()
-            .into();
+            .collect::<Array>();
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_lines = virt_lines.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_lines = virt_lines;
+            self.0.mask |= 0b10000000000000001;
+        }
+
         self
     }
 
@@ -259,7 +466,15 @@ impl SetExtmarkOptsBuilder {
     /// mark.
     #[inline]
     pub fn virt_lines_above(&mut self, virt_lines_above: bool) -> &mut Self {
-        self.0.virt_lines_above = virt_lines_above.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_lines_above = virt_lines_above.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_lines_above = virt_lines_above;
+            self.0.mask |= 0b100000000000000000000001;
+        }
         self
     }
 
@@ -270,7 +485,15 @@ impl SetExtmarkOptsBuilder {
         &mut self,
         virt_lines_leftcol: bool,
     ) -> &mut Self {
-        self.0.virt_lines_leftcol = virt_lines_leftcol.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_lines_leftcol = virt_lines_leftcol.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_lines_leftcol = virt_lines_leftcol;
+            self.0.mask |= 0b100000000000000000000000001;
+        }
         self
     }
 
@@ -287,13 +510,23 @@ impl SetExtmarkOptsBuilder {
         Txt: Into<nvim::String>,
         Hl: StringOrListOfStrings,
     {
-        self.0.virt_text = virt_text
+        let virt_text = virt_text
             .into_iter()
             .map(|(txt, hl)| {
                 Array::from_iter([txt.into().into(), hl.to_object()])
             })
-            .collect::<Array>()
-            .into();
+            .collect::<Array>();
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_text = virt_text.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_text = virt_text;
+            self.0.mask |= 0b100000000000001;
+        }
+
         self
     }
 
@@ -301,7 +534,15 @@ impl SetExtmarkOptsBuilder {
     /// or hidden due to horizontal scroll.
     #[inline]
     pub fn virt_text_hide(&mut self, virt_text_hide: bool) -> &mut Self {
-        self.0.virt_text_hide = virt_text_hide.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_text_hide = virt_text_hide.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_text_hide = virt_text_hide;
+            self.0.mask |= 0b1000000000000000000001;
+        }
         self
     }
 
@@ -311,7 +552,18 @@ impl SetExtmarkOptsBuilder {
         &mut self,
         virt_text_pos: ExtmarkVirtTextPosition,
     ) -> &mut Self {
-        self.0.virt_text_pos = nvim::String::from(virt_text_pos).into();
+        let virt_text_pos = nvim::String::from(virt_text_pos);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_text_pos = virt_text_pos.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_text_pos = virt_text_pos;
+            self.0.mask |= 0b100000000000000000001;
+        }
+
         self
     }
 
@@ -319,7 +571,18 @@ impl SetExtmarkOptsBuilder {
     /// first text column).
     #[inline]
     pub fn virt_text_win_col(&mut self, virt_text_win_col: u32) -> &mut Self {
-        self.0.virt_text_win_col = virt_text_win_col.into();
+        let virt_text_win_col = virt_text_win_col as Integer;
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.virt_text_win_col = virt_text_win_col.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.virt_text_win_col = virt_text_win_col;
+            self.0.mask |= 0b10000000000000000000000001;
+        }
+
         self
     }
 

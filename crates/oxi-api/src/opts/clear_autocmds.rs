@@ -1,3 +1,5 @@
+#[cfg(feature = "neovim-nightly")]
+use oxi_types::BufHandle;
 use oxi_types::{Array, Object};
 
 use crate::Buffer;
@@ -19,9 +21,19 @@ pub struct ClearAutocmdsOpts {
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct ClearAutocmdsOpts {
-    buffer: Object,
+    /// <pattern><buffer><group><event>1
+    mask: u64,
+
+    /// 3rd in the mask.
+    buffer: BufHandle,
+
+    /// 1st in the mask.
     event: Object,
+
+    /// 2nd in the mask.
     group: Object,
+
+    /// 4th in the mask.
     pattern: Object,
 }
 
@@ -41,7 +53,15 @@ impl ClearAutocmdsOptsBuilder {
     /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
-        self.0.buffer = buffer.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.buffer = buffer.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.buffer = buffer.0;
+            self.0.mask |= 0b01001;
+        }
         self
     }
 
@@ -53,6 +73,10 @@ impl ClearAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.event = Array::from_iter(iter).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b00011;
+        }
         self
     }
 
@@ -66,6 +90,10 @@ impl ClearAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.pattern = Array::from_iter(iter).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b10001;
+        }
         self
     }
 
@@ -77,6 +105,10 @@ impl ClearAutocmdsOptsBuilder {
         Grp: StringOrInt,
     {
         self.0.group = group.to_object();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b00101;
+        }
         self
     }
 

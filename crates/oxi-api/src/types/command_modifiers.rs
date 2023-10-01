@@ -1,6 +1,7 @@
 use oxi_types::{
     conversion::{self, ToObject},
     serde::Serializer,
+    Dictionary,
     Object,
 };
 use serde::{Deserialize, Serialize};
@@ -37,5 +38,12 @@ pub struct CommandModifiers {
 impl ToObject for CommandModifiers {
     fn to_object(self) -> Result<Object, conversion::Error> {
         self.serialize(Serializer::new()).map_err(Into::into)
+    }
+}
+
+impl From<CommandModifiers> for Dictionary {
+    fn from(mods: CommandModifiers) -> Self {
+        let obj = mods.to_object().unwrap();
+        unsafe { obj.into_dict_unchecked() }
     }
 }

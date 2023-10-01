@@ -1,4 +1,8 @@
-use oxi_types::{self as nvim, conversion::FromObject, Object};
+#[cfg(not(feature = "neovim-nightly"))]
+use oxi_types::Object;
+use oxi_types::{self as nvim, conversion::FromObject};
+#[cfg(feature = "neovim-nightly")]
+use oxi_types::{BufHandle, String as NvimString, WinHandle};
 use serde::Serialize;
 
 use crate::{Buffer, Window};
@@ -9,9 +13,10 @@ use crate::{Buffer, Window};
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct OptionValueOpts {
-    buffer: Object,
-    window: Object,
+    buf: Object,
+    win: Object,
     scope: Object,
+    filetype: Object,
 }
 
 /// Options passed to
@@ -20,10 +25,20 @@ pub struct OptionValueOpts {
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct OptionValueOpts {
-    scope: Object,
-    window: Object,
-    buffer: Object,
-    filetype: Object,
+    /// <filetype><scope><win><buf>1
+    mask: u64,
+
+    /// 3rd in the mask.
+    scope: NvimString,
+
+    /// 2nd in the mask.
+    win: WinHandle,
+
+    /// 1st in the mask.
+    buf: BufHandle,
+
+    /// 4th in the mask.
+    filetype: NvimString,
 }
 
 impl OptionValueOpts {
@@ -39,27 +54,63 @@ pub struct OptionValueOptsBuilder(OptionValueOpts);
 impl OptionValueOptsBuilder {
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
-        self.0.buffer = buffer.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.buf = buffer.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.buf = buffer.0;
+            self.0.mask |= 0b11;
+        }
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     #[inline]
     pub fn filetype(&mut self, filetype: &str) -> &mut Self {
-        self.0.filetype = nvim::String::from(filetype).into();
+        let filetype = nvim::String::from(filetype);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.filetype = filetype.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.filetype = filetype;
+            self.0.mask |= 0b10001;
+        }
+
         self
     }
 
     #[inline]
     pub fn scope(&mut self, scope: OptionScope) -> &mut Self {
-        self.0.scope = nvim::String::from(scope).into();
+        let scope = nvim::String::from(scope);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.scope = scope.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.scope = scope;
+            self.0.mask |= 0b1001;
+        }
+
         self
     }
 
     #[inline]
     pub fn window(&mut self, window: Window) -> &mut Self {
-        self.0.window = window.into();
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.win = window.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.win = window.0;
+            self.0.mask |= 0b101;
+        }
         self
     }
 

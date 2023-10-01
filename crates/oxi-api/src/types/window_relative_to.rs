@@ -1,6 +1,6 @@
 use std::fmt;
 
-use oxi_types::Object;
+use oxi_types::{Object, String as NvimString};
 use serde::de;
 
 use crate::Window;
@@ -22,15 +22,21 @@ pub enum WindowRelativeTo {
     Mouse,
 }
 
+impl From<WindowRelativeTo> for NvimString {
+    fn from(pos: WindowRelativeTo) -> Self {
+        match pos {
+            WindowRelativeTo::Editor => "editor",
+            WindowRelativeTo::Window(_) => "win",
+            WindowRelativeTo::Cursor => "cursor",
+            WindowRelativeTo::Mouse => "mouse",
+        }
+        .into()
+    }
+}
+
 impl From<&WindowRelativeTo> for Object {
     fn from(pos: &WindowRelativeTo) -> Self {
-        use WindowRelativeTo::*;
-        Self::from(match pos {
-            Editor => "editor",
-            Window(_) => "win",
-            Cursor => "cursor",
-            Mouse => "mouse",
-        })
+        NvimString::from(pos.clone()).into()
     }
 }
 
