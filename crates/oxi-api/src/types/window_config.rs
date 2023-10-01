@@ -5,10 +5,9 @@ use oxi_types::{
     Float,
     Integer,
     Object,
-    WinHandle,
 };
 #[cfg(feature = "neovim-nightly")]
-use oxi_types::{Boolean, String as NvimString};
+use oxi_types::{Boolean, String as NvimString, WinHandle};
 use serde::Deserialize;
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};

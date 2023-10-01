@@ -21,6 +21,6 @@ impl From<WindowTitlePosition> for NvimString {
 
 impl From<&WindowTitlePosition> for Object {
     fn from(pos: &WindowTitlePosition) -> Self {
-        NvimString::from(pos.clone()).into()
+        NvimString::from(*pos).into()
     }
 }

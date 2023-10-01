@@ -265,9 +265,9 @@ impl From<&CmdInfos> for KeyDict_cmd {
                 NvimString::default()
             };
 
-            let range = if let Some(range) = &infos.range {
+            let range = if let Some(range) = infos.range {
                 mask |= 0b10000000001;
-                Array::from(range.clone())
+                Array::from(range)
             } else {
                 Array::default()
             };
@@ -300,30 +300,30 @@ impl From<&CmdInfos> for KeyDict_cmd {
                 Array::default()
             };
 
-            let magic = if let Some(magic) = &infos.magic {
+            let magic = if let Some(magic) = infos.magic {
                 mask |= 0b100000001;
-                Dictionary::from(magic.clone())
+                Dictionary::from(magic)
             } else {
                 Dictionary::default()
             };
 
-            let mods = if let Some(mods) = &infos.mods {
+            let mods = if let Some(mods) = infos.mods {
                 mask |= 0b100001;
-                Dictionary::from(mods.clone())
+                Dictionary::from(mods)
             } else {
                 Dictionary::default()
             };
 
-            let nargs = if let Some(nargs) = &infos.nargs {
+            let nargs = if let Some(nargs) = infos.nargs {
                 mask |= 0b1000000001;
-                nargs.clone().to_object().unwrap()
+                nargs.to_object().unwrap()
             } else {
                 Object::default()
             };
 
-            let addr = if let Some(addr) = &infos.addr {
+            let addr = if let Some(addr) = infos.addr {
                 mask |= 0b10001;
-                addr.clone().to_object().unwrap()
+                addr.to_object().unwrap()
             } else {
                 Object::default()
             };
