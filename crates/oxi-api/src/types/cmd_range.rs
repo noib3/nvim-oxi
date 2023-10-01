@@ -54,7 +54,7 @@ impl<'de> de::Deserialize<'de> for CmdRange {
     }
 }
 
-impl From<CmdRange> for Object {
+impl From<CmdRange> for Array {
     fn from(rng: CmdRange) -> Self {
         use CmdRange::*;
 
@@ -63,6 +63,11 @@ impl From<CmdRange> for Object {
             Single(a) => Array::from_iter([a as Integer]),
             Double(a, b) => Array::from_iter([a as Integer, b as Integer]),
         }
-        .into()
+    }
+}
+
+impl From<CmdRange> for Object {
+    fn from(rng: CmdRange) -> Self {
+        Array::from(rng).into()
     }
 }

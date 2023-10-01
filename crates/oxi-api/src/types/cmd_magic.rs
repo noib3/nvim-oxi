@@ -13,9 +13,14 @@ pub struct CmdMagic {
     pub file: bool,
 }
 
-impl From<CmdMagic> for Object {
+impl From<CmdMagic> for Dictionary {
     fn from(magic: CmdMagic) -> Self {
         Dictionary::from_iter([("file", magic.file), ("bar", magic.bar)])
-            .into()
+    }
+}
+
+impl From<CmdMagic> for Object {
+    fn from(magic: CmdMagic) -> Self {
+        Dictionary::from(magic).into()
     }
 }
