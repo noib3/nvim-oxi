@@ -42,23 +42,31 @@ impl Default for Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(self, f)
+        if !self.msg.is_null() {
+            let msg = unsafe { CStr::from_ptr(self.msg) };
+
+            match self.r#type {
+                ErrorType::Exception => {
+                    f.debug_tuple("Exception").field(&msg).finish()
+                },
+                ErrorType::Validation => {
+                    f.debug_tuple("Validation").field(&msg).finish()
+                },
+                _ => fmt::Debug::fmt(msg, f),
+            }
+        } else if let ErrorType::Exception = self.r#type {
+            write!(f, "Exception")
+        } else if let ErrorType::Validation = self.r#type {
+            write!(f, "Validation")
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if !self.msg.is_null() {
-            fmt::Debug::fmt(unsafe { CStr::from_ptr(self.msg) }, f)
-        } else {
-            use ErrorType::*;
-            let msg = match self.r#type {
-                None => return Ok(()),
-                Exception => "exception",
-                Validation => "validation",
-            };
-            write!(f, "{}", msg)
-        }
+        fmt::Debug::fmt(self, f)
     }
 }
 
