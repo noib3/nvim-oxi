@@ -1,4 +1,4 @@
-use oxi_types::Object;
+use oxi_types::{Object, String as NvimString};
 use serde::Deserialize;
 
 #[non_exhaustive]
@@ -18,14 +18,20 @@ pub enum WindowAnchor {
     SouthEast,
 }
 
+impl From<WindowAnchor> for NvimString {
+    fn from(anchor: WindowAnchor) -> Self {
+        match anchor {
+            WindowAnchor::NorthWest => "NW",
+            WindowAnchor::NorthEast => "NE",
+            WindowAnchor::SouthWest => "SW",
+            WindowAnchor::SouthEast => "SE",
+        }
+        .into()
+    }
+}
+
 impl From<WindowAnchor> for Object {
     fn from(anchor: WindowAnchor) -> Self {
-        use WindowAnchor::*;
-        Self::from(match anchor {
-            NorthWest => "NW",
-            NorthEast => "NE",
-            SouthWest => "SW",
-            SouthEast => "SE",
-        })
+        NvimString::from(anchor).into()
     }
 }

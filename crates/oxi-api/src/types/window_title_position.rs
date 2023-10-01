@@ -1,19 +1,26 @@
-use oxi_types::Object;
+use oxi_types::{Object, String as NvimString};
 use serde::Deserialize;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub enum WindowTitlePosition {
     Left,
     Center,
     Right,
 }
 
-impl From<&WindowTitlePosition> for Object {
-    fn from(pos: &WindowTitlePosition) -> Self {
-        Self::from(match pos {
+impl From<WindowTitlePosition> for NvimString {
+    fn from(pos: WindowTitlePosition) -> Self {
+        match pos {
             WindowTitlePosition::Left => "left",
             WindowTitlePosition::Center => "center",
             WindowTitlePosition::Right => "right",
-        })
+        }
+        .into()
+    }
+}
+
+impl From<&WindowTitlePosition> for Object {
+    fn from(pos: &WindowTitlePosition) -> Self {
+        NvimString::from(pos.clone()).into()
     }
 }

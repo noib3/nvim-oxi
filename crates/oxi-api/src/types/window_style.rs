@@ -1,4 +1,4 @@
-use oxi_types::Object;
+use oxi_types::{Object, String as NvimString};
 use serde::Deserialize;
 
 #[non_exhaustive]
@@ -8,11 +8,17 @@ pub enum WindowStyle {
     Minimal,
 }
 
+impl From<WindowStyle> for NvimString {
+    fn from(style: WindowStyle) -> Self {
+        match style {
+            WindowStyle::Minimal => "minimal",
+        }
+        .into()
+    }
+}
+
 impl From<WindowStyle> for Object {
     fn from(style: WindowStyle) -> Self {
-        use WindowStyle::*;
-        Self::from(match style {
-            Minimal => "minimal",
-        })
+        NvimString::from(style).into()
     }
 }
