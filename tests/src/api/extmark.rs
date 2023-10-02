@@ -52,6 +52,7 @@ fn get_extmarks() {
     let (id, row, col, infos) = extmarks.into_iter().next().unwrap();
 
     assert!(infos.is_some(), "no informations were returned");
+
     let infos = infos.unwrap();
 
     assert_eq!(extmark_id, id);
@@ -60,10 +61,19 @@ fn get_extmarks() {
     assert_eq!(Some(0), infos.end_row);
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
-    assert_eq!(
-        Some(vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())]),
-        infos.virt_text
-    );
+
+    #[cfg(feature = "neovim-nightly")]
+    let virt_text = vec![(
+        "foo".to_owned(),
+        vec!["Foo".to_owned(), "Bar".to_owned()].into(),
+    )];
+
+    #[cfg(not(feature = "neovim-nightly"))]
+    let virt_text =
+        vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())];
+
+    assert_eq!(Some(virt_text), infos.virt_text);
+
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
 
@@ -154,14 +164,22 @@ fn set_get_del_extmark() {
     assert_eq!(Some(0), infos.end_row);
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
-    assert_eq!(
-        Some(vec![
-            ("foo".into(), "Foo".into()),
-            ("".into(), "Bar".into()),
-            ("bar".into(), "Baz".into())
-        ]),
-        infos.virt_text
-    );
+
+    #[cfg(feature = "neovim-nightly")]
+    let virt_text = vec![
+        ("foo".to_owned(), "Foo".into()),
+        ("bar".to_owned(), vec!["Bar".to_owned(), "Baz".to_owned()].into()),
+    ];
+
+    #[cfg(not(feature = "neovim-nightly"))]
+    let virt_text = vec![
+        ("foo".into(), "Foo".into()),
+        ("".into(), "Bar".into()),
+        ("bar".into(), "Baz".into()),
+    ];
+
+    assert_eq!(Some(virt_text), infos.virt_text);
+
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 
     let res = buf.del_extmark(ns_id, extmark_id);
