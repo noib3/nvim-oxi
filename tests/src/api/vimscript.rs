@@ -11,8 +11,7 @@ fn call_function() {
 #[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn cmd_basic() {
-    let cmd =
-        if cfg!(feature = "neovim-0-9") { "echo 'foo'" } else { "checktime" };
+    let cmd = "checktime";
     let infos = CmdInfos::builder().cmd(cmd).build();
     let opts = CmdOpts::builder().output(true).build();
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
@@ -21,8 +20,7 @@ fn cmd_basic() {
 #[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn cmd_no_output() {
-    let cmd =
-        if cfg!(feature = "neovim-0-9") { "echo 'foo'" } else { "checktime" };
+    let cmd = "checktime";
     let infos = CmdInfos::builder().cmd(cmd).build();
     let opts = CmdOpts::builder().output(false).build();
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
