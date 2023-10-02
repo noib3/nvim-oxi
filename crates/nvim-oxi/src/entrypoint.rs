@@ -19,9 +19,6 @@ where
 {
     lua::init(lua_state);
 
-    #[cfg(feature = "libuv")]
-    oxi_libuv::init(lua_state);
-
     match body() {
         Ok(api) => api.push(lua_state).unwrap(),
         Err(err) => lua::utils::handle_error(lua_state, &err),

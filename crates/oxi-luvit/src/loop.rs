@@ -1,4 +1,4 @@
-use libuv_sys2::uv_loop_t;
+use luvit_sys2::uv_loop_t;
 use once_cell::unsync::OnceCell;
 use oxi_luajit::ffi::lua_State;
 
@@ -20,7 +20,7 @@ pub unsafe fn init(lua_state: *mut lua_State) {
     LOOP.with(|uv_loop| uv_loop.set(luv_loop(lua_state))).unwrap_unchecked();
 }
 
-/// Executes a function with access to the libuv loop.
+/// Executes a function with access to the luvit loop.
 ///
 /// NOTE: this will segfault if the loop has not been initialized by calling
 /// [init].

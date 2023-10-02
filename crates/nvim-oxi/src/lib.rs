@@ -23,15 +23,15 @@ pub mod api {
     pub use oxi_api::*;
 }
 
-#[cfg(feature = "libuv")]
-#[cfg_attr(docsrs, doc(cfg(feature = "libuv")))]
-pub mod libuv {
-    //! Bindings to the [Neovim event loop][loop] powered by [libuv].
+#[cfg(feature = "luvit")]
+#[cfg_attr(docsrs, doc(cfg(feature = "luvit")))]
+pub mod luvit {
+    //! Bindings to the [Neovim event loop][loop] powered by [luvit].
     //!
     //! [loop]: https://neovim.io/doc/user/lua.html#vim.loop
-    //! [libuv]: https://libuv.org/
+    //! [luvit]: https://luvit.org/
     #[doc(inline)]
-    pub use oxi_libuv::*;
+    pub use oxi_luvit::*;
 }
 
 pub mod lua {

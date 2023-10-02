@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::time::Duration;
 
-use libuv_sys2::{self as ffi, uv_timer_t};
+use luvit_sys2::{self as ffi, uv_timer_t};
 
 use crate::{Error, Handle};
 
@@ -9,10 +9,10 @@ pub(crate) type Callback = Box<
     dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,
 >;
 
-/// Binding to libuv's [Timer handle][1] used to schedule callbacks to be
+/// Binding to luvit's [Timer handle][1] used to schedule callbacks to be
 /// called in the future.
 ///
-/// [1]: http://docs.libuv.org/en/v1.x/timer.html
+/// [1]: http://docs.luvit.org/en/v1.x/timer.html
 pub struct TimerHandle {
     handle: Handle<uv_timer_t, Callback>,
 }

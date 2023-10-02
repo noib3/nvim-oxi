@@ -2,13 +2,13 @@ use std::thread;
 use std::time::Duration;
 
 use nvim_oxi as oxi;
-use oxi::libuv::{AsyncHandle, TimerHandle};
+use oxi::luvit::{AsyncHandle, TimerHandle};
 use oxi::print;
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio::time;
 
 #[oxi::module]
-fn libuv() -> oxi::Result<()> {
+fn luvit() -> oxi::Result<()> {
     // --
     let mut n = 0;
 

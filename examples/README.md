@@ -45,9 +45,9 @@ assert(fixed.problem == nil)
 Shows how to integrate `nvim-oxi` with the
 [`mlua`](https://github.com/khvzak/mlua) crate.
 
-## [`libuv`](./libuv.rs)
+## [`luvit`](./luvit.rs)
 
-Shows how to use the `nvim_oxi::libuv` module to trigger a callback registered
+Shows how to use the `nvim_oxi::luvit` module to trigger a callback registered
 on the Neovim thread from other threads.
 
 # Crate setup

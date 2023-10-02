@@ -1,6 +1,6 @@
 [package]
-name = "oxi-libuv"
-description = "Rust bindings to libuv for nvim-oxi"
+name = "oxi-luvit"
+description = "Rust bindings to luvit for nvim-oxi"
 version.workspace = true
 edition.workspace = true
 repository.workspace = true
@@ -10,6 +10,4 @@ license.workspace = true
 [dependencies]
 oxi-luajit = { workspace = true }
 
-libuv-sys2 = "1.44"
 once_cell = "1.17"
-thiserror = "1.0"

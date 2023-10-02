@@ -1,15 +1,15 @@
 use std::error::Error as StdError;
 
-use libuv_sys2::{self as ffi, uv_async_t};
+use luvit_sys2::{self as ffi, uv_async_t};
 
 use crate::{Error, Handle};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 
-/// Binding to libuv's [Async handle][1] used to trigger the execution of a
+/// Binding to luvit's [Async handle][1] used to trigger the execution of a
 /// callback in the Neovim thread.
 ///
-/// [1]: http://docs.libuv.org/en/v1.x/async.html
+/// [1]: http://docs.luvit.org/en/v1.x/async.html
 #[derive(Clone)]
 pub struct AsyncHandle {
     handle: Handle<uv_async_t, Callback>,
@@ -49,14 +49,14 @@ impl AsyncHandle {
     /// this handle. It is safe to call this function from any thread. The
     /// callback will be called on the main thread.
     ///
-    /// NOTE: [libuv] will coalesce calls to [`AsyncHandle::send`], that is,
+    /// NOTE: [luvit] will coalesce calls to [`AsyncHandle::send`], that is,
     /// not every call to it will yield an execution of the callback. For
     /// example: if [`AsyncHandle::send`] is called 5 times in a row before the
     /// callback is called, the callback will only be called once. If
     /// [`AsyncHandle::send`] is called again after the callback was called, it
     /// will be called again.
     ///
-    /// [libuv]: https://libuv.org/
+    /// [luvit]: https://luvit.org/
     pub fn send(&self) -> Result<(), Error> {
         let retv =
             unsafe { ffi::uv_async_send(self.handle.as_ptr() as *mut _) };

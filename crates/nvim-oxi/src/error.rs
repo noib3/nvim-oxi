@@ -22,9 +22,9 @@ pub enum Error {
     #[error(transparent)]
     Serde(#[from] oxi_types::serde::Error),
 
-    #[cfg(feature = "libuv")]
+    #[cfg(feature = "luvit")]
     #[error(transparent)]
-    Libuv(#[from] oxi_libuv::Error),
+    Luvit(#[from] oxi_luvit::Error),
 
     #[cfg(feature = "mlua")]
     #[error(transparent)]
