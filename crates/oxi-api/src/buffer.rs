@@ -1,6 +1,6 @@
 use std::fmt;
 use std::ops::RangeBounds;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::result::Result as StdResult;
 
 use oxi_luajit::{self as lua, Poppable, Pushable};
@@ -365,15 +365,15 @@ impl Buffer {
 
     /// Binding to [`nvim_buf_get_name()`][1].
     ///
-    /// Returns the full filepath of the buffer.
+    /// Returns the name of the buffer.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_name()
-    pub fn get_name(&self) -> Result<PathBuf> {
+    pub fn get_name(&self) -> Result<oxi_types::String> {
         let mut err = nvim::Error::new();
         let name = unsafe {
             nvim_buf_get_name(self.0, core::ptr::null_mut(), &mut err)
         };
-        choose!(err, Ok(name.into()))
+        choose!(err, Ok(name))
     }
 
     /// Binding to [`nvim_buf_get_offset()`][1].
