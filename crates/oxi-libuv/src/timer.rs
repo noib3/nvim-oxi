@@ -1,8 +1,7 @@
 use std::error::Error as StdError;
 use std::time::Duration;
 
-use libuv_sys2::{self as ffi, uv_timer_t};
-
+use crate::libuv_sys2::{self as ffi, uv_timer_t};
 use crate::{Error, Handle};
 
 pub(crate) type Callback = Box<

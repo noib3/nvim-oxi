@@ -2,8 +2,7 @@ use std::alloc::{self, Layout};
 use std::ffi::c_void;
 use std::marker::PhantomData;
 
-use libuv_sys2::{self as ffi, uv_handle_t, uv_loop_t};
-
+use crate::libuv_sys2::{self as ffi, uv_handle_t, uv_loop_t};
 use crate::{Error, Result};
 
 /// TODO: docs

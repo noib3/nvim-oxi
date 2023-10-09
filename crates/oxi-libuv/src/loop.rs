@@ -1,6 +1,7 @@
-use libuv_sys2::uv_loop_t;
 use once_cell::unsync::OnceCell;
 use oxi_luajit::ffi::lua_State;
+
+use crate::libuv_sys2::uv_loop_t;
 
 thread_local! {
     static LOOP: OnceCell<*mut uv_loop_t> = OnceCell::new();

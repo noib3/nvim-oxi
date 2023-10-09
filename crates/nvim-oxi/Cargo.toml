@@ -14,18 +14,16 @@ features = ["neovim-0-9", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-neovim-0-8 = ["oxi-api/neovim-0-8"]
-neovim-0-9 = ["oxi-api/neovim-0-9"]
-neovim-nightly = ["oxi-api/neovim-nightly"]
+neovim-0-8 = ["oxi-api/neovim-0-8", "oxi-libuv/use-1-44"]
+neovim-0-9 = ["oxi-api/neovim-0-9", "oxi-libuv/use-1-46"]
+neovim-nightly = ["oxi-api/neovim-nightly", "oxi-libuv/use-1-46"]
 
-# diagnostic = ["oxi-diagnostic"]
 libuv = ["oxi-libuv"]
 mlua = ["dep:mlua"]
 test = ["oxi-macros/test", "miniserde"]
 
 [dependencies]
 oxi-api = { workspace = true }
-# oxi-diagnostic = { workspace = true }
 oxi-libuv = { version = "0.3.0", path = "../oxi-libuv", optional = true }
 oxi-luajit = { workspace = true }
 oxi-macros = { workspace = true }

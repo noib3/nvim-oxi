@@ -1,7 +1,6 @@
 use std::error::Error as StdError;
 
-use libuv_sys2::{self as ffi, uv_async_t};
-
+use crate::libuv_sys2::{self as ffi, uv_async_t};
 use crate::{Error, Handle};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
