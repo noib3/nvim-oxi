@@ -138,7 +138,7 @@ fn set_exec_del_autocmd() {
         .callback(|_args| Ok::<_, oxi::Error>(false))
         .build();
 
-    let id = api::create_autocmd(["BufAdd, BufDelete"], &opts)
+    let id = api::create_autocmd(["BufAdd", "BufDelete"], &opts)
         .expect("create_autocmd failed");
 
     assert_eq!(
