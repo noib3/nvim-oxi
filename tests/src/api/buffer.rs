@@ -211,3 +211,18 @@ fn buf_set_get_option() {
     buf.set_option("modified", false).unwrap();
     assert!(!buf.get_option::<bool>("modified").unwrap());
 }
+
+#[oxi::test]
+fn buf_terminal_name() {
+    api::command("term").unwrap();
+
+    let term_name_oxi = Buffer::current().get_name().unwrap();
+
+    let term_name_lua =
+        api::exec("lua =vim.api.nvim_buf_get_name(0)", true).unwrap().unwrap();
+
+    #[cfg(feature = "neovim-0-8")]
+    let term_name_lua = term_name_lua.trim_matches('"').to_owned();
+
+    assert_eq!(term_name_oxi.display().to_string(), term_name_lua);
+}
