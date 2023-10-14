@@ -1,12 +1,24 @@
-use oxi_types::{self as nvim, Array, Object};
+use oxi_types::{self as nvim, Array};
 
 use crate::types::ContextType;
 
 /// Options passed to [`get_context()`](crate::get_context).
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetContextOpts {
-    types: Object,
+    types: oxi_types::Object,
+}
+
+/// Options passed to [`get_context()`](crate::get_context).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default)]
+#[repr(C)]
+pub struct GetContextOpts {
+    mask: u64,
+
+    /// 1st in the mask.
+    types: Array,
 }
 
 impl GetContextOpts {
@@ -27,11 +39,18 @@ impl GetContextOptsBuilder {
     where
         T: IntoIterator<Item = ContextType>,
     {
-        self.0.types = types
-            .into_iter()
-            .map(nvim::String::from)
-            .collect::<Array>()
-            .into();
+        let types =
+            types.into_iter().map(nvim::String::from).collect::<Array>();
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        {
+            self.0.types = types.into();
+        }
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.types = types;
+            self.0.mask |= 0b11;
+        }
 
         self
     }
