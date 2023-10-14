@@ -100,7 +100,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnBufArgs, ()>,
     {
-        self.0.on_buf = fun.to_object();
+        self.0.on_buf = Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -109,7 +109,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnEndArgs, ()>,
     {
-        self.0.on_end = fun.to_object();
+        self.0.on_end = Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -118,7 +118,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnLineArgs, ()>,
     {
-        self.0.on_line = fun.to_object();
+        self.0.on_line = Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -127,7 +127,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
     {
-        self.0.on_start = fun.to_object();
+        self.0.on_start = Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -136,7 +136,7 @@ impl DecorationProviderOptsBuilder {
     where
         F: ToFunction<OnWinArgs, DontSkipOnLines>,
     {
-        self.0.on_win = fun.to_object();
+        self.0.on_win = Object::from_luaref(fun.into_luaref());
         self
     }
 

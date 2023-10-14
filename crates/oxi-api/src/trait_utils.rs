@@ -1,7 +1,7 @@
 use std::iter::FusedIterator;
 
 use oxi_luajit::{Poppable, Pushable};
-use oxi_types::{Array, Function, Object};
+use oxi_types::{Array, Function, LuaRef, Object};
 
 /// A super trait of most common traits implemented on iterators.
 pub trait SuperIterator<I>:
@@ -61,7 +61,7 @@ impl<S: Into<String>> StringOrListOfStrings for Vec<S> {
 
 /// A trait implemented by closures and [`Function`]s.
 pub trait ToFunction<A, R> {
-    fn to_object(self) -> Object;
+    fn into_luaref(self) -> LuaRef;
 }
 
 impl<A, R, F> ToFunction<A, R> for F
@@ -71,15 +71,15 @@ where
     F: FnMut(A) -> crate::Result<R> + 'static,
 {
     #[inline]
-    fn to_object(self) -> Object {
-        Function::from_fn_mut(self).into()
+    fn into_luaref(self) -> LuaRef {
+        Function::from_fn_mut(self).lua_ref()
     }
 }
 
 impl<A, R> ToFunction<A, R> for Function<A, R> {
     #[inline]
-    fn to_object(self) -> Object {
-        self.into()
+    fn into_luaref(self) -> LuaRef {
+        self.lua_ref()
     }
 }
 

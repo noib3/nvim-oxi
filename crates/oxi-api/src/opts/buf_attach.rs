@@ -114,7 +114,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnBytesArgs, ShouldDetach>,
     {
-        self.0.on_bytes = on_bytes.to_object();
+        self.0.on_bytes = Object::from_luaref(on_bytes.into_luaref());
         self
     }
 
@@ -124,7 +124,8 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnChangedtickArgs, ShouldDetach>,
     {
-        self.0.on_changedtick = on_changedtick.to_object();
+        self.0.on_changedtick =
+            Object::from_luaref(on_changedtick.into_luaref());
         self
     }
 
@@ -134,7 +135,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnDetachArgs, ShouldDetach>,
     {
-        self.0.on_detach = on_detach.to_object();
+        self.0.on_detach = Object::from_luaref(on_detach.into_luaref());
         self
     }
 
@@ -144,7 +145,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnLinesArgs, ShouldDetach>,
     {
-        self.0.on_lines = fun.to_object();
+        self.0.on_lines = Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -155,7 +156,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnReloadArgs, ShouldDetach>,
     {
-        self.0.on_reload = on_reload.to_object();
+        self.0.on_reload = Object::from_luaref(on_reload.into_luaref());
         self
     }
 

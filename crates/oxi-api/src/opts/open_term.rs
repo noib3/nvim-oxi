@@ -41,7 +41,7 @@ impl OpenTermOptsBuilder {
     where
         F: ToFunction<OnInputArgs, ()>,
     {
-        self.0.on_input = fun.to_object();
+        self.0.on_input = Object::from_luaref(fun.into_luaref());
         self
     }
 
