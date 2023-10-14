@@ -19,9 +19,18 @@ pub struct GetAutocmdsOpts {
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
+    mask: u64,
+
+    /// 1st in the mask.
     events: Object,
+
+    /// 2nd in the mask.
     group: Object,
+
+    /// 4th in the mask.
     patterns: Object,
+
+    /// 3rd in the mask.
     buffer: Object,
 }
 
@@ -41,6 +50,10 @@ impl GetAutocmdsOptsBuilder {
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
         self.0.buffer = buffer.into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b1001;
+        }
         self
     }
 
@@ -52,6 +65,10 @@ impl GetAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.events = Array::from_iter(events).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b11;
+        }
         self
     }
 
@@ -63,6 +80,10 @@ impl GetAutocmdsOptsBuilder {
         Group: StringOrInt,
     {
         self.0.group = group.into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b101;
+        }
         self
     }
 
@@ -76,6 +97,10 @@ impl GetAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.patterns = Array::from_iter(patterns).into();
+        #[cfg(feature = "neovim-nightly")]
+        {
+            self.0.mask |= 0b10001;
+        }
         self
     }
 
