@@ -66,13 +66,13 @@ pub struct SetExtmarkOpts {
     /// 14th in the mask.
     virt_text: Array,
 
-    /// 20th in the mask.
+    /// 21st in the mask.
     virt_text_pos: NvimString,
 
-    /// 25th in the mask.
+    /// 26th in the mask.
     virt_text_win_col: Integer,
 
-    /// 21th in the mask.
+    /// 22nd in the mask.
     virt_text_hide: Boolean,
 
     /// 3rd in the mask.
@@ -87,19 +87,19 @@ pub struct SetExtmarkOpts {
     /// 11th in the mask.
     priority: Integer,
 
-    /// 18th in the mask.
+    /// 19th in the mask.
     right_gravity: Boolean,
 
-    /// 24th in the mask.
+    /// 25th in the mask.
     end_right_gravity: Boolean,
 
     /// 16th in the mask.
     virt_lines: Array,
 
-    /// 23th in the mask.
+    /// 24th in the mask.
     virt_lines_above: Boolean,
 
-    /// 26th in the mask.
+    /// 27th in the mask.
     virt_lines_leftcol: Boolean,
 
     /// 4th in the mask.
@@ -108,16 +108,16 @@ pub struct SetExtmarkOpts {
     /// 13th in the mask.
     sign_text: NvimString,
 
-    /// 19th in the mask.
+    /// 20th in the mask.
     sign_hl_group: Object,
 
-    /// 22th in the mask.
+    /// 23rd in the mask.
     number_hl_group: Object,
 
-    /// 17th in the mask.
+    /// 18th in the mask.
     line_hl_group: Object,
 
-    /// 27th in the mask.
+    /// 28th in the mask.
     cursorline_hl_group: Object,
 
     /// 6th in the mask.
@@ -128,6 +128,9 @@ pub struct SetExtmarkOpts {
 
     /// 15th in the mask.
     ui_watched: Boolean,
+
+    /// 17th in the mask.
+    undo_restore: Boolean,
 }
 
 #[derive(Clone, Default)]
@@ -174,7 +177,7 @@ impl SetExtmarkOptsBuilder {
             nvim::String::from(cursorline_hl_group).into();
         #[cfg(feature = "neovim-nightly")]
         {
-            self.0.mask |= 0b1000000000000000000000000001;
+            self.0.mask |= 0b10000000000000000000000000001;
         }
         self
     }
@@ -209,7 +212,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.end_right_gravity = end_right_gravity;
-            self.0.mask |= 0b1000000000000000000000001;
+            self.0.mask |= 0b10000000000000000000000001;
         }
         self
     }
@@ -317,7 +320,7 @@ impl SetExtmarkOptsBuilder {
         self.0.line_hl_group = nvim::String::from(line_hl_group).into();
         #[cfg(feature = "neovim-nightly")]
         {
-            self.0.mask |= 0b100000000000000001;
+            self.0.mask |= 0b1000000000000000001;
         }
         self
     }
@@ -328,7 +331,7 @@ impl SetExtmarkOptsBuilder {
         self.0.number_hl_group = nvim::String::from(number_hl_group).into();
         #[cfg(feature = "neovim-nightly")]
         {
-            self.0.mask |= 0b10000000000000000000001;
+            self.0.mask |= 0b100000000000000000000001;
         }
         self
     }
@@ -361,7 +364,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.right_gravity = right_gravity;
-            self.0.mask |= 0b1000000000000000001;
+            self.0.mask |= 0b10000000000000000001;
         }
         self
     }
@@ -372,7 +375,7 @@ impl SetExtmarkOptsBuilder {
         self.0.sign_hl_group = nvim::String::from(sign_hl_group).into();
         #[cfg(feature = "neovim-nightly")]
         {
-            self.0.mask |= 0b10000000000000000001;
+            self.0.mask |= 0b100000000000000000001;
         }
         self
     }
@@ -428,6 +431,19 @@ impl SetExtmarkOptsBuilder {
         self
     }
 
+    /// Whether to restore the exact position of the mark if text around the
+    /// mark was deleted and then restored by undo.
+    ///
+    /// Defaults to `true`.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    #[inline]
+    pub fn undo_restore(&mut self, undo_restore: bool) -> &mut Self {
+        self.0.undo_restore = undo_restore;
+        self.0.mask |= 0b100000000000000001;
+        self
+    }
+
     /// Virtual lines to add next to the mark.
     #[inline]
     pub fn virt_lines<Txt, Hl, Cnk, ChunkyCnk>(
@@ -473,7 +489,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.virt_lines_above = virt_lines_above;
-            self.0.mask |= 0b100000000000000000000001;
+            self.0.mask |= 0b1000000000000000000000001;
         }
         self
     }
@@ -492,7 +508,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.virt_lines_leftcol = virt_lines_leftcol;
-            self.0.mask |= 0b100000000000000000000000001;
+            self.0.mask |= 0b1000000000000000000000000001;
         }
         self
     }
@@ -541,7 +557,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.virt_text_hide = virt_text_hide;
-            self.0.mask |= 0b1000000000000000000001;
+            self.0.mask |= 0b10000000000000000000001;
         }
         self
     }
@@ -561,7 +577,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.virt_text_pos = virt_text_pos;
-            self.0.mask |= 0b100000000000000000001;
+            self.0.mask |= 0b1000000000000000000001;
         }
 
         self
@@ -580,7 +596,7 @@ impl SetExtmarkOptsBuilder {
         #[cfg(feature = "neovim-nightly")]
         {
             self.0.virt_text_win_col = virt_text_win_col;
-            self.0.mask |= 0b10000000000000000000000001;
+            self.0.mask |= 0b100000000000000000000000001;
         }
 
         self
