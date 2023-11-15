@@ -60,7 +60,7 @@ The first step is to create a new library crate with `cargo new --lib
 crate-type = ["cdylib"]
 
 [dependencies]
-nvim-oxi = "0.1"
+nvim-oxi = "0.3"
 ```
 
 Next, in `lib.rs` we'll annotate the entry point of the plugin with the
