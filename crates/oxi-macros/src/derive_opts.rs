@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+use quote::quote;
 use syn::*;
 
 struct OptsField {
@@ -21,6 +22,8 @@ impl From<&Field> for OptsField {
 pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
     let input = parse_macro_input!(attr as DeriveInput);
 
+    let struct_name = &input.ident;
+
     let Data::Struct(DataStruct { fields: Fields::Named(fields), .. }) =
         input.data
     else {
@@ -28,30 +31,56 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
         return Error::new_spanned(input, msg).to_compile_error().into();
     };
 
-    let mut opts_fields = Vec::new();
-
-    let mut mask_idx = None;
-
-    for field in &fields.named {
-        if is_mask(field) {
-            if mask_idx.is_some() {
-                let msg = "expected only one field with the `mask` attribute";
-                return Error::new_spanned(field, msg)
-                    .to_compile_error()
-                    .into();
-            }
-            mask_idx = Some(opts_fields.len());
-        }
-
-        opts_fields.push(OptsField::from(field));
-    }
-
-    let Some(mask_idx) = mask_idx else {
-        let msg = "expected a field with the `mask` attribute";
+    let Some(first_field) = fields.named.first() else {
+        let msg = "expected at least one field";
         return Error::new_spanned(fields, msg).to_compile_error().into();
     };
 
-    TokenStream::default()
+    if !is_mask(first_field) {
+        let msg = "expected the first field to have the `mask` attribute";
+        return Error::new_spanned(first_field, msg).to_compile_error().into();
+    }
+
+    let mut opts_fields =
+        fields.named.iter().skip(1).map(OptsField::from).collect::<Vec<_>>();
+
+    let builder_name =
+        Ident::new(&format!("{}Builder", struct_name), struct_name.span());
+
+    let builder_method_doc_comment =
+        format!("Creates a new [`{builder_name}`].");
+
+    let setters = opts_fields.iter().map(|field| {
+        let field_doc_comment = &field.doc_comment;
+        let field_name = &field.name;
+        let field_ty = &field.ty;
+        quote! {
+            #[doc = #field_doc_comment]
+            #[inline]
+            pub fn #field_name(&mut self, #field_name: #field_ty) -> &mut Self {
+                /// TODO: update the field and the mask
+                self
+            }
+        }
+    });
+
+    quote! {
+        impl #struct_name {
+            #[doc = #builder_method_doc_comment]
+            #[inline(always)]
+            pub fn builder() -> #builder_name {
+                #builder_name::default()
+            }
+        }
+
+        #[derive(Clone, Default)]
+        pub struct #builder_name(#struct_name);
+
+        impl #builder_name {
+            #(#setters)*
+        }
+    }
+    .into()
 }
 
 /// Returns `true` if the field has the `mask` attribute.
