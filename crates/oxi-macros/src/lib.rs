@@ -1,14 +1,17 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::quote;
-use syn::parse_macro_input;
+use syn::{parse_macro_input, DeriveInput};
 
 mod derive_opts;
 
 /// TODO: docs
 #[proc_macro_derive(OptsBuilder, attributes(builder))]
 pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
-    derive_opts::derive_opts_builder(input)
+    let input = parse_macro_input!(input as DeriveInput);
+    derive_opts::expand_derive_opts_builder(&input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 // *Heavily* inspired by mlua's `lua_module` proc macro.
