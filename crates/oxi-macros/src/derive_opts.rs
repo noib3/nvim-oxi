@@ -1,6 +1,7 @@
 use core::cmp::Ordering;
 
 use proc_macro::TokenStream;
+use proc_macro2::TokenTree;
 use quote::quote;
 use syn::*;
 
@@ -145,11 +146,27 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
 /// Returns `true` if the field has the `mask` attribute.
 fn is_mask(field: &Field) -> bool {
     for attr in &field.attrs {
-        let Meta::Path(path) = &attr.meta else { continue };
+        let Meta::List(list) = &attr.meta else { continue };
 
-        if path.is_ident("mask") {
-            return true;
+        if !list.path.is_ident("builder") {
+            continue;
         }
+
+        let mut tokens = list.tokens.clone().into_iter();
+
+        let Some(TokenTree::Ident(first_token)) = tokens.next() else {
+            continue;
+        };
+
+        if first_token != "mask" {
+            continue;
+        }
+
+        if tokens.next().is_some() {
+            continue;
+        }
+
+        return true;
     }
 
     false

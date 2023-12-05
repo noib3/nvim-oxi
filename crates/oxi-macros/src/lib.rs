@@ -6,7 +6,7 @@ use syn::parse_macro_input;
 mod derive_opts;
 
 /// TODO: docs
-#[proc_macro_derive(OptsBuilder, attributes(mask))]
+#[proc_macro_derive(OptsBuilder, attributes(builder))]
 pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
     derive_opts::derive_opts_builder(input)
 }
