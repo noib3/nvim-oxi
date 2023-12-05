@@ -26,7 +26,16 @@ impl From<&Field> for OptsField {
 pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
     let input = parse_macro_input!(attr as DeriveInput);
 
-    let struct_name = &input.ident;
+    let opts_name = &input.ident;
+
+    let opts_cfg_gates = input
+        .attrs
+        .iter()
+        .filter(|attr| {
+            let Meta::List(list) = &attr.meta else { return false };
+            list.path.is_ident("cfg")
+        })
+        .collect::<Vec<_>>();
 
     let Data::Struct(DataStruct { fields: Fields::Named(fields), .. }) =
         input.data
@@ -68,7 +77,7 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
     }
 
     let builder_name =
-        Ident::new(&format!("{}Builder", struct_name), struct_name.span());
+        Ident::new(&format!("{}Builder", opts_name), opts_name.span());
 
     let builder_method_doc_comment =
         format!("Creates a new [`{builder_name}`].");
@@ -92,7 +101,8 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
     });
 
     quote! {
-        impl #struct_name {
+        #(#opts_cfg_gates)*
+        impl #opts_name {
             #[doc = #builder_method_doc_comment]
             #[inline(always)]
             pub fn builder() -> #builder_name {
@@ -100,14 +110,31 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
             }
         }
 
-        #[derive(Clone, Default)]
-        pub struct #builder_name(#struct_name);
+        #(#opts_cfg_gates)*
+        pub struct #builder_name(#opts_name);
 
+        #(#opts_cfg_gates)*
+        impl ::core::clone::Clone for #builder_name {
+            #[inline]
+            fn clone(&self) -> Self {
+                Self(self.0.clone())
+            }
+        }
+
+        #(#opts_cfg_gates)*
+        impl ::core::default::Default for #builder_name {
+            #[inline]
+            fn default() -> Self {
+                Self(#opts_name::default())
+            }
+        }
+
+        #(#opts_cfg_gates)*
         impl #builder_name {
             #(#setters)*
 
             #[inline]
-            pub fn build(&mut self) -> #struct_name {
+            pub fn build(&mut self) -> #opts_name {
                 ::core::mem::take(&mut self.0)
             }
         }
