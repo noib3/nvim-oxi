@@ -105,6 +105,11 @@ pub fn derive_opts_builder(attr: TokenStream) -> TokenStream {
 
         impl #builder_name {
             #(#setters)*
+
+            #[inline]
+            pub fn build(&mut self) -> #struct_name {
+                ::core::mem::take(&mut self.0)
+            }
         }
     }
     .into()
