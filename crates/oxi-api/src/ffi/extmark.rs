@@ -45,7 +45,8 @@ extern "C" {
         buf: BufHandle,
         ns_id: Integer,
         id: Integer,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarkByIdOpts,
         err: *mut Error,
     ) -> Array;
 
