@@ -140,8 +140,9 @@ impl quote::ToTokens for CfgGates<'_> {
 }
 
 /// TODO: docs
+#[derive(Default)]
 struct OptsFields<'a> {
-    mask_name: &'a Ident,
+    mask_name: Option<&'a Ident>,
     fields: Vec<OptsField<'a>>,
 }
 
@@ -158,17 +159,11 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
         };
 
         let Some(first_field) = fields.named.first() else {
-            let msg = "expected at least one field";
-            return Err(Error::new_spanned(fields, msg));
+            return Ok(Self::default());
         };
 
-        if !has_mask_attribute(first_field)? {
-            let msg = "expected the first field to have the `builder(mask)` \
-                       attribute";
-            return Err(Error::new_spanned(first_field, msg));
-        }
-
-        let mask_name = first_field.ident.as_ref().unwrap();
+        let mask_name = has_mask_attribute(first_field)?
+            .then(|| first_field.ident.as_ref().unwrap());
 
         let mut opts_fields = fields
             .named
@@ -271,7 +266,7 @@ impl<'a> OptsField<'a> {
 
     /// TODO: docs
     #[inline]
-    fn setter(&self, mask_name: &Ident) -> TokenStream {
+    fn setter(&self, mask_name: Option<&Ident>) -> TokenStream {
         let field_name = self.name;
 
         let method_name = self
@@ -366,7 +361,12 @@ impl<'a> OptsField<'a> {
             quote! { #[doc = #docs] }
         });
 
-        let field_mask_idx = &self.mask_idx;
+        let mask_setter = mask_name.map(|mask_name| {
+            let field_mask_idx = &self.mask_idx;
+            quote! {
+                self.0.#mask_name |= 1 << (#field_mask_idx + 1);
+            }
+        });
 
         quote! {
             #field_doc_comment
@@ -376,7 +376,7 @@ impl<'a> OptsField<'a> {
                 #argument_name: #field_type,
             ) -> &mut Self {
                 #field_setter
-                self.0.#mask_name |= (1 << (#field_mask_idx + 1)) + 1;
+                #mask_setter
                 self
             }
         }
