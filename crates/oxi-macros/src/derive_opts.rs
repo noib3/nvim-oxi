@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::quote;
 use syn::*;
 
@@ -177,8 +177,8 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
             .named
             .iter()
             .skip(1)
-            .map(OptsField::from)
-            .collect::<Vec<_>>();
+            .map(OptsField::try_from)
+            .collect::<Result<Vec<_>>>()?;
 
         // We sort the based on their name so that the generated setter methods
         // will be in alphabetical order.
@@ -209,22 +209,41 @@ impl<'a> OptsFields<'a> {
 
 /// TODO: docs
 struct OptsField<'a> {
-    _attr: Option<BuilderAttribute>,
+    attr: Option<BuilderAttribute>,
     doc_comment: Option<String>,
     mask_idx: usize,
     name: &'a Ident,
     ty: &'a Type,
 }
 
-impl<'a> From<&'a Field> for OptsField<'a> {
-    fn from(field: &'a Field) -> Self {
-        Self {
-            _attr: None,
+impl<'a> TryFrom<&'a Field> for OptsField<'a> {
+    type Error = Error;
+
+    fn try_from(field: &'a Field) -> Result<Self> {
+        let mut builder_attr = None;
+
+        for field_attr in &field.attrs {
+            if let Some(attr) = BuilderAttribute::try_from_attr(field_attr)? {
+                if builder_attr.is_some() {
+                    let msg = "expected at most one `builder(...)` attribute";
+                    return Err(Error::new_spanned(field_attr, msg));
+                } else if matches!(attr, BuilderAttribute::Mask) {
+                    let msg = "the `builder(mask)` attribute can only be \
+                               applied the first field";
+                    return Err(Error::new_spanned(field_attr, msg));
+                } else {
+                    builder_attr = Some(attr);
+                }
+            }
+        }
+
+        Ok(Self {
+            attr: builder_attr,
             doc_comment: parse_doc_comment(field),
             mask_idx: 0,
             name: field.ident.as_ref().unwrap(),
             ty: &field.ty,
-        }
+        })
     }
 }
 
@@ -245,16 +264,66 @@ impl<'a> OptsField<'a> {
     /// TODO: docs
     #[inline]
     fn setter(&self, mask_name: &Ident) -> TokenStream {
-        let field_doc_comment = &self.doc_comment;
-        let field_mask_idx = &self.mask_idx;
         let field_name = &self.name;
-        let field_ty = &self.ty;
+
+        let mut generics: Option<TokenStream> = None;
+
+        let where_clause: Option<TokenStream> = None;
+
+        let mut field_type = self.ty.clone();
+
+        let mut field_setter = quote! {
+            self.0.#field_name = #field_name;
+        };
+
+        match &self.attr {
+            Some(BuilderAttribute::Into) => {
+                let generic_char = field_name
+                    .to_string()
+                    .chars()
+                    .next()
+                    .unwrap()
+                    .to_ascii_uppercase();
+
+                let generic_name =
+                    Ident::new(&generic_char.to_string(), Span::call_site());
+
+                generics = Some(
+                    quote! { #generic_name: ::core::convert::Into<#field_type> },
+                );
+
+                field_type = Type::Verbatim(quote! { #generic_name });
+
+                field_setter = quote! {
+                    self.0.#field_name = #field_name.into();
+                };
+            },
+
+            Some(BuilderAttribute::CustomSetterFn {
+                function_name: _,
+                setter_argument_ty: _,
+                setter_argument_generic: _,
+            }) => todo!(),
+
+            Some(BuilderAttribute::Mask) => unreachable!(),
+
+            None => {},
+        };
+
+        let field_doc_comment = &self.doc_comment;
+
+        let field_mask_idx = &self.mask_idx;
 
         quote! {
             #[doc = #field_doc_comment]
             #[inline]
-            pub fn #field_name(&mut self, #field_name: #field_ty) -> &mut Self {
-                self.0.#field_name = #field_name;
+            pub fn #field_name<#generics>(
+                &mut self,
+                #field_name: #field_type,
+            ) -> &mut Self
+                #where_clause
+            {
+                #field_setter
                 self.0.#mask_name |= (1 << (#field_mask_idx + 1)) + 1;
                 self
             }
@@ -364,15 +433,20 @@ impl BuilderAttribute {
             ));
         };
 
-        let mut this = Self::Mask;
-
-        if first_token == INTO_ATTR_IDENT {
-            this = Self::Into;
+        let this = if first_token == MASK_ATTR_IDENT {
+            Self::Mask
+        } else if first_token == INTO_ATTR_IDENT {
+            Self::Into
         } else if first_token == SETTER_ATTR_IDENT {
             todo!();
-        } else if first_token != MASK_ATTR_IDENT {
+        } else {
             let msg = "expected one of `mask`, `Into`, or `setter`";
             return Err(Error::new_spanned(first_token, msg));
+        };
+
+        if tokens.next().is_some() {
+            let msg = "expected only one token in the `builder` attribute";
+            return Err(Error::new_spanned(list, msg));
         }
 
         Ok(Some(this))
