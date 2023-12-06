@@ -1,14 +1,11 @@
 use core::cmp::Ordering;
 
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::*;
 use quote::quote;
 use syn::*;
 
-const MASK_ATTR_IDENT: &str = "mask";
-
-const INTO_ATTR_IDENT: &str = "Into";
-
-const SETTER_ATTR_IDENT: &str = "setter";
+/// TODO: docs
+const INLINE_PLACEHOLDER: &str = "{0}";
 
 /// TODO: docs
 pub fn expand_derive_opts_builder(input: &DeriveInput) -> Result<TokenStream> {
@@ -209,7 +206,7 @@ impl<'a> OptsFields<'a> {
 
 /// TODO: docs
 struct OptsField<'a> {
-    attr: Option<BuilderAttribute>,
+    attrs: Vec<BuilderAttribute>,
     doc_comment: Option<String>,
     mask_idx: usize,
     name: &'a Ident,
@@ -220,25 +217,36 @@ impl<'a> TryFrom<&'a Field> for OptsField<'a> {
     type Error = Error;
 
     fn try_from(field: &'a Field) -> Result<Self> {
-        let mut builder_attr = None;
+        let attrs = field
+            .attrs
+            .iter()
+            .filter_map(|attr| {
+                let Meta::List(list) = &attr.meta else {
+                    return None;
+                };
 
-        for field_attr in &field.attrs {
-            if let Some(attr) = BuilderAttribute::try_from_attr(field_attr)? {
-                if builder_attr.is_some() {
-                    let msg = "expected at most one `builder(...)` attribute";
-                    return Err(Error::new_spanned(field_attr, msg));
-                } else if matches!(attr, BuilderAttribute::Mask) {
-                    let msg = "the `builder(mask)` attribute can only be \
-                               applied the first field";
-                    return Err(Error::new_spanned(field_attr, msg));
-                } else {
-                    builder_attr = Some(attr);
+                if !list.path.is_ident("builder") {
+                    return None;
                 }
-            }
-        }
+
+                Some(list.tokens.clone().into_iter())
+            })
+            .flat_map(|mut tokens| {
+                let mut attrs = Vec::new();
+                while let Some(attr) =
+                    BuilderAttribute::from_token_stream(&mut tokens)
+                        .transpose()
+                {
+                    attrs.push(attr);
+                }
+                attrs
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        is_valid_combination(&attrs)?;
 
         Ok(Self {
-            attr: builder_attr,
+            attrs,
             doc_comment: parse_doc_comment(field),
             mask_idx: 0,
             name: field.ident.as_ref().unwrap(),
@@ -268,47 +276,77 @@ impl<'a> OptsField<'a> {
 
         let mut generics: Option<TokenStream> = None;
 
-        let where_clause: Option<TokenStream> = None;
-
         let mut field_type = self.ty.clone();
 
         let mut field_setter = quote! {
             self.0.#field_name = #field_name;
         };
 
-        match &self.attr {
-            Some(BuilderAttribute::Into) => {
-                let generic_char = field_name
-                    .to_string()
-                    .chars()
-                    .next()
-                    .unwrap()
-                    .to_ascii_uppercase();
+        for attr in &self.attrs {
+            match &attr {
+                BuilderAttribute::ArgType(arg_type) => {
+                    field_type = arg_type.clone();
+                },
 
-                let generic_name =
-                    Ident::new(&generic_char.to_string(), Span::call_site());
+                BuilderAttribute::Generics(gen) => {
+                    let gen = gen.clone();
+                    generics = Some(quote! { #gen });
+                },
 
-                generics = Some(
-                    quote! { #generic_name: ::core::convert::Into<#field_type> },
-                );
+                BuilderAttribute::Inline(inline) => {
+                    let placeholder_start =
+                        inline.find(INLINE_PLACEHOLDER).unwrap();
 
-                field_type = Type::Verbatim(quote! { #generic_name });
+                    let placeholder_end =
+                        placeholder_start + INLINE_PLACEHOLDER.len();
 
-                field_setter = quote! {
-                    self.0.#field_name = #field_name.into();
-                };
-            },
+                    let inline_expr_str = format!(
+                        "{before}{field_name}{after}",
+                        before = &inline[..placeholder_start],
+                        after = &inline[placeholder_end..],
+                    );
 
-            Some(BuilderAttribute::CustomSetterFn {
-                function_name: _,
-                setter_argument_ty: _,
-                setter_argument_generic: _,
-            }) => todo!(),
+                    let inline_expr =
+                        parse_str::<Expr>(&inline_expr_str).unwrap();
 
-            Some(BuilderAttribute::Mask) => unreachable!(),
+                    field_setter = quote! {
+                        self.0.#field_name = #inline_expr;
+                    };
+                },
 
-            None => {},
-        };
+                BuilderAttribute::Into => {
+                    let generic_char = field_name
+                        .to_string()
+                        .chars()
+                        .next()
+                        .unwrap()
+                        .to_ascii_uppercase();
+
+                    let generic_name = Ident::new(
+                        &generic_char.to_string(),
+                        Span::call_site(),
+                    );
+
+                    generics = Some(quote! {
+                        #generic_name: ::core::convert::Into<#field_type>
+                    });
+
+                    field_type = Type::Verbatim(quote! { #generic_name });
+
+                    field_setter = quote! {
+                        self.0.#field_name = #field_name.into();
+                    };
+                },
+
+                BuilderAttribute::Setter(setter_fn) => {
+                    field_setter = quote! {
+                        #setter_fn(&mut self.0.#field_name, #field_name);
+                    };
+                },
+
+                BuilderAttribute::Mask => unreachable!(),
+            }
+        }
 
         let field_doc_comment = &self.doc_comment;
 
@@ -317,12 +355,10 @@ impl<'a> OptsField<'a> {
         quote! {
             #[doc = #field_doc_comment]
             #[inline]
-            pub fn #field_name<#generics>(
+            pub fn #field_name #generics(
                 &mut self,
                 #field_name: #field_type,
-            ) -> &mut Self
-                #where_clause
-            {
+            ) -> &mut Self {
                 #field_setter
                 self.0.#mask_name |= (1 << (#field_mask_idx + 1)) + 1;
                 self
@@ -359,13 +395,31 @@ fn parse_doc_comment(field: &Field) -> Option<String> {
 /// Returns `true` if the field has the `builder(mask)` attribute.
 fn has_mask_attribute(field: &Field) -> Result<bool> {
     for attr in &field.attrs {
-        let Some(BuilderAttribute::Mask) =
-            BuilderAttribute::try_from_attr(attr)?
-        else {
+        let Meta::List(list) = &attr.meta else {
             continue;
         };
 
-        return Ok(true);
+        if !list.path.is_ident("builder") {
+            continue;
+        }
+
+        let mut tokens = list.tokens.clone().into_iter();
+
+        let Some(attr) = BuilderAttribute::from_token_stream(&mut tokens)?
+        else {
+            return Err(Error::new_spanned(
+                list,
+                "expected a `builder(mask)` attribute",
+            ));
+        };
+
+        if matches!(attr, BuilderAttribute::Mask) {
+            if tokens.next().is_some() {
+                let msg = "expected no tokens after `builder(mask)`";
+                return Err(Error::new_spanned(list, msg));
+            }
+            return Ok(true);
+        }
     }
 
     Ok(false)
@@ -375,11 +429,20 @@ fn has_mask_attribute(field: &Field) -> Result<bool> {
 /// inside the `#[builder(...)]` attribute of a field of a struct deriving
 /// `OptsBuilder`.
 enum BuilderAttribute {
-    /// The `builder(mask)` attribute.
+    /// The `builder(argtype = "<type>")` attribute.
     ///
-    /// This attribute is required and must be the only attribute present on
-    /// the first field of the struct.
-    Mask,
+    /// TODO: docs
+    ArgType(Type),
+
+    /// The `builder(generics = "<generics>")` attribute.
+    ///
+    /// TODO: docs
+    Generics(Generics),
+
+    /// The `builder(inline = "<expr>")` attribute.
+    ///
+    /// TODO: docs
+    Inline(String),
 
     /// The `builder(Into)` attribute.
     ///
@@ -387,68 +450,200 @@ enum BuilderAttribute {
     /// generic over types implementing `Into<FieldType>`.
     Into,
 
-    /// The `builder(setter = "fun")` attribute.
+    /// The `builder(mask)` attribute.
+    ///
+    /// This attribute is required and must be the only attribute present on
+    /// the first field of the struct.
+    Mask,
+
+    /// The `builder(setter = "<fun>")` attribute.
     ///
     /// This attribute is optional and will cause the setter to call the
     /// function `fun` with a mutable reference to the field and the argument
     /// of the setter.
-    ///
-    /// When the attribute is present, two more attrributes can be specified:
-    ///
-    /// - `builder(setter = "fun", arg = "Ty")` specifies the type of the
-    ///   argument of the setter;
-    ///
-    /// - `builder(setter = "fun", arg = "Ty", generics = "Generics")`
-    ///  specifies the generics to use for the setter.
-    #[allow(dead_code)]
-    CustomSetterFn {
-        function_name: Ident,
-        setter_argument_ty: Option<Type>,
-        setter_argument_generic: Option<Generics>,
-    },
+    Setter(Ident),
 }
 
 impl BuilderAttribute {
     #[inline]
-    fn try_from_attr(attr: &Attribute) -> Result<Option<Self>> {
-        let Meta::List(list) = &attr.meta else {
-            return Ok(None);
+    fn from_token_stream(
+        tokens: &mut token_stream::IntoIter,
+    ) -> Result<Option<Self>> {
+        let Some(token) = tokens.next() else { return Ok(None) };
+
+        let TokenTree::Ident(ident) = token else {
+            let msg = "expected an identifier";
+            return Err(Error::new_spanned(token, msg));
         };
 
-        if !list.path.is_ident("builder") {
-            return Ok(None);
-        }
+        let mut is_argtype = false;
+        let mut is_generics = false;
+        let mut is_inline = false;
+        let mut is_setter = false;
 
-        let mut tokens = list.tokens.clone().into_iter();
-
-        let Some(first_token) = tokens.next() else {
-            let msg = "expected at least one token in the `builder` attribute";
-            return Err(Error::new_spanned(list, msg));
-        };
-
-        let TokenTree::Ident(first_token) = first_token else {
-            return Err(Error::new_spanned(
-                first_token,
-                "expected an identifier",
-            ));
-        };
-
-        let this = if first_token == MASK_ATTR_IDENT {
-            Self::Mask
-        } else if first_token == INTO_ATTR_IDENT {
-            Self::Into
-        } else if first_token == SETTER_ATTR_IDENT {
-            todo!();
+        if ident == "into" {
+            // Consume the `,` (if any).
+            let _ = tokens.next();
+            return Ok(Some(Self::Into));
+        } else if ident == "mask" {
+            // Consume the `,` (if any).
+            let _ = tokens.next();
+            return Ok(Some(Self::Mask));
+        } else if ident == "argtype" {
+            is_argtype = true;
+        } else if ident == "generics" {
+            is_generics = true;
+        } else if ident == "inline" {
+            is_inline = true;
+        } else if ident == "setter" {
+            is_setter = true;
         } else {
-            let msg = "expected one of `mask`, `Into`, or `setter`";
-            return Err(Error::new_spanned(first_token, msg));
-        };
-
-        if tokens.next().is_some() {
-            let msg = "expected only one token in the `builder` attribute";
-            return Err(Error::new_spanned(list, msg));
+            let msg = format!("unknown attribute `{}`", ident);
+            return Err(Error::new_spanned(ident, msg));
         }
 
-        Ok(Some(this))
+        let Some(TokenTree::Punct(punct)) = tokens.next() else {
+            let msg = format!("expected a `=` after `{ident:?}`");
+            return Err(Error::new_spanned(ident, msg));
+        };
+
+        if punct.as_char() != '=' {
+            let msg = format!("expected a `=` after `{ident}`");
+            return Err(Error::new_spanned(ident, msg));
+        }
+
+        let Some(TokenTree::Literal(lit)) = tokens.next() else {
+            let msg = format!("expected a string literal after `{ident} = `",);
+            return Err(Error::new_spanned(ident, msg));
+        };
+
+        let lit = lit.to_string();
+
+        // Remove the enclosing double quotes.
+        let lit = lit[1..lit.len() - 1].to_owned();
+
+        let this = if is_argtype {
+            parse_str(&lit).map(Self::ArgType)
+        } else if is_generics {
+            let lit = format!("<{lit}>");
+            parse_str(&lit).map(Self::Generics)
+        } else if is_inline {
+            Ok(Self::Inline(lit))
+        } else if is_setter {
+            parse_str(&lit).map(Self::Setter)
+        } else {
+            unreachable!()
+        }
+        .map(Some);
+
+        // Consume the `,` (if any).
+        let _ = tokens.next();
+
+        this
     }
+}
+
+/// Returns `Ok(())` if the given combination of attributes is valid, otherwise
+/// returns an error.
+#[inline]
+fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
+    // Invariants to check:
+    //
+    // 1. an attribute can only be present once;
+    // 2. `Mask` and `Into` are only valid if they're the only attribute;
+    // 3. `Generics` and `Into` are mutually exclusive;
+    // 4. `Inline` and `Setter` are mutually exclusive;
+    // 5. if `Generics` is present, `ArgType` must also be present;
+
+    let mut has_argtype = false;
+    let mut has_generics = false;
+    let mut has_inline = false;
+    let mut has_into = false;
+    let mut has_mask = false;
+    let mut has_setter = false;
+
+    for attr in attrs {
+        let is_duplicate;
+
+        match attr {
+            BuilderAttribute::ArgType(_) => {
+                is_duplicate = has_argtype;
+                has_argtype = true;
+            },
+
+            BuilderAttribute::Generics(_) => {
+                is_duplicate = has_generics;
+                has_generics = true;
+            },
+
+            BuilderAttribute::Inline(inline) => {
+                if !inline.contains(INLINE_PLACEHOLDER) {
+                    let _msg = format!(
+                        "expected `{}` in the expression of the `inline` \
+                         attribute",
+                        INLINE_PLACEHOLDER,
+                    );
+                    todo!();
+                }
+
+                is_duplicate = has_inline;
+                has_inline = true;
+            },
+
+            BuilderAttribute::Into => {
+                is_duplicate = has_into;
+                has_into = true;
+            },
+
+            BuilderAttribute::Mask => {
+                is_duplicate = has_mask;
+                has_mask = true;
+            },
+
+            BuilderAttribute::Setter(_) => {
+                is_duplicate = has_setter;
+                has_setter = true;
+            },
+        }
+
+        if is_duplicate {
+            todo!();
+        }
+    }
+
+    let has_mask_and_other = has_mask
+        && (has_argtype
+            || has_generics
+            || has_inline
+            || has_into
+            || has_setter);
+
+    if has_mask_and_other {
+        todo!();
+    }
+
+    let has_into_and_other = has_into
+        && (has_argtype
+            || has_generics
+            || has_inline
+            || has_mask
+            || has_setter);
+
+    if has_into_and_other {
+        todo!();
+    }
+
+    if has_generics && has_into {
+        todo!();
+    }
+
+    if has_inline && has_setter {
+        todo!();
+    }
+
+    if has_generics && !has_argtype {
+        todo!();
+    }
+
+    Ok(())
 }
