@@ -451,6 +451,7 @@ impl Buffer {
         R: RangeBounds<usize>,
     {
         let mut err = nvim::Error::new();
+        #[cfg(not(feature = "neovim-nightly"))]
         let opts = Dictionary::from(opts);
         let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
@@ -461,7 +462,10 @@ impl Buffer {
                 start_col.try_into()?,
                 end,
                 end_col.try_into()?,
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),

@@ -147,7 +147,8 @@ extern "C" {
         start_col: Integer,
         end_row: Integer,
         end_col: Integer,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const GetTextOpts,
         #[cfg(not(feature = "neovim-0-8"))]
         lstate: *mut oxi_luajit::ffi::lua_State,
         err: *mut Error,

@@ -1,30 +1,17 @@
-use oxi_types::Dictionary;
-
 /// Options passed to [`Buffer::get_text()`](crate::Buffer::get_text).
 /// Currently unused.
-#[derive(Clone, Debug, Default)]
-pub struct GetTextOpts {}
-
-impl GetTextOpts {
-    #[inline]
-    pub fn builder() -> GetTextOptsBuilder {
-        GetTextOptsBuilder::default()
-    }
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct GetTextOpts {
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(mask)]
+    mask: u64,
 }
 
-#[derive(Clone, Default)]
-pub struct GetTextOptsBuilder(GetTextOpts);
-
-impl GetTextOptsBuilder {
-    #[inline]
-    pub fn build(&mut self) -> GetTextOpts {
-        std::mem::take(&mut self.0)
-    }
-}
-
-impl From<&GetTextOpts> for Dictionary {
+#[cfg(not(feature = "neovim-nightly"))]
+impl From<&GetTextOpts> for oxi_types::Dictionary {
     #[inline]
     fn from(_: &GetTextOpts) -> Self {
-        Dictionary::new()
+        Self::new()
     }
 }
