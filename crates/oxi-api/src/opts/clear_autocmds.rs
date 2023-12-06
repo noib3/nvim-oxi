@@ -1,6 +1,4 @@
-#[cfg(feature = "neovim-nightly")]
-use oxi_types::BufHandle;
-use oxi_types::{Array, Object};
+use oxi_types as types;
 
 use crate::Buffer;
 use crate::StringOrInt;
@@ -10,33 +8,13 @@ use crate::StringOrInt;
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct ClearAutocmdsOpts {
-    event: Object,
-    group: Object,
-    buffer: Object,
-    pattern: Object,
+    event: types::Object,
+    group: types::Object,
+    buffer: types::Object,
+    pattern: types::Object,
 }
 
-/// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
-#[cfg(feature = "neovim-nightly")]
-#[derive(Clone, Debug, Default)]
-#[repr(C)]
-pub struct ClearAutocmdsOpts {
-    /// <pattern><buffer><group><event>1
-    mask: u64,
-
-    /// 3rd in the mask.
-    buffer: BufHandle,
-
-    /// 1st in the mask.
-    event: Object,
-
-    /// 2nd in the mask.
-    group: Object,
-
-    /// 4th in the mask.
-    pattern: Object,
-}
-
+#[cfg(not(feature = "neovim-nightly"))]
 impl ClearAutocmdsOpts {
     /// Creates a new [`ClearAutocmdsOptsBuilder`].
     #[inline(always)]
@@ -45,23 +23,17 @@ impl ClearAutocmdsOpts {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct ClearAutocmdsOptsBuilder(ClearAutocmdsOpts);
 
+#[cfg(not(feature = "neovim-nightly"))]
 impl ClearAutocmdsOptsBuilder {
     /// Only clear the autocommands local to a specific `Buffer`. Cannot be
     /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.buffer = buffer.into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.buffer = buffer.0;
-            self.0.mask |= 0b01001;
-        }
+        self.0.buffer = buffer.into();
         self
     }
 
@@ -72,11 +44,7 @@ impl ClearAutocmdsOptsBuilder {
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.0.event = Array::from_iter(iter).into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b00011;
-        }
+        self.0.event = types::Array::from_iter(iter).into();
         self
     }
 
@@ -89,11 +57,7 @@ impl ClearAutocmdsOptsBuilder {
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.0.pattern = Array::from_iter(iter).into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b10001;
-        }
+        self.0.pattern = types::Array::from_iter(iter).into();
         self
     }
 
@@ -105,10 +69,6 @@ impl ClearAutocmdsOptsBuilder {
         Grp: StringOrInt,
     {
         self.0.group = group.to_object();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b00101;
-        }
         self
     }
 
@@ -116,4 +76,49 @@ impl ClearAutocmdsOptsBuilder {
     pub fn build(&mut self) -> ClearAutocmdsOpts {
         std::mem::take(&mut self.0)
     }
+}
+
+/// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct ClearAutocmdsOpts {
+    #[builder(mask)]
+    mask: u64,
+
+    /// Only clear the autocommands local to a specific `Buffer`. Cannot be
+    /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
+    #[builder(argtype = "Buffer", inline = "{0}.0")]
+    buffer: types::BufHandle,
+
+    /// Clear all the autocommands triggered by one or more of the specified
+    /// events.
+    #[builder(
+        generics = "'a, I: IntoIterator<Item = &'a str>",
+        method = "events",
+        argtype = "I",
+        inline = "types::Array::from_iter({0}).into()"
+    )]
+    event: types::Object,
+
+    /// Only clear the autocommands matching specific patterns. For example, if
+    /// you have `"*.py"` as a pattern for a particular autocommand, you must
+    /// pass that exact pattern to clear it. Cannot be used together with
+    /// [`buffer`](ClearAutocmdsOptsBuilder::buffer).
+    #[builder(
+        generics = "G: StringOrInt",
+        argtype = "G",
+        inline = "{0}.to_object()"
+    )]
+    group: types::Object,
+
+    /// Only clear the autocommands belonging to a specific augroup. The
+    /// augroup can be specified by both id and name.
+    #[builder(
+        generics = "'a, I: IntoIterator<Item = &'a str>",
+        method = "patterns",
+        argtype = "I",
+        inline = "types::Array::from_iter({0}).into()"
+    )]
+    pattern: types::Object,
 }
