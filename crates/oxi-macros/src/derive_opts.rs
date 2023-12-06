@@ -272,14 +272,28 @@ impl<'a> OptsField<'a> {
     /// TODO: docs
     #[inline]
     fn setter(&self, mask_name: &Ident) -> TokenStream {
-        let field_name = &self.name;
+        let field_name = self.name;
+
+        let method_name = self
+            .attrs
+            .iter()
+            .find_map(|attr| {
+                if let BuilderAttribute::Method(method_name) = attr {
+                    Some(method_name)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(field_name);
+
+        let argument_name = method_name;
 
         let mut generics: Option<TokenStream> = None;
 
         let mut field_type = self.ty.clone();
 
         let mut field_setter = quote! {
-            self.0.#field_name = #field_name;
+            self.0.#field_name = #argument_name;
         };
 
         for attr in &self.attrs {
@@ -301,7 +315,7 @@ impl<'a> OptsField<'a> {
                         placeholder_start + INLINE_PLACEHOLDER.len();
 
                     let inline_expr_str = format!(
-                        "{before}{field_name}{after}",
+                        "{before}{argument_name}{after}",
                         before = &inline[..placeholder_start],
                         after = &inline[placeholder_end..],
                     );
@@ -315,32 +329,32 @@ impl<'a> OptsField<'a> {
                 },
 
                 BuilderAttribute::Into => {
-                    let generic_char = field_name
+                    let generic_name = argument_name
                         .to_string()
                         .chars()
                         .next()
                         .unwrap()
-                        .to_ascii_uppercase();
+                        .to_ascii_uppercase()
+                        .to_string();
 
-                    let generic_name = Ident::new(
-                        &generic_char.to_string(),
-                        Span::call_site(),
-                    );
+                    let generic = Ident::new(&generic_name, Span::call_site());
 
                     generics = Some(quote! {
-                        #generic_name: ::core::convert::Into<#field_type>
+                        #generic: ::core::convert::Into<#field_type>
                     });
 
-                    field_type = Type::Verbatim(quote! { #generic_name });
+                    field_type = Type::Verbatim(quote! { #generic });
 
                     field_setter = quote! {
-                        self.0.#field_name = #field_name.into();
+                        self.0.#field_name = #argument_name.into();
                     };
                 },
 
+                BuilderAttribute::Method(_) => {},
+
                 BuilderAttribute::Setter(setter_fn) => {
                     field_setter = quote! {
-                        #setter_fn(&mut self.0.#field_name, #field_name);
+                        #setter_fn(&mut self.0.#field_name, #argument_name);
                     };
                 },
 
@@ -355,9 +369,9 @@ impl<'a> OptsField<'a> {
         quote! {
             #[doc = #field_doc_comment]
             #[inline]
-            pub fn #field_name #generics(
+            pub fn #method_name #generics(
                 &mut self,
-                #field_name: #field_type,
+                #argument_name: #field_type,
             ) -> &mut Self {
                 #field_setter
                 self.0.#mask_name |= (1 << (#field_mask_idx + 1)) + 1;
@@ -456,6 +470,12 @@ enum BuilderAttribute {
     /// the first field of the struct.
     Mask,
 
+    /// The `builder(method = "<name>")` attribute.
+    ///
+    /// This attribute is optional and it can be used to override the name of
+    /// the setter method (the default name is the name of the field).
+    Method(Ident),
+
     /// The `builder(setter = "<fun>")` attribute.
     ///
     /// This attribute is optional and will cause the setter to call the
@@ -479,6 +499,7 @@ impl BuilderAttribute {
         let mut is_argtype = false;
         let mut is_generics = false;
         let mut is_inline = false;
+        let mut is_method = false;
         let mut is_setter = false;
 
         if ident == "into" {
@@ -495,6 +516,8 @@ impl BuilderAttribute {
             is_generics = true;
         } else if ident == "inline" {
             is_inline = true;
+        } else if ident == "method" {
+            is_method = true;
         } else if ident == "setter" {
             is_setter = true;
         } else {
@@ -529,6 +552,8 @@ impl BuilderAttribute {
             parse_str(&lit).map(Self::Generics)
         } else if is_inline {
             Ok(Self::Inline(lit))
+        } else if is_method {
+            parse_str(&lit).map(Self::Method)
         } else if is_setter {
             parse_str(&lit).map(Self::Setter)
         } else {
@@ -560,6 +585,7 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
     let mut has_inline = false;
     let mut has_into = false;
     let mut has_mask = false;
+    let mut has_method = false;
     let mut has_setter = false;
 
     for attr in attrs {
@@ -598,6 +624,11 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
             BuilderAttribute::Mask => {
                 is_duplicate = has_mask;
                 has_mask = true;
+            },
+
+            BuilderAttribute::Method(_) => {
+                is_duplicate = has_method;
+                has_method = true;
             },
 
             BuilderAttribute::Setter(_) => {
