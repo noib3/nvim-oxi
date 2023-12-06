@@ -105,16 +105,23 @@ impl Buffer {
         opts: &BufAttachOpts,
     ) -> Result<()> {
         let mut err = nvim::Error::new();
+
+        #[cfg(not(feature = "neovim-nightly"))]
         let opts = Dictionary::from(opts);
+
         let has_attached = unsafe {
             nvim_buf_attach(
                 LUA_INTERNAL_CALL,
                 self.0,
                 send_buffer,
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 &mut err,
             )
         };
+
         choose!(
             err,
             match has_attached {

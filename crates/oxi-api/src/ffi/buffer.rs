@@ -18,7 +18,8 @@ extern "C" {
         channel_id: u64,
         buf: BufHandle,
         send_buffer: bool,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const BufAttachOpts,
         err: *mut Error,
     ) -> bool;
 
