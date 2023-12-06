@@ -73,7 +73,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L1060
     pub(crate) fn nvim_buf_delete(
         buf: BufHandle,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const BufDeleteOpts,
         err: *mut Error,
     );
 

@@ -259,8 +259,21 @@ impl Buffer {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_delete()
     pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
         let mut err = nvim::Error::new();
+
+        #[cfg(not(feature = "neovim-nightly"))]
         let opts = Dictionary::from(opts);
-        unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
+
+        unsafe {
+            nvim_buf_delete(
+                self.0,
+                #[cfg(not(feature = "neovim-nightly"))]
+                opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
+                &mut err,
+            )
+        };
+
         choose!(err, ())
     }
 
