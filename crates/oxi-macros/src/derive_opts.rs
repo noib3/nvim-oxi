@@ -362,12 +362,14 @@ impl<'a> OptsField<'a> {
             }
         }
 
-        let field_doc_comment = &self.doc_comment;
+        let field_doc_comment = self.doc_comment.as_ref().map(|docs| {
+            quote! { #[doc = #docs] }
+        });
 
         let field_mask_idx = &self.mask_idx;
 
         quote! {
-            #[doc = #field_doc_comment]
+            #field_doc_comment
             #[inline]
             pub fn #method_name #generics(
                 &mut self,
