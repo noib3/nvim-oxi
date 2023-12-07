@@ -1,28 +1,15 @@
-use oxi_types::Dictionary;
-
 /// Options passed to [`parse_cmd()`](crate::parse_cmd). Currently unused.
-#[derive(Clone, Debug, Default)]
-pub struct ParseCmdOpts {}
-
-impl ParseCmdOpts {
-    #[inline]
-    pub fn builder() -> ParseCmdOptsBuilder {
-        ParseCmdOptsBuilder::default()
-    }
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct ParseCmdOpts {
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(mask)]
+    mask: u64,
 }
 
-#[derive(Clone, Default)]
-pub struct ParseCmdOptsBuilder(ParseCmdOpts);
-
-impl ParseCmdOptsBuilder {
-    #[inline]
-    pub fn build(&mut self) -> ParseCmdOpts {
-        std::mem::take(&mut self.0)
-    }
-}
-
-impl From<&ParseCmdOpts> for Dictionary {
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+impl From<&ParseCmdOpts> for oxi_types::Dictionary {
     fn from(_: &ParseCmdOpts) -> Self {
-        Dictionary::new()
+        Self::new()
     }
 }
