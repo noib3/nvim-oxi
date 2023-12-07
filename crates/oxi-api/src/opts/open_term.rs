@@ -1,4 +1,4 @@
-use oxi_types::{self as nvim, Dictionary, Object};
+use oxi_types as types;
 
 use crate::Buffer;
 use crate::ToFunction;
@@ -12,46 +12,41 @@ use crate::ToFunction;
 /// - `c`: the [`Buffer`] associated to the terminal instance;
 /// - `d`: data input.
 pub type OnInputArgs = (
-    String,       // the string literal `"input"`
-    u32,          // channel_id
-    Buffer,       // buffer
-    nvim::String, // data input
+    String,        // the string literal `"input"`
+    u32,           // channel_id
+    Buffer,        // buffer
+    types::String, // data input
 );
 
-#[derive(Clone, Debug, Default)]
+/// Options passed to [`open_term()`](crate::open_term).
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
 pub struct OpenTermOpts {
-    on_input: Object,
-}
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(mask)]
+    mask: u64,
 
-impl OpenTermOpts {
-    /// Creates a new [`OpenTermOptsBuilder`].
-    #[inline]
-    pub fn builder() -> OpenTermOptsBuilder {
-        OpenTermOptsBuilder::default()
-    }
-}
-
-#[derive(Clone, Default)]
-pub struct OpenTermOptsBuilder(OpenTermOpts);
-
-impl OpenTermOptsBuilder {
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[builder(
+        generics = "F: ToFunction<OnInputArgs, ()>",
+        argtype = "F",
+        inline = "types::Object::from_luaref({0}.into_luaref())"
+    )]
     /// Callback invoked on data input (like keypresses in terminal mode).
-    #[inline]
-    pub fn on_input<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnInputArgs, ()>,
-    {
-        self.0.on_input = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    on_input: types::Object,
 
-    #[inline]
-    pub fn build(&mut self) -> OpenTermOpts {
-        std::mem::take(&mut self.0)
-    }
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(
+        generics = "F: ToFunction<OnInputArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    /// Callback invoked on data input (like keypresses in terminal mode).
+    on_input: types::LuaRef,
 }
 
-impl From<&OpenTermOpts> for Dictionary {
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+impl From<&OpenTermOpts> for oxi_types::Dictionary {
     fn from(opts: &OpenTermOpts) -> Self {
         Self::from_iter([("on_input", opts.on_input.clone())])
     }

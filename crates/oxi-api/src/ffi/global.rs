@@ -258,7 +258,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L952
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const OpenTermOpts,
         err: *mut Error,
     ) -> Integer;
 

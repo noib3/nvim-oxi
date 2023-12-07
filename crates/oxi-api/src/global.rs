@@ -747,10 +747,19 @@ pub fn notify(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_open_term()
 pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
-    let channel_id =
-        unsafe { nvim_open_term(buffer.0, opts.non_owning(), &mut err) };
+    let channel_id = unsafe {
+        nvim_open_term(
+            buffer.0,
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            opts.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            opts,
+            &mut err,
+        )
+    };
     choose!(
         err,
         match channel_id {
