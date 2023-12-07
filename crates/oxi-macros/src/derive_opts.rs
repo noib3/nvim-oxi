@@ -168,7 +168,7 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
         let mut opts_fields = fields
             .named
             .iter()
-            .skip(1)
+            .skip(if mask_name.is_some() { 1 } else { 0 })
             .map(OptsField::try_from)
             .collect::<Result<Vec<_>>>()?;
 
