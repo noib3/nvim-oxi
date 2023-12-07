@@ -135,8 +135,9 @@ fn set_get_del_lines() {
 #[oxi::test]
 fn buf_set_get_del_mark() {
     let mut buf = Buffer::current();
+    let opts = SetMarkOpts::default();
 
-    let res = buf.set_mark('a', 1, 0);
+    let res = buf.set_mark('a', 1, 0, &opts);
     assert_eq!(Ok(()), res);
 
     assert_eq!((1, 0), buf.get_mark('a').unwrap());

@@ -201,7 +201,9 @@ extern "C" {
         name: NonOwning<String>,
         line: Integer,
         col: Integer,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const SetMarkOpts,
         err: *mut Error,
     ) -> bool;
 

@@ -9,7 +9,6 @@ use oxi_types::{
     conversion::{self, FromObject, ToObject},
     Array,
     BufHandle,
-    Dictionary,
     Function,
     Integer,
     Object,
@@ -107,7 +106,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
 
         #[cfg(not(feature = "neovim-nightly"))]
-        let opts = Dictionary::from(opts);
+        let opts = oxi_types::Dictionary::from(opts);
 
         let has_attached = unsafe {
             nvim_buf_attach(
@@ -261,7 +260,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
 
         #[cfg(not(feature = "neovim-nightly"))]
-        let opts = Dictionary::from(opts);
+        let opts = oxi_types::Dictionary::from(opts);
 
         unsafe {
             nvim_buf_delete(
@@ -452,7 +451,7 @@ impl Buffer {
     {
         let mut err = nvim::Error::new();
         #[cfg(not(feature = "neovim-nightly"))]
-        let opts = Dictionary::from(opts);
+        let opts = oxi_types::Dictionary::from(opts);
         let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
             nvim_buf_get_text(
@@ -603,16 +602,22 @@ impl Buffer {
         name: char,
         line: usize,
         col: usize,
+        opts: &SetMarkOpts,
     ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+        let opts = oxi_types::Dictionary::from(opts);
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
                 name.non_owning(),
                 line.try_into()?,
                 col.try_into()?,
-                Dictionary::new().non_owning(),
+                #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+                opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 &mut err,
             )
         };
