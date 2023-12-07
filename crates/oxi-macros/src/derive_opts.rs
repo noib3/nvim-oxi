@@ -504,7 +504,7 @@ impl BuilderAttribute {
         let mut is_method = false;
         let mut is_setter = false;
 
-        if ident == "into" {
+        if ident == "Into" {
             // Consume the `,` (if any).
             let _ = tokens.next();
             return Ok(Some(Self::Into));
@@ -544,8 +544,15 @@ impl BuilderAttribute {
 
         let lit = lit.to_string();
 
-        // Remove the enclosing double quotes.
-        let lit = lit[1..lit.len() - 1].to_owned();
+        let lit = if lit.starts_with('r') {
+            // Remove the leading `r#"` and the trailing `"#`.
+            lit[3..lit.len() - 2].to_owned()
+        } else if lit.starts_with('"') {
+            // Remove the enclosing double quotes.
+            lit[1..lit.len() - 1].to_owned()
+        } else {
+            unimplemented!();
+        };
 
         let this = if is_argtype {
             parse_str(&lit).map(Self::ArgType)
