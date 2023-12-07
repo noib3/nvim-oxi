@@ -1,28 +1,15 @@
-use oxi_types::Dictionary;
-
 /// Options passed to [`get_mark()`](crate::get_mark). Currently unused.
-#[derive(Clone, Debug, Default)]
-pub struct GetMarkOpts {}
-
-impl GetMarkOpts {
-    #[inline]
-    pub fn builder() -> GetMarkOptsBuilder {
-        GetMarkOptsBuilder::default()
-    }
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct GetMarkOpts {
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(mask)]
+    mask: u64,
 }
 
-#[derive(Clone, Default)]
-pub struct GetMarkOptsBuilder(GetMarkOpts);
-
-impl GetMarkOptsBuilder {
-    #[inline]
-    pub fn build(&mut self) -> GetMarkOpts {
-        std::mem::take(&mut self.0)
-    }
-}
-
-impl From<&GetMarkOpts> for Dictionary {
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+impl From<&GetMarkOpts> for oxi_types::Dictionary {
     fn from(_: &GetMarkOpts) -> Self {
-        Dictionary::new()
+        Self::new()
     }
 }
