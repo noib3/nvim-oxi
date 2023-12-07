@@ -1,41 +1,16 @@
-#[cfg(feature = "neovim-nightly")]
-use oxi_types::{self as nvim, Boolean, Integer, String as NvimString};
-#[cfg(not(feature = "neovim-nightly"))]
-use oxi_types::{Dictionary, Object};
+use oxi_types as types;
 
 /// Options passed to
 /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetExtmarksOpts {
-    details: Object,
-    limits: Object,
+    details: types::Object,
+    limits: types::Object,
 }
 
-#[cfg(feature = "neovim-nightly")]
-#[derive(Clone, Debug, Default)]
-#[repr(C)]
-pub struct GetExtmarksOpts {
-    /// <overlap><hl_name><details><limit><type>1
-    mask: u64,
-
-    /// 2nd in the mask.
-    limits: Integer,
-
-    /// 3rd in the mask.
-    details: Boolean,
-
-    /// 4th in the mask.
-    hl_name: Boolean,
-
-    /// 5th in the mask.
-    overlap: Boolean,
-
-    /// 1st in the mask.
-    ty: NvimString,
-}
-
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetExtmarksOpts {
     #[inline(always)]
     /// Creates a new [`GetExtmarksOptsBuilder`].
@@ -44,9 +19,11 @@ impl GetExtmarksOpts {
     }
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Default)]
 pub struct GetExtmarksOptsBuilder(GetExtmarksOpts);
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetExtmarksOptsBuilder {
     /// Whether to include the extmark's
     /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of
@@ -111,12 +88,52 @@ impl GetExtmarksOptsBuilder {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
-impl From<&GetExtmarksOpts> for Dictionary {
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+impl From<&GetExtmarksOpts> for types::Dictionary {
     fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([
             ("details", opts.details.clone()),
             ("limits", opts.limits.clone()),
         ])
     }
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+/// Options passed to
+/// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
+pub struct GetExtmarksOpts {
+    #[builder(mask)]
+    mask: u64,
+
+    #[builder(
+        method = "limits",
+        argtype = "bool",
+        inline = "{0} as types::Integer"
+    )]
+    limit: types::Integer,
+
+    /// Whether to include the extmark's
+    /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of
+    /// the tuples returned by
+    /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
+    #[builder(argtype = "bool")]
+    details: types::Boolean,
+
+    #[builder(argtype = "bool")]
+    hl_name: types::Boolean,
+
+    #[builder(argtype = "bool")]
+    overlap: types::Boolean,
+
+    // TODO: fix `Into`.
+    // TODO: name it `type` instead of `ty`.
+    // #[builder(Into)]
+    #[builder(
+        generics = "S: Into<types::String>",
+        argtype = "S",
+        inline = "{0}.into()"
+    )]
+    ty: types::String,
 }

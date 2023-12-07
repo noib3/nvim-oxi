@@ -26,6 +26,7 @@ mod select_popup_menu_item;
 mod set_extmark;
 mod set_highlight;
 mod set_keymap;
+mod set_mark;
 
 pub use buf_attach::*;
 pub use buf_delete::*;
@@ -52,3 +53,4 @@ pub use select_popup_menu_item::*;
 pub use set_extmark::*;
 pub use set_highlight::*;
 pub use set_keymap::*;
+pub use set_mark::*;

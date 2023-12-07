@@ -9,7 +9,6 @@ use oxi_types::{
     conversion::{self, FromObject, ToObject},
     Array,
     BufHandle,
-    Dictionary,
     Function,
     Integer,
     Object,
@@ -105,16 +104,23 @@ impl Buffer {
         opts: &BufAttachOpts,
     ) -> Result<()> {
         let mut err = nvim::Error::new();
-        let opts = Dictionary::from(opts);
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        let opts = oxi_types::Dictionary::from(opts);
+
         let has_attached = unsafe {
             nvim_buf_attach(
                 LUA_INTERNAL_CALL,
                 self.0,
                 send_buffer,
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 &mut err,
             )
         };
+
         choose!(
             err,
             match has_attached {
@@ -252,8 +258,21 @@ impl Buffer {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_delete()
     pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
         let mut err = nvim::Error::new();
-        let opts = Dictionary::from(opts);
-        unsafe { nvim_buf_delete(self.0, opts.non_owning(), &mut err) };
+
+        #[cfg(not(feature = "neovim-nightly"))]
+        let opts = oxi_types::Dictionary::from(opts);
+
+        unsafe {
+            nvim_buf_delete(
+                self.0,
+                #[cfg(not(feature = "neovim-nightly"))]
+                opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
+                &mut err,
+            )
+        };
+
         choose!(err, ())
     }
 
@@ -431,7 +450,8 @@ impl Buffer {
         R: RangeBounds<usize>,
     {
         let mut err = nvim::Error::new();
-        let opts = Dictionary::from(opts);
+        #[cfg(not(feature = "neovim-nightly"))]
+        let opts = oxi_types::Dictionary::from(opts);
         let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
             nvim_buf_get_text(
@@ -441,7 +461,10 @@ impl Buffer {
                 start_col.try_into()?,
                 end,
                 end_col.try_into()?,
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
@@ -579,16 +602,22 @@ impl Buffer {
         name: char,
         line: usize,
         col: usize,
+        opts: &SetMarkOpts,
     ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+        let opts = oxi_types::Dictionary::from(opts);
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
                 name.non_owning(),
                 line.try_into()?,
                 col.try_into()?,
-                Dictionary::new().non_owning(),
+                #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+                opts.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                opts,
                 &mut err,
             )
         };

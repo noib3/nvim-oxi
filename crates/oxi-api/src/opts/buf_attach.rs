@@ -1,4 +1,4 @@
-use oxi_types::{Dictionary, Object};
+use oxi_types as types;
 
 use crate::Buffer;
 use crate::ToFunction;
@@ -84,17 +84,19 @@ pub type OnReloadArgs = (String, Buffer);
 pub type ShouldDetach = bool;
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 pub struct BufAttachOpts {
-    on_bytes: Object,
-    on_changedtick: Object,
-    on_detach: Object,
-    on_lines: Object,
-    on_reload: Object,
-    preview: Object,
-    utf_sizes: Object,
+    on_bytes: types::Object,
+    on_changedtick: types::Object,
+    on_detach: types::Object,
+    on_lines: types::Object,
+    on_reload: types::Object,
+    preview: types::Object,
+    utf_sizes: types::Object,
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 impl BufAttachOpts {
     #[inline(always)]
     /// Creates a new [`BufAttachOptsBuilder`].
@@ -103,9 +105,11 @@ impl BufAttachOpts {
     }
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct BufAttachOptsBuilder(BufAttachOpts);
 
+#[cfg(not(feature = "neovim-nightly"))]
 impl BufAttachOptsBuilder {
     /// Callback invoked on change. It receives more granular information about
     /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
@@ -114,7 +118,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnBytesArgs, ShouldDetach>,
     {
-        self.0.on_bytes = Object::from_luaref(on_bytes.into_luaref());
+        self.0.on_bytes = types::Object::from_luaref(on_bytes.into_luaref());
         self
     }
 
@@ -125,7 +129,7 @@ impl BufAttachOptsBuilder {
         F: ToFunction<OnChangedtickArgs, ShouldDetach>,
     {
         self.0.on_changedtick =
-            Object::from_luaref(on_changedtick.into_luaref());
+            types::Object::from_luaref(on_changedtick.into_luaref());
         self
     }
 
@@ -135,7 +139,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnDetachArgs, ShouldDetach>,
     {
-        self.0.on_detach = Object::from_luaref(on_detach.into_luaref());
+        self.0.on_detach = types::Object::from_luaref(on_detach.into_luaref());
         self
     }
 
@@ -145,7 +149,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnLinesArgs, ShouldDetach>,
     {
-        self.0.on_lines = Object::from_luaref(fun.into_luaref());
+        self.0.on_lines = types::Object::from_luaref(fun.into_luaref());
         self
     }
 
@@ -156,7 +160,7 @@ impl BufAttachOptsBuilder {
     where
         F: ToFunction<OnReloadArgs, ShouldDetach>,
     {
-        self.0.on_reload = Object::from_luaref(on_reload.into_luaref());
+        self.0.on_reload = types::Object::from_luaref(on_reload.into_luaref());
         self
     }
 
@@ -184,10 +188,10 @@ impl BufAttachOptsBuilder {
     }
 }
 
-impl From<&BufAttachOpts> for Dictionary {
+#[cfg(not(feature = "neovim-nightly"))]
+impl From<&BufAttachOpts> for types::Dictionary {
     #[inline]
     fn from(opts: &BufAttachOpts) -> Self {
-        // TODO: don't clone by making non-owning version of Dictionary
         Self::from_iter([
             ("on_bytes", opts.on_bytes.clone()),
             ("on_changedtick", opts.on_changedtick.clone()),
@@ -198,4 +202,67 @@ impl From<&BufAttachOpts> for Dictionary {
             ("utf_sizes", opts.utf_sizes.clone()),
         ])
     }
+}
+
+/// Options passed to [`Buffer::attach`](crate::Buffer::attach).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct BufAttachOpts {
+    #[builder(mask)]
+    mask: u64,
+
+    /// Callback invoked on change. It receives more granular information about
+    /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
+    #[builder(
+        generics = "F: ToFunction<OnBytesArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_bytes: types::LuaRef,
+
+    /// Callback invoked on changedtick increment without text change.
+    #[builder(
+        generics = "F: ToFunction<OnChangedtickArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_changedtick: types::LuaRef,
+
+    /// Callback invoked on detach.
+    #[builder(
+        generics = "F: ToFunction<OnDetachArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_detach: types::LuaRef,
+
+    /// Callback invoked on change.
+    #[builder(
+        generics = "F: ToFunction<OnLinesArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_lines: types::LuaRef,
+
+    /// Callback invoked on reload. The entire buffer content should be
+    /// considered changed.
+    #[builder(
+        generics = "F: ToFunction<OnReloadArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_reload: types::LuaRef,
+
+    /// Whether to also attach to command preview (i.e.
+    /// [`inccommand`](https://neovim.io/doc/user/options.html#'inccommand'))
+    /// events.
+    #[builder(argtype = "bool")]
+    preview: types::Boolean,
+
+    /// Whether to include the UTF-32 and UTF-16 sizes of the replaced region
+    /// as the last arguments of the
+    /// [`on_lines`](BufAttachOptsBuilder::on_lines) callback.
+    #[builder(argtype = "bool")]
+    utf_sizes: types::Boolean,
 }

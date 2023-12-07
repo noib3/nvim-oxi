@@ -155,7 +155,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1987
     pub(crate) fn nvim_get_mark(
         name: NonOwning<String>,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const GetMarkOpts,
         err: *mut Error,
     ) -> Array;
 
@@ -256,7 +258,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L952
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const OpenTermOpts,
         err: *mut Error,
     ) -> Integer;
 
@@ -293,7 +297,10 @@ extern "C" {
         item: Integer,
         insert: bool,
         finish: bool,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")]
+        opts: *const SelectPopupMenuItemOpts,
         err: *mut Error,
     );
 

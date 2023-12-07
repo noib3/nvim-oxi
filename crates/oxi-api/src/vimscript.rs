@@ -1,5 +1,6 @@
 use oxi_types::{self as nvim, conversion::FromObject, Array, Object};
 
+use super::opts::*;
 use crate::choose;
 use crate::ffi::vimscript::*;
 use crate::types::*;
@@ -62,10 +63,7 @@ where
 /// `CmdInfos` object instead of a string.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_cmd()
-pub fn cmd(
-    infos: &CmdInfos,
-    opts: &super::opts::CmdOpts,
-) -> Result<Option<String>> {
+pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
     let mut err = nvim::Error::new();
     let output =
         unsafe { nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), opts, &mut err) };
@@ -123,15 +121,20 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 /// Parses the command line.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
-pub fn parse_cmd(
-    src: &str,
-    opts: &super::opts::ParseCmdOpts,
-) -> Result<CmdInfos> {
+pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
     let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let dict = unsafe {
-        nvim_parse_cmd(src.non_owning(), opts.non_owning(), &mut err)
+        nvim_parse_cmd(
+            src.non_owning(),
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            opts.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            opts,
+            &mut err,
+        )
     };
     choose!(err, Ok(CmdInfos::from_object(dict.into())?))
 }

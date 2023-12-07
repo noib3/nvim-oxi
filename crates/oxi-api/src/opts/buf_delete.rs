@@ -1,12 +1,14 @@
-use oxi_types::{Dictionary, Object};
+use oxi_types as types;
 
 /// Options passed to [`Buffer::delete()`](crate::Buffer::delete).
 #[derive(Clone, Debug, Default)]
+#[cfg(not(feature = "neovim-nightly"))]
 pub struct BufDeleteOpts {
-    force: Object,
-    unload: Object,
+    force: types::Object,
+    unload: types::Object,
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
 impl BufDeleteOpts {
     #[inline(always)]
     pub fn builder() -> BufDeleteOptsBuilder {
@@ -15,8 +17,10 @@ impl BufDeleteOpts {
 }
 
 #[derive(Clone, Default)]
+#[cfg(not(feature = "neovim-nightly"))]
 pub struct BufDeleteOptsBuilder(BufDeleteOpts);
 
+#[cfg(not(feature = "neovim-nightly"))]
 impl BufDeleteOptsBuilder {
     /// Force deletion ignoring unsaved changes.
     #[inline]
@@ -38,11 +42,29 @@ impl BufDeleteOptsBuilder {
     }
 }
 
-impl From<&BufDeleteOpts> for Dictionary {
+#[cfg(not(feature = "neovim-nightly"))]
+impl From<&BufDeleteOpts> for types::Dictionary {
     fn from(opts: &BufDeleteOpts) -> Self {
         Self::from_iter([
             ("force", opts.force.clone()),
             ("unload", opts.unload.clone()),
         ])
     }
+}
+
+/// Options passed to [`Buffer::attach`](crate::Buffer::attach).
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct BufDeleteOpts {
+    #[builder(mask)]
+    mask: u64,
+
+    /// Force deletion ignoring unsaved changes.
+    #[builder(argtype = "bool")]
+    force: types::Boolean,
+
+    /// If `true` the buffer will only be unloaded, not deleted.
+    #[builder(argtype = "bool")]
+    unload: types::Boolean,
 }

@@ -162,8 +162,9 @@ fn set_get_del_keymap() {
 #[oxi::test]
 fn set_get_del_mark() {
     let mut buf = Buffer::current();
+    let opts = SetMarkOpts::default();
 
-    let res = buf.set_mark('A', 1, 0);
+    let res = buf.set_mark('A', 1, 0, &opts);
     assert_eq!(Ok(()), res);
 
     assert_eq!(

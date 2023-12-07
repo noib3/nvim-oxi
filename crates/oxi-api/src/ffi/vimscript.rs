@@ -54,7 +54,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L98
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
         error: *mut Error,
     ) -> Dictionary;
 

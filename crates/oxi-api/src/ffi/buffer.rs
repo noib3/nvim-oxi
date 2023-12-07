@@ -18,7 +18,8 @@ extern "C" {
         channel_id: u64,
         buf: BufHandle,
         send_buffer: bool,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const BufAttachOpts,
         err: *mut Error,
     ) -> bool;
 
@@ -72,7 +73,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L1060
     pub(crate) fn nvim_buf_delete(
         buf: BufHandle,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const BufDeleteOpts,
         err: *mut Error,
     );
 
@@ -145,7 +147,8 @@ extern "C" {
         start_col: Integer,
         end_row: Integer,
         end_col: Integer,
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const GetTextOpts,
         #[cfg(not(feature = "neovim-0-8"))]
         lstate: *mut oxi_luajit::ffi::lua_State,
         err: *mut Error,
@@ -198,7 +201,9 @@ extern "C" {
         name: NonOwning<String>,
         line: Integer,
         col: Integer,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")] opts: *const SetMarkOpts,
         err: *mut Error,
     ) -> bool;
 
