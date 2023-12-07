@@ -852,6 +852,7 @@ pub fn select_popupmenu_item(
     finish: bool,
     opts: &SelectPopupMenuItemOpts,
 ) -> Result<()> {
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
@@ -859,7 +860,10 @@ pub fn select_popupmenu_item(
             item.try_into()?,
             insert,
             finish,
+            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
             opts.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            opts,
             &mut err,
         )
     };

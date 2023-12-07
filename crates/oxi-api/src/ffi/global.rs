@@ -295,7 +295,10 @@ extern "C" {
         item: Integer,
         insert: bool,
         finish: bool,
+        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-nightly")]
+        opts: *const SelectPopupMenuItemOpts,
         err: *mut Error,
     );
 
