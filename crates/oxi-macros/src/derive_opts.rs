@@ -195,7 +195,7 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
 impl<'a> OptsFields<'a> {
     #[inline]
     fn setters(&self) -> impl Iterator<Item = TokenStream> + '_ {
-        self.fields.iter().map(|field| field.setter(self.mask_name))
+        self.fields.iter().filter_map(|field| field.setter(self.mask_name))
     }
 }
 
@@ -266,7 +266,7 @@ impl<'a> OptsField<'a> {
 
     /// TODO: docs
     #[inline]
-    fn setter(&self, mask_name: Option<&Ident>) -> TokenStream {
+    fn setter(&self, mask_name: Option<&Ident>) -> Option<TokenStream> {
         let field_name = self.name;
 
         let method_name = self
@@ -354,6 +354,8 @@ impl<'a> OptsField<'a> {
                 },
 
                 BuilderAttribute::Mask => unreachable!(),
+
+                BuilderAttribute::Skip => return None,
             }
         }
 
@@ -368,7 +370,7 @@ impl<'a> OptsField<'a> {
             }
         });
 
-        quote! {
+        let tokens = quote! {
             #field_doc_comment
             #[inline]
             pub fn #method_name #generics(
@@ -379,7 +381,9 @@ impl<'a> OptsField<'a> {
                 #mask_setter
                 self
             }
-        }
+        };
+
+        Some(tokens)
     }
 
     /// Sets the index of the field in the mask. A value of `0` means that the
@@ -484,6 +488,12 @@ enum BuilderAttribute {
     /// function `fun` with a mutable reference to the field and the argument
     /// of the setter.
     Setter(Ident),
+
+    /// The `builder(skip)` attribute.
+    ///
+    /// This attribute is optional and it can be used to avoid creating the
+    /// setter method for a given field.
+    Skip,
 }
 
 impl BuilderAttribute {
@@ -512,6 +522,10 @@ impl BuilderAttribute {
             // Consume the `,` (if any).
             let _ = tokens.next();
             return Ok(Some(Self::Mask));
+        } else if ident == "skip" {
+            // Consume the `,` (if any).
+            let _ = tokens.next();
+            return Ok(Some(Self::Skip));
         } else if ident == "argtype" {
             is_argtype = true;
         } else if ident == "generics" {
@@ -596,6 +610,7 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
     let mut has_mask = false;
     let mut has_method = false;
     let mut has_setter = false;
+    let mut has_skip = false;
 
     for attr in attrs {
         let is_duplicate;
@@ -643,6 +658,11 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
             BuilderAttribute::Setter(_) => {
                 is_duplicate = has_setter;
                 has_setter = true;
+            },
+
+            BuilderAttribute::Skip => {
+                is_duplicate = has_skip;
+                has_skip = true;
             },
         }
 
