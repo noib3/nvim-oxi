@@ -1,26 +1,33 @@
-use oxi_types::{self as nvim, Array};
+use oxi_types as types;
 
 use crate::types::ContextType;
 
 /// Options passed to [`get_context()`](crate::get_context).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
+#[repr(C)]
+pub struct GetContextOpts {
+    #[builder(mask)]
+    mask: u64,
+
+    /// List of [`ContextType`]s to gather, or empty for all.
+    #[builder(
+        generics = "T: IntoIterator<Item = ContextType>",
+        argtype = "T",
+        inline = "{0}.into_iter().map(types::String::from).collect()"
+    )]
+    types: types::Array,
+}
+
+/// Options passed to [`get_context()`](crate::get_context).
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetContextOpts {
     types: oxi_types::Object,
 }
 
-/// Options passed to [`get_context()`](crate::get_context).
-#[cfg(feature = "neovim-nightly")]
-#[derive(Clone, Debug, Default)]
-#[repr(C)]
-pub struct GetContextOpts {
-    mask: u64,
-
-    /// 1st in the mask.
-    types: Array,
-}
-
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetContextOpts {
     /// Creates a new [`GetContextOptsBuilder`].
     #[inline]
@@ -29,9 +36,11 @@ impl GetContextOpts {
     }
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Default)]
 pub struct GetContextOptsBuilder(GetContextOpts);
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetContextOptsBuilder {
     /// List of [`ContextType`]s to gather, or empty for all.
     #[inline]
@@ -39,19 +48,11 @@ impl GetContextOptsBuilder {
     where
         T: IntoIterator<Item = ContextType>,
     {
-        let types =
-            types.into_iter().map(nvim::String::from).collect::<Array>();
-
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.types = types.into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.types = types;
-            self.0.mask |= 0b11;
-        }
-
+        self.0.types = types
+            .into_iter()
+            .map(types::String::from)
+            .collect::<types::Array>()
+            .into();
         self
     }
 
