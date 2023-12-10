@@ -1,6 +1,4 @@
-use oxi_types::{self as nvim, Array, Function, Object};
-#[cfg(feature = "neovim-nightly")]
-use oxi_types::{Boolean, BufHandle, String as NvimString};
+use oxi_types as types;
 
 use crate::types::AutocmdCallbackArgs;
 use crate::Buffer;
@@ -9,53 +7,87 @@ use crate::StringOrInt;
 pub type ShouldDeleteAutocmd = bool;
 
 /// Options passed to [`create_autocmd()`](crate::create_autocmd).
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Clone, Debug, Default)]
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
 #[repr(C)]
 pub struct CreateAutocmdOpts {
-    desc: Object,
-    once: Object,
-    group: Object,
-    buffer: Object,
-    nested: Object,
-    command: Object,
-    pattern: Object,
-    callback: Object,
+    #[builder(mask)]
+    mask: u64,
+
+    /// A specific `Buffer` for buffer-local autocommands.
+    #[builder(argtype = "Buffer", inline = "{0}.0")]
+    buffer: types::BufHandle,
+
+    /// Callback to execute when the autocommand is triggered. Cannot be used
+    /// together with `command`.
+    #[builder(
+        generics = r#"F: Into<types::Function<AutocmdCallbackArgs, ShouldDeleteAutocmd>>"#,
+        argtype = "F",
+        inline = "{0}.into().into()"
+    )]
+    callback: types::Object,
+
+    /// Vim command to execute when the autocommand is triggered. Cannot be
+    /// used together with `callback`.
+    // TODO: fix builder(Into).
+    #[builder(
+        generics = "S: Into<types::String>",
+        argtype = "S",
+        inline = "{0}.into()"
+    )]
+    command: types::String,
+
+    /// Description of the autocommand.
+    // TODO: fix builder(Into).
+    #[builder(
+        generics = "S: Into<types::String>",
+        argtype = "S",
+        inline = "{0}.into()"
+    )]
+    desc: types::String,
+
+    /// The autocommand group name or id to match against.
+    #[builder(
+        generics = "G: StringOrInt",
+        argtype = "G",
+        inline = "{0}.to_object()"
+    )]
+    group: types::Object,
+
+    /// Run nested autocommands.
+    #[builder(argtype = "bool")]
+    nested: types::Boolean,
+
+    /// Only run the autocommand once.
+    #[builder(argtype = "bool")]
+    once: types::Boolean,
+
+    /// Patterns to match against.
+    #[builder(
+        generics = "'a, I: IntoIterator<Item = &'a str>",
+        method = "patterns",
+        argtype = "I",
+        inline = "types::Array::from_iter({0}).into()"
+    )]
+    pattern: types::Object,
 }
 
 /// Options passed to [`create_autocmd()`](crate::create_autocmd).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateAutocmdOpts {
-    /// <callback><pattern><command><nested><buffer><group><once><desc>1
-    mask: u64,
-
-    /// 4th in the mask.
-    buffer: BufHandle,
-
-    /// 8th in the mask.
-    callback: Object,
-
-    /// 6th in the mask.
-    command: NvimString,
-
-    /// 1st in the mask.
-    desc: NvimString,
-
-    /// 3rd in the mask.
-    group: Object,
-
-    /// 5th in the mask.
-    nested: Boolean,
-
-    /// 2nd in the mask.
-    once: Boolean,
-
-    /// 7th in the mask.
-    pattern: Object,
+    desc: types::Object,
+    once: types::Object,
+    group: types::Object,
+    buffer: types::Object,
+    nested: types::Object,
+    command: types::Object,
+    pattern: types::Object,
+    callback: types::Object,
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl CreateAutocmdOpts {
     #[inline(always)]
     pub fn builder() -> CreateAutocmdOptsBuilder {
@@ -63,22 +95,16 @@ impl CreateAutocmdOpts {
     }
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Default)]
 pub struct CreateAutocmdOptsBuilder(CreateAutocmdOpts);
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl CreateAutocmdOptsBuilder {
     /// A specific `Buffer` for buffer-local autocommands.
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.buffer = buffer.into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.buffer = buffer.0;
-            self.0.mask |= 0b10001;
-        }
+        self.0.buffer = buffer.into();
         self
     }
 
@@ -87,13 +113,9 @@ impl CreateAutocmdOptsBuilder {
     #[inline]
     pub fn callback<F>(&mut self, callback: F) -> &mut Self
     where
-        F: Into<Function<AutocmdCallbackArgs, ShouldDeleteAutocmd>>,
+        F: Into<types::Function<AutocmdCallbackArgs, ShouldDeleteAutocmd>>,
     {
         self.0.callback = callback.into().into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b100000001;
-        }
         self
     }
 
@@ -102,17 +124,9 @@ impl CreateAutocmdOptsBuilder {
     #[inline]
     pub fn command<S>(&mut self, command: S) -> &mut Self
     where
-        S: Into<nvim::String>,
+        S: Into<types::String>,
     {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.command = command.into().into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.command = command.into();
-            self.0.mask |= 0b1000001;
-        }
+        self.0.command = command.into().into();
         self
     }
 
@@ -120,17 +134,9 @@ impl CreateAutocmdOptsBuilder {
     #[inline]
     pub fn desc<S>(&mut self, desc: S) -> &mut Self
     where
-        S: Into<nvim::String>,
+        S: Into<types::String>,
     {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.desc = desc.into().into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.desc = desc.into();
-            self.0.mask |= 0b11;
-        }
+        self.0.desc = desc.into().into();
         self
     }
 
@@ -141,40 +147,20 @@ impl CreateAutocmdOptsBuilder {
         Grp: StringOrInt,
     {
         self.0.group = group.to_object();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b1001;
-        }
         self
     }
 
     /// Run nested autocommands.
     #[inline]
     pub fn nested(&mut self, nested: bool) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.nested = nested.into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.nested = nested;
-            self.0.mask |= 0b100001;
-        }
+        self.0.nested = nested.into();
         self
     }
 
     /// Only run the autocommand once.
     #[inline]
     pub fn once(&mut self, once: bool) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            self.0.once = once.into();
-        }
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.once = once;
-            self.0.mask |= 0b101;
-        }
+        self.0.once = once.into();
         self
     }
 
@@ -184,11 +170,7 @@ impl CreateAutocmdOptsBuilder {
     where
         I: IntoIterator<Item = &'a str>,
     {
-        self.0.pattern = Array::from_iter(patterns).into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b10000001;
-        }
+        self.0.pattern = types::Array::from_iter(patterns).into();
         self
     }
 
