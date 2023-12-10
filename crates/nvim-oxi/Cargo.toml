@@ -30,11 +30,11 @@ oxi-macros = { workspace = true }
 oxi-types = { workspace = true }
 
 miniserde = { version = "0.1", optional = true }
-mlua = { version = "0.8", features = ["luajit"], optional = true }
+mlua = { version = "0.9", features = ["luajit"], optional = true }
 thiserror = "1.0"
 
 [dev-dependencies]
-mlua = { version = "0.8", features = ["luajit", "module", "vendored"] }
+mlua = { version = "0.9", features = ["luajit", "module", "vendored"] }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
 
