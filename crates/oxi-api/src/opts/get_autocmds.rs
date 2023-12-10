@@ -4,36 +4,63 @@ use crate::trait_utils::StringOrInt;
 use crate::Buffer;
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
-#[cfg(not(feature = "neovim-nightly"))]
-#[derive(Clone, Debug, Default)]
+#[cfg(feature = "neovim-nightly")]
+#[derive(Clone, Debug, Default, oxi_macros::OptsBuilder)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
-    events: Object,
+    #[builder(mask)]
+    mask: u64,
+
+    /// Get all the autocommands triggered by one or more of the specified
+    /// events.
+    #[builder(
+        generics = "'a, E: IntoIterator<Item = &'a str>",
+        method = "events",
+        argtype = "E",
+        inline = "Array::from_iter({0}).into()"
+    )]
+    event: Object,
+
+    /// Only get the autocommands belonging to a specific augroup. The
+    /// augroup can be specified by both id and name.
+    #[builder(
+        generics = "G: StringOrInt",
+        method = "group",
+        argtype = "G",
+        inline = "{0}.to_object()"
+    )]
     group: Object,
+
+    /// Only get the autocommands that match specific patterns. For example, if
+    /// you have `"*.py"` as a pattern for a particular autocommand, you must
+    /// pass that exact pattern to clear it. Cannot be used together with
+    /// `buffer`.
+    #[builder(
+        generics = "'a, P: IntoIterator<Item = &'a str>",
+        method = "patterns",
+        argtype = "P",
+        inline = "Array::from_iter({0}).into()"
+    )]
+    pattern: Object,
+
+    /// Get the autocommands local to a specific `Buffer`. Cannot be used
+    /// together with `patterns`.
+    #[builder(argtype = "Buffer", inline = "{0}.into()")]
     buffer: Object,
-    patterns: Object,
 }
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
-    mask: u64,
-
-    /// 1st in the mask.
     events: Object,
-
-    /// 2nd in the mask.
     group: Object,
-
-    /// 4th in the mask.
-    patterns: Object,
-
-    /// 3rd in the mask.
     buffer: Object,
+    patterns: Object,
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetAutocmdsOpts {
     #[inline(always)]
     pub fn builder() -> GetAutocmdsOptsBuilder {
@@ -41,19 +68,17 @@ impl GetAutocmdsOpts {
     }
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 #[derive(Clone, Default)]
 pub struct GetAutocmdsOptsBuilder(GetAutocmdsOpts);
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
 impl GetAutocmdsOptsBuilder {
     /// Get the autocommands local to a specific `Buffer`. Cannot be used
     /// together with `patterns`.
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
         self.0.buffer = buffer.into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b1001;
-        }
         self
     }
 
@@ -65,25 +90,17 @@ impl GetAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.events = Array::from_iter(events).into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b11;
-        }
         self
     }
 
     /// Only get the autocommands belonging to a specific augroup. The
     /// augroup can be specified by both id and name.
     #[inline]
-    pub fn group<Group>(&mut self, group: impl Into<Object>) -> &mut Self
+    pub fn group<Group>(&mut self, group: Group) -> &mut Self
     where
         Group: StringOrInt,
     {
-        self.0.group = group.into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b101;
-        }
+        self.0.group = group.to_object();
         self
     }
 
@@ -97,10 +114,6 @@ impl GetAutocmdsOptsBuilder {
         I: IntoIterator<Item = &'a str>,
     {
         self.0.patterns = Array::from_iter(patterns).into();
-        #[cfg(feature = "neovim-nightly")]
-        {
-            self.0.mask |= 0b10001;
-        }
         self
     }
 
