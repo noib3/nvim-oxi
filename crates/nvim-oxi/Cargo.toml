@@ -24,7 +24,7 @@ test = ["oxi-macros/test", "miniserde"]
 
 [dependencies]
 oxi-api = { workspace = true }
-oxi-libuv = { version = "0.3.0", path = "../oxi-libuv", optional = true }
+oxi-libuv = { workspace = true, optional = true }
 oxi-luajit = { workspace = true }
 oxi-macros = { workspace = true }
 oxi-types = { workspace = true }
