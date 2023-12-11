@@ -76,11 +76,12 @@ fn foo() -> oxi::Result<i32> {
 }
 ```
 
-macOS users will also need to set a few linker arguments to tell the Rust
+macOS and windows users will also need to set a few linker arguments to tell the Rust
 linker that the FFI functions `nvim-oxi` links to will only be available at
 runtime. A possible way to do this is to create a `.cargo/config` file with the
 following content:
 
+#### MacOS
 ```toml
 [target.x86_64-apple-darwin]
 rustflags = [
@@ -92,6 +93,19 @@ rustflags = [
 rustflags = [
   "-C", "link-arg=-undefined",
   "-C", "link-arg=dynamic_lookup",
+]
+```
+
+#### Windows
+```toml
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+  "-C", "link-arg=/FORCE:UNRESOLVED",
+]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = [
+  "-C", "link-arg=/FORCE:UNRESOLVED",
 ]
 ```
 
