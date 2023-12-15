@@ -30,7 +30,14 @@ impl Default for String {
 impl core::fmt::Debug for String {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(self.to_string_lossy().as_ref())
+        self.to_string_lossy().as_ref().fmt(f)
+    }
+}
+
+impl core::fmt::Display for String {
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.to_string_lossy().as_ref().fmt(f)
     }
 }
 

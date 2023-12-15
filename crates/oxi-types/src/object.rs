@@ -109,7 +109,7 @@ impl core::fmt::Debug for Object {
             },
         };
 
-        f.debug_tuple("Object").field(field).finish()
+        field.fmt(f)
     }
 }
 

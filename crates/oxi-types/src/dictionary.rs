@@ -23,7 +23,21 @@ pub(super) struct KeyValuePair {
 impl core::fmt::Debug for Dictionary {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        f.debug_map().entries(self.iter()).finish()
+        write!(f, "{{ ")?;
+
+        let num_elements = self.len();
+
+        for (idx, (key, value)) in self.iter().enumerate() {
+            write!(f, "{}: {:?}", key, value)?;
+
+            if idx + 1 < num_elements {
+                write!(f, ", ")?;
+            }
+        }
+
+        write!(f, " }}")?;
+
+        Ok(())
     }
 }
 
