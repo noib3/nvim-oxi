@@ -5,7 +5,7 @@ use oxi_types::{
 };
 use serde::Deserialize;
 
-use super::{ExtmarkHlMode, ExtmarkVirtTextPosition, OneOrMore};
+use super::{ExtmarkHlMode, ExtmarkVirtTextChunk, ExtmarkVirtTextPosition};
 
 /// Extmark infos returned by `Buffer::get_extmark_by_id`.
 #[non_exhaustive]
@@ -47,7 +47,7 @@ pub struct ExtmarkInfos {
     pub virt_lines_leftcol: Option<bool>,
 
     #[serde(default)]
-    pub virt_text: Option<Vec<(String, OneOrMore<String>)>>,
+    pub virt_text: Vec<ExtmarkVirtTextChunk>,
 
     #[serde(default)]
     pub virt_text_hide: Option<bool>,

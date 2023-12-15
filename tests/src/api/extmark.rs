@@ -63,16 +63,24 @@ fn get_extmarks() {
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
     #[cfg(feature = "neovim-nightly")]
-    let virt_text = vec![(
-        "foo".to_owned(),
-        vec!["Foo".to_owned(), "Bar".to_owned()].into(),
-    )];
+    let virt_text = vec![ExtmarkVirtTextChunk {
+        text: "foo".to_owned(),
+        hl_groups: vec!["Foo".into(), "Bar".into()],
+    }];
 
     #[cfg(not(feature = "neovim-nightly"))]
-    let virt_text =
-        vec![("".into(), "Foo".into()), ("foo".into(), "Bar".into())];
+    let virt_text = vec![
+        ExtmarkVirtTextChunk {
+            text: "".to_owned(),
+            hl_groups: vec!["Foo".into()],
+        },
+        ExtmarkVirtTextChunk {
+            text: "foo".to_owned(),
+            hl_groups: vec!["Bar".into()],
+        },
+    ];
 
-    assert_eq!(Some(virt_text), infos.virt_text);
+    assert_eq!(infos.virt_text, virt_text);
 
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
@@ -167,18 +175,33 @@ fn set_get_del_extmark() {
 
     #[cfg(feature = "neovim-nightly")]
     let virt_text = vec![
-        ("foo".to_owned(), "Foo".into()),
-        ("bar".to_owned(), vec!["Bar".to_owned(), "Baz".to_owned()].into()),
+        ExtmarkVirtTextChunk {
+            text: "foo".to_owned(),
+            hl_groups: vec!["Foo".into()],
+        },
+        ExtmarkVirtTextChunk {
+            text: "bar".to_owned(),
+            hl_groups: vec!["Bar".into(), "Baz".into()],
+        },
     ];
 
     #[cfg(not(feature = "neovim-nightly"))]
     let virt_text = vec![
-        ("foo".into(), "Foo".into()),
-        ("".into(), "Bar".into()),
-        ("bar".into(), "Baz".into()),
+        ExtmarkVirtTextChunk {
+            text: "foo".to_owned(),
+            hl_groups: vec!["Foo".into()],
+        },
+        ExtmarkVirtTextChunk {
+            text: "".to_owned(),
+            hl_groups: vec!["Bar".into()],
+        },
+        ExtmarkVirtTextChunk {
+            text: "bar".to_owned(),
+            hl_groups: vec!["Baz".into()],
+        },
     ];
 
-    assert_eq!(Some(virt_text), infos.virt_text);
+    assert_eq!(infos.virt_text, virt_text);
 
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 
