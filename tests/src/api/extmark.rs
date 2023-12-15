@@ -208,3 +208,28 @@ fn set_get_del_extmark() {
     let res = buf.del_extmark(ns_id, extmark_id);
     assert_eq!(Ok(()), res);
 }
+
+#[cfg(feature = "neovim-nightly")]
+#[oxi::test]
+fn virt_text_pos_inline() {
+    let mut buf = Buffer::current();
+
+    let ns_id = api::create_namespace("test");
+
+    let opts = SetExtmarkOpts::builder()
+        .virt_text([("", "")])
+        .virt_text_pos(ExtmarkVirtTextPosition::Inline)
+        .build();
+
+    let extmark_id = buf.set_extmark(ns_id, 0, 0, &opts).unwrap();
+
+    let opts = GetExtmarkByIdOpts::builder().details(true).build();
+
+    let Ok((_, _, Some(infos))) =
+        buf.get_extmark_by_id(ns_id, extmark_id, &opts)
+    else {
+        unreachable!()
+    };
+
+    assert_eq!(infos.virt_text_pos, Some(ExtmarkVirtTextPosition::Inline));
+}

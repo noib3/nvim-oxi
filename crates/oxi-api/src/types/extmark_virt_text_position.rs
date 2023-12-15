@@ -15,6 +15,12 @@ pub enum ExtmarkVirtTextPosition {
 
     /// Display right aligned in the window.
     RightAlign,
+
+    /// Display at the specified column, and shift the buffer text to the right
+    /// as needed.
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    Inline,
 }
 
 impl From<ExtmarkVirtTextPosition> for nvim::String {
@@ -25,6 +31,8 @@ impl From<ExtmarkVirtTextPosition> for nvim::String {
             Eol => "eol",
             Overlay => "overlay",
             RightAlign => "right_align",
+            #[cfg(feature = "neovim-nightly")]
+            Inline => "inline",
         })
     }
 }
