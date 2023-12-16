@@ -8,5 +8,5 @@ documentation.workspace = true
 license.workspace = true
 
 [dependencies]
-once_cell = "1.15"
-thiserror = "1.0"
+once_cell = { workspace = true }
+thiserror = { workspace = true }

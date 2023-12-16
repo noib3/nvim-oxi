@@ -19,4 +19,4 @@ oxi-types = { workspace = true }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
-thiserror = "1.0"
+thiserror = { workspace = true }

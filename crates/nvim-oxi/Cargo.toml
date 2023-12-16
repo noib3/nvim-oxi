@@ -10,7 +10,7 @@ keywords.workspace = true
 readme.workspace = true
 
 [package.metadata.docs.rs]
-features = ["neovim-0-9", "libuv", "mlua", "test"]
+features = ["neovim-nightly", "libuv", "mlua", "dep:mlua/vendored", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
@@ -31,7 +31,7 @@ oxi-types = { workspace = true }
 
 miniserde = { version = "0.1", optional = true }
 mlua = { version = "0.9", features = ["luajit"], optional = true }
-thiserror = "1.0"
+thiserror = { workspace = true }
 
 [dev-dependencies]
 mlua = { version = "0.9", features = ["luajit", "module"] }
