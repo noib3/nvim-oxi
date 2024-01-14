@@ -4,7 +4,7 @@ use oxi_luajit::ffi::lua_State;
 use crate::libuv_sys2::uv_loop_t;
 
 thread_local! {
-    static LOOP: OnceCell<*mut uv_loop_t> = OnceCell::new();
+    static LOOP: OnceCell<*mut uv_loop_t> = const { OnceCell::new() };
 }
 
 extern "C" {

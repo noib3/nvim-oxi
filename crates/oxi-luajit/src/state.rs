@@ -3,7 +3,7 @@ use once_cell::unsync::OnceCell;
 use crate::ffi::lua_State;
 
 thread_local! {
-    static LUA: OnceCell<*mut lua_State> = OnceCell::new();
+    static LUA: OnceCell<*mut lua_State> = const { OnceCell::new() };
 }
 
 /// Initializes the Lua state.
