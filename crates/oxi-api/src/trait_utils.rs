@@ -1,6 +1,8 @@
 use std::iter::FusedIterator;
 
 use oxi_luajit::{Poppable, Pushable};
+#[cfg(feature = "neovim-nightly")]
+use oxi_types::{self as types, HlGroupId, Integer};
 use oxi_types::{Array, Function, LuaRef, Object};
 
 /// A super trait of most common traits implemented on iterators.
@@ -119,4 +121,54 @@ impl<A, R> StringOrFunction<A, R> for Function<A, R> {
     fn to_object(self) -> Object {
         self.into()
     }
+}
+
+/// A trait implemented by types that can be converted to a highlight group ID.
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub trait HlGroup: sealed::Sealed {
+    type Error;
+
+    fn to_hl_id(&self) -> Result<HlGroupId, Self::Error>;
+}
+
+#[cfg(feature = "neovim-nightly")]
+impl HlGroup for Integer {
+    type Error = core::convert::Infallible;
+
+    #[inline(always)]
+    fn to_hl_id(&self) -> Result<HlGroupId, Self::Error> {
+        Ok(*self)
+    }
+}
+
+#[cfg(feature = "neovim-nightly")]
+impl HlGroup for &str {
+    type Error = crate::Error;
+
+    #[inline]
+    fn to_hl_id(&self) -> Result<HlGroupId, Self::Error> {
+        let obj = oxi_types::String::from(*self).into();
+        let mut err = types::Error::default();
+        let hl_id = unsafe {
+            crate::ffi::helpers::object_to_hl_id(
+                obj,
+                b"hl_group\0".as_ptr() as *const _,
+                &mut err,
+            )
+        };
+        if err.is_err() {
+            Err(err.into())
+        } else {
+            Ok(hl_id)
+        }
+    }
+}
+
+mod sealed {
+    pub trait Sealed {}
+
+    impl Sealed for oxi_types::Integer {}
+
+    impl Sealed for &str {}
 }
