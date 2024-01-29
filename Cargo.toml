@@ -8,7 +8,7 @@ members = [
 exclude = ["tests"]
 
 [workspace.package]
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 authors = ["Riccardo Mazzarini <me@noib3.dev>"]
 rust-version = "1.62"
@@ -21,9 +21,9 @@ keywords = ["bindings", "neovim", "nvim"]
 
 [workspace.dependencies]
 once_cell = "1.19"
-oxi-api = { version = "0.4.1", path = "./crates/oxi-api" }
-oxi-libuv = { version = "0.4.1", path = "./crates/oxi-libuv" }
-oxi-luajit = { version = "0.4.1", path = "./crates/oxi-luajit" }
-oxi-macros = { version = "0.4.1", path = "./crates/oxi-macros", features = ["module"] }
-oxi-types = { version = "0.4.1", path = "./crates/oxi-types", features = ["serde"] }
+oxi-api = { version = "0.4.2", path = "./crates/oxi-api" }
+oxi-libuv = { version = "0.4.2", path = "./crates/oxi-libuv" }
+oxi-luajit = { version = "0.4.2", path = "./crates/oxi-luajit" }
+oxi-macros = { version = "0.4.2", path = "./crates/oxi-macros", features = ["module"] }
+oxi-types = { version = "0.4.2", path = "./crates/oxi-types", features = ["serde"] }
 thiserror = "1.0"

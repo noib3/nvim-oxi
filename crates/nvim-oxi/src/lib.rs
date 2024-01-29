@@ -5,7 +5,7 @@
 //!
 //! [Neovim]: https://neovim.io
 
-#![doc(html_root_url = "https://docs.rs/nvim_oxi/0.4.1")]
+#![doc(html_root_url = "https://docs.rs/nvim_oxi/latest")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(future_incompatible)]
 #![deny(nonstandard_style)]

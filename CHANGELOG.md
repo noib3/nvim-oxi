@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.2] - Jan 29 2024
+
 ## [0.4.1] - Dec 16 2023
 
 ### Added
@@ -18,6 +20,7 @@
 
 ## [0.4.0] - Dec 11 2023
 
-[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/noib3/nvim-oxi/tree/v0.4.2
 [0.4.1]: https://github.com/noib3/nvim-oxi/tree/v0.4.1
 [0.4.0]: https://github.com/noib3/nvim-oxi/tree/v0.4.0

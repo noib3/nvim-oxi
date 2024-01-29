@@ -10,7 +10,7 @@ keywords.workspace = true
 readme.workspace = true
 
 [package.metadata.docs.rs]
-features = ["neovim-nightly", "libuv", "mlua", "dep:mlua/vendored", "test"]
+features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
@@ -21,6 +21,7 @@ neovim-nightly = ["oxi-api/neovim-nightly", "oxi-libuv/use-1-46"]
 libuv = ["oxi-libuv"]
 mlua = ["dep:mlua"]
 test = ["oxi-macros/test", "miniserde"]
+__vendored_luajit = ["mlua/vendored"]
 
 [dependencies]
 oxi-api = { workspace = true }
