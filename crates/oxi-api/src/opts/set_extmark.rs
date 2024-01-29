@@ -490,6 +490,8 @@ pub struct SetExtmarkOpts {
     /// hyperlink to this URL.
     #[builder(argtype = "&str", inline = "types::String::from({0})")]
     url: types::String,
+
+    _subpriority: types::Integer,
 }
 
 #[inline]
