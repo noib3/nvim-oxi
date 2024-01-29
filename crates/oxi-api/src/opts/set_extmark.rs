@@ -463,6 +463,13 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "bool")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     undo_restore: types::Boolean,
+
+    /// A URL to associate with this extmark.
+    ///
+    /// In the TUI, the OSC 8 control sequence is used to generate a clickable
+    /// hyperlink to this URL.
+    #[builder(argtype = "&str", inline = "types::String::from({0})")]
+    url: types::String,
 }
 
 #[inline]
