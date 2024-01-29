@@ -320,8 +320,12 @@ pub struct SetExtmarkOpts {
     end_col: types::Integer,
 
     /// Name of the highlight group used to highlight this mark.
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    hl_group: types::Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    hl_group: types::HlGroupId,
 
     /// Virtual text to link to this mark. Every `(text, highlights)` tuple
     /// represents a text chunk with a specified highlight. The highlights
@@ -352,6 +356,10 @@ pub struct SetExtmarkOpts {
     /// or hidden due to horizontal scroll.
     #[builder(argtype = "bool")]
     virt_text_hide: types::Boolean,
+
+    /// Whether to repeat the virtual text on wrapped lines.
+    #[builder(argtype = "bool")]
+    virt_text_repeat_linebreak: types::Boolean,
 
     /// Whether to continue the highlight for the rest of the screen line for
     /// multiline highlights covering the EOL of a line.
@@ -417,21 +425,37 @@ pub struct SetExtmarkOpts {
     sign_text: types::String,
 
     /// Name of the highlight group used to highlight the sign column text.
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    sign_hl_group: types::Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    sign_hl_group: types::HlGroupId,
 
     /// Name of the highlight group used to highlight the number column.
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    number_hl_group: types::Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    number_hl_group: types::HlGroupId,
 
     /// Name of the highlight group used to highlight the whole line.
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    line_hl_group: types::Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    line_hl_group: types::HlGroupId,
 
     /// Name of the highlight group used to highlight the line when the cursor
     /// is on the same line as the mark and `cursorline` is enabled.
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    cursorline_hl_group: types::Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    cursorline_hl_group: types::HlGroupId,
 
     /// Enable concealing symilar to `:syn-conceal`. If a character is supplied
     /// it is used as `:syn-cchar`.
@@ -459,6 +483,15 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "bool")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     undo_restore: types::Boolean,
+
+    /// A URL to associate with this extmark.
+    ///
+    /// In the TUI, the OSC 8 control sequence is used to generate a clickable
+    /// hyperlink to this URL.
+    #[builder(argtype = "&str", inline = "types::String::from({0})")]
+    url: types::String,
+
+    _subpriority: types::Integer,
 }
 
 #[inline]

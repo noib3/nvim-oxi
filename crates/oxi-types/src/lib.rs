@@ -59,3 +59,7 @@ pub type WinHandle = handle_T;
 // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L86
 #[doc(hidden)]
 pub type TabHandle = handle_T;
+
+// https://github.com/neovim/neovim/blob/4f788f78f8b2d59a76b1a54a40af0c478eb3f929/src/nvim/api/private/defs.h#L127
+#[doc(hidden)]
+pub type HlGroupId = Integer;
