@@ -353,6 +353,10 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "bool")]
     virt_text_hide: types::Boolean,
 
+    /// Whether to repeat the virtual text on wrapped lines.
+    #[builder(argtype = "bool")]
+    virt_text_repeat_linebreak: types::Boolean,
+
     /// Whether to continue the highlight for the rest of the screen line for
     /// multiline highlights covering the EOL of a line.
     #[builder(argtype = "bool")]
