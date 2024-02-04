@@ -73,12 +73,13 @@ pub unsafe fn debug_stack(lstate: *mut lua_State) {
     crate::print!("{stack_pp}");
 }
 
-pub unsafe fn handle_error<E: std::error::Error + ?Sized>(
-    lstate: *mut lua_State,
+pub unsafe fn push_error<E: core::fmt::Display + ?Sized>(
     err: &E,
+    lstate: *mut lua_State,
 ) -> ! {
     let msg = err.to_string();
     ffi::lua_pushlstring(lstate, msg.as_ptr() as *const _, msg.len());
+    drop(msg);
     ffi::lua_error(lstate);
 }
 

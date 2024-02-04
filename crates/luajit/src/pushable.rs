@@ -172,7 +172,7 @@ where
     ) -> Result<c_int, crate::Error> {
         match self {
             Ok(value) => value.push(lstate),
-            Err(err) => utils::handle_error(&err, lstate),
+            Err(err) => utils::push_error(&err, lstate),
         }
     }
 }
