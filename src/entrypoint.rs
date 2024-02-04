@@ -2,7 +2,7 @@
 
 use std::ffi::c_int;
 
-use oxi_luajit::{self as lua, ffi::lua_State, Pushable};
+use luajit::{self as lua, ffi::lua_State, Pushable};
 
 /// The entrypoint of the plugin.
 ///
@@ -20,7 +20,7 @@ where
     lua::init(lua_state);
 
     #[cfg(feature = "libuv")]
-    oxi_libuv::init(lua_state);
+    libuv::init(lua_state);
 
     match body() {
         Ok(api) => api.push(lua_state).unwrap(),

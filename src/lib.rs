@@ -20,7 +20,7 @@ pub mod api {
     //!
     //! [api]: https://neovim.io/doc/user/api.html
     #[doc(inline)]
-    pub use oxi_api::*;
+    pub use api::*;
 }
 
 #[cfg(feature = "libuv")]
@@ -31,7 +31,7 @@ pub mod libuv {
     //! [loop]: https://neovim.io/doc/user/lua.html#vim.loop
     //! [libuv]: https://libuv.org/
     #[doc(inline)]
-    pub use oxi_libuv::*;
+    pub use libuv::*;
 }
 
 pub mod lua {
@@ -39,7 +39,7 @@ pub mod lua {
     //!
     //! [LuaJIT]: https://luajit.org/
     #[doc(inline)]
-    pub use oxi_luajit::*;
+    pub use luajit::*;
 }
 
 #[cfg(feature = "mlua")]
@@ -74,7 +74,7 @@ pub mod mlua {
     /// ```
     pub fn lua() -> &'static mlua::Lua {
         unsafe {
-            oxi_luajit::with_state(|lua_state| {
+            luajit::with_state(|lua_state| {
                 mlua::Lua::init_from_ptr(lua_state as *mut _).into_static()
             })
         }
@@ -84,12 +84,12 @@ pub mod mlua {
 #[doc(hidden)]
 pub use entrypoint::entrypoint;
 pub use error::{Error, Result};
-pub use oxi_luajit::{dbg, print};
-pub use oxi_macros::oxi_module as module;
+pub use luajit::{dbg, print};
+pub use macros::module;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
-pub use oxi_macros::oxi_test as test;
-pub use oxi_types::*;
+pub use macros::test;
+pub use types::*;
 #[cfg(feature = "test")]
 #[doc(hidden)]
 pub mod __test {

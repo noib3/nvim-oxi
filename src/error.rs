@@ -8,23 +8,23 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[cfg_attr(not(feature = "mlua"), derive(Eq, PartialEq))]
 pub enum Error {
     #[error(transparent)]
-    Lua(#[from] oxi_luajit::Error),
+    Lua(#[from] luajit::Error),
 
     #[error(transparent)]
-    Api(#[from] oxi_api::Error),
+    Api(#[from] api::Error),
 
     #[error(transparent)]
-    Nvim(#[from] oxi_types::Error),
+    Nvim(#[from] types::Error),
 
     #[error(transparent)]
-    ObjectConversion(#[from] oxi_types::conversion::Error),
+    ObjectConversion(#[from] types::conversion::Error),
 
     #[error(transparent)]
-    Serde(#[from] oxi_types::serde::Error),
+    Serde(#[from] types::serde::Error),
 
     #[cfg(feature = "libuv")]
     #[error(transparent)]
-    Libuv(#[from] oxi_libuv::Error),
+    Libuv(#[from] libuv::Error),
 
     #[cfg(feature = "mlua")]
     #[error(transparent)]

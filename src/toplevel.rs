@@ -1,5 +1,5 @@
-use oxi_luajit::{self as lua, ffi::*, macros::cstr};
-use oxi_types::Function;
+use luajit::{self as lua, ffi::*, macros::cstr};
+use types::Function;
 
 use crate::Result;
 
