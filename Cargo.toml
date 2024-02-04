@@ -1,11 +1,7 @@
 [workspace]
-resolver = "2"
-members = [
-  "crates/*",
-  "examples/*",
-]
-
+members = ["crates/*", "examples/*"]
 exclude = ["tests"]
+resolver = "2"
 
 [workspace.package]
 version = "0.4.2"
@@ -27,3 +23,71 @@ oxi-luajit = { version = "0.4.2", path = "./crates/oxi-luajit" }
 oxi-macros = { version = "0.4.2", path = "./crates/oxi-macros", features = ["module"] }
 oxi-types = { version = "0.4.2", path = "./crates/oxi-types", features = ["serde"] }
 thiserror = "1.0"
+
+[package]
+name = "nvim-oxi"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+readme.workspace = true
+
+[package.metadata.docs.rs]
+features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+neovim-0-8 = ["oxi-api/neovim-0-8", "oxi-libuv/use-1-44"]
+neovim-0-9 = ["oxi-api/neovim-0-9", "oxi-libuv/use-1-46"]
+neovim-nightly = ["oxi-api/neovim-nightly", "oxi-libuv/use-1-46"]
+
+libuv = ["oxi-libuv"]
+mlua = ["dep:mlua"]
+test = ["oxi-macros/test", "miniserde"]
+__vendored_luajit = ["mlua/vendored"]
+
+[dependencies]
+oxi-api = { workspace = true }
+oxi-libuv = { workspace = true, optional = true }
+oxi-luajit = { workspace = true }
+oxi-macros = { workspace = true }
+oxi-types = { workspace = true }
+
+miniserde = { version = "0.1", optional = true }
+mlua = { version = "0.9", features = ["luajit"], optional = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+mlua = { version = "0.9", features = ["luajit", "module"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+
+[[example]]
+name = "api"
+path = "./examples/api.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "calc"
+path = "./examples/calc.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "libuv"
+path = "./examples/libuv.rs"
+crate-type = ["cdylib"]
+required-features = ["libuv"]
+
+[[example]]
+name = "mechanic"
+path = "./examples/mechanic.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "mlua"
+path = "./examples/mlua.rs"
+crate-type = ["cdylib"]
+required-features = ["mlua"]
