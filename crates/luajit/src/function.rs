@@ -24,7 +24,7 @@ where
             &**upv
         };
 
-        fun(lstate).unwrap_or_else(|err| utils::handle_error(lstate, &err))
+        fun(lstate).unwrap_or_else(|err| utils::push_error(&err, lstate))
     }
 
     unsafe {

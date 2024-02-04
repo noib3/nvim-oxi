@@ -11,7 +11,8 @@
 #![deny(nonstandard_style)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
-mod entrypoint;
+#[doc(hidden)]
+pub mod entrypoint;
 mod error;
 mod toplevel;
 
@@ -81,8 +82,6 @@ pub mod mlua {
     }
 }
 
-#[doc(hidden)]
-pub use entrypoint::entrypoint;
 pub use error::{Error, Result};
 pub use luajit::{dbg, print};
 pub use macros::module;
