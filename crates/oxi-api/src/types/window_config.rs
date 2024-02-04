@@ -335,6 +335,8 @@ pub(crate) struct KeyDict_float_config {
     /// 16th in the mask.
     relative: NvimString,
 
+    split: NvimString,
+
     /// 3rd in the mask.
     win: WinHandle,
 
@@ -346,6 +348,8 @@ pub(crate) struct KeyDict_float_config {
 
     /// 17th in the mask.
     focusable: Boolean,
+
+    vertical: Boolean,
 
     /// 12th in the mask.
     zindex: Integer,
@@ -570,10 +574,12 @@ impl From<&WindowConfig> for KeyDict_float_config {
                 height,
                 anchor,
                 relative,
+                split: NvimString::default(),
                 win,
                 bufpos,
                 external,
                 focusable,
+                vertical: false,
                 zindex,
                 border,
                 title,
