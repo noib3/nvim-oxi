@@ -1,29 +1,26 @@
-//! Contains the entrypoint of the final plugin.
+use core::ffi::c_int;
 
-use std::ffi::c_int;
-
-use luajit::{self as lua, ffi::lua_State, Pushable};
+use luajit::{ffi::lua_State, Pushable};
 
 /// The entrypoint of the plugin.
 ///
 /// Initializes the Lua state, executes the entrypoint function and pushes the
 /// result on the stack.
-#[doc(hidden)]
-pub unsafe fn entrypoint<R, E>(
+#[inline(always)]
+pub unsafe fn entrypoint<T>(
     lua_state: *mut lua_State,
-    body: fn() -> Result<R, E>,
+    body: fn() -> T,
 ) -> c_int
 where
-    R: Pushable,
-    E: std::error::Error,
+    T: Pushable,
 {
-    lua::init(lua_state);
+    luajit::init(lua_state);
 
     #[cfg(feature = "libuv")]
     libuv::init(lua_state);
 
-    match body() {
-        Ok(api) => api.push(lua_state).unwrap(),
-        Err(err) => lua::utils::handle_error(lua_state, &err),
+    match body().push(lua_state) {
+        Ok(num_pushed) => num_pushed,
+        Err(lua_err) => luajit::utils::push_error(&lua_err, lua_state),
     }
 }
