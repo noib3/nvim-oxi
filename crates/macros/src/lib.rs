@@ -18,20 +18,37 @@ pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
         .into()
 }
 
-// *Heavily* inspired by mlua's `lua_module` proc macro.
-//
-/// Marks the plugin entrypoint.
+/// Marks the function as the entrypoint of the plugin.
+///
+/// The function wrapped by this macro will be called by Lua when the user
+/// loads the plugin by passing its name to the `require` function. It can
+/// return any type that implements [`Pushable`], and the value will be
+/// returned on the Lua side by `require`.
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use nvim_oxi as nvim;
+/// Let's say your crate only consists of this single `lib.rs` file:
 ///
-/// #[nvim::module]
-/// fn foo() -> nvim::Result<()> {
-///     Ok(())
+/// ```ignore
+/// // lib.rs
+///
+/// #[nvim_oxi::module]
+/// fn my_plugin() -> u32 {
+///     42
 /// }
 /// ```
+///
+/// Once the crate compiled and the resulting dynamic library is placed under
+/// `lua/my_plugin.{so|dylib|dll}` somewhere in Neovim's [`runtimepath`], it
+/// can be loaded with:
+///
+/// ```lua
+/// local ret = require("my_plugin")
+/// assert(ret == 42)
+/// ```
+///
+/// [`Pushable`]: https://docs.rs/nvim-oxi/latest/nvim_oxi/lua/trait.Pushable.html
+/// [`runtimepath`]: https://neovim.io/doc/user/options.html#'runtimepath'
 #[cfg(feature = "module")]
 #[proc_macro_attribute]
 pub fn module(_attr: TokenStream, item: TokenStream) -> TokenStream {
