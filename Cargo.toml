@@ -1,11 +1,7 @@
 [workspace]
-resolver = "2"
-members = [
-  "crates/*",
-  "examples/*",
-]
-
+members = ["crates/*", "examples/*"]
 exclude = ["tests"]
+resolver = "2"
 
 [workspace.package]
 version = "0.4.2"
@@ -20,10 +16,77 @@ license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
 [workspace.dependencies]
+api = { path = "./crates/api", package = "nvim-oxi-api" }
+libuv = { path = "./crates/libuv", package = "nvim-oxi-libuv" }
+luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
+macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
 once_cell = "1.19"
-oxi-api = { version = "0.4.2", path = "./crates/oxi-api" }
-oxi-libuv = { version = "0.4.2", path = "./crates/oxi-libuv" }
-oxi-luajit = { version = "0.4.2", path = "./crates/oxi-luajit" }
-oxi-macros = { version = "0.4.2", path = "./crates/oxi-macros", features = ["module"] }
-oxi-types = { version = "0.4.2", path = "./crates/oxi-types", features = ["serde"] }
 thiserror = "1.0"
+types = { path = "./crates/types", package = "nvim-oxi-types" }
+
+[package]
+name = "nvim-oxi"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+documentation.workspace = true
+license.workspace = true
+keywords.workspace = true
+readme.workspace = true
+
+[package.metadata.docs.rs]
+features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+neovim-0-8 = ["api/neovim-0-8", "libuv/use-1-44"]
+neovim-0-9 = ["api/neovim-0-9", "libuv/use-1-46"]
+neovim-nightly = ["api/neovim-nightly", "libuv/use-1-46"]
+
+libuv = ["dep:libuv"]
+mlua = ["dep:mlua"]
+test = ["macros/test", "miniserde"]
+__vendored_luajit = ["mlua/vendored"]
+
+[dependencies]
+api = { workspace = true }
+libuv = { workspace = true, optional = true }
+luajit = { workspace = true }
+macros = { workspace = true, features = ["module"] }
+miniserde = { version = "0.1", optional = true }
+mlua = { version = "0.9", features = ["luajit"], optional = true }
+thiserror = { workspace = true }
+types = { workspace = true, features = ["serde"] }
+
+[dev-dependencies]
+mlua = { version = "0.9", features = ["luajit", "module"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+
+[[example]]
+name = "api"
+path = "./examples/api.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "calc"
+path = "./examples/calc.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "libuv"
+path = "./examples/libuv.rs"
+crate-type = ["cdylib"]
+required-features = ["libuv"]
+
+[[example]]
+name = "mechanic"
+path = "./examples/mechanic.rs"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "mlua"
+path = "./examples/mlua.rs"
+crate-type = ["cdylib"]
+required-features = ["mlua"]
