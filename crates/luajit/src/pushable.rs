@@ -2,6 +2,7 @@ use std::ffi::{c_char, c_int};
 
 use crate::ffi::{self, lua_Integer, lua_Number, lua_State};
 use crate::macros::count;
+use crate::utils;
 
 /// Trait implemented for types that can be pushed onto the Lua stack.
 pub trait Pushable {
@@ -159,6 +160,22 @@ where
     }
 }
 
+impl<T, E> Pushable for Result<T, E>
+where
+    T: Pushable,
+    E: core::fmt::Display,
+{
+    #[inline]
+    unsafe fn push(
+        self,
+        lstate: *mut lua_State,
+    ) -> Result<c_int, crate::Error> {
+        match self {
+            Ok(value) => value.push(lstate),
+            Err(err) => utils::handle_error(&err, lstate),
+        }
+    }
+}
 /// Implements `LuaPushable` for a tuple `(a, b, c, ..)` where all the elements
 /// in the tuple implement `LuaPushable`.
 macro_rules! push_tuple {
