@@ -1,8 +1,8 @@
 use nvim_oxi::api::{self, opts::*, types::*, Window};
-use nvim_oxi::{self as oxi, print, Dictionary, Function};
+use nvim_oxi::{print, Dictionary, Error, Function, Result};
 
-#[oxi::module]
-fn api() -> oxi::Result<Dictionary> {
+#[nvim_oxi::module]
+fn api() -> Result<Dictionary> {
     // Create a new `Greetings` command.
     let opts = CreateCommandOpts::builder()
         .bang(true)
@@ -33,7 +33,7 @@ fn api() -> oxi::Result<Dictionary> {
     let win: Rc<RefCell<Option<Window>>> = Rc::default();
 
     let w = Rc::clone(&win);
-    let open_window = Function::from_fn::<_, oxi::Error>(move |()| {
+    let open_window = Function::from_fn::<_, Error>(move |()| {
         if w.borrow().is_some() {
             api::err_writeln("Window is already open");
             return Ok(());
@@ -63,8 +63,10 @@ fn api() -> oxi::Result<Dictionary> {
         win.close(false)
     });
 
-    Ok(Dictionary::from_iter([
+    let api = Dictionary::from_iter([
         ("open_window", open_window),
         ("close_window", close_window),
-    ]))
+    ]);
+
+    Ok(api)
 }

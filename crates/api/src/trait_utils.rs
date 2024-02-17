@@ -165,6 +165,7 @@ impl HlGroup for &str {
     }
 }
 
+#[cfg(feature = "neovim-nightly")]
 mod sealed {
     pub trait Sealed {}
 

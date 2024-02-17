@@ -1,9 +1,9 @@
 use std::convert::Infallible;
 
-use nvim_oxi::{self as oxi, Dictionary, Function, Object};
+use nvim_oxi::{Dictionary, Function, Object};
 
-#[oxi::module]
-fn calc() -> oxi::Result<Dictionary> {
+#[nvim_oxi::module]
+fn calc() -> Dictionary {
     let add =
         Function::from_fn(|(a, b): (i32, i32)| Ok::<_, Infallible>(a + b));
 
@@ -14,9 +14,9 @@ fn calc() -> oxi::Result<Dictionary> {
         |(fun, a, b): (Function<(i32, i32), i32>, i32, i32)| fun.call((a, b)),
     );
 
-    Ok(Dictionary::from_iter([
+    Dictionary::from_iter([
         ("add", Object::from(add)),
         ("multiply", Object::from(multiply)),
         ("compute", Object::from(compute)),
-    ]))
+    ])
 }

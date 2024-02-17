@@ -1,27 +1,26 @@
 use std::thread;
 use std::time::Duration;
 
-use nvim_oxi as oxi;
-use oxi::libuv::{AsyncHandle, TimerHandle};
-use oxi::print;
+use nvim_oxi::libuv::{AsyncHandle, TimerHandle};
+use nvim_oxi::{print, schedule, Error, Result};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio::time;
 
-#[oxi::module]
-fn libuv() -> oxi::Result<()> {
+#[nvim_oxi::module]
+fn libuv() -> Result<()> {
     // --
     let mut n = 0;
 
     let callback = move |timer: &mut TimerHandle| {
         if n <= 10 {
             let i = n;
-            oxi::schedule(move |_| Ok(print!("Callback called {i} times")));
+            schedule(move |_| Ok(print!("Callback called {i} times")));
             n += 1;
         } else {
             timer.stop().unwrap();
         }
 
-        Ok::<_, oxi::Error>(())
+        Ok::<_, Error>(())
     };
 
     let _handle = TimerHandle::start(
@@ -34,8 +33,8 @@ fn libuv() -> oxi::Result<()> {
     let msg = String::from("Hey there!");
 
     let _handle = TimerHandle::once(Duration::from_secs(2), move || {
-        oxi::schedule(move |_| Ok(print!("{msg}")));
-        Ok::<_, oxi::Error>(())
+        schedule(move |_| Ok(print!("{msg}")));
+        Ok::<_, Error>(())
     });
 
     // --
@@ -43,11 +42,11 @@ fn libuv() -> oxi::Result<()> {
 
     let handle = AsyncHandle::new(move || {
         let i = receiver.blocking_recv().unwrap();
-        oxi::schedule(move |_| {
+        schedule(move |_| {
             print!("Received number {i} from backround thread");
             Ok(())
         });
-        Ok::<_, oxi::Error>(())
+        Ok::<_, Error>(())
     })?;
 
     let _ = thread::spawn(move || send_numbers(handle, sender));
