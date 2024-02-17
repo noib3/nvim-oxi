@@ -1,5 +1,3 @@
-use core::cmp::Ordering;
-
 use proc_macro2::*;
 use quote::quote;
 use syn::*;
@@ -172,21 +170,18 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
             .map(OptsField::try_from)
             .collect::<Result<Vec<_>>>()?;
 
-        // We sort the based on their name so that the generated setter methods
-        // will be in alphabetical order.
-        opts_fields.sort_by_key(|field| field.name.to_string());
-
-        let mut mask_ordering = (0..opts_fields.len()).collect::<Vec<_>>();
-
-        mask_ordering.sort_by(|&left_idx, &right_idx| {
-            let left_field = &opts_fields[left_idx];
-            let right_field = &opts_fields[right_idx];
-            left_field.mask_cmp(right_field)
-        });
+        let mask_ordering = hashy::hashy_hash(
+            opts_fields.iter().map(|field| &*field.name_as_str),
+        );
 
         for (mask_idx, opts_idx) in mask_ordering.into_iter().enumerate() {
             opts_fields[opts_idx].set_mask_idx(mask_idx);
         }
+
+        // We sort the fields so that the generated setter methods will be in
+        // alphabetical order.
+        opts_fields
+            .sort_by(|left, right| left.name_as_str.cmp(&right.name_as_str));
 
         Ok(Self { mask_name, fields: opts_fields })
     }
@@ -205,6 +200,7 @@ struct OptsField<'a> {
     doc_comment: Option<String>,
     mask_idx: usize,
     name: &'a Ident,
+    name_as_str: String,
     ty: &'a Type,
 }
 
@@ -240,30 +236,20 @@ impl<'a> TryFrom<&'a Field> for OptsField<'a> {
 
         is_valid_combination(&attrs)?;
 
+        let name = field.ident.as_ref().unwrap();
+
         Ok(Self {
             attrs,
             doc_comment: parse_doc_comment(field),
             mask_idx: 0,
-            name: field.ident.as_ref().unwrap(),
+            name,
+            name_as_str: name.to_string(),
             ty: &field.ty,
         })
     }
 }
 
 impl<'a> OptsField<'a> {
-    /// Returns the ordering that Neovim uses when comparing fields in the
-    /// mask.
-    #[inline]
-    fn mask_cmp(&self, other: &Self) -> Ordering {
-        let this_name = self.name.to_string();
-        let other_name = other.name.to_string();
-
-        match this_name.len().cmp(&other_name.len()) {
-            Ordering::Equal => this_name.cmp(&other_name),
-            ordering => ordering,
-        }
-    }
-
     /// TODO: docs
     #[inline]
     fn setter(&self, mask_name: Option<&Ident>) -> Option<TokenStream> {
@@ -706,4 +692,265 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
     }
 
     Ok(())
+}
+
+mod hashy {
+    //! This module re-implements [the logic][hashy] used by Neovim to sort the
+    //! fields of the [keysets] structs when generating mask indices at compile
+    //! time.
+    //!
+    //! The names of the various functions and variables don't make much sense
+    //! in this context, but I've tried to keep the code as 1:1 as possible to
+    //! the original to make it easier to compare them, and update this if/when
+    //! upstream changes.
+    //!
+    //! [hashy]: https://github.com/neovim/neovim/blob/01c15a30c0ab56e14342f9996bea3ad86a68a343/src/nvim/generators/hashy.lua
+    //! [keysets]: https://github.com/neovim/neovim/blob/01c15a30c0ab56e14342f9996bea3ad86a68a343/src/nvim/api/keysets_defs.h
+
+    #![allow(clippy::needless_range_loop)]
+
+    use core::hash::Hash;
+    use std::collections::HashMap;
+
+    type Bucket = HashMap<char, Vec<usize>>;
+
+    pub(super) fn hashy_hash<'a>(
+        fields: impl IntoIterator<Item = &'a str>,
+    ) -> Vec<usize> {
+        let fields = fields.into_iter().collect::<Vec<_>>();
+        let (len_pos_buckets, maxlen) = build_pos_hash(&fields);
+        switcher(len_pos_buckets, maxlen)
+    }
+
+    fn build_pos_hash(strings: &[&str]) -> (Vec<Bucket>, usize) {
+        let mut len_buckets: Vec<Vec<usize>> = Vec::new();
+        let mut maxlen = 0;
+
+        for (idx, s) in strings.iter().enumerate() {
+            setdefault_vec(&mut len_buckets, s.len()).push(idx);
+            if s.len() > maxlen {
+                maxlen = s.len();
+            }
+        }
+
+        let mut len_pos_buckets = Vec::new();
+
+        for len in 1..=maxlen {
+            let strs = &len_buckets[len];
+
+            if strs.is_empty() {
+                len_pos_buckets.push(Bucket::new());
+                continue;
+            }
+
+            let mut minsize = strs.len() * 2;
+            let mut best_bucket = HashMap::new();
+
+            for pos in 1..=len {
+                let mut try_bucket = Bucket::new();
+                for &str_idx in strs {
+                    let str = &strings[str_idx];
+                    let poschar = str.chars().nth(pos - 1).unwrap();
+                    setdefault_map(&mut try_bucket, poschar).push(str_idx);
+                }
+                let mut maxsize = 1;
+                for pos_strs in try_bucket.values() {
+                    maxsize = maxsize.max(pos_strs.len());
+                }
+                if maxsize < minsize {
+                    minsize = maxsize;
+                    best_bucket = try_bucket;
+                }
+            }
+
+            len_pos_buckets.push(best_bucket);
+        }
+
+        (len_pos_buckets, maxlen)
+    }
+
+    fn switcher(tab: Vec<Bucket>, maxlen: usize) -> Vec<usize> {
+        let mut neworder = Vec::new();
+
+        for len in 1..=maxlen {
+            let posbuck = &tab[len - 1];
+            if posbuck.is_empty() {
+                continue;
+            }
+            let mut keys = posbuck.keys().collect::<Vec<_>>();
+            if keys.len() > 1 {
+                keys.sort();
+                for c in keys {
+                    let buck = &posbuck[c];
+                    neworder.extend(buck);
+                }
+            } else {
+                neworder.push(posbuck[keys[0]][0])
+            }
+        }
+
+        neworder
+    }
+
+    fn setdefault_map<K, T: Default>(map: &mut HashMap<K, T>, key: K) -> &mut T
+    where
+        K: Eq + Hash,
+    {
+        map.entry(key).or_default()
+    }
+
+    fn setdefault_vec<T: Default>(vec: &mut Vec<T>, key: usize) -> &mut T {
+        if vec.len() < key + 1 {
+            vec.resize_with(key + 1, T::default);
+        }
+        &mut vec[key]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! To get the correct order compile Neovim from source and look at the
+    //! generated file in `/build/src/nvim/auto/keysets_defs.generated.h`.
+
+    use super::*;
+
+    fn order<'a>(fields: &[&'a str]) -> Vec<&'a str> {
+        let order_idxs = hashy::hashy_hash(fields.iter().copied());
+
+        let mut order = vec![""; fields.len()];
+
+        for (order_idx, field_idx) in order_idxs.into_iter().enumerate() {
+            order[order_idx] = fields[field_idx];
+        }
+
+        order
+    }
+
+    #[test]
+    fn fields_order_highlight() {
+        let fields = [
+            "bold",
+            "standout",
+            "strikethrough",
+            "underline",
+            "undercurl",
+            "underdouble",
+            "underdotted",
+            "underdashed",
+            "italic",
+            "reverse",
+            "altfont",
+            "nocombine",
+            "default",
+            "cterm",
+            "foreground",
+            "fg",
+            "background",
+            "bg",
+            "ctermfg",
+            "ctermbg",
+            "special",
+            "sp",
+            "link",
+            "global_link",
+            "fallback",
+            "blend",
+            "fg_indexed",
+            "bg_indexed",
+            "force",
+            "url",
+        ];
+
+        assert_eq!(
+            order(&fields),
+            [
+                "bg",
+                "fg",
+                "sp",
+                "url",
+                "bold",
+                "link",
+                "blend",
+                "cterm",
+                "force",
+                "italic",
+                "special",
+                "ctermbg",
+                "ctermfg",
+                "default",
+                "altfont",
+                "reverse",
+                "fallback",
+                "standout",
+                "nocombine",
+                "undercurl",
+                "underline",
+                "background",
+                "bg_indexed",
+                "foreground",
+                "fg_indexed",
+                "global_link",
+                "underdashed",
+                "underdotted",
+                "underdouble",
+                "strikethrough",
+            ]
+        );
+    }
+
+    #[test]
+    fn fields_order_win_config() {
+        let fields = [
+            "row",
+            "col",
+            "width",
+            "height",
+            "anchor",
+            "relative",
+            "split",
+            "win",
+            "bufpos",
+            "external",
+            "focusable",
+            "vertical",
+            "zindex",
+            "border",
+            "title",
+            "title_pos",
+            "footer",
+            "footer_pos",
+            "style",
+            "noautocmd",
+            "fixed",
+            "hide",
+        ];
+
+        assert_eq!(
+            order(&fields),
+            [
+                "col",
+                "row",
+                "win",
+                "hide",
+                "width",
+                "split",
+                "title",
+                "fixed",
+                "style",
+                "anchor",
+                "bufpos",
+                "height",
+                "zindex",
+                "footer",
+                "border",
+                "external",
+                "relative",
+                "vertical",
+                "focusable",
+                "noautocmd",
+                "title_pos",
+                "footer_pos"
+            ]
+        );
+    }
 }
