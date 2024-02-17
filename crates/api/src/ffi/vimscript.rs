@@ -1,3 +1,5 @@
+#[cfg(feature = "neovim-nightly")]
+use types::Arena;
 use types::{Array, Boolean, Dictionary, Error, NonOwning, Object, String};
 
 use crate::opts::*;
@@ -8,6 +10,7 @@ extern "C" {
         dict: NonOwning<Object>,
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -15,6 +18,7 @@ extern "C" {
     pub(crate) fn nvim_call_function(
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -23,6 +27,7 @@ extern "C" {
         channel_id: u64,
         cmd: *const crate::types::KeyDict_cmd,
         opts: *const CmdOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> String;
 
@@ -32,6 +37,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L154
     pub(crate) fn nvim_eval(
         expr: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -49,6 +55,7 @@ extern "C" {
         #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         error: *mut Error,
     ) -> Dictionary;
 

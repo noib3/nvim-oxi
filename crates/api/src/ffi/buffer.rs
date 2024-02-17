@@ -1,4 +1,5 @@
 use types::{
+    Arena,
     Array,
     BufHandle,
     Dictionary,
@@ -114,13 +115,14 @@ extern "C" {
     pub(crate) fn nvim_buf_get_mark(
         buf: BufHandle,
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L996
     pub(crate) fn nvim_buf_get_name(
         buf: BufHandle,
-        arena: *mut core::ffi::c_void,
+        arena: *mut Arena,
         err: *mut Error,
     ) -> String;
 
@@ -135,7 +137,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
-        #[cfg(not(feature = "neovim-0-8"))] arena: *mut core::ffi::c_void,
+        #[cfg(not(feature = "neovim-0-8"))] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -149,6 +151,7 @@ extern "C" {
         end_col: Integer,
         #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetTextOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         #[cfg(not(feature = "neovim-0-8"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
@@ -158,6 +161,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_var(
         buf: BufHandle,
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
