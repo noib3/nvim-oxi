@@ -221,8 +221,15 @@ pub fn eval_statusline(
 ) -> Result<StatuslineInfos> {
     let str = nvim::String::from(str);
     let mut err = nvim::Error::new();
-    let dict =
-        unsafe { nvim_eval_statusline(str.non_owning(), opts, &mut err) };
+    let dict = unsafe {
+        nvim_eval_statusline(
+            str.non_owning(),
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(StatuslineInfos::from_object(dict.into())?))
 }
 
@@ -285,9 +292,14 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_map()
 pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
-    unsafe { nvim_get_color_map() }.into_iter().map(|(k, v)| {
-        (k.to_string_lossy().into(), u32::from_object(v).unwrap())
-    })
+    unsafe {
+        nvim_get_color_map(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    }
+    .into_iter()
+    .map(|(k, v)| (k.to_string_lossy().into(), u32::from_object(v).unwrap()))
 }
 
 /// Binding to [`nvim_get_commands()`][1].
@@ -317,7 +329,14 @@ pub fn get_commands(
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_context()
 pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let mut err = nvim::Error::new();
-    let ctx = unsafe { nvim_get_context(opts, &mut err) };
+    let ctx = unsafe {
+        nvim_get_context(
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(EditorContext::from_object(ctx.into())?))
 }
 
@@ -337,7 +356,13 @@ pub fn get_current_buf() -> Buffer {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_line()
 pub fn get_current_line() -> Result<String> {
     let mut err = nvim::Error::new();
-    let s = unsafe { nvim_get_current_line(&mut err) };
+    let s = unsafe {
+        nvim_get_current_line(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(s.to_string_lossy().into()))
 }
 
@@ -438,6 +463,8 @@ pub fn get_mark(
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
             &mut err,
         )
     };
@@ -460,7 +487,15 @@ pub fn get_mark(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_mode()
 pub fn get_mode() -> Result<GotMode> {
-    Ok(GotMode::from_object(unsafe { nvim_get_mode() }.into())?)
+    Ok(GotMode::from_object(
+        unsafe {
+            nvim_get_mode(
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+            )
+        }
+        .into(),
+    )?)
 }
 
 /// Binding to [`nvim_get_option()`][1].
@@ -524,7 +559,14 @@ where
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc()
 pub fn get_proc(pid: u32) -> Result<ProcInfos> {
     let mut err = nvim::Error::new();
-    let obj = unsafe { nvim_get_proc(pid.into(), &mut err) };
+    let obj = unsafe {
+        nvim_get_proc(
+            pid.into(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(ProcInfos::from_object(obj)?))
 }
 
@@ -535,7 +577,14 @@ pub fn get_proc(pid: u32) -> Result<ProcInfos> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc_children()
 pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
-    let procs = unsafe { nvim_get_proc_children(pid.into(), &mut err) };
+    let procs = unsafe {
+        nvim_get_proc_children(
+            pid.into(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok(procs.into_iter().map(|obj| u32::from_object(obj).unwrap()))
@@ -576,7 +625,14 @@ where
 {
     let mut err = nvim::Error::new();
     let name = nvim::String::from(name);
-    let obj = unsafe { nvim_get_var(name.non_owning(), &mut err) };
+    let obj = unsafe {
+        nvim_get_var(
+            name.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
@@ -591,7 +647,14 @@ where
 {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let obj = unsafe { nvim_get_vvar(name.non_owning(), &mut err) };
+    let obj = unsafe {
+        nvim_get_vvar(
+            name.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
@@ -704,9 +767,14 @@ pub fn list_tabpages() -> impl SuperIterator<TabPage> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_uis()
 pub fn list_uis() -> impl SuperIterator<UiInfos> {
-    unsafe { nvim_list_uis() }
-        .into_iter()
-        .map(|obj| UiInfos::from_object(obj).unwrap())
+    unsafe {
+        nvim_list_uis(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    }
+    .into_iter()
+    .map(|obj| UiInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_wins()`][1].
@@ -807,7 +875,14 @@ where
 {
     let mut err = nvim::Error::new();
     let go_on = unsafe {
-        nvim_paste(data.into().non_owning(), crlf, phase as Integer, &mut err)
+        nvim_paste(
+            data.into().non_owning(),
+            crlf,
+            phase as Integer,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
     };
     choose!(err, Ok(go_on))
 }

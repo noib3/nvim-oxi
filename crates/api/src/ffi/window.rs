@@ -1,3 +1,5 @@
+#[cfg(feature = "neovim-nightly")]
+use types::Arena;
 use types::*;
 
 #[cfg_attr(
@@ -61,6 +63,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L285
     pub(crate) fn nvim_win_get_position(
         win: WinHandle,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -74,6 +77,7 @@ extern "C" {
     pub(crate) fn nvim_win_get_var(
         win: WinHandle,
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 

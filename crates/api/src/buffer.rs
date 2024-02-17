@@ -372,8 +372,15 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let mark =
-            unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
+        let mark = unsafe {
+            nvim_buf_get_mark(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = mark.into_iter().map(usize::from_object);
             let row = iter.next().expect("row is present")?;
@@ -389,9 +396,8 @@ impl Buffer {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_name()
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = nvim::Error::new();
-        let name = unsafe {
-            nvim_buf_get_name(self.0, core::ptr::null_mut(), &mut err)
-        };
+        let name =
+            unsafe { nvim_buf_get_name(self.0, types::arena(), &mut err) };
         choose!(err, Ok(name.into()))
     }
 
@@ -423,7 +429,7 @@ impl Buffer {
                 self.0,
                 name.non_owning(),
                 #[cfg(not(feature = "neovim-0-8"))]
-                std::ptr::null_mut(),
+                types::arena(),
                 &mut err,
             )
         };
@@ -465,6 +471,8 @@ impl Buffer {
                 opts.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
                 opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
@@ -492,8 +500,15 @@ impl Buffer {
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let obj =
-            unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
+        let obj = unsafe {
+            nvim_buf_get_var(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, Ok(Var::from_object(obj)?))
     }
 

@@ -30,7 +30,14 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_config()
     pub fn get_config(&self) -> Result<WindowConfig> {
         let mut err = nvim::Error::new();
-        let mut dict = unsafe { nvim_win_get_config(self.0, &mut err) };
+        let mut dict = unsafe {
+            nvim_win_get_config(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         let win = dict.get("win").map(|obj| unsafe {
             // SAFETY: if the `win` key is present it's set to an integer
             // representing a window handle.

@@ -76,6 +76,7 @@ extern "C" {
     pub(crate) fn nvim_eval_statusline(
         str: NonOwning<String>,
         opts: *const EvalStatuslineOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -99,7 +100,9 @@ extern "C" {
     pub(crate) fn nvim_get_color_by_name(name: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1288
-    pub(crate) fn nvim_get_color_map() -> Dictionary;
+    pub(crate) fn nvim_get_color_map(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
     pub(crate) fn nvim_get_commands(
@@ -110,6 +113,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1308
     pub(crate) fn nvim_get_context(
         opts: *const GetContextOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         error: *mut Error,
     ) -> Dictionary;
 
@@ -117,7 +121,10 @@ extern "C" {
     pub(crate) fn nvim_get_current_buf() -> BufHandle;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L603
-    pub(crate) fn nvim_get_current_line(err: *mut Error) -> String;
+    pub(crate) fn nvim_get_current_line(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    ) -> String;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1075
     pub(crate) fn nvim_get_current_tabpage() -> TabHandle;
@@ -153,11 +160,14 @@ extern "C" {
         #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
         opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetMarkOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1378
-    pub(crate) fn nvim_get_mode() -> Dictionary;
+    pub(crate) fn nvim_get_mode(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
     pub(crate) fn nvim_get_option(
@@ -180,11 +190,16 @@ extern "C" {
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1842
-    pub(crate) fn nvim_get_proc(pid: Integer, err: *mut Error) -> Object;
+    pub(crate) fn nvim_get_proc(
+        pid: Integer,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1802
     pub(crate) fn nvim_get_proc_children(
         pid: Integer,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -198,12 +213,14 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L635
     pub(crate) fn nvim_get_var(
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L678
     pub(crate) fn nvim_get_vvar(
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -234,7 +251,9 @@ extern "C" {
     pub(crate) fn nvim_list_tabpages() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1793
-    pub(crate) fn nvim_list_uis() -> Array;
+    pub(crate) fn nvim_list_uis(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L827
     pub(crate) fn nvim_list_wins() -> Array;
@@ -267,6 +286,7 @@ extern "C" {
         data: NonOwning<String>,
         crlf: bool,
         phase: Integer,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> bool;
 
