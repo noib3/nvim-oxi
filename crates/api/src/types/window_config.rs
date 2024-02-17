@@ -289,12 +289,12 @@ impl FromObject for WindowConfig {
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_float_config {
+pub struct WindowOpts {
     col: Object,
     row: Object,
     win: Object,
     style: Object,
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[cfg(feature = "neovim-0-9")]
     title: Object,
     width: Object,
     height: Object,
@@ -306,291 +306,161 @@ pub(crate) struct KeyDict_float_config {
     relative: Object,
     focusable: Object,
     noautocmd: Object,
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+    #[cfg(feature = "neovim-0-9")]
     title_pos: Object,
 }
 
+#[cfg(not(feature = "neovim-nightly"))]
+impl From<&WindowConfig> for WindowOpts {
+    fn from(config: &WindowConfig) -> Self {
+        let bufpos = match config.bufpos {
+            Some((line, column)) => {
+                Array::from_iter([line as Integer, column as Integer]).into()
+            },
+            _ => Object::nil(),
+        };
+
+        Self {
+            anchor: config.anchor.into(),
+            border: config.border.clone().into(),
+            bufpos,
+            col: config.col.into(),
+            external: config.external.into(),
+            focusable: config.focusable.into(),
+            height: config.height.into(),
+            noautocmd: config.noautocmd.into(),
+            relative: config.relative.as_ref().into(),
+            row: config.row.into(),
+            style: config.style.into(),
+            #[cfg(feature = "neovim-0-9")]
+            title: config.title.as_ref().into(),
+            #[cfg(feature = "neovim-0-9")]
+            title_pos: config.title_pos.as_ref().into(),
+            width: config.width.into(),
+            win: config.win.as_ref().into(),
+            zindex: config.zindex.into(),
+        }
+    }
+}
+
 #[cfg(feature = "neovim-nightly")]
-#[derive(Default, Debug)]
-#[allow(non_camel_case_types)]
+#[derive(Clone, Default, Debug, macros::OptsBuilder)]
 #[repr(C)]
-pub(crate) struct KeyDict_float_config {
+pub struct WindowOpts {
+    #[builder(mask)]
     mask: u64,
-
-    /// 2nd in the mask.
     row: Float,
-
-    /// 1st in the mask.
     col: Float,
-
-    /// 8th in the mask.
     width: Integer,
-
-    /// 11th in the mask.
     height: Integer,
-
-    /// 9th in the mask.
     anchor: NvimString,
-
-    /// 16th in the mask.
     relative: NvimString,
-
     split: NvimString,
-
-    /// 3rd in the mask.
     win: WinHandle,
-
-    /// 10th in the mask.
     bufpos: Array,
-
-    /// 15th in the mask.
     external: Boolean,
-
-    /// 17th in the mask.
     focusable: Boolean,
-
     vertical: Boolean,
-
-    /// 12th in the mask.
     zindex: Integer,
-
-    /// 14th in the mask.
     border: Object,
-
-    /// 7th in the mask.
     title: Object,
-
-    /// 19th in the mask.
     title_pos: NvimString,
-
-    /// 13th in the mask.
     footer: Object,
-
-    /// 20th in the mask.
     footer_pos: NvimString,
-
-    /// 6th in the mask.
     style: NvimString,
-
-    /// 18th in the mask.
     noautocmd: Boolean,
-
-    /// 5th in the mask.
     fixed: Boolean,
-
-    /// 4th in the mask.
     hide: Boolean,
 }
 
-impl From<&WindowConfig> for KeyDict_float_config {
+#[cfg(feature = "neovim-nightly")]
+impl From<&WindowConfig> for WindowOpts {
     fn from(config: &WindowConfig) -> Self {
-        #[cfg(not(feature = "neovim-nightly"))]
-        {
-            let bufpos = match config.bufpos {
-                Some((line, column)) => {
-                    Array::from_iter([line as Integer, column as Integer])
-                        .into()
-                },
-                _ => Object::nil(),
-            };
+        let mut builder = WindowOptsBuilder::default();
 
-            Self {
-                anchor: config.anchor.into(),
-                border: config.border.clone().into(),
-                bufpos,
-                col: config.col.into(),
-                external: config.external.into(),
-                focusable: config.focusable.into(),
-                height: config.height.into(),
-                noautocmd: config.noautocmd.into(),
-                relative: config.relative.as_ref().into(),
-                row: config.row.into(),
-                style: config.style.into(),
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
-                title: config.title.as_ref().into(),
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
-                title_pos: config.title_pos.as_ref().into(),
-                width: config.width.into(),
-                win: config.win.as_ref().into(),
-                zindex: config.zindex.into(),
-            }
+        if let Some(row) = config.row {
+            builder.row(row);
         }
 
-        #[cfg(feature = "neovim-nightly")]
-        {
-            let mut mask = 0;
-
-            let row = if let Some(row) = config.row {
-                mask |= 0b101;
-                row
-            } else {
-                Float::default()
-            };
-
-            let col = if let Some(col) = config.col {
-                mask |= 0b11;
-                col
-            } else {
-                Float::default()
-            };
-
-            let width = if let Some(width) = config.width {
-                mask |= 0b100000001;
-                width as Integer
-            } else {
-                Integer::default()
-            };
-
-            let height = if let Some(height) = config.height {
-                mask |= 0b100000000001;
-                height as Integer
-            } else {
-                Integer::default()
-            };
-
-            let anchor = if let Some(anchor) = config.anchor {
-                mask |= 0b1000000001;
-                NvimString::from(anchor)
-            } else {
-                NvimString::default()
-            };
-
-            let relative = if let Some(relative) = &config.relative {
-                mask |= 0b10000000000000001;
-                NvimString::from(relative.clone())
-            } else {
-                NvimString::default()
-            };
-
-            let win = if let Some(win) = &config.win {
-                mask |= 0b1001;
-                win.0
-            } else {
-                WinHandle::default()
-            };
-
-            let bufpos = if let Some((line, column)) = config.bufpos {
-                mask |= 0b10000000001;
-                Array::from_iter([line as Integer, column as Integer])
-            } else {
-                Array::default()
-            };
-
-            let external = if let Some(external) = config.external {
-                mask |= 0b1000000000000001;
-                external
-            } else {
-                Boolean::default()
-            };
-
-            let focusable = if let Some(focusable) = config.focusable {
-                mask |= 0b100000000000000001;
-                focusable
-            } else {
-                Boolean::default()
-            };
-
-            let zindex = if let Some(zindex) = config.zindex {
-                mask |= 0b1000000000001;
-                zindex as Integer
-            } else {
-                Integer::default()
-            };
-
-            let border = if let Some(border) = &config.border {
-                mask |= 0b100000000000001;
-                border.clone().into()
-            } else {
-                Object::default()
-            };
-
-            let title = if let Some(title) = config.title.as_ref() {
-                mask |= 0b10000001;
-                title.into()
-            } else {
-                Object::default()
-            };
-
-            let title_pos = if let Some(title_pos) = config.title_pos {
-                mask |= 0b10000000000000000001;
-                title_pos.into()
-            } else {
-                NvimString::default()
-            };
-
-            let footer = if let Some(footer) = config.footer.as_ref() {
-                mask |= 0b10000000000001;
-                footer.into()
-            } else {
-                Object::default()
-            };
-
-            let footer_pos = if let Some(footer_pos) = config.footer_pos {
-                mask |= 0b100000000000000000001;
-                footer_pos.into()
-            } else {
-                NvimString::default()
-            };
-
-            let style = if let Some(style) = config.style {
-                mask |= 0b1000001;
-                style.into()
-            } else {
-                NvimString::default()
-            };
-
-            let noautocmd = if let Some(noautocmd) = config.noautocmd {
-                mask |= 0b1000000000000000001;
-                noautocmd
-            } else {
-                Boolean::default()
-            };
-
-            let fixed = if let Some(fixed) = config.fixed {
-                mask |= 0b100001;
-                fixed
-            } else {
-                Boolean::default()
-            };
-
-            let hide = if let Some(hide) = config.hide {
-                mask |= 0b10001;
-                hide
-            } else {
-                Boolean::default()
-            };
-
-            Self {
-                mask,
-                row,
-                col,
-                width,
-                height,
-                anchor,
-                relative,
-                split: NvimString::default(),
-                win,
-                bufpos,
-                external,
-                focusable,
-                vertical: false,
-                zindex,
-                border,
-                title,
-                title_pos,
-                footer,
-                footer_pos,
-                style,
-                noautocmd,
-                fixed,
-                hide,
-            }
+        if let Some(col) = config.col {
+            builder.col(col);
         }
+
+        if let Some(width) = config.width {
+            builder.width(width as Integer);
+        }
+
+        if let Some(height) = config.height {
+            builder.height(height as Integer);
+        }
+
+        if let Some(anchor) = config.anchor {
+            builder.anchor(anchor.into());
+        }
+
+        if let Some(relative) = &config.relative {
+            builder.relative(relative.clone().into());
+        }
+
+        if let Some(win) = &config.win {
+            builder.win(win.0);
+        }
+
+        if let Some((line, column)) = config.bufpos {
+            builder.bufpos(Array::from_iter([
+                line as Integer,
+                column as Integer,
+            ]));
+        }
+
+        if let Some(external) = config.external {
+            builder.external(external);
+        }
+
+        if let Some(focusable) = config.focusable {
+            builder.focusable(focusable);
+        }
+
+        if let Some(zindex) = config.zindex {
+            builder.zindex(zindex as Integer);
+        }
+
+        if let Some(border) = &config.border {
+            builder.border(border.clone().into());
+        }
+
+        if let Some(title) = config.title.as_ref() {
+            builder.title(title.into());
+        }
+
+        if let Some(title_pos) = config.title_pos {
+            builder.title_pos(title_pos.into());
+        }
+
+        if let Some(footer) = config.footer.as_ref() {
+            builder.footer(footer.into());
+        }
+
+        if let Some(footer_pos) = config.footer_pos {
+            builder.footer_pos(footer_pos.into());
+        }
+
+        if let Some(style) = config.style {
+            builder.style(style.into());
+        }
+
+        if let Some(noautocmd) = config.noautocmd {
+            builder.noautocmd(noautocmd);
+        }
+
+        if let Some(fixed) = config.fixed {
+            builder.fixed(fixed);
+        }
+
+        if let Some(hide) = config.hide {
+            builder.hide(hide);
+        }
+
+        builder.build()
     }
 }
