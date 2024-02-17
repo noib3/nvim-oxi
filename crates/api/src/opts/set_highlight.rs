@@ -46,7 +46,10 @@ pub struct SetHighlightOpts {
     nocombine: Boolean,
 
     #[builder(method = "builder", argtype = "bool")]
-    default_: Boolean,
+    // The field name is actually `default_`, but I think it somehow gets
+    // converted to `default` at build time because the correct mask index
+    // is obtained with `default`.
+    default: Boolean,
 
     #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
     cterm: Object,
