@@ -1,7 +1,6 @@
 use std::error::Error as StdError;
 
-use crate::libuv_sys2::{self as ffi, uv_async_t};
-use crate::{Error, Handle};
+use crate::{ffi, Error, Handle};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 
@@ -11,7 +10,7 @@ type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 /// [1]: http://docs.libuv.org/en/v1.x/async.html
 #[derive(Clone)]
 pub struct AsyncHandle {
-    handle: Handle<uv_async_t, Callback>,
+    handle: Handle<ffi::uv_async_t, Callback>,
 }
 
 unsafe impl Send for AsyncHandle {}
@@ -68,7 +67,7 @@ impl AsyncHandle {
     }
 }
 
-extern "C" fn async_cb(ptr: *mut uv_async_t) {
+extern "C" fn async_cb(ptr: *mut ffi::uv_async_t) {
     let handle: Handle<_, Callback> = unsafe { Handle::from_raw(ptr) };
 
     let callback = unsafe { handle.get_data() };

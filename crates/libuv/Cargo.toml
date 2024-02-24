@@ -7,13 +7,7 @@ repository.workspace = true
 documentation.workspace = true
 license.workspace = true
 
-[features]
-use-1-44 = ["libuv-sys2-1-44"]
-use-1-46 = ["libuv-sys2-1-46"]
-
 [dependencies]
-libuv-sys2-1-44 = { package = "libuv-sys2", version = "1.44.2", optional = true }
-libuv-sys2-1-46 = { package = "libuv-sys2", version = "1.46.0", optional = true }
 luajit = { workspace = true }
 once_cell = { workspace = true }
 thiserror = { workspace = true }

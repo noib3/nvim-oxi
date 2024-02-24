@@ -1,8 +1,7 @@
 use std::error::Error as StdError;
 use std::time::Duration;
 
-use crate::libuv_sys2::{self as ffi, uv_timer_t};
-use crate::{Error, Handle};
+use crate::{ffi, Error, Handle};
 
 pub(crate) type Callback = Box<
     dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,
@@ -13,7 +12,7 @@ pub(crate) type Callback = Box<
 ///
 /// [1]: http://docs.libuv.org/en/v1.x/timer.html
 pub struct TimerHandle {
-    handle: Handle<uv_timer_t, Callback>,
+    handle: Handle<ffi::uv_timer_t, Callback>,
 }
 
 impl TimerHandle {
@@ -91,7 +90,7 @@ impl TimerHandle {
     }
 }
 
-extern "C" fn timer_cb(ptr: *mut uv_timer_t) {
+extern "C" fn timer_cb(ptr: *mut ffi::uv_timer_t) {
     let handle: Handle<_, Callback> = unsafe { Handle::from_raw(ptr) };
 
     let callback = unsafe { handle.get_data() };
