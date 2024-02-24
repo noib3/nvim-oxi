@@ -1,5 +1,3 @@
-use types;
-
 use crate::Buffer;
 use crate::{StringOrInt, StringOrListOfStrings};
 

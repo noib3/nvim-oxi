@@ -1,4 +1,4 @@
-use types::{self as types, Object};
+use types::Object;
 #[cfg(feature = "neovim-nightly")]
 use types::{Boolean, Integer};
 

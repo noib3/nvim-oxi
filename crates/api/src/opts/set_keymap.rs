@@ -1,4 +1,3 @@
-use types;
 #[cfg(not(feature = "neovim-nightly"))]
 use types::Object;
 #[cfg(feature = "neovim-nightly")]
