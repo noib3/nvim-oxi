@@ -2,8 +2,7 @@ use std::alloc::{self, Layout};
 use std::ffi::c_void;
 use std::marker::PhantomData;
 
-use crate::libuv_sys2::{self as ffi, uv_handle_t, uv_loop_t};
-use crate::{Error, Result};
+use crate::{ffi, Error, Result};
 
 /// TODO: docs
 pub(crate) struct Handle<T, D: 'static> {
@@ -21,7 +20,7 @@ impl<T, D> Handle<T, D> {
     /// TODO: docs
     pub(crate) fn new<I>(initializer: I) -> Result<Handle<T, D>>
     where
-        I: FnOnce(*mut uv_loop_t, &mut Self) -> i32,
+        I: FnOnce(*mut ffi::uv_loop_t, &mut Self) -> i32,
     {
         let layout = Layout::new::<T>();
         let ptr = unsafe { alloc::alloc(layout) as *mut T };
@@ -57,14 +56,15 @@ impl<T, D> Handle<T, D> {
     }
 
     pub(crate) unsafe fn get_data(&self) -> *mut D {
-        ffi::uv_handle_get_data(self.as_ptr() as *const uv_handle_t) as *mut D
+        ffi::uv_handle_get_data(self.as_ptr() as *const ffi::uv_handle_t)
+            as *mut D
     }
 
     pub(crate) unsafe fn set_data(&mut self, data: D) {
         let data = Box::into_raw(Box::new(data));
 
         ffi::uv_handle_set_data(
-            self.as_mut_ptr() as *mut uv_handle_t,
+            self.as_mut_ptr() as *mut ffi::uv_handle_t,
             data as *mut c_void,
         )
     }
