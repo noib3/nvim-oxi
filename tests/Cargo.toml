@@ -14,4 +14,4 @@ neovim-nightly = ["nvim-oxi/neovim-nightly"]
 
 [dependencies]
 all_asserts = "2.3"
-nvim-oxi = { path = "..", features = ["test"] }
+nvim-oxi = { path = "..", features = ["libuv", "test"] }
