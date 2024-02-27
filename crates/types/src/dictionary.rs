@@ -61,6 +61,17 @@ impl Dictionary {
             .find_map(|(key, value)| (query == key).then_some(value))
     }
 
+    /// Inserts a key-value pair into the dictionary.
+    #[inline]
+    pub fn insert<K, V>(&mut self, key: K, value: V)
+    where
+        K: Into<crate::String>,
+        V: Into<Object>,
+    {
+        let pair = KeyValuePair { key: key.into(), value: value.into() };
+        self.0.push(pair);
+    }
+
     /// Returns `true` if the dictionary contains no elements.
     #[inline]
     pub fn is_empty(&self) -> bool {

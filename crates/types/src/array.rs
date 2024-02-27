@@ -47,6 +47,15 @@ impl Array {
         #[allow(clippy::unnecessary_struct_initialization)]
         NonOwning::new(Self(KVec { ..self.0 }))
     }
+
+    /// Appends an element to the back of the array.
+    #[inline]
+    pub fn push<V>(&mut self, value: V)
+    where
+        V: Into<Object>,
+    {
+        self.0.push(value.into());
+    }
 }
 
 impl<T: Into<Object>> FromIterator<T> for Array {
