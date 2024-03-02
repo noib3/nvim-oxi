@@ -2,7 +2,7 @@ use std::convert::Infallible;
 
 use nvim_oxi::{Dictionary, Function, Object};
 
-#[nvim_oxi::module]
+#[nvim_oxi::plugin]
 fn calc() -> Dictionary {
     let add =
         Function::from_fn(|(a, b): (i32, i32)| Ok::<_, Infallible>(a + b));

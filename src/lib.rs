@@ -62,7 +62,7 @@ pub mod mlua {
     /// use mlua::prelude::LuaFunction;
     /// use nvim_oxi as nvim;
     ///
-    /// #[nvim::module]
+    /// #[nvim::plugin]
     /// fn mlua() -> nvim::Result<()> {
     ///     nvim::print!("Hello from nvim-oxi..");
     ///
@@ -84,7 +84,7 @@ pub mod mlua {
 
 pub use error::{Error, Result};
 pub use luajit::{dbg, print};
-pub use macros::module;
+pub use macros::plugin;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
 pub use macros::test;

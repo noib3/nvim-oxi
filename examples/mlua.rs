@@ -1,7 +1,7 @@
 use mlua::prelude::LuaFunction;
 use nvim_oxi::{mlua::lua, print, Result};
 
-#[nvim_oxi::module]
+#[nvim_oxi::plugin]
 fn mlua() -> Result<()> {
     print!("Hello from nvim-oxi..");
     let lua = lua();

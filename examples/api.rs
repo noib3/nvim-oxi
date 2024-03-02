@@ -1,7 +1,7 @@
 use nvim_oxi::api::{self, opts::*, types::*, Window};
 use nvim_oxi::{print, Dictionary, Error, Function, Result};
 
-#[nvim_oxi::module]
+#[nvim_oxi::plugin]
 fn api() -> Result<Dictionary> {
     // Create a new `Greetings` command.
     let opts = CreateCommandOpts::builder()

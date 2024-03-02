@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- renamed the macro that marks the entrypoint of a plugin from
+  `nvim_oxi::module` to `nvim_oxi::plugin`
+  ([#142](https://github.com/noib3/nvim-oxi/pull/142));
+
 ## [0.4.2] - Jan 29 2024
 
 ## [0.4.1] - Dec 16 2023

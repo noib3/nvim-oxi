@@ -11,7 +11,7 @@ license.workspace = true
 proc-macro = true
 
 [features]
-module = []
+plugin = []
 test = []
 
 [dependencies]
