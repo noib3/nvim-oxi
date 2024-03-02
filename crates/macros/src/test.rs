@@ -125,7 +125,7 @@ pub fn test(item: ItemFn) -> TokenStream {
             }
         }
 
-        #[::nvim_oxi::module]
+        #[::nvim_oxi::plugin]
         fn #module_name() -> ::nvim_oxi::Result<()> {
             let result = ::std::panic::catch_unwind(|| {
                 #test_body

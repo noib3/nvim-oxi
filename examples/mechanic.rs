@@ -3,7 +3,7 @@ use nvim_oxi::serde::{Deserializer, Serializer};
 use nvim_oxi::{api, lua, print, Dictionary, Function, Object};
 use serde::{Deserialize, Serialize};
 
-#[nvim_oxi::module]
+#[nvim_oxi::plugin]
 fn mechanic() -> Dictionary {
     Dictionary::from_iter([("fix", Function::from_fn(fix))])
 }

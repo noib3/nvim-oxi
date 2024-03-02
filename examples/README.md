@@ -64,15 +64,14 @@ nvim-oxi = "0.3"
 ```
 
 Next, in `lib.rs` we'll annotate the entry point of the plugin with the
-`#[nvim_oxi::module]` macro:
+`#[nvim_oxi::plugin]` macro:
 
 ```rust
 // lib.rs
-use nvim_oxi as oxi;
 
-#[oxi::module]
-fn foo() -> oxi::Result<i32> {
-    Ok(42)
+#[nvim_oxi::plugin]
+fn foo() -> i32 {
+    42
 }
 ```
 

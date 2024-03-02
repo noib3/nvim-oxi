@@ -3,8 +3,8 @@ use syn::parse_macro_input;
 
 mod derive_opts;
 
-#[cfg(feature = "module")]
-mod module;
+#[cfg(feature = "plugin")]
+mod plugin;
 
 #[cfg(feature = "test")]
 mod test;
@@ -32,7 +32,7 @@ pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
 /// ```ignore
 /// // lib.rs
 ///
-/// #[nvim_oxi::module]
+/// #[nvim_oxi::plugin]
 /// fn my_plugin() -> u32 {
 ///     42
 /// }
@@ -49,11 +49,11 @@ pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
 ///
 /// [`Pushable`]: https://docs.rs/nvim-oxi/latest/nvim_oxi/lua/trait.Pushable.html
 /// [`runtimepath`]: https://neovim.io/doc/user/options.html#'runtimepath'
-#[cfg(feature = "module")]
+#[cfg(feature = "plugin")]
 #[proc_macro_attribute]
-pub fn module(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as syn::ItemFn);
-    module::module(item).into()
+    plugin::plugin(item).into()
 }
 
 /// Tests a piece of code inside a Neovim session.

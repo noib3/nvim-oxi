@@ -6,7 +6,7 @@ use nvim_oxi::{print, schedule, Error, Result};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio::time;
 
-#[nvim_oxi::module]
+#[nvim_oxi::plugin]
 fn libuv() -> Result<()> {
     // --
     let mut n = 0;

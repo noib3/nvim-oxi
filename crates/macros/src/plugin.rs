@@ -3,7 +3,7 @@ use quote::quote;
 use syn::ItemFn;
 
 #[inline]
-pub fn module(entrypoint: ItemFn) -> TokenStream {
+pub fn plugin(entrypoint: ItemFn) -> TokenStream {
     let module_name = &entrypoint.sig.ident;
 
     let lua_module =
