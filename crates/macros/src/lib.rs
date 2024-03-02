@@ -51,9 +51,8 @@ pub fn derive_opts_builder(input: TokenStream) -> TokenStream {
 /// [`runtimepath`]: https://neovim.io/doc/user/options.html#'runtimepath'
 #[cfg(feature = "plugin")]
 #[proc_macro_attribute]
-pub fn plugin(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let item = parse_macro_input!(item as syn::ItemFn);
-    plugin::plugin(item).into()
+pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
+    plugin::plugin(attr, item)
 }
 
 /// Tests a piece of code inside a Neovim session.
