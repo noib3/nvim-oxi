@@ -5,6 +5,9 @@ use std::marker::PhantomData;
 use crate::{ffi, Error, Result};
 
 /// TODO: docs
+pub(crate) trait ProperLayout: Sized {}
+
+/// TODO: docs
 pub(crate) struct Handle<T, D: 'static> {
     ptr: *mut T,
     data: PhantomData<D>,
@@ -16,7 +19,7 @@ impl<T, D> Clone for Handle<T, D> {
     }
 }
 
-impl<T, D> Handle<T, D> {
+impl<T: ProperLayout, D> Handle<T, D> {
     /// TODO: docs
     pub(crate) fn new<I>(initializer: I) -> Result<Handle<T, D>>
     where

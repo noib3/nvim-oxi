@@ -7,7 +7,7 @@ mod timer;
 
 pub use error::Error;
 use error::Result;
-use handle::Handle;
+use handle::{Handle, ProperLayout};
 pub use r#async::AsyncHandle;
 pub use r#loop::init;
 use r#loop::with_loop;
