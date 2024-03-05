@@ -8,6 +8,9 @@
   `nvim_oxi::module` to `nvim_oxi::plugin`
   ([#142](https://github.com/noib3/nvim-oxi/pull/142));
 
+- `nvim_oxi::api:echo()` now requires a 3rd parameter of type `EchoOpts`
+  ([#145](https://github.com/noib3/nvim-oxi/pull/145));
+
 ## [0.4.2] - Jan 29 2024
 
 ## [0.4.1] - Dec 16 2023
