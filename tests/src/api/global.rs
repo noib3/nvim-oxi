@@ -32,6 +32,16 @@ fn create_del_user_command() {
 }
 
 #[oxi::test]
+fn echo() {
+    api::echo(
+        [("Hello ", None), ("World", Some("WarningMsg"))],
+        true,
+        &Default::default(),
+    )
+    .unwrap();
+}
+
+#[oxi::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
     let res = api::eval_statusline("foo", &opts);
