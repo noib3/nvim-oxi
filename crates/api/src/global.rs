@@ -153,7 +153,11 @@ pub fn del_var(name: &str) -> Result<()> {
 /// Echoes a message to the Neovim message area.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
-pub fn echo<'hl, Text, Chunks>(chunks: Chunks, history: bool) -> Result<()>
+pub fn echo<'hl, Text, Chunks>(
+    chunks: Chunks,
+    history: bool,
+    opts: &EchoOpts,
+) -> Result<()>
 where
     Chunks: IntoIterator<Item = (Text, Option<&'hl str>)>,
     Text: Into<nvim::String>,
@@ -169,9 +173,18 @@ where
         .collect::<Array>();
 
     let mut err = nvim::Error::new();
-    let opts = Dictionary::new();
+    #[cfg(feature = "neovim-0-8")]
+    let opts = Dictionary::from(opts);
     unsafe {
-        nvim_echo(chunks.non_owning(), history, opts.non_owning(), &mut err)
+        nvim_echo(
+            chunks.non_owning(),
+            history,
+            #[cfg(feature = "neovim-0-8")]
+            opts.non_owning(),
+            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+            opts,
+            &mut err,
+        )
     };
     choose!(err, ())
 }

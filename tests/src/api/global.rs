@@ -33,8 +33,12 @@ fn create_del_user_command() {
 
 #[oxi::test]
 fn echo() {
-    api::echo([("Hello ", None), ("World", Some("WarningMsg"))], true)
-        .unwrap();
+    api::echo(
+        [("Hello ", None), ("World", Some("WarningMsg"))],
+        true,
+        &Default::default(),
+    )
+    .unwrap();
 }
 
 #[oxi::test]
