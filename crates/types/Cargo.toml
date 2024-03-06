@@ -15,3 +15,6 @@ libc = "0.2"
 luajit = { workspace = true }
 serde = { version = "1.0", optional = true }
 thiserror = { workspace = true }
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }

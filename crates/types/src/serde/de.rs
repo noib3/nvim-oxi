@@ -1,6 +1,6 @@
 use std::string::String as StdString;
 
-use serde::de::{self, IntoDeserializer};
+use serde::de::{self, Error, IntoDeserializer};
 
 use super::DeserializeError;
 use crate::{Array, Dictionary, Object, ObjectKind};
@@ -93,7 +93,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                 let (variant, value) = match iter.len() {
                     1 => iter.next().expect("checked length"),
                     _ => {
-                        return Err(de::Error::invalid_value(
+                        return Err(Self::Error::invalid_value(
                             de::Unexpected::Map,
                             &"dictionary with a single key-value pair",
                         ))
@@ -107,7 +107,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                 (unsafe { self.obj.into_string_unchecked() }, None)
             },
 
-            _ => return Err(de::Error::custom("bad enum value")),
+            _ => return Err(Self::Error::custom("bad enum value")),
         };
 
         visitor.visit_enum(EnumDeserializer {
@@ -132,7 +132,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             },
 
             other => {
-                return Err(de::Error::invalid_type(
+                return Err(Self::Error::invalid_type(
                     de::Unexpected::Other(&format!("{other:?}")),
                     &"Array",
                 ))
@@ -187,7 +187,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
             },
 
             other => {
-                return Err(de::Error::invalid_type(
+                return Err(Self::Error::invalid_type(
                     de::Unexpected::Other(&format!("{other:?}")),
                     &"Dictionary",
                 ));
@@ -195,8 +195,8 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         };
 
         let iter = dict.into_iter();
-        let mut deserializer = MapDeserializer { iter, obj: None };
-        visitor.visit_map(&mut deserializer)
+        let deserializer = MapDeserializer { iter, obj: None };
+        visitor.visit_map(deserializer)
     }
 
     #[inline]
@@ -282,7 +282,7 @@ impl<'de> de::MapAccess<'de> for MapDeserializer {
     {
         match self.obj.take() {
             Some(obj) => seed.deserialize(Deserializer { obj }),
-            _ => Err(de::Error::custom("object is missing")),
+            _ => Err(Self::Error::custom("object is missing")),
         }
     }
 
@@ -327,7 +327,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
         match self.obj {
             Some(obj) => seed.deserialize(Deserializer { obj }),
 
-            _ => Err(de::Error::invalid_type(
+            _ => Err(Self::Error::invalid_type(
                 de::Unexpected::UnitVariant,
                 &"newtype variant",
             )),
@@ -348,7 +348,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
                 visitor,
             ),
 
-            _ => Err(de::Error::invalid_type(
+            _ => Err(Self::Error::invalid_type(
                 de::Unexpected::UnitVariant,
                 &"struct variant",
             )),
@@ -369,7 +369,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
                 visitor,
             ),
 
-            _ => Err(de::Error::invalid_type(
+            _ => Err(Self::Error::invalid_type(
                 de::Unexpected::UnitVariant,
                 &"tuple variant",
             )),
@@ -380,7 +380,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
         match self.obj {
             None => Ok(()),
 
-            _ => Err(de::Error::invalid_type(
+            _ => Err(Self::Error::invalid_type(
                 de::Unexpected::NewtypeVariant,
                 &"unit variant",
             )),
@@ -437,5 +437,26 @@ mod tests {
             ("baz", Object::from(Array::from(("foo", "bar", false)))),
         ]);
         assert_eq!(Ok(Object::from(map.clone())), d(map));
+    }
+
+    #[test]
+    fn deserialize_struct_unknown_field() {
+        #[allow(dead_code)]
+        #[derive(Debug, serde::Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Foo {
+            #[serde(default)]
+            foo: String,
+        }
+
+        let foo = Dictionary::from_iter([("bar", Object::from(""))]);
+
+        assert_eq!(
+            Foo::deserialize(Deserializer::new(foo.into())).unwrap_err(),
+            DeserializeError::UnknownField {
+                field: "bar".to_owned(),
+                expected: &["foo"],
+            },
+        );
     }
 }

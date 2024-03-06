@@ -33,9 +33,9 @@ pub enum DeserializeError {
 
     MissingField { field: &'static str },
 
-    UnknownField { variant: String, expected: &'static [&'static str] },
+    UnknownField { field: String, expected: &'static [&'static str] },
 
-    UnknownVariant { field: String, expected: &'static [&'static str] },
+    UnknownVariant { variant: String, expected: &'static [&'static str] },
 }
 
 impl fmt::Display for DeserializeError {
@@ -48,19 +48,19 @@ impl fmt::Display for DeserializeError {
             Self::MissingField { field } => {
                 write!(f, "missing field '{}'", field)
             },
-            Self::UnknownField { variant, expected } => {
+            Self::UnknownField { field, expected } => {
                 write!(
                     f,
                     "unknown field '{}', expected one of: {}",
-                    variant,
+                    field,
                     expected.join(", ")
                 )
             },
-            Self::UnknownVariant { field, expected } => {
+            Self::UnknownVariant { variant, expected } => {
                 write!(
                     f,
                     "unknown variant '{}', expected one of: {}",
-                    field,
+                    variant,
                     expected.join(", ")
                 )
             },
@@ -78,15 +78,15 @@ impl de::Error for DeserializeError {
 
     #[inline]
     fn unknown_field(field: &str, expected: &'static [&'static str]) -> Self {
-        Self::UnknownField { variant: field.to_string(), expected }
+        Self::UnknownField { field: field.to_string(), expected }
     }
 
     #[inline]
     fn unknown_variant(
-        field: &str,
+        variant: &str,
         expected: &'static [&'static str],
     ) -> Self {
-        Self::UnknownVariant { field: field.to_string(), expected }
+        Self::UnknownVariant { variant: variant.to_string(), expected }
     }
 
     #[inline]
