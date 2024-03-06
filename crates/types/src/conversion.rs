@@ -28,7 +28,11 @@ pub enum Error {
 
     #[cfg(feature = "serde")]
     #[error(transparent)]
-    Serde(#[from] crate::serde::Error),
+    Deserialize(#[from] crate::serde::DeserializeError),
+
+    #[cfg(feature = "serde")]
+    #[error(transparent)]
+    Serialize(#[from] crate::serde::SerializeError),
 }
 
 /// Trait implemented for types can be obtained from an [`Object`].

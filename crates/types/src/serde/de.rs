@@ -2,7 +2,7 @@ use std::string::String as StdString;
 
 use serde::de::{self, IntoDeserializer};
 
-use super::Result;
+use super::DeserializeError;
 use crate::{Array, Dictionary, Object, ObjectKind};
 
 /// A struct used for deserializing Neovim `Object`s into Rust values.
@@ -17,7 +17,7 @@ impl Deserializer {
 }
 
 impl<'de> de::Deserializer<'de> for Deserializer {
-    type Error = super::Error;
+    type Error = DeserializeError;
 
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
@@ -25,7 +25,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -65,7 +65,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -81,7 +81,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         _name: &str,
         _variants: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value>
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -117,7 +117,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -145,7 +145,11 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_tuple<V>(self, _len: usize, visitor: V) -> Result<V::Value>
+    fn deserialize_tuple<V>(
+        self,
+        _len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -158,7 +162,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         _name: &'static str,
         _len: usize,
         visitor: V,
-    ) -> Result<V::Value>
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -166,7 +170,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     }
 
     #[inline]
-    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value>
+    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -201,7 +205,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         _name: &'static str,
         _fields: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value>
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -213,7 +217,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         self,
         _name: &'static str,
         visitor: V,
-    ) -> Result<V::Value>
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -226,9 +230,12 @@ struct SeqDeserializer {
 }
 
 impl<'de> de::SeqAccess<'de> for SeqDeserializer {
-    type Error = super::Error;
+    type Error = DeserializeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
+    fn next_element_seed<T>(
+        &mut self,
+        seed: T,
+    ) -> Result<Option<T::Value>, Self::Error>
     where
         T: de::DeserializeSeed<'de>,
     {
@@ -250,9 +257,12 @@ struct MapDeserializer {
 }
 
 impl<'de> de::MapAccess<'de> for MapDeserializer {
-    type Error = super::Error;
+    type Error = DeserializeError;
 
-    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>>
+    fn next_key_seed<K>(
+        &mut self,
+        seed: K,
+    ) -> Result<Option<K::Value>, Self::Error>
     where
         K: de::DeserializeSeed<'de>,
     {
@@ -266,7 +276,7 @@ impl<'de> de::MapAccess<'de> for MapDeserializer {
         Ok(None)
     }
 
-    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value>
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
     where
         V: de::DeserializeSeed<'de>,
     {
@@ -287,10 +297,13 @@ struct EnumDeserializer {
 }
 
 impl<'de> de::EnumAccess<'de> for EnumDeserializer {
-    type Error = super::Error;
+    type Error = DeserializeError;
     type Variant = VariantDeserializer;
 
-    fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant)>
+    fn variant_seed<V>(
+        self,
+        seed: V,
+    ) -> Result<(V::Value, Self::Variant), Self::Error>
     where
         V: de::DeserializeSeed<'de>,
     {
@@ -305,9 +318,9 @@ struct VariantDeserializer {
 }
 
 impl<'de> de::VariantAccess<'de> for VariantDeserializer {
-    type Error = super::Error;
+    type Error = DeserializeError;
 
-    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value>
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
     where
         T: de::DeserializeSeed<'de>,
     {
@@ -325,7 +338,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
         self,
         _fields: &'static [&'static str],
         visitor: V,
-    ) -> Result<V::Value>
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -342,7 +355,11 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
         }
     }
 
-    fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value>
+    fn tuple_variant<V>(
+        self,
+        _len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -359,7 +376,7 @@ impl<'de> de::VariantAccess<'de> for VariantDeserializer {
         }
     }
 
-    fn unit_variant(self) -> Result<()> {
+    fn unit_variant(self) -> Result<(), Self::Error> {
         match self.obj {
             None => Ok(()),
 
@@ -378,7 +395,7 @@ mod tests {
     use super::*;
     use crate::{Array, Dictionary};
 
-    fn d(value: impl Into<Object>) -> Result<Object> {
+    fn d(value: impl Into<Object>) -> Result<Object, DeserializeError> {
         Object::deserialize(Deserializer::new(value.into()))
             .map_err(Into::into)
     }
