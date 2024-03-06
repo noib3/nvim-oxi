@@ -8,5 +8,5 @@ mod error;
 mod ser;
 
 pub use de::Deserializer;
-pub use error::{Error, Result};
+pub use error::{DeserializeError, SerializeError};
 pub use ser::Serializer;
