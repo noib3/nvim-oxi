@@ -2,6 +2,10 @@ use types::{Array, Boolean, Dictionary, Error, NonOwning, Object, String};
 
 use crate::opts::*;
 
+#[cfg_attr(
+    all(target_os = "windows", target_env = "msvc"),
+    link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
+)]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L283
     pub(crate) fn nvim_call_dict_function(

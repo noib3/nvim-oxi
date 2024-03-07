@@ -2,6 +2,10 @@ use types::*;
 
 use crate::opts::*;
 
+#[cfg_attr(
+    all(target_os = "windows", target_env = "msvc"),
+    link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
+)]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1037
     pub(crate) fn nvim_chan_send(
