@@ -1,4 +1,5 @@
 target/
 lua/
+.idea
 **/Cargo.lock
 /TODO.md
