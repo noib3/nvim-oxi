@@ -51,6 +51,10 @@ pub type lua_Integer = isize;
 // https://www.lua.org/manual/5.1/manual.html#lua_Number
 pub type lua_Number = c_double;
 
+#[cfg_attr(
+    all(target_os = "windows", target_env = "msvc"),
+    link(name = "lua51", kind = "raw-dylib")
+)]
 extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub fn lua_call(L: *mut lua_State, nargs: c_int, nresults: c_int);
