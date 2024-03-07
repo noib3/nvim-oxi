@@ -12,6 +12,10 @@ neovim-0-8 = ["nvim-oxi/neovim-0-8"]
 neovim-0-9 = ["nvim-oxi/neovim-0-9"]
 neovim-nightly = ["nvim-oxi/neovim-nightly"]
 
-[dependencies]
+[target.'cfg(not(any(target_os = "windows", target_env = "msvc")))'.dependencies]
 all_asserts = "2.3"
 nvim-oxi = { path = "..", features = ["libuv", "test"] }
+
+[target.'cfg(any(target_os = "windows", target_env = "msvc"))'.dependencies]
+all_asserts = "2.3"
+nvim-oxi = { path = "..", features = ["test"] }
