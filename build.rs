@@ -25,4 +25,10 @@ compile_error!(
 
 fn main() {
     println!("cargo:rerun-if-changed=build");
+
+    if cfg!(target_env = "msvc") {
+        println!("cargo:rustc-link-search=native=lib");
+        println!("cargo:rustc-link-lib=dylib=nvim");
+        println!("cargo:rustc-link-lib=dylib=lua51");
+    }
 }
