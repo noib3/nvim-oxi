@@ -24,15 +24,6 @@ pub fn test(item: ItemFn) -> TokenStream {
             library_filename.push_str(env!("CARGO_CRATE_NAME"));
             library_filename.push_str(::std::env::consts::DLL_SUFFIX);
 
-            let mut target_filename = String::from("__");
-            target_filename.push_str(stringify!(#test_name));
-
-            #[cfg(not(target_os = "macos"))]
-            target_filename.push_str(::std::env::consts::DLL_SUFFIX);
-
-            #[cfg(target_os = "macos")]
-            target_filename.push_str(".so");
-
             let manifest_dir = env!("CARGO_MANIFEST_DIR");
             let target_dir = nvim_oxi::__test::get_target_dir(manifest_dir.as_ref()).join("debug");
 
@@ -46,55 +37,17 @@ pub fn test(item: ItemFn) -> TokenStream {
                 )
             }
 
-            let target_filepath =
-                target_dir.join("oxi-test").join("lua").join(target_filename);
-
-            if !target_filepath.parent().unwrap().exists() {
-                if let Err(err) = ::std::fs::create_dir_all(
-                    target_filepath.parent().unwrap(),
-                ) {
-                    // It might happen that another test created the `lua`
-                    // directory between the first if and the `create_dir_all`.
-                    if !matches!(
-                        err.kind(),
-                        ::std::io::ErrorKind::AlreadyExists
-                    ) {
-                        panic!("{}", err)
-                    }
-                }
-            }
-
-            #[cfg(unix)]
-            let res = ::std::os::unix::fs::symlink(
-                &library_filepath,
-                &target_filepath,
-            );
-
-            #[cfg(windows)]
-            let res = ::std::os::windows::fs::symlink_file(
-                &library_filepath,
-                &target_filepath,
-            );
-
-            if let Err(err) = res {
-                if !matches!(err.kind(), ::std::io::ErrorKind::AlreadyExists) {
-                    panic!("{}", err)
-                }
-            }
-
             let out = ::std::process::Command::new("nvim")
                 .args(["-u", "NONE", "--headless"])
+                .args(["-i", "NONE"])
                 .args(["-c", "set noswapfile"])
                 .args([
                     "-c",
                     &format!(
-                        "set rtp+={}",
-                        target_dir.join("oxi-test").display()
+                        "lua local f = package.loadlib([[{}]], 'luaopen___{}'); f()",
+                        library_filepath.display(),
+                        stringify!(#test_name),
                     ),
-                ])
-                .args([
-                    "-c",
-                    &format!("lua require('__{}')", stringify!(#test_name)),
                 ])
                 .args(["+quit"])
                 .output()
