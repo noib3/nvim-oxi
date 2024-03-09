@@ -39,6 +39,7 @@ pub(crate) struct uv_timer_t(uv_timer_s);
 
 impl crate::ProperLayout for uv_timer_t {}
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/luvit/luv/blob/master/src/luv.c#L751
     pub(crate) fn luv_loop(

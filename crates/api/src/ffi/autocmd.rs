@@ -2,6 +2,7 @@ use types::*;
 
 use crate::opts::*;
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/autocmd.c#L570
     pub(crate) fn nvim_clear_autocmds(

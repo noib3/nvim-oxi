@@ -9,6 +9,7 @@ use types::{
     WinHandle,
 };
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/tabpage.c#L86
     pub(crate) fn nvim_tabpage_del_var(

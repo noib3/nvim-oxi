@@ -64,6 +64,9 @@ mlua = { version = "0.9", features = ["luajit", "module"] }
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
 
+[build-dependencies]
+which = "6.0.0"
+
 [[example]]
 name = "api"
 path = "./examples/api.rs"

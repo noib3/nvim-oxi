@@ -2,6 +2,7 @@ use types::{Array, Boolean, Dictionary, Error, NonOwning, Object, String};
 
 use crate::opts::*;
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L283
     pub(crate) fn nvim_call_dict_function(

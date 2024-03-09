@@ -1,5 +1,6 @@
 use types::*;
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L428
     pub(crate) fn nvim_win_call(

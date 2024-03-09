@@ -2,6 +2,7 @@ use types::*;
 
 use crate::opts::*;
 
+#[link(name = "nvim", kind = "raw-dylib")]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1037
     pub(crate) fn nvim_chan_send(
