@@ -1,3 +1,7 @@
+#[cfg_attr(
+    all(target_os = "windows", target_env = "msvc"),
+    link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
+)]
 extern "C" {
     // https://github.com/neovim/neovim/blob/4f788f78f8b2d59a76b1a54a40af0c478eb3f929/src/nvim/api/private/helpers.c#L841
     #[cfg(feature = "neovim-nightly")]

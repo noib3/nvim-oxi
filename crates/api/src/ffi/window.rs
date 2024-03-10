@@ -1,5 +1,9 @@
 use types::*;
 
+#[cfg_attr(
+    all(target_os = "windows", target_env = "msvc"),
+    link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
+)]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L428
     pub(crate) fn nvim_win_call(
