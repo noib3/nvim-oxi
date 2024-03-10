@@ -31,6 +31,8 @@ where
             dict.non_owning(),
             func.non_owning(),
             args.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
             &mut err,
         )
     };
@@ -52,7 +54,13 @@ where
     let args = args.into();
     let mut err = nvim::Error::new();
     let res = unsafe {
-        nvim_call_function(func.non_owning(), args.non_owning(), &mut err)
+        nvim_call_function(
+            func.non_owning(),
+            args.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
     };
     choose!(err, Ok(Ret::from_object(res)?))
 }
@@ -65,8 +73,16 @@ where
 /// [1]: https://neovim.io/doc/user/api.html#nvim_cmd()
 pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
     let mut err = nvim::Error::new();
-    let output =
-        unsafe { nvim_cmd(LUA_INTERNAL_CALL, &infos.into(), opts, &mut err) };
+    let output = unsafe {
+        nvim_cmd(
+            LUA_INTERNAL_CALL,
+            &infos.into(),
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, {
         Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
     })
@@ -95,7 +111,14 @@ where
 {
     let expr = nvim::String::from(expr);
     let mut err = nvim::Error::new();
-    let output = unsafe { nvim_eval(expr.non_owning(), &mut err) };
+    let output = unsafe {
+        nvim_eval(
+            expr.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(V::from_object(output)?))
 }
 
@@ -133,6 +156,8 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
             &mut err,
         )
     };

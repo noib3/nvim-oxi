@@ -1,5 +1,6 @@
 //! Rust bindings to the C types used by Neovim's API.
 
+mod arena;
 mod array;
 pub mod conversion;
 mod dictionary;
@@ -12,6 +13,7 @@ mod object;
 pub mod serde;
 mod string;
 
+pub use arena::{arena, arena_init, Arena};
 pub use array::Array;
 pub use dictionary::Dictionary;
 pub use error::Error;

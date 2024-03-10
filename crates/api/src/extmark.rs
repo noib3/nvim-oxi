@@ -127,6 +127,8 @@ impl Buffer {
                 opts.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
                 opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -179,6 +181,8 @@ impl Buffer {
                 opts.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
                 opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -258,7 +262,14 @@ pub fn create_namespace(name: &str) -> u32 {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
-    unsafe { nvim_get_namespaces() }.into_iter().map(|(k, v)| {
+    unsafe {
+        nvim_get_namespaces(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    }
+    .into_iter()
+    .map(|(k, v)| {
         let k = k.to_string_lossy().into();
         let v = u32::from_object(v).expect("namespace id is positive");
         (k, v)

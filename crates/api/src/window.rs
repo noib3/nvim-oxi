@@ -206,7 +206,14 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_position()
     pub fn get_position(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe { nvim_win_get_position(self.0, &mut err) };
+        let arr = unsafe {
+            nvim_win_get_position(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -237,8 +244,15 @@ impl Window {
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let obj =
-            unsafe { nvim_win_get_var(self.0, name.non_owning(), &mut err) };
+        let obj = unsafe {
+            nvim_win_get_var(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, Ok(Var::from_object(obj)?))
     }
 

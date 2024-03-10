@@ -1,3 +1,5 @@
+#[cfg(feature = "neovim-nightly")]
+use types::Arena;
 use types::{Boolean, BufHandle, Dictionary, Error, WinHandle};
 
 use crate::types::WindowOpts;
@@ -18,6 +20,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L240
     pub(crate) fn nvim_win_get_config(
         window: WinHandle,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
