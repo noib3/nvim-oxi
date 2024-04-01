@@ -30,7 +30,7 @@ impl Buffer {
     {
         let hl_group = nvim::String::from(hl_group);
         let mut err = nvim::Error::new();
-        let (start, end) = utils::range_to_limits(byte_range);
+        let (start, end) = utils::range_to_limits::<true, _>(byte_range);
         let ns_id = unsafe {
             nvim_buf_add_highlight(
                 self.0,
@@ -62,7 +62,7 @@ impl Buffer {
         R: RangeBounds<usize>,
     {
         let mut err = nvim::Error::new();
-        let (start, end) = utils::range_to_limits(line_range);
+        let (start, end) = utils::range_to_limits::<true, _>(line_range);
         unsafe {
             nvim_buf_clear_namespace(
                 self.0,

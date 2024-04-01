@@ -1,5 +1,5 @@
+use core::ops::RangeBounds;
 use std::fmt;
-use std::ops::RangeBounds;
 use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;
 
@@ -339,7 +339,7 @@ impl Buffer {
         R: RangeBounds<usize>,
     {
         let mut err = nvim::Error::new();
-        let (start, end) = utils::range_to_limits(line_range);
+        let (start, end) = utils::range_to_limits::<true, _>(line_range);
         let lines = unsafe {
             nvim_buf_get_lines(
                 LUA_INTERNAL_CALL,
@@ -452,7 +452,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         #[cfg(not(feature = "neovim-nightly"))]
         let opts = types::Dictionary::from(opts);
-        let (start, end) = utils::range_to_limits(line_range);
+        let (start, end) = utils::range_to_limits::<false, _>(line_range);
         let lines = unsafe {
             nvim_buf_get_text(
                 LUA_INTERNAL_CALL,
@@ -576,7 +576,7 @@ impl Buffer {
     {
         let rpl = replacement.into_iter().map(Into::into).collect::<Array>();
         let mut err = nvim::Error::new();
-        let (start, end) = utils::range_to_limits(line_range);
+        let (start, end) = utils::range_to_limits::<true, _>(line_range);
         unsafe {
             nvim_buf_set_lines(
                 LUA_INTERNAL_CALL,
@@ -685,7 +685,7 @@ impl Buffer {
         Line: Into<nvim::String>,
     {
         let mut err = nvim::Error::new();
-        let (start, end) = utils::range_to_limits(line_range);
+        let (start, end) = utils::range_to_limits::<false, _>(line_range);
         unsafe {
             nvim_buf_set_text(
                 LUA_INTERNAL_CALL,
