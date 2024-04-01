@@ -196,7 +196,7 @@ fn buf_set_get_del_text() {
 
     assert_eq!(
         vec!["oo", "ba"],
-        buf.get_text(..2, 1, 2, &Default::default())
+        buf.get_text(..1, 1, 2, &Default::default())
             .unwrap()
             .map(|s| s.to_string_lossy().into())
             .collect::<Vec<String>>()
