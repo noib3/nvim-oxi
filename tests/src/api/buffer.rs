@@ -1,9 +1,9 @@
 use all_asserts::*;
-use nvim_oxi as oxi;
+use nvim_oxi as nvim;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer};
 
-#[oxi::test]
-fn attach() {
+#[nvim::test]
+fn buf_attach() {
     let buf = Buffer::current();
 
     let opts = BufAttachOpts::builder()
@@ -21,14 +21,14 @@ fn attach() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_call() {
     let buf = Buffer::current();
     let res = buf.call(|_| Ok(()));
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_create_del_user_command() {
     let mut buf = Buffer::current();
 
@@ -53,26 +53,26 @@ fn buf_create_del_user_command() {
     assert_eq!(Ok(()), buf.del_user_command("Bar"));
 }
 
-#[oxi::test]
-fn get_changedtick() {
+#[nvim::test]
+fn buf_get_changedtick() {
     let buf = Buffer::current();
     assert!(buf.get_changedtick().is_ok());
 }
 
-#[oxi::test]
-fn loaded_n_valid() {
+#[nvim::test]
+fn buf_loaded_n_valid() {
     let buf = Buffer::current();
     assert!(buf.is_loaded());
     assert!(buf.is_valid());
 }
 
-#[oxi::test]
-fn new_buf_delete() {
+#[nvim::test]
+fn buf_new_delete() {
     let buf = api::create_buf(true, false).unwrap();
     assert_eq!(Ok(()), buf.delete(&Default::default()));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_set_get_del_keymap() {
     let mut buf = Buffer::current();
 
@@ -92,7 +92,7 @@ fn buf_set_get_del_keymap() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_set_get_del_nvo_keymap() {
     let mut buf = Buffer::current();
 
@@ -114,8 +114,8 @@ fn buf_set_get_del_nvo_keymap() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
-fn set_get_del_lines() {
+#[nvim::test]
+fn buf_set_get_del_lines() {
     let mut buf = Buffer::current();
 
     assert_eq!(Ok(()), buf.set_lines(.., true, ["foo", "bar", "baz"]));
@@ -132,7 +132,7 @@ fn set_get_del_lines() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_set_get_del_mark() {
     let mut buf = Buffer::current();
     let opts = SetMarkOpts::default();
@@ -146,8 +146,8 @@ fn buf_set_get_del_mark() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
-fn set_get_del_text() {
+#[nvim::test]
+fn buf_set_get_del_text() {
     let mut buf = Buffer::current();
 
     assert_eq!(Ok(()), buf.set_text(.., 0, 0, ["foo", "bar", "baz"]));
@@ -178,7 +178,7 @@ fn set_get_del_text() {
     assert_eq!(Ok(1), buf.line_count());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_set_get_del_var() {
     let mut buf = Buffer::current();
     buf.set_var("foo", 42).unwrap();
@@ -186,8 +186,8 @@ fn buf_set_get_del_var() {
     assert_eq!(Ok(()), buf.del_var("foo"));
 }
 
-#[oxi::test]
-fn set_get_name() {
+#[nvim::test]
+fn buf_set_get_name() {
     let mut buf = Buffer::current();
 
     assert_eq!("", buf.get_name().unwrap().display().to_string());
@@ -202,7 +202,7 @@ fn set_get_name() {
     assert_eq!(Ok(()), buf.set_name(""));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_set_get_option() {
     let mut buf = Buffer::current();
 
@@ -213,7 +213,7 @@ fn buf_set_get_option() {
     assert!(!buf.get_option::<bool>("modified").unwrap());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn buf_terminal_name() {
     api::command("term").unwrap();
 
@@ -223,7 +223,8 @@ fn buf_terminal_name() {
         api::exec("lua =vim.api.nvim_buf_get_name(0)", true).unwrap().unwrap();
 
     #[cfg(feature = "neovim-0-8")]
-    let term_name_lua = term_name_lua.trim_matches('"').replace("\\\\", "\\").to_owned();
+    let term_name_lua =
+        term_name_lua.trim_matches('"').replace("\\\\", "\\").to_owned();
 
     assert_eq!(term_name_oxi.display().to_string(), term_name_lua);
 }
