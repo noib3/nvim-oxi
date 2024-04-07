@@ -1,4 +1,5 @@
-use std::cmp::Ordering;
+use core::cmp::Ordering;
+use core::mem::transmute;
 use std::collections::BTreeSet;
 
 use serde::Deserialize;
@@ -177,7 +178,7 @@ impl From<DeserializedVimLExpressionAST> for VimLExpressionAst {
                     ExprScope::Var(scope) => scope as u8,
                 };
                 // SAFETY: read above.
-                let scope = unsafe { std::mem::transmute(scope) };
+                let scope = unsafe { transmute::<u8, ExprOptScope>(scope) };
 
                 VimLAstNode::Option { scope, ident }
             },
@@ -190,7 +191,7 @@ impl From<DeserializedVimLExpressionAST> for VimLExpressionAst {
                     ExprScope::Var(scope) => scope as u8,
                 };
                 // SAFETY: read above.
-                let scope = unsafe { std::mem::transmute(scope) };
+                let scope = unsafe { transmute::<u8, ExprVarScope>(scope) };
 
                 VimLAstNode::PlainIdentifier { scope, ident }
             },
