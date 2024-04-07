@@ -11,3 +11,6 @@ license.workspace = true
 luajit = { workspace = true }
 once_cell = { workspace = true }
 thiserror = { workspace = true }
+
+[lints]
+workspace = true

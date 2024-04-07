@@ -19,3 +19,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
 thiserror = { workspace = true }
 types = { workspace = true, features = ["serde"] }
+
+[lints]
+workspace = true

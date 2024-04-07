@@ -24,6 +24,9 @@ once_cell = "1.19"
 thiserror = "1.0"
 types = { path = "./crates/types", package = "nvim-oxi-types" }
 
+[workspace.lints.clippy]
+mixed_attributes_style = "allow"
+
 [package]
 name = "nvim-oxi"
 description.workspace = true
