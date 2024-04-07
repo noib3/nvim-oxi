@@ -1,5 +1,7 @@
 //! Rust bindings to the C types used by Neovim's API.
 
+extern crate alloc;
+
 mod array;
 pub mod conversion;
 mod dictionary;

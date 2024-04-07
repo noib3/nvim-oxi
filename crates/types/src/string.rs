@@ -1,7 +1,9 @@
 //! This module contains the binding to Neovim's `String` type.
 
+use alloc::borrow::Cow;
+use alloc::string::String as StdString;
 use core::{ffi, slice};
-use std::borrow::Cow;
+use std::path::{Path, PathBuf};
 
 use luajit as lua;
 
@@ -137,22 +139,29 @@ impl From<&str> for String {
     }
 }
 
-impl From<char> for String {
+impl From<StdString> for String {
     #[inline]
-    fn from(ch: char) -> Self {
-        ch.to_string().as_str().into()
+    fn from(s: StdString) -> Self {
+        s.as_str().into()
     }
 }
 
-impl From<&std::path::Path> for String {
+impl From<char> for String {
     #[inline]
-    fn from(path: &std::path::Path) -> Self {
-        path.display().to_string().as_str().into()
+    fn from(ch: char) -> Self {
+        ch.to_string().into()
+    }
+}
+
+impl From<&Path> for String {
+    #[inline]
+    fn from(path: &Path) -> Self {
+        path.display().to_string().into()
     }
 }
 
 #[cfg(not(windows))]
-impl From<String> for std::path::PathBuf {
+impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
         use std::os::unix::ffi::OsStrExt;
@@ -161,12 +170,10 @@ impl From<String> for std::path::PathBuf {
 }
 
 #[cfg(windows)]
-impl From<String> for std::path::PathBuf {
+impl From<String> for PathBuf {
     #[inline]
     fn from(nstr: String) -> Self {
-        std::string::String::from_utf8_lossy(nstr.as_bytes())
-            .into_owned()
-            .into()
+        StdString::from_utf8_lossy(nstr.as_bytes()).into_owned().into()
     }
 }
 
@@ -320,7 +327,7 @@ mod tests {
         assert_eq!(lhs, rhs);
 
         let lhs = String::from("foo bar baz");
-        let rhs = std::string::String::from("bar foo baz");
+        let rhs = StdString::from("bar foo baz");
         assert_ne!(lhs, rhs);
 
         let lhs = String::from("€");
@@ -338,7 +345,7 @@ mod tests {
 
     #[test]
     fn from_string() {
-        let foo = std::string::String::from("foo bar baz");
+        let foo = StdString::from("foo bar baz");
 
         let lhs = String::from(foo.as_str());
         let rhs = String::from(foo.as_str());
