@@ -276,6 +276,12 @@ impl Buffer {
         choose!(err, ())
     }
 
+
+    /// Returns the current buffer number.
+    pub fn bufnr(&self) -> i32 {
+        self.0
+    }
+
     /// Binding to [`nvim_buf_get_changedtick()`][1].
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_changedtick()
