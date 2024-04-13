@@ -73,7 +73,7 @@ fn test_body(
         }
 
         let load_library = format!(
-            "lua local f = package.loadlib([[{}]], 'luaopen_{}'); f()",
+            "lua local f = package.loadlib([[{}]], 'luaopen___{}'); f()",
             library_path.display(),
             stringify!(#test_name),
         );
@@ -98,14 +98,18 @@ fn test_body(
             // Remove the last 2 lines from stderr for a cleaner error msg.
             let stderr = {
                 let lines = stderr.lines().collect::<Vec<_>>();
-                let len = lines.len();
-                lines[..lines.len() - 2].join("\n")
+                lines[..lines.len().saturating_sub(2)].join("\n")
             };
 
-            // The first 31 bytes are `thread '<unnamed>' panicked at `.
-            let (_, stderr) = stderr.split_at(31);
+            let panicked_at = "panicked at ";
 
-            panic!("{}", stderr)
+            let print_from = stderr
+                .match_indices(panicked_at)
+                .next()
+                .map(|(offset, _)| offset + panicked_at.len())
+                .unwrap_or(0);
+
+            panic!("{}", &stderr[print_from..]);
         } else if let Some(code) = out.status.code() {
             panic!("Neovim exited with non-zero exit code: {}", code);
         } else {
