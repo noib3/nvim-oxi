@@ -4,7 +4,7 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, parse_quote, ItemFn, Path, Token};
 
-use crate::common::{DuplicateError, KeyedAttribute};
+use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 
 #[inline]
 pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -92,20 +92,17 @@ impl Default for NvimOxi {
 impl Parse for NvimOxi {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // First, lookahead to see if the key is ours.
-        if input.fork().parse::<Ident>()? != Self::KEY {
-            return Err(input.error("invalid attribute"));
-        }
-
-        let _key = input.parse::<Ident>().expect("just checked");
-        let _eq = input.parse::<Token![=]>()?;
-        let value = input.parse::<Path>()?;
-        Ok(Self { key_span: Span::call_site(), value })
+        Ok(Self {
+            key_span: Span::call_site(),
+            value: input.parse::<Keyed<Self>>()?.value,
+        })
     }
 }
 
 impl KeyedAttribute for NvimOxi {
     const KEY: &'static str = "nvim_oxi";
+
+    type Value = Path;
 
     #[inline]
     fn key_span(&self) -> Span {

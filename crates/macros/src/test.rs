@@ -3,7 +3,7 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::{ItemFn, LitStr, Token};
 
-use crate::common::{DuplicateError, KeyedAttribute};
+use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 use crate::plugin::NvimOxi;
 
 #[inline]
@@ -168,6 +168,8 @@ struct Cmd {
 impl KeyedAttribute for Cmd {
     const KEY: &'static str = "cmd";
 
+    type Value = LitStr;
+
     #[inline]
     fn key_span(&self) -> Span {
         self.key_span
@@ -177,15 +179,10 @@ impl KeyedAttribute for Cmd {
 impl Parse for Cmd {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // First, lookahead to see if the key is ours.
-        if input.fork().parse::<Ident>()? != Self::KEY {
-            return Err(input.error("invalid attribute"));
-        }
-
-        let _key = input.parse::<Ident>().expect("just checked");
-        let _eq = input.parse::<Token![=]>()?;
-        let cmd = input.parse::<LitStr>()?;
-        Ok(Self { key_span: Span::call_site(), cmd })
+        Ok(Self {
+            key_span: Span::call_site(),
+            cmd: input.parse::<Keyed<Self>>()?.value,
+        })
     }
 }
 
@@ -199,6 +196,8 @@ struct TestFn {
 impl KeyedAttribute for TestFn {
     const KEY: &'static str = "test_fn";
 
+    type Value = Ident;
+
     #[inline]
     fn key_span(&self) -> Span {
         self.key_span
@@ -208,14 +207,9 @@ impl KeyedAttribute for TestFn {
 impl Parse for TestFn {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // First, lookahead to see if the key is ours.
-        if input.fork().parse::<Ident>()? != Self::KEY {
-            return Err(input.error("invalid attribute"));
-        }
-
-        let _key = input.parse::<Ident>().expect("just checked");
-        let _eq = input.parse::<Token![=]>()?;
-        let name = input.parse::<Ident>()?;
-        Ok(Self { key_span: Span::call_site(), name })
+        Ok(Self {
+            key_span: Span::call_site(),
+            name: input.parse::<Keyed<Self>>()?.value,
+        })
     }
 }
