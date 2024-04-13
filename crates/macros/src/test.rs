@@ -29,7 +29,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
             #test_body
         }
 
-        #[#nvim_oxi::plugin]
+        #[#nvim_oxi::plugin(nvim_oxi = #nvim_oxi)]
         fn #plugin_name() -> #nvim_oxi::Object {
             #plugin_body
         }
