@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
+mod common;
 mod derive_opts;
 
 #[cfg(feature = "plugin")]

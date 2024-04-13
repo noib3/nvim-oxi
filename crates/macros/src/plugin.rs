@@ -4,9 +4,11 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, parse_quote, ItemFn, Path, Token};
 
+use crate::common::{DuplicateError, KeyedAttribute};
+
 #[inline]
 pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let attrs = parse_macro_input!(attr as PluginAttributes);
+    let attrs = parse_macro_input!(attr as Attributes);
 
     let entrypoint = parse_macro_input!(item as ItemFn);
 
@@ -31,26 +33,26 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[derive(Default)]
-struct PluginAttributes {
+struct Attributes {
     nvim_oxi: NvimOxi,
 }
 
-impl Parse for PluginAttributes {
+impl Parse for Attributes {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attrs = Self::default();
+        let mut this = Self::default();
 
         let mut has_parsed_nvim_oxi = false;
 
         while !input.is_empty() {
-            let keypair = input.parse::<AttributeKeyPair>()?;
+            let keypair = input.parse::<Attribute>()?;
 
             match keypair {
-                AttributeKeyPair::NvimOxi(nvim_oxi) => {
+                Attribute::NvimOxi(nvim_oxi) => {
                     if has_parsed_nvim_oxi {
                         return Err(DuplicateError(nvim_oxi).into());
                     }
-                    attrs.nvim_oxi = nvim_oxi;
+                    this.nvim_oxi = nvim_oxi;
                     has_parsed_nvim_oxi = true;
                 },
             }
@@ -60,41 +62,22 @@ impl Parse for PluginAttributes {
             }
         }
 
-        Ok(attrs)
+        Ok(this)
     }
 }
 
-enum AttributeKeyPair {
+enum Attribute {
     NvimOxi(NvimOxi),
 }
 
-impl Parse for AttributeKeyPair {
+impl Parse for Attribute {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let key = input.parse::<Ident>()?;
-        let _eq = input.parse::<Token![=]>()?;
-
-        match key {
-            key if key == NvimOxi::KEY => {
-                let mut nvim_oxi = input.parse::<NvimOxi>()?;
-                nvim_oxi.key_span = key.span();
-                Ok(Self::NvimOxi(nvim_oxi))
-            },
-
-            _ => Err(syn::Error::new(key.span(), "invalid attribute")),
-        }
+        input.parse::<NvimOxi>().map(Self::NvimOxi)
     }
 }
 
-type Key = &'static str;
-
-trait KeyPair: Default + Parse {
-    const KEY: Key;
-
-    fn key_span(&self) -> Span;
-}
-
-struct NvimOxi {
+pub(crate) struct NvimOxi {
     key_span: Span,
     value: Path,
 }
@@ -109,13 +92,20 @@ impl Default for NvimOxi {
 impl Parse for NvimOxi {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        // First, lookahead to see if the key is ours.
+        if input.fork().parse::<Ident>()? != Self::KEY {
+            return Err(input.error("invalid attribute"));
+        }
+
+        let _key = input.parse::<Ident>().expect("just checked");
+        let _eq = input.parse::<Token![=]>()?;
         let value = input.parse::<Path>()?;
         Ok(Self { key_span: Span::call_site(), value })
     }
 }
 
-impl KeyPair for NvimOxi {
-    const KEY: Key = "nvim_oxi";
+impl KeyedAttribute for NvimOxi {
+    const KEY: &'static str = "nvim_oxi";
 
     #[inline]
     fn key_span(&self) -> Span {
@@ -127,23 +117,5 @@ impl ToTokens for NvimOxi {
     #[inline]
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.value.to_tokens(tokens);
-    }
-}
-
-struct DuplicateError<T>(T);
-
-impl<T: KeyPair> From<DuplicateError<T>> for syn::Error {
-    #[inline]
-    fn from(DuplicateError(keypair): DuplicateError<T>) -> Self {
-        struct ErrorMsg(Key);
-
-        impl core::fmt::Display for ErrorMsg {
-            #[inline]
-            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-                write!(f, "duplicate attribute: `{}`", self.0)
-            }
-        }
-
-        syn::Error::new(keypair.key_span(), ErrorMsg(T::KEY))
     }
 }
