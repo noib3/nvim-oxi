@@ -1,6 +1,10 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use syn::ItemFn;
+use syn::parse::{Parse, ParseStream};
+use syn::{ItemFn, LitStr, Token};
+
+use crate::common::{DuplicateError, KeyedAttribute};
+use crate::plugin::NvimOxi;
 
 #[inline]
 pub fn test(item: ItemFn) -> TokenStream {
@@ -86,12 +90,132 @@ pub fn test(item: ItemFn) -> TokenStream {
 
             ::std::process::exit(match result {
                 Ok(_) => 0,
-
                 Err(err) => {
                     eprintln!("{:?}", err);
                     1
                 },
             })
         }
+    }
+}
+
+#[derive(Default)]
+struct Attributes {
+    cmd: Option<Cmd>,
+    nvim_oxi: Option<NvimOxi>,
+    test_fn: Option<TestFn>,
+}
+
+impl Parse for Attributes {
+    #[inline]
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut this = Self::default();
+
+        while !input.is_empty() {
+            match input.parse::<Attribute>()? {
+                Attribute::Cmd(cmd) => {
+                    if this.cmd.is_some() {
+                        return Err(DuplicateError(cmd).into());
+                    }
+                    this.cmd = Some(cmd);
+                },
+                Attribute::NvimOxi(nvim_oxi) => {
+                    if this.nvim_oxi.is_some() {
+                        return Err(DuplicateError(nvim_oxi).into());
+                    }
+                    this.nvim_oxi = Some(nvim_oxi);
+                },
+                Attribute::TestFn(test_fn) => {
+                    if this.test_fn.is_some() {
+                        return Err(DuplicateError(test_fn).into());
+                    }
+                    this.test_fn = Some(test_fn);
+                },
+            }
+
+            if !input.is_empty() {
+                input.parse::<Token![,]>()?;
+            }
+        }
+
+        Ok(this)
+    }
+}
+
+enum Attribute {
+    Cmd(Cmd),
+    NvimOxi(NvimOxi),
+    TestFn(TestFn),
+}
+
+impl Parse for Attribute {
+    #[inline]
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        input
+            .parse::<Cmd>()
+            .map(Self::Cmd)
+            .or_else(|_| input.parse::<NvimOxi>().map(Self::NvimOxi))
+            .or_else(|_| input.parse::<TestFn>().map(Self::TestFn))
+    }
+}
+
+/// The command that will be passed to the Neovim CLI.
+struct Cmd {
+    key_span: Span,
+    cmd: LitStr,
+}
+
+impl KeyedAttribute for Cmd {
+    const KEY: &'static str = "cmd";
+
+    #[inline]
+    fn key_span(&self) -> Span {
+        self.key_span
+    }
+}
+
+impl Parse for Cmd {
+    #[inline]
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // First, lookahead to see if the key is ours.
+        if input.fork().parse::<Ident>()? != Self::KEY {
+            return Err(input.error("invalid attribute"));
+        }
+
+        let _key = input.parse::<Ident>().expect("just checked");
+        let _eq = input.parse::<Token![=]>()?;
+        let cmd = input.parse::<LitStr>()?;
+        Ok(Self { key_span: Span::call_site(), cmd })
+    }
+}
+
+/// The name of the function that will be executed in the entrypoint of the
+/// test.
+struct TestFn {
+    key_span: Span,
+    name: Ident,
+}
+
+impl KeyedAttribute for TestFn {
+    const KEY: &'static str = "test_fn";
+
+    #[inline]
+    fn key_span(&self) -> Span {
+        self.key_span
+    }
+}
+
+impl Parse for TestFn {
+    #[inline]
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // First, lookahead to see if the key is ours.
+        if input.fork().parse::<Ident>()? != Self::KEY {
+            return Err(input.error("invalid attribute"));
+        }
+
+        let _key = input.parse::<Ident>().expect("just checked");
+        let _eq = input.parse::<Token![=]>()?;
+        let name = input.parse::<Ident>()?;
+        Ok(Self { key_span: Span::call_site(), name })
     }
 }
