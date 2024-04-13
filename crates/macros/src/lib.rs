@@ -106,7 +106,6 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 #[cfg(feature = "test")]
 #[proc_macro_attribute]
-pub fn test(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let item = parse_macro_input!(item as syn::ItemFn);
-    test::test(item).into()
+pub fn test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    test::test(attr, item)
 }

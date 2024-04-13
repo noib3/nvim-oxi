@@ -1,100 +1,141 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use proc_macro::TokenStream;
+use proc_macro2::{Ident, Span};
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{ItemFn, LitStr, Token};
+use syn::{parse_macro_input, Block, ItemFn, LitStr, Token};
 
 use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 use crate::plugin::NvimOxi;
 
 #[inline]
-pub fn test(item: ItemFn) -> TokenStream {
-    let ItemFn { sig, block, .. } = item;
+pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
+    let attrs = parse_macro_input!(attrs as Attributes);
 
-    // TODO: here we'd need to append something like the module path of the
-    // call site to `test_name` to avoid collisions between equally named tests
-    // across different modules. Unfortunately that doesn't seem to be possible
-    // yet?
-    // See https://www.reddit.com/r/rust/comments/a3fgp6/procmacro_determining_the_callers_module_path/
+    let ItemFn { sig, block, .. } = parse_macro_input!(item as syn::ItemFn);
+
     let test_name = sig.ident;
-    let test_body = block;
 
-    let module_name = Ident::new(&format!("__{test_name}"), Span::call_site());
+    let test_body = test_body(&attrs, &test_name);
+
+    let plugin_name = Ident::new(&format!("__{test_name}"), Span::call_site());
+
+    let plugin_body = plugin_body(&attrs, &block);
+
+    let nvim_oxi = &attrs.nvim_oxi;
 
     quote! {
         #[test]
         fn #test_name() {
-            let mut library_filename = String::new();
-            library_filename.push_str(::std::env::consts::DLL_PREFIX);
-            library_filename.push_str(env!("CARGO_CRATE_NAME"));
-            library_filename.push_str(::std::env::consts::DLL_SUFFIX);
-
-            let manifest_dir = env!("CARGO_MANIFEST_DIR");
-            let target_dir = nvim_oxi::__test::get_target_dir(manifest_dir.as_ref()).join("debug");
-
-            let library_filepath = target_dir.join(library_filename);
-
-            if !library_filepath.exists() {
-                panic!(
-                    "Compiled library not found in '{}'. Please run `cargo \
-                     build` before running the tests.",
-                    library_filepath.display()
-                )
-            }
-
-            let out = ::std::process::Command::new("nvim")
-                .args(["-u", "NONE", "--headless"])
-                .args(["-i", "NONE"])
-                .args(["-c", "set noswapfile"])
-                .args([
-                    "-c",
-                    &format!(
-                        "lua local f = package.loadlib([[{}]], 'luaopen___{}'); f()",
-                        library_filepath.display(),
-                        stringify!(#test_name),
-                    ),
-                ])
-                .args(["+quit"])
-                .output()
-                .expect("Couldn't find `nvim` binary in $PATH");
-
-            if out.status.success() {
-                return;
-            }
-
-            let stderr = String::from_utf8_lossy(&out.stderr);
-
-            if !stderr.is_empty() {
-                // Remove the last 2 lines from stderr for a cleaner error msg.
-                let stderr = {
-                    let lines = stderr.lines().collect::<Vec<_>>();
-                    let len = lines.len();
-                    lines[..lines.len() - 2].join("\n")
-                };
-
-                // The first 31 bytes are `thread '<unnamed>' panicked at `.
-                let (_, stderr) = stderr.split_at(31);
-
-                panic!("{}", stderr)
-            } else if let Some(code) = out.status.code() {
-                panic!("Neovim exited with non-zero exit code: {}", code);
-            } else {
-                panic!("Neovim segfaulted");
-            }
+            #test_body
         }
 
-        #[::nvim_oxi::plugin]
-        fn #module_name() -> ::nvim_oxi::Result<()> {
+        #[#nvim_oxi::plugin]
+        fn #plugin_name() -> #nvim_oxi::Object {
+            #plugin_body
+        }
+    }
+    .into()
+}
+
+fn test_body(
+    attrs: &Attributes,
+    test_name: &Ident,
+) -> proc_macro2::TokenStream {
+    let nvim_oxi = &attrs.nvim_oxi;
+
+    let cmd = match &attrs.cmd {
+        Some(cmd) => quote! { ["-c", #cmd] },
+        None => quote! { ::core::iter::empty::<&str>() },
+    };
+
+    quote! {
+        let library_name = {
+            let mut s = ::std::string::String::new();
+            s.push_str(::std::env::consts::DLL_PREFIX);
+            s.push_str(env!("CARGO_CRATE_NAME"));
+            s.push_str(::std::env::consts::DLL_SUFFIX);
+            s
+        };
+
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+
+        // The full path to the compiled library.
+        let library_path = #nvim_oxi::__test::get_target_dir(manifest_dir.as_ref())
+            .join("debug")
+            .join(library_name);
+
+        if !library_path.exists() {
+            panic!(
+                "Compiled library not found in '{}'. Please run `cargo \
+                 build` before running the tests.",
+                library_path.display()
+            )
+        }
+
+        let load_library = format!(
+            "lua local f = package.loadlib([[{}]], 'luaopen_{}'); f()",
+            library_path.display(),
+            stringify!(#test_name),
+        );
+
+        let out = ::std::process::Command::new("nvim")
+            .args(["-u", "NONE", "--headless"])
+            .args(["-i", "NONE"])
+            .args(["-c", "set noswapfile"])
+            .args(#cmd)
+            .args(["-c", &load_library])
+            .args(["+quit"])
+            .output()
+            .expect("Couldn't find `nvim` binary in $PATH");
+
+        if out.status.success() {
+            return;
+        }
+
+        let stderr = ::std::string::String::from_utf8_lossy(&out.stderr);
+
+        if !stderr.is_empty() {
+            // Remove the last 2 lines from stderr for a cleaner error msg.
+            let stderr = {
+                let lines = stderr.lines().collect::<Vec<_>>();
+                let len = lines.len();
+                lines[..lines.len() - 2].join("\n")
+            };
+
+            // The first 31 bytes are `thread '<unnamed>' panicked at `.
+            let (_, stderr) = stderr.split_at(31);
+
+            panic!("{}", stderr)
+        } else if let Some(code) = out.status.code() {
+            panic!("Neovim exited with non-zero exit code: {}", code);
+        } else {
+            panic!("Neovim segfaulted");
+        }
+    }
+}
+
+fn plugin_body(
+    attrs: &Attributes,
+    test_body: &Block,
+) -> proc_macro2::TokenStream {
+    if let Some(test_fn) = &attrs.test_fn {
+        let fn_name = &test_fn.name;
+        quote! { #fn_name().into() }
+    } else {
+        quote! {
             let result = ::std::panic::catch_unwind(|| {
                 #test_body
             });
 
-            ::std::process::exit(match result {
+            let exit_code = match result {
                 Ok(_) => 0,
                 Err(err) => {
                     eprintln!("{:?}", err);
                     1
                 },
-            })
+            };
+
+            ::std::process::exit(exit_code)
         }
     }
 }
@@ -102,7 +143,7 @@ pub fn test(item: ItemFn) -> TokenStream {
 #[derive(Default)]
 struct Attributes {
     cmd: Option<Cmd>,
-    nvim_oxi: Option<NvimOxi>,
+    nvim_oxi: NvimOxi,
     test_fn: Option<TestFn>,
 }
 
@@ -110,6 +151,8 @@ impl Parse for Attributes {
     #[inline]
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut this = Self::default();
+
+        let mut has_parsed_nvim_oxi = false;
 
         while !input.is_empty() {
             match input.parse::<Attribute>()? {
@@ -120,10 +163,11 @@ impl Parse for Attributes {
                     this.cmd = Some(cmd);
                 },
                 Attribute::NvimOxi(nvim_oxi) => {
-                    if this.nvim_oxi.is_some() {
+                    if has_parsed_nvim_oxi {
                         return Err(DuplicateError(nvim_oxi).into());
                     }
-                    this.nvim_oxi = Some(nvim_oxi);
+                    this.nvim_oxi = nvim_oxi;
+                    has_parsed_nvim_oxi = true;
                 },
                 Attribute::TestFn(test_fn) => {
                     if this.test_fn.is_some() {
@@ -183,6 +227,15 @@ impl Parse for Cmd {
             key_span: Span::call_site(),
             cmd: input.parse::<Keyed<Self>>()?.value,
         })
+    }
+}
+
+impl ToTokens for Cmd {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let str = self.cmd.value().lines().collect::<Vec<_>>().join(";");
+        let lit = LitStr::new(&str, self.cmd.span());
+        lit.to_tokens(tokens);
     }
 }
 
