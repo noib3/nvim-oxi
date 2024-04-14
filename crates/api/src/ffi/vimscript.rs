@@ -53,16 +53,6 @@ extern "C" {
         error: *mut Error,
     ) -> String;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L98
-    pub(crate) fn nvim_parse_cmd(
-        src: NonOwning<String>,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        error: *mut Error,
-    ) -> Dictionary;
-
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L438
     pub fn nvim_parse_expression(
         expr: NonOwning<String>,

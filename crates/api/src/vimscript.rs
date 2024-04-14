@@ -2,7 +2,7 @@ use types::{self as nvim, conversion::FromObject, Array, Object};
 
 use super::opts::*;
 use crate::choose;
-use crate::ffi::vimscript::*;
+use crate::ffi::{command::*, vimscript::*};
 use crate::types::*;
 use crate::Result;
 use crate::LUA_INTERNAL_CALL;

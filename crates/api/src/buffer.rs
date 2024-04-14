@@ -16,7 +16,7 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::buffer::*;
+use crate::ffi::{buffer::*, command::*};
 use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::utils;
@@ -293,7 +293,15 @@ impl Buffer {
         opts: &GetCommandsOpts,
     ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
-        let cmds = unsafe { nvim_buf_get_commands(self.0, opts, &mut err) };
+        let cmds = unsafe {
+            nvim_buf_get_commands(
+                self.0,
+                opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(
             err,
             Ok({

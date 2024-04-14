@@ -1,15 +1,4 @@
-use types::{
-    Arena,
-    Array,
-    BufHandle,
-    Dictionary,
-    Error,
-    Integer,
-    LuaRef,
-    NonOwning,
-    Object,
-    String,
-};
+use types::*;
 
 use crate::opts::*;
 
@@ -34,16 +23,6 @@ extern "C" {
         fun: LuaRef,
         err: *mut Error,
     ) -> Object;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
-    pub(crate) fn nvim_buf_create_user_command(
-        #[cfg(not(feature = "neovim-0-8"))] channel_id: u64,
-        buf: BufHandle,
-        name: NonOwning<String>,
-        command: NonOwning<Object>,
-        opts: *const CreateCommandOpts,
-        err: *mut Error,
-    );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L949
     pub(crate) fn nvim_buf_del_keymap(
@@ -88,13 +67,6 @@ extern "C" {
         buf: BufHandle,
         err: *mut Error,
     ) -> Integer;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1243
-    pub(crate) fn nvim_buf_get_commands(
-        buf: BufHandle,
-        opts: *const GetCommandsOpts,
-        err: *mut Error,
-    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/buffer.c#L920
     pub(crate) fn nvim_buf_get_keymap(
