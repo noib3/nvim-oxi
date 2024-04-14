@@ -352,3 +352,50 @@ impl From<&CmdInfos> for KeyDict_cmd {
         }
     }
 }
+
+#[cfg(feature = "neovim-nightly")]
+impl TryFrom<KeyDict_cmd> for CmdInfos {
+    type Error = conversion::Error;
+
+    #[inline]
+    fn try_from(cmd: KeyDict_cmd) -> Result<Self, Self::Error> {
+        let KeyDict_cmd {
+            addr,
+            args,
+            bang,
+            cmd,
+            count,
+            magic,
+            mods,
+            nargs,
+            nextcmd,
+            range,
+            reg,
+            ..
+        } = cmd;
+
+        #[inline]
+        fn deserialize<T>(
+            obj: impl Into<Object>,
+        ) -> Result<T, conversion::Error>
+        where
+            T: serde::de::DeserializeOwned,
+        {
+            T::deserialize(Deserializer::new(obj.into())).map_err(Into::into)
+        }
+
+        Ok(Self {
+            addr: utils::none_literal_is_none(Deserializer::new(addr))?,
+            args: deserialize(args)?,
+            bang: deserialize(bang)?,
+            cmd: deserialize(cmd)?,
+            count: utils::minus_one_is_none(Deserializer::new(count.into()))?,
+            magic: deserialize(magic)?,
+            mods: deserialize(mods)?,
+            nargs: deserialize(nargs)?,
+            nextcmd: utils::empty_string_is_none(Deserializer::new(nextcmd))?,
+            range: deserialize(range)?,
+            reg: utils::char_from_string(Deserializer::new(reg.into()))?,
+        })
+    }
+}

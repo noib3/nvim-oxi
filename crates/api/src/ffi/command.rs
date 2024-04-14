@@ -2,6 +2,12 @@ use types::*;
 
 use crate::opts::*;
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+pub(crate) type ParseCmdOutput = Dictionary;
+
+#[cfg(feature = "neovim-nightly")]
+pub(crate) type ParseCmdOutput = crate::types::KeyDict_cmd;
+
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
@@ -40,5 +46,5 @@ extern "C" {
         #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         error: *mut Error,
-    ) -> Dictionary;
+    ) -> ParseCmdOutput;
 }

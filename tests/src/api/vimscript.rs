@@ -58,9 +58,7 @@ fn exec() {
 #[cfg(not(feature = "neovim-0-8"))]
 #[oxi::test]
 fn parse_cmd_basic() {
-    let opts = ParseCmdOpts::builder().build();
-
-    let res = api::parse_cmd("echo 'foo'", &opts);
+    let res = api::parse_cmd("echo 'foo'", &Default::default());
     assert!(res.is_ok(), "{res:?}");
 
     let infos = res.unwrap();
@@ -69,7 +67,11 @@ fn parse_cmd_basic() {
     assert_eq!(vec!["'foo'"], infos.args);
     assert_eq!(Some(false), infos.bang);
     assert_eq!(Some("echo".into()), infos.cmd);
+
+    #[cfg(feature = "neovim-0-9")]
     assert_eq!(None, infos.count);
+    #[cfg(feature = "neovim-nightly")]
+    assert_eq!(Some(0), infos.count);
 
     let magic = infos.magic.unwrap();
     assert_eq!(false, magic.file);
@@ -94,7 +96,12 @@ fn parse_cmd_basic() {
 
     assert_eq!(Some(CommandNArgs::Any), infos.nargs);
     assert_eq!(None, infos.nextcmd);
+
+    #[cfg(feature = "neovim-0-9")]
     assert_eq!(None, infos.range);
+
+    #[cfg(feature = "neovim-nightly")]
+    assert_eq!(Some(CmdRange::None), infos.range);
 }
 
 #[oxi::test]

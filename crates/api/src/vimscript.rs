@@ -149,7 +149,8 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
     let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
-    let dict = unsafe {
+
+    let out = unsafe {
         nvim_parse_cmd(
             src.non_owning(),
             #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
@@ -161,7 +162,14 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
             &mut err,
         )
     };
-    choose!(err, Ok(CmdInfos::from_object(dict.into())?))
+
+    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    let out = CmdInfos::from_object(out.into())?;
+
+    #[cfg(feature = "neovim-nightly")]
+    let out = CmdInfos::try_from(out)?;
+
+    choose!(err, Ok(out))
 }
 
 /// Binding to [`nvim_parse_expression()`][1].
