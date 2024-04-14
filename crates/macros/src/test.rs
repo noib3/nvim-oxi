@@ -15,11 +15,11 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     let test_name = sig.ident;
 
-    let test_body = test_body(&attrs, &test_name);
-
     let plugin_name = Ident::new(&format!("__{test_name}"), Span::call_site());
 
-    let plugin_body = plugin_body(&attrs, &block);
+    let test_body = test_body(&attrs, &plugin_name);
+
+    let plugin_body = plugin_body(&attrs, &block, &sig.output);
 
     let nvim_oxi = &attrs.nvim_oxi;
 
@@ -39,7 +39,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
 fn test_body(
     attrs: &Attributes,
-    test_name: &Ident,
+    plugin_name: &Ident,
 ) -> proc_macro2::TokenStream {
     let nvim_oxi = &attrs.nvim_oxi;
 
@@ -73,9 +73,9 @@ fn test_body(
         }
 
         let load_library = format!(
-            "lua local f = package.loadlib([[{}]], 'luaopen___{}'); f()",
+            "lua local f = package.loadlib([[{}]], 'luaopen_{}'); f()",
             library_path.display(),
-            stringify!(#test_name),
+            stringify!(#plugin_name),
         );
 
         let out = ::std::process::Command::new("nvim")
@@ -92,22 +92,30 @@ fn test_body(
             return;
         }
 
-        let stderr = ::std::string::String::from_utf8_lossy(&out.stderr);
+        let mut stderr = ::std::string::String::from_utf8_lossy(&out.stderr);
 
         if !stderr.is_empty() {
-            // Remove the last 2 lines from stderr for a cleaner error msg.
-            let stderr = {
-                let lines = stderr.lines().collect::<Vec<_>>();
-                lines[..lines.len().saturating_sub(2)].join("\n")
-            };
+            let print_from =
+                // The test failed due to a panic.
+                if stderr.starts_with("thread") {
+                    // Remove the last 2 lines for a cleaner error msg.
+                    stderr = {
+                        let lines = stderr.lines().collect::<Vec<_>>();
+                        let up_to = lines.len().saturating_sub(2);
+                        ::std::borrow::Cow::Owned(lines[..up_to].join("\n"))
+                    };
 
-            let panicked_at = "panicked at ";
+                    let panicked_at = "panicked at ";
 
-            let print_from = stderr
-                .match_indices(panicked_at)
-                .next()
-                .map(|(offset, _)| offset + panicked_at.len())
-                .unwrap_or(0);
+                    stderr.match_indices(panicked_at)
+                        .next()
+                        .map(|(offset, _)| offset + panicked_at.len())
+                        .unwrap_or(0)
+                }
+                // The test failed because an error was returned.
+                else {
+                    0
+                };
 
             panic!("{}", &stderr[print_from..]);
         } else if let Some(code) = out.status.code() {
@@ -121,20 +129,50 @@ fn test_body(
 fn plugin_body(
     attrs: &Attributes,
     test_body: &Block,
+    test_return_ty: &syn::ReturnType,
 ) -> proc_macro2::TokenStream {
     if let Some(test_fn) = &attrs.test_fn {
         let fn_name = &test_fn.name;
         quote! { #fn_name().into() }
     } else {
         quote! {
-            let result = ::std::panic::catch_unwind(|| {
+            trait __IntoResult {
+                type Error: ::core::fmt::Debug;
+                fn into_result(self) -> ::core::result::Result<(), Self::Error>;
+            }
+
+            impl __IntoResult for () {
+                type Error = ::core::convert::Infallible;
+                fn into_result(self) -> ::core::result::Result<(), Self::Error> {
+                    Ok(())
+                }
+            }
+
+            impl<E: ::core::fmt::Debug> __IntoResult for ::core::result::Result<(), E> {
+                type Error = E;
+                fn into_result(self) -> ::core::result::Result<(), E> {
+                    self
+                }
+            }
+
+            fn __test_fn() #test_return_ty {
                 #test_body
+            }
+
+            let result = ::std::panic::catch_unwind(|| {
+                __IntoResult::into_result(__test_fn())
             });
 
             let exit_code = match result {
-                Ok(_) => 0,
-                Err(err) => {
+                Ok(Ok(())) => 0,
+
+                Ok(Err(err)) => {
                     eprintln!("{:?}", err);
+                    1
+                },
+
+                Err(panic) => {
+                    eprintln!("{:?}", panic);
                     1
                 },
             };
