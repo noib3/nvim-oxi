@@ -145,7 +145,14 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_cursor()
     pub fn get_cursor(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe { nvim_win_get_cursor(self.0, &mut err) };
+        let arr = unsafe {
+            nvim_win_get_cursor(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -191,8 +198,8 @@ impl Window {
             nvim_win_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(not(feature = "neovim-0-8"))]
-                core::ptr::null_mut(),
+                #[cfg(feature = "neovim-0-9")]
+                types::arena(),
                 &mut err,
             )
         };
