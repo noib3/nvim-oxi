@@ -15,7 +15,14 @@ use crate::SuperIterator;
 /// [1]: https://neovim.io/doc/user/api.html#nvim_clear_autocmds()
 pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     let mut err = nvim::Error::new();
-    unsafe { nvim_clear_autocmds(opts, &mut err) };
+    unsafe {
+        nvim_clear_autocmds(
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, ())
 }
 
@@ -60,6 +67,8 @@ where
             LUA_INTERNAL_CALL,
             events.non_owning(),
             opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
             &mut err,
         )
     };
@@ -112,7 +121,15 @@ where
 {
     let events = Object::from(Array::from_iter(events));
     let mut err = nvim::Error::new();
-    unsafe { nvim_exec_autocmds(events.non_owning(), opts, &mut err) };
+    unsafe {
+        nvim_exec_autocmds(
+            events.non_owning(),
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, ())
 }
 
@@ -127,7 +144,14 @@ pub fn get_autocmds(
     opts: &GetAutocmdsOpts,
 ) -> Result<impl SuperIterator<AutocmdInfos>> {
     let mut err = nvim::Error::new();
-    let infos = unsafe { nvim_get_autocmds(opts, &mut err) };
+    let infos = unsafe {
+        nvim_get_autocmds(
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok({
