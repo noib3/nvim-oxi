@@ -1,4 +1,4 @@
-use types::{self as nvim, conversion::FromObject};
+use types as nvim;
 
 use crate::choose;
 use crate::ffi::win_config::*;
@@ -30,7 +30,8 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_config()
     pub fn get_config(&self) -> Result<WindowConfig> {
         let mut err = nvim::Error::new();
-        let mut dict = unsafe {
+
+        let out = unsafe {
             nvim_win_get_config(
                 self.0,
                 #[cfg(feature = "neovim-nightly")]
@@ -38,15 +39,10 @@ impl Window {
                 &mut err,
             )
         };
-        let win = dict.get("win").map(|obj| unsafe {
-            // SAFETY: if the `win` key is present it's set to an integer
-            // representing a window handle.
-            obj.as_integer_unchecked() as i32
-        });
-        if let Some(handle) = win {
-            dict["relative"] = handle.into();
-        }
-        choose!(err, Ok(WindowConfig::from_object(dict.into())?))
+
+        let out = WindowConfig::try_from(out)?;
+
+        choose!(err, Ok(out))
     }
 
     /// Binding to [`nvim_win_get_config()`][1].

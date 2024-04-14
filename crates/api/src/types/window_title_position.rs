@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum WindowTitlePosition {
     Left,
     Center,

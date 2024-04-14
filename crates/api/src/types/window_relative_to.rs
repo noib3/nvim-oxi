@@ -52,7 +52,7 @@ impl<'de> de::Deserialize<'de> for WindowRelativeTo {
             type Value = WindowRelativeTo;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("\"editor\", \"cursor\" or a window handle")
+                f.write_str("\"editor\", \"cursor\" or \"mouse\"")
             }
 
             fn visit_i64<E>(self, n: i64) -> Result<Self::Value, E>
@@ -70,9 +70,10 @@ impl<'de> de::Deserialize<'de> for WindowRelativeTo {
                 match s {
                     "editor" => Ok(WindowRelativeTo::Editor),
                     "cursor" => Ok(WindowRelativeTo::Cursor),
+                    "mouse" => Ok(WindowRelativeTo::Mouse),
                     _ => Err(E::invalid_value(
                         de::Unexpected::Str(s),
-                        &"\"editor\", \"cursor\" or a window handle",
+                        &"\"editor\", \"cursor\" or \"mouse\"",
                     )),
                 }
             }

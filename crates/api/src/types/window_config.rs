@@ -11,12 +11,14 @@ use types::{
 use types::{Boolean, String as NvimString, WinHandle};
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};
+use crate::serde_utils as utils;
 use crate::Window;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]
 pub struct WindowConfig {
     /// Decides which corner of the window to place at `(row, col)`.
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub anchor: Option<WindowAnchor>,
 
     /// Style of the optional window border.
@@ -27,6 +29,7 @@ pub struct WindowConfig {
     /// [`WindowRelativeTo::Window(win)`](WindowRelativeTo)). Takes a zero
     /// indexed `(line, column)` tuple, with `row` and `col` being placed
     /// relative to this position if specified.
+    #[serde(default, deserialize_with = "utils::empty_array_is_none")]
     pub bufpos: Option<(usize, usize)>,
 
     /// Column position in units of screen cell width. May be fractional
@@ -50,6 +53,7 @@ pub struct WindowConfig {
 
     #[cfg(feature = "neovim-nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub footer_pos: Option<super::WindowTitlePosition>,
 
     /// Window height in character cells. Minimum of 1.
@@ -69,7 +73,13 @@ pub struct WindowConfig {
     /// Row position in units of screen cell height. May be fractional.
     pub row: Option<Float>,
 
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
+    pub split: Option<super::SplitDirection>,
+
     /// Configures the appearance of the window.
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub style: Option<WindowStyle>,
 
     #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
@@ -84,7 +94,12 @@ pub struct WindowConfig {
         docsrs,
         doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
     )]
+    #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub title_pos: Option<super::WindowTitlePosition>,
+
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub vertical: Option<bool>,
 
     /// Window width in character cells. Minimum of 1.
     pub width: Option<u32>,
@@ -343,6 +358,26 @@ impl From<&WindowConfig> for WindowOpts {
     }
 }
 
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+impl TryFrom<types::Dictionary> for WindowConfig {
+    type Error = conversion::Error;
+
+    #[inline]
+    fn try_from(mut dict: types::Dictionary) -> Result<Self, Self::Error> {
+        let win = dict.get("win").map(|obj| unsafe {
+            // SAFETY: if the `win` key is present it's set to an integer
+            // representing a window handle.
+            obj.as_integer_unchecked() as i32
+        });
+
+        if let Some(handle) = win {
+            dict["relative"] = handle.into();
+        }
+
+        <Self as types::conversion::FromObject>::from_object(dict.into())
+    }
+}
+
 #[cfg(feature = "neovim-nightly")]
 #[derive(Clone, Default, Debug, macros::OptsBuilder)]
 #[repr(C)]
@@ -462,5 +497,111 @@ impl From<&WindowConfig> for WindowOpts {
         }
 
         builder.build()
+    }
+}
+
+#[cfg(feature = "neovim-nightly")]
+impl TryFrom<WindowOpts> for WindowConfig {
+    type Error = conversion::Error;
+
+    #[inline]
+    fn try_from(opts: WindowOpts) -> Result<Self, Self::Error> {
+        let WindowOpts {
+            anchor,
+            border,
+            bufpos,
+            col,
+            external,
+            fixed,
+            focusable,
+            footer,
+            footer_pos,
+            height,
+            hide,
+            noautocmd,
+            relative,
+            row,
+            split,
+            style,
+            title,
+            title_pos,
+            vertical,
+            width,
+            win,
+            zindex,
+            ..
+        } = opts;
+
+        #[inline]
+        fn deserialize<T>(
+            obj: impl Into<Object>,
+        ) -> Result<T, conversion::Error>
+        where
+            T: serde::de::DeserializeOwned,
+        {
+            T::deserialize(Deserializer::new(obj.into())).map_err(Into::into)
+        }
+
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "lowercase")]
+        enum WindowRelative {
+            Editor,
+            Win,
+            Cursor,
+            Mouse,
+        }
+
+        let relative = match deserialize(relative)? {
+            WindowRelative::Editor => WindowRelativeTo::Editor,
+            WindowRelative::Win => {
+                let win = deserialize(win)?;
+                WindowRelativeTo::Window(win)
+            },
+            WindowRelative::Cursor => WindowRelativeTo::Cursor,
+            WindowRelative::Mouse => WindowRelativeTo::Mouse,
+        };
+
+        let win = if let WindowRelativeTo::Window(win) = &relative {
+            Some(win.clone())
+        } else {
+            None
+        };
+
+        Ok(Self {
+            anchor: utils::empty_string_is_none(Deserializer::new(
+                anchor.into(),
+            ))?,
+            border: deserialize(border)?,
+            bufpos: utils::empty_array_is_none(Deserializer::new(
+                bufpos.into(),
+            ))?,
+            col: deserialize(col)?,
+            external: deserialize(external)?,
+            fixed: deserialize(fixed)?,
+            focusable: deserialize(focusable)?,
+            footer: deserialize(footer)?,
+            footer_pos: utils::empty_string_is_none(Deserializer::new(
+                footer_pos.into(),
+            ))?,
+            height: deserialize(height)?,
+            hide: deserialize(hide)?,
+            noautocmd: deserialize(noautocmd)?,
+            relative: Some(relative),
+            row: deserialize(row)?,
+            split: utils::empty_string_is_none(Deserializer::new(
+                split.into(),
+            ))?,
+            style: utils::empty_string_is_none(Deserializer::new(
+                style.into(),
+            ))?,
+            title: deserialize(title)?,
+            title_pos: utils::empty_string_is_none(Deserializer::new(
+                title_pos.into(),
+            ))?,
+            vertical: deserialize(vertical)?,
+            width: deserialize(width)?,
+            win,
+            zindex: deserialize(zindex)?,
+        })
     }
 }
