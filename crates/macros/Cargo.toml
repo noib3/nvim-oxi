@@ -12,7 +12,7 @@ proc-macro = true
 
 [features]
 plugin = []
-test = []
+test = ["plugin"]
 
 [dependencies]
 quote = "1.0"

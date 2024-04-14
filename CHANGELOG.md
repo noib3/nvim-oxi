@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- the ability to return a `Result<(), T>` from the `nvim_oxi::test` macro
+  ([#159](https://github.com/noib3/nvim-oxi/pull/159));
+
+- the optional `nvim-oxi` and `cmd` attributes to the `nvim_oxi::test` macro
+  ([#159](https://github.com/noib3/nvim-oxi/pull/159));
+
 ### Changed
 
 - renamed the macro that marks the entrypoint of a plugin from
