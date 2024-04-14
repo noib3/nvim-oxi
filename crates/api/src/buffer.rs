@@ -449,7 +449,7 @@ impl Buffer {
             nvim_buf_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(not(feature = "neovim-0-8"))]
+                #[cfg(feature = "neovim-0-9")]
                 types::arena(),
                 &mut err,
             )

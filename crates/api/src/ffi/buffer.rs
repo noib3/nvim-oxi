@@ -115,7 +115,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
-        #[cfg(not(feature = "neovim-0-8"))] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-9")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
