@@ -188,6 +188,10 @@ impl Window {
     /// Gets a window option value.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
+    )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
         Opt: FromObject,
@@ -335,6 +339,10 @@ impl Window {
     /// (only works if there's a global fallback).
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
+    )]
     pub fn set_option<Opt>(&mut self, name: &str, value: Opt) -> Result<()>
     where
         Opt: ToObject,

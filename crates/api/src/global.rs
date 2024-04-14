@@ -391,6 +391,10 @@ pub fn get_current_win() -> Window {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_id[1]
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
+#[cfg_attr(
+    feature = "neovim-nightly",
+    deprecated(since = "0.5.0", note = "use `get_hl` instead")
+)]
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
     let mut err = nvim::Error::new();
 
@@ -406,6 +410,10 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
 /// Gets a highlight definition by name.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()
+#[cfg_attr(
+    feature = "neovim-nightly",
+    deprecated(since = "0.5.0", note = "use `get_hl` instead")
+)]
 pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -503,6 +511,10 @@ pub fn get_mode() -> Result<GotMode> {
 /// Gets the value of a global option.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option()
+#[cfg_attr(
+    feature = "neovim-nightly",
+    deprecated(since = "0.5.0", note = "use `get_option_value` instead")
+)]
 pub fn get_option<Opt>(name: &str) -> Result<Opt>
 where
     Opt: FromObject,
@@ -525,6 +537,10 @@ where
 /// Gets all the informations related to an option.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info()
+#[cfg_attr(
+    feature = "neovim-nightly",
+    deprecated(since = "0.5.0", note = "use `get_option_info2` instead")
+)]
 pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
@@ -1077,6 +1093,10 @@ pub fn set_keymap(
 /// Sets the global value of an option.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_option()
+#[cfg_attr(
+    feature = "neovim-nightly",
+    deprecated(since = "0.5.0", note = "use `set_option_value` instead")
+)]
 pub fn set_option<Opt>(name: &str, value: Opt) -> Result<()>
 where
     Opt: ToObject,

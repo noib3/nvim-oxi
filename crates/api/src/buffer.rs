@@ -418,6 +418,10 @@ impl Buffer {
     /// Gets a buffer option value.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
+    )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
         Opt: FromObject,
@@ -663,6 +667,10 @@ impl Buffer {
     /// (only works if there's a global fallback).
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
+    )]
     pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
     where
         V: ToObject,
