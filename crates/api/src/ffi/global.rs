@@ -31,7 +31,10 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L623
-    pub(crate) fn nvim_del_current_line(err: *mut Error);
+    pub(crate) fn nvim_del_current_line(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1446
     pub(crate) fn nvim_del_keymap(

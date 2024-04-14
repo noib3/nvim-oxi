@@ -78,7 +78,13 @@ where
 /// [1]: https://neovim.io/doc/user/api.html#nvim_del_current_line()
 pub fn del_current_line() -> Result<()> {
     let mut err = nvim::Error::new();
-    unsafe { nvim_del_current_line(&mut err) };
+    unsafe {
+        nvim_del_current_line(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, ())
 }
 
