@@ -182,6 +182,8 @@ pub fn parse_expression(
             expr.non_owning(),
             flags.non_owning(),
             include_highlight,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
             &mut err,
         )
     };

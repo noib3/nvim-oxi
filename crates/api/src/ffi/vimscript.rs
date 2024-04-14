@@ -68,6 +68,7 @@ extern "C" {
         expr: NonOwning<String>,
         flags: NonOwning<String>,
         highlight: bool,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 }
