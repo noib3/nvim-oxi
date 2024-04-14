@@ -100,6 +100,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_keymap(
         buf: BufHandle,
         mode: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -110,6 +111,7 @@ extern "C" {
         start: Integer,
         end: Integer,
         strict_indexing: bool,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         #[cfg(not(feature = "neovim-0-8"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
@@ -200,6 +202,7 @@ extern "C" {
         end: Integer,
         strict_indexing: bool,
         replacement: NonOwning<Array>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     );
 
@@ -240,6 +243,7 @@ extern "C" {
         end_row: Integer,
         end_col: Integer,
         replacement: NonOwning<Array>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     );
 

@@ -313,7 +313,13 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
-            nvim_buf_get_keymap(self.0, mode.non_owning(), &mut err)
+            nvim_buf_get_keymap(
+                self.0,
+                mode.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
         };
         choose!(
             err,
@@ -347,9 +353,12 @@ impl Buffer {
                 start,
                 end,
                 strict_indexing,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 #[cfg(not(feature = "neovim-0-8"))]
-                // The nvim_buf_get_lines() function returns no line if we use an actual lstate here
-                std::ptr::null_mut(),
+                // The nvim_buf_get_lines() function returns no line if we use
+                // an actual lstate here.
+                core::ptr::null_mut(),
                 &mut err,
             )
         };
@@ -604,6 +613,8 @@ impl Buffer {
                 end,
                 strict_indexing,
                 rpl.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -722,6 +733,8 @@ impl Buffer {
                     .map(|line| line.into())
                     .collect::<Array>()
                     .non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };
