@@ -16,7 +16,7 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::buffer::*;
+use crate::ffi::{buffer::*, command::*};
 use crate::opts::*;
 use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
 use crate::utils;
@@ -293,7 +293,15 @@ impl Buffer {
         opts: &GetCommandsOpts,
     ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
-        let cmds = unsafe { nvim_buf_get_commands(self.0, opts, &mut err) };
+        let cmds = unsafe {
+            nvim_buf_get_commands(
+                self.0,
+                opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(
             err,
             Ok({
@@ -313,7 +321,13 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
-            nvim_buf_get_keymap(self.0, mode.non_owning(), &mut err)
+            nvim_buf_get_keymap(
+                self.0,
+                mode.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
         };
         choose!(
             err,
@@ -347,9 +361,12 @@ impl Buffer {
                 start,
                 end,
                 strict_indexing,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 #[cfg(not(feature = "neovim-0-8"))]
-                // The nvim_buf_get_lines() function returns no line if we use an actual lstate here
-                std::ptr::null_mut(),
+                // The nvim_buf_get_lines() function returns no line if we use
+                // an actual lstate here.
+                core::ptr::null_mut(),
                 &mut err,
             )
         };
@@ -372,8 +389,15 @@ impl Buffer {
     pub fn get_mark(&self, name: char) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let mark =
-            unsafe { nvim_buf_get_mark(self.0, name.non_owning(), &mut err) };
+        let mark = unsafe {
+            nvim_buf_get_mark(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = mark.into_iter().map(usize::from_object);
             let row = iter.next().expect("row is present")?;
@@ -389,9 +413,8 @@ impl Buffer {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_name()
     pub fn get_name(&self) -> Result<PathBuf> {
         let mut err = nvim::Error::new();
-        let name = unsafe {
-            nvim_buf_get_name(self.0, core::ptr::null_mut(), &mut err)
-        };
+        let name =
+            unsafe { nvim_buf_get_name(self.0, types::arena(), &mut err) };
         choose!(err, Ok(name.into()))
     }
 
@@ -412,6 +435,10 @@ impl Buffer {
     /// Gets a buffer option value.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
+    )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
         Opt: FromObject,
@@ -422,8 +449,8 @@ impl Buffer {
             nvim_buf_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(not(feature = "neovim-0-8"))]
-                std::ptr::null_mut(),
+                #[cfg(feature = "neovim-0-9")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -465,6 +492,8 @@ impl Buffer {
                 opts.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
                 opts,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 #[cfg(not(feature = "neovim-0-8"))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
@@ -492,8 +521,15 @@ impl Buffer {
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let obj =
-            unsafe { nvim_buf_get_var(self.0, name.non_owning(), &mut err) };
+        let obj = unsafe {
+            nvim_buf_get_var(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, Ok(Var::from_object(obj)?))
     }
 
@@ -585,6 +621,8 @@ impl Buffer {
                 end,
                 strict_indexing,
                 rpl.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -648,6 +686,10 @@ impl Buffer {
     /// (only works if there's a global fallback).
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
+    )]
     pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
     where
         V: ToObject,
@@ -699,6 +741,8 @@ impl Buffer {
                     .map(|line| line.into())
                     .collect::<Array>()
                     .non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
                 &mut err,
             )
         };

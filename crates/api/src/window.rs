@@ -145,7 +145,14 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_cursor()
     pub fn get_cursor(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe { nvim_win_get_cursor(self.0, &mut err) };
+        let arr = unsafe {
+            nvim_win_get_cursor(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -181,6 +188,10 @@ impl Window {
     /// Gets a window option value.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
+    )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
     where
         Opt: FromObject,
@@ -191,8 +202,8 @@ impl Window {
             nvim_win_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(not(feature = "neovim-0-8"))]
-                core::ptr::null_mut(),
+                #[cfg(feature = "neovim-0-9")]
+                types::arena(),
                 &mut err,
             )
         };
@@ -206,7 +217,14 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_position()
     pub fn get_position(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe { nvim_win_get_position(self.0, &mut err) };
+        let arr = unsafe {
+            nvim_win_get_position(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -237,8 +255,15 @@ impl Window {
     {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        let obj =
-            unsafe { nvim_win_get_var(self.0, name.non_owning(), &mut err) };
+        let obj = unsafe {
+            nvim_win_get_var(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(err, Ok(Var::from_object(obj)?))
     }
 
@@ -314,6 +339,10 @@ impl Window {
     /// (only works if there's a global fallback).
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_option()
+    #[cfg_attr(
+        feature = "neovim-nightly",
+        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
+    )]
     pub fn set_option<Opt>(&mut self, name: &str, value: Opt) -> Result<()>
     where
         Opt: ToObject,

@@ -2,6 +2,7 @@
 
 extern crate alloc;
 
+mod arena;
 mod array;
 pub mod conversion;
 mod dictionary;
@@ -14,6 +15,7 @@ mod object;
 pub mod serde;
 mod string;
 
+pub use arena::{arena, arena_init, Arena};
 pub use array::Array;
 pub use dictionary::Dictionary;
 pub use error::Error;

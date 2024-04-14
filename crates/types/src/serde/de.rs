@@ -16,6 +16,15 @@ impl Deserializer {
     }
 }
 
+impl<'de> IntoDeserializer<'de, DeserializeError> for Object {
+    type Deserializer = Deserializer;
+
+    #[inline]
+    fn into_deserializer(self) -> Deserializer {
+        Deserializer::new(self)
+    }
+}
+
 impl<'de> de::Deserializer<'de> for Deserializer {
     type Error = DeserializeError;
 
@@ -393,7 +402,6 @@ mod tests {
     use serde::Deserialize;
 
     use super::*;
-    use crate::{Array, Dictionary};
 
     fn d(value: impl Into<Object>) -> Result<Object, DeserializeError> {
         Object::deserialize(Deserializer::new(value.into()))

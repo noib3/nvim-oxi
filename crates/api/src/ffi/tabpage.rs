@@ -1,13 +1,4 @@
-use types::{
-    Array,
-    Error,
-    Integer,
-    NonOwning,
-    Object,
-    String,
-    TabHandle,
-    WinHandle,
-};
+use types::*;
 
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
@@ -31,6 +22,7 @@ extern "C" {
     pub(crate) fn nvim_tabpage_get_var(
         tabpage: TabHandle,
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -46,6 +38,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/tabpage.c#L21
     pub(crate) fn nvim_tabpage_list_wins(
         tabpage: TabHandle,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 

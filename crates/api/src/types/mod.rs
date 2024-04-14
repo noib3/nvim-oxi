@@ -34,6 +34,8 @@ mod parsed_viml_expression;
 mod paste_phase;
 mod proc_infos;
 mod register_type;
+#[cfg(feature = "neovim-nightly")]
+mod split_direction;
 mod split_modifier;
 mod statusline_highlight_infos;
 mod statusline_infos;
@@ -82,6 +84,8 @@ pub use parsed_viml_expression::*;
 pub use paste_phase::*;
 pub use proc_infos::*;
 pub use register_type::*;
+#[cfg(feature = "neovim-nightly")]
+pub use split_direction::*;
 pub use split_modifier::*;
 pub use statusline_highlight_infos::*;
 pub use statusline_infos::*;

@@ -42,6 +42,7 @@ fn open_win_basic_config() {
 #[oxi::test]
 fn open_win_full_config() {
     let buf = api::create_buf(true, true).unwrap();
+
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Window(Window::current()))
         .anchor(WindowAnchor::SouthWest)

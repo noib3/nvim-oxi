@@ -1,3 +1,5 @@
+#[cfg(feature = "neovim-nightly")]
+use types::Arena;
 use types::{
     Array,
     BufHandle,
@@ -51,6 +53,7 @@ extern "C" {
         id: Integer,
         #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarkByIdOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -62,6 +65,7 @@ extern "C" {
         end: Object,
         #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarksOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -79,7 +83,9 @@ extern "C" {
     pub(crate) fn nvim_create_namespace(name: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L73
-    pub(crate) fn nvim_get_namespaces() -> Dictionary;
+    pub(crate) fn nvim_get_namespaces(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L1074
     pub(crate) fn nvim_set_decoration_provider(

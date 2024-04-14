@@ -1,6 +1,12 @@
-use types::{Boolean, BufHandle, Dictionary, Error, WinHandle};
+use types::*;
 
 use crate::types::WindowOpts;
+
+#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+pub(crate) type WinGetConfigOutput = Dictionary;
+
+#[cfg(feature = "neovim-nightly")]
+pub(crate) type WinGetConfigOutput = WindowOpts;
 
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
@@ -18,8 +24,9 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L240
     pub(crate) fn nvim_win_get_config(
         window: WinHandle,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
-    ) -> Dictionary;
+    ) -> WinGetConfigOutput;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L202
     pub(crate) fn nvim_win_set_config(

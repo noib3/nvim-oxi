@@ -1,6 +1,7 @@
 //! Utility functions for deserializing values coming from Neovim.
 
-use serde::de::{self, Deserialize, Deserializer, IntoDeserializer};
+use serde::de::{self, Deserialize, Deserializer, Error, IntoDeserializer};
+use types::Object;
 
 pub(crate) fn bool_from_int<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
@@ -31,6 +32,24 @@ where
             other,
             &"empty string or string with a single character",
         )),
+    }
+}
+
+pub(crate) fn empty_array_is_none<'de, D, T>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    let array = Option::<Vec<Object>>::deserialize(deserializer)?;
+
+    match array {
+        None => Ok(None),
+        Some(array) if array.is_empty() => Ok(None),
+        Some(array) => T::deserialize(array.into_deserializer())
+            .map_err(D::Error::custom)
+            .map(Some),
     }
 }
 

@@ -14,6 +14,8 @@ pub unsafe fn entrypoint<T>(
 where
     T: Pushable,
 {
+    types::arena_init();
+
     luajit::init(lua_state);
 
     #[cfg(feature = "libuv")]
