@@ -25,6 +25,13 @@ extern "C" {
         err: *mut Error,
     ) -> Dictionary;
 
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
+    pub(crate) fn nvim_get_commands(
+        opts: *const GetCommandsOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        error: *mut Error,
+    ) -> Dictionary;
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L98
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,

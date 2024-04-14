@@ -88,7 +88,10 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L289
-    pub(crate) fn nvim_get_all_options_info(err: *mut Error) -> Dictionary;
+    pub(crate) fn nvim_get_all_options_info(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1567
     pub(crate) fn nvim_get_chan_info(
@@ -102,12 +105,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1288
     pub(crate) fn nvim_get_color_map(
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-    ) -> Dictionary;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
-    pub(crate) fn nvim_get_commands(
-        opts: *const GetCommandsOpts,
-        error: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1308
@@ -152,7 +149,10 @@ extern "C" {
     pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/vim.c#L1397
-    pub(crate) fn nvim_get_keymap(mode: NonOwning<String>) -> Array;
+    pub(crate) fn nvim_get_keymap(
+        mode: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1987
     pub(crate) fn nvim_get_mark(
@@ -172,13 +172,14 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
     pub(crate) fn nvim_get_option(
         name: NonOwning<String>,
-        #[cfg(not(feature = "neovim-0-8"))] arena: *mut core::ffi::c_void,
+        #[cfg(feature = "neovim-0-9")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L520
     pub(crate) fn nvim_get_option_info(
         name: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -207,6 +208,7 @@ extern "C" {
     pub(crate) fn nvim_get_runtime_file(
         name: NonOwning<String>,
         all: bool,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -239,13 +241,18 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L772
-    pub(crate) fn nvim_list_bufs() -> Array;
+    pub(crate) fn nvim_list_bufs(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1580
     pub(crate) fn nvim_list_chans() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L493
-    pub(crate) fn nvim_list_runtime_paths(err: *mut Error) -> Array;
+    pub(crate) fn nvim_list_runtime_paths(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1053
     pub(crate) fn nvim_list_tabpages() -> Array;
@@ -331,6 +338,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L613
     pub(crate) fn nvim_set_current_line(
         line: NonOwning<String>,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     );
 
@@ -345,6 +353,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L156
     pub(crate) fn nvim_set_hl(
+        #[cfg(feature = "neovim-nightly")] channel_id: u64,
         ns_id: Integer,
         name: NonOwning<String>,
         val: *const SetHighlightOpts,

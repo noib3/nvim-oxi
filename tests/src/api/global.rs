@@ -19,13 +19,11 @@ fn create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
-    assert_eq!(
-        2,
-        api::get_commands(&Default::default())
-            .unwrap()
-            .collect::<Vec<_>>()
-            .len()
-    );
+    let commands =
+        api::get_commands(&Default::default()).unwrap().collect::<Vec<_>>();
+
+    assert!(commands.iter().any(|cmd| cmd.name == "Foo"));
+    assert!(commands.iter().any(|cmd| cmd.name == "Bar"));
 
     assert_eq!(Ok(()), api::del_user_command("Foo"));
     assert_eq!(Ok(()), api::del_user_command("Bar"));

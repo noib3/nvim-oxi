@@ -10,7 +10,7 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::global::*;
+use crate::ffi::{command::*, global::*};
 use crate::opts::*;
 use crate::types::*;
 use crate::StringOrFunction;
@@ -249,7 +249,13 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_all_options_info()
 pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
-    let infos = unsafe { nvim_get_all_options_info(&mut err) };
+    let infos = unsafe {
+        nvim_get_all_options_info(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok({
@@ -312,7 +318,14 @@ pub fn get_commands(
     opts: &GetCommandsOpts,
 ) -> Result<impl SuperIterator<CommandInfos>> {
     let mut err = nvim::Error::new();
-    let cmds = unsafe { nvim_get_commands(opts, &mut err) };
+    let cmds = unsafe {
+        nvim_get_commands(
+            opts,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok({
@@ -446,7 +459,13 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_keymap()
 pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
-    let keymaps = unsafe { nvim_get_keymap(mode.non_owning()) };
+    let keymaps = unsafe {
+        nvim_get_keymap(
+            mode.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    };
     keymaps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
@@ -524,8 +543,8 @@ where
     let obj = unsafe {
         nvim_get_option(
             name.non_owning(),
-            #[cfg(not(feature = "neovim-0-8"))]
-            core::ptr::null_mut(),
+            #[cfg(feature = "neovim-0-9")]
+            types::arena(),
             &mut err,
         )
     };
@@ -544,7 +563,14 @@ where
 pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let obj = unsafe { nvim_get_option_info(name.non_owning(), &mut err) };
+    let obj = unsafe {
+        nvim_get_option_info(
+            name.non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, Ok(OptionInfos::from_object(obj.into())?))
 }
 
@@ -618,8 +644,15 @@ pub fn get_runtime_file(
 ) -> Result<impl SuperIterator<PathBuf>> {
     let name = nvim::String::from(name.as_ref());
     let mut err = nvim::Error::new();
-    let files =
-        unsafe { nvim_get_runtime_file(name.non_owning(), get_all, &mut err) };
+    let files = unsafe {
+        nvim_get_runtime_file(
+            name.non_owning(),
+            get_all,
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok({
@@ -732,9 +765,13 @@ pub fn input_mouse(
 ///
 /// [1]: unloaded/deleted
 pub fn list_bufs() -> impl SuperIterator<Buffer> {
-    unsafe { nvim_list_bufs() }
-        .into_iter()
-        .map(|obj| Buffer::from_object(obj).unwrap())
+    let bufs = unsafe {
+        nvim_list_bufs(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    };
+    bufs.into_iter().map(|obj| Buffer::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_chans()`][1].
@@ -755,7 +792,13 @@ pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()
 pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     let mut err = nvim::Error::new();
-    let paths = unsafe { nvim_list_runtime_paths(&mut err) };
+    let paths = unsafe {
+        nvim_list_runtime_paths(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(
         err,
         Ok({
@@ -1019,7 +1062,14 @@ where
     Line: Into<nvim::String>,
 {
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_current_line(line.into().non_owning(), &mut err) };
+    unsafe {
+        nvim_set_current_line(
+            line.into().non_owning(),
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+            &mut err,
+        )
+    };
     choose!(err, ())
 }
 
@@ -1054,7 +1104,14 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     unsafe {
-        nvim_set_hl(ns_id as Integer, name.non_owning(), opts, &mut err)
+        nvim_set_hl(
+            #[cfg(feature = "neovim-nightly")]
+            LUA_INTERNAL_CALL,
+            ns_id as Integer,
+            name.non_owning(),
+            opts,
+            &mut err,
+        )
     };
     choose!(err, ())
 }
