@@ -490,6 +490,11 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "&str", inline = "types::String::from({0})")]
     url: types::String,
 
+    /// Whether the extmark should only be displayed in the namespace scope.
+    #[builder(argtype = "bool")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    scoped: types::Boolean,
+
     _subpriority: types::Integer,
 }
 
