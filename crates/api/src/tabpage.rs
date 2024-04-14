@@ -109,7 +109,13 @@ impl TabPage {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let obj = unsafe {
-            nvim_tabpage_get_var(self.0, name.non_owning(), &mut err)
+            nvim_tabpage_get_var(
+                self.0,
+                name.non_owning(),
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
         };
         choose!(err, Ok(Var::from_object(obj)?))
     }
@@ -141,7 +147,14 @@ impl TabPage {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()
     pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
         let mut err = nvim::Error::new();
-        let list = unsafe { nvim_tabpage_list_wins(self.0, &mut err) };
+        let list = unsafe {
+            nvim_tabpage_list_wins(
+                self.0,
+                #[cfg(feature = "neovim-nightly")]
+                types::arena(),
+                &mut err,
+            )
+        };
         choose!(
             err,
             Ok({
