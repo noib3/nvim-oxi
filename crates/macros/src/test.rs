@@ -29,7 +29,26 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #[test]
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
-            #nvim_oxi::tests::test_body(stringify!(#plugin_name), #extra_cmd)
+            let library_name = {
+                let mut s = ::std::string::String::new();
+                s.push_str(::std::env::consts::DLL_PREFIX);
+                s.push_str(env!("CARGO_CRATE_NAME"));
+                s.push_str(::std::env::consts::DLL_SUFFIX);
+                s
+            };
+
+            let manifest_dir = env!("CARGO_MANIFEST_DIR");
+
+            // The full path to the compiled library.
+            let library_path = #nvim_oxi::tests::target_dir(manifest_dir.as_ref())
+                .join("debug")
+                .join(library_name);
+
+            #nvim_oxi::tests::test_body(
+                &library_path,
+                stringify!(#plugin_name),
+                #extra_cmd,
+            )
         }
 
         #[#nvim_oxi::plugin(nvim_oxi = #nvim_oxi)]

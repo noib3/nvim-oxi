@@ -39,28 +39,13 @@ where
     F: FnOnce() -> R + UnwindSafe,
     R: IntoResult,
 {
-    let panic_info = Arc::new(OnceLock::new());
+    let panic_info: Arc<OnceLock<PanicInfo>> = Arc::default();
 
     {
         let panic_info = panic_info.clone();
 
         panic::set_hook(Box::new(move |info| {
-            let payload = info.payload();
-
-            let msg = downcast_display::<&str>(payload)
-                .or_else(|| downcast_display::<String>(payload))
-                .or_else(|| downcast_display::<&String>(payload))
-                .map(ToString::to_string)
-                .unwrap_or_default();
-
-            let info = PanicInfo {
-                msg,
-                file: info.location().map(|l| l.file().to_owned()),
-                line: info.location().map(Location::line),
-                column: info.location().map(Location::column),
-            };
-
-            let _ = panic_info.set(info);
+            let _ = panic_info.set(info.into());
         }));
     }
 
@@ -79,6 +64,7 @@ where
 
 /// TODO: docs
 pub fn test_body(
+    library_path: &Path,
     plugin_name: &str,
     extra_cmd: Option<&str>,
 ) -> Result<(), String> {
@@ -86,12 +72,15 @@ pub fn test_body(
 
     {
         let panic_info = panic_info.clone();
-        panic::set_hook(Box::new(move |_| {
-            println!("{}", panic_info.get().unwrap());
+        panic::set_hook(Box::new(move |infos| {
+            let infos =
+                panic_info.get().cloned().unwrap_or_else(|| infos.into());
+
+            println!("{}", infos);
         }));
     }
 
-    let output = run_nvim_command(plugin_name, extra_cmd)
+    let output = run_nvim_command(library_path, plugin_name, extra_cmd)?
         .output()
         .map_err(|err| err.to_string())?;
 
@@ -125,27 +114,17 @@ pub fn test_body(
 }
 
 /// TODO: docs
-fn run_nvim_command(plugin_name: &str, extra_cmd: Option<&str>) -> Command {
-    let library_name = {
-        let mut s = ::std::string::String::new();
-        s.push_str(::std::env::consts::DLL_PREFIX);
-        s.push_str(env!("CARGO_CRATE_NAME"));
-        s.push_str(::std::env::consts::DLL_SUFFIX);
-        s
-    };
-
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-
-    // The full path to the compiled library.
-    let library_path =
-        target_dir(manifest_dir.as_ref()).join("debug").join(library_name);
-
+fn run_nvim_command(
+    library_path: &Path,
+    plugin_name: &str,
+    extra_cmd: Option<&str>,
+) -> Result<Command, String> {
     if !library_path.exists() {
-        panic!(
+        return Err(format!(
             "Compiled library not found in '{}'. Please run `cargo build` \
              before running the tests.",
             library_path.display()
-        )
+        ));
     }
 
     let load_library = format!(
@@ -164,7 +143,7 @@ fn run_nvim_command(plugin_name: &str, extra_cmd: Option<&str>) -> Command {
         .args(["-c", &load_library])
         .args(["+quit"]);
 
-    command
+    Ok(command)
 }
 
 #[derive(Clone)]
@@ -213,6 +192,25 @@ impl Display for PanicInfo {
         write!(f, ":\n{}", self.msg)?;
 
         Ok(())
+    }
+}
+
+impl From<&panic::PanicInfo<'_>> for PanicInfo {
+    fn from(info: &panic::PanicInfo) -> Self {
+        let payload = info.payload();
+
+        let msg = downcast_display::<&str>(payload)
+            .or_else(|| downcast_display::<String>(payload))
+            .or_else(|| downcast_display::<&String>(payload))
+            .map(ToString::to_string)
+            .unwrap_or_default();
+
+        Self {
+            msg,
+            file: info.location().map(|l| l.file().to_owned()),
+            line: info.location().map(Location::line),
+            column: info.location().map(Location::column),
+        }
     }
 }
 
