@@ -1,4 +1,6 @@
-use core::ops;
+use std::cell::Cell;
+use std::ops;
+use std::rc::Rc;
 
 use all_asserts::*;
 use nvim_oxi as nvim;
@@ -21,6 +23,36 @@ fn buf_attach() {
 
     let bytes_written = api::input("ifoo<Esc>");
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
+}
+
+#[nvim::test]
+fn buf_attach_on_bytes() -> Result<(), api::Error> {
+    let mut buffer = api::create_buf(true, false)?;
+
+    let count = Rc::new(Cell::new(0));
+
+    let opts = {
+        let count = count.clone();
+
+        BufAttachOpts::builder()
+            .on_lines(move |_args| {
+                count.set(count.get() + 1);
+                Ok(false)
+            })
+            .build()
+    };
+
+    buffer.attach(false, &opts)?;
+
+    nvim::api::Window::current().set_buf(&buffer)?;
+
+    buffer.set_text(0..0, 0, 0, [" "])?;
+    buffer.set_text(0..0, 0, 0, [" "])?;
+    buffer.set_text(0..0, 0, 0, [" "])?;
+
+    assert_eq!(count.get(), 3);
+
+    Ok(())
 }
 
 #[nvim::test]

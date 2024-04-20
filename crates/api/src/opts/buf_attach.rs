@@ -210,6 +210,14 @@ pub struct BufAttachOpts {
     #[builder(mask)]
     mask: u64,
 
+    /// Callback invoked on change.
+    #[builder(
+        generics = "F: ToFunction<OnLinesArgs, ShouldDetach>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_lines: types::LuaRef,
+
     /// Callback invoked on change. It receives more granular information about
     /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
     #[builder(
@@ -235,14 +243,6 @@ pub struct BufAttachOpts {
     )]
     on_detach: types::LuaRef,
 
-    /// Callback invoked on change.
-    #[builder(
-        generics = "F: ToFunction<OnLinesArgs, ShouldDetach>",
-        argtype = "F",
-        inline = "{0}.into_luaref()"
-    )]
-    on_lines: types::LuaRef,
-
     /// Callback invoked on reload. The entire buffer content should be
     /// considered changed.
     #[builder(
@@ -252,15 +252,15 @@ pub struct BufAttachOpts {
     )]
     on_reload: types::LuaRef,
 
-    /// Whether to also attach to command preview (i.e.
-    /// [`inccommand`](https://neovim.io/doc/user/options.html#'inccommand'))
-    /// events.
-    #[builder(argtype = "bool")]
-    preview: types::Boolean,
-
     /// Whether to include the UTF-32 and UTF-16 sizes of the replaced region
     /// as the last arguments of the
     /// [`on_lines`](BufAttachOptsBuilder::on_lines) callback.
     #[builder(argtype = "bool")]
     utf_sizes: types::Boolean,
+
+    /// Whether to also attach to command preview (i.e.
+    /// [`inccommand`](https://neovim.io/doc/user/options.html#'inccommand'))
+    /// events.
+    #[builder(argtype = "bool")]
+    preview: types::Boolean,
 }
