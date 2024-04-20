@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 use std::str::FromStr;
 use std::sync::{Arc, OnceLock};
+use std::thread;
 
 use miniserde::json;
 
@@ -149,6 +150,7 @@ fn run_nvim_command(
 #[derive(Clone)]
 struct PanicInfo {
     msg: String,
+    thread: String,
     file: Option<String>,
     line: Option<u32>,
     column: Option<u32>,
@@ -157,6 +159,8 @@ struct PanicInfo {
 impl Debug for PanicInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "panic:{}", self.msg)?;
+
+        write!(f, "\nthread:{}", self.thread)?;
 
         if let Some(file) = &self.file {
             write!(f, "\nfile:{file}")?;
@@ -176,10 +180,7 @@ impl Debug for PanicInfo {
 
 impl Display for PanicInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // thread 'tests::it_works' panicked at src/lib.rs:15:9:
-        // AA
-
-        write!(f, "thread panicked")?;
+        write!(f, "thread '{}' panicked", self.thread)?;
 
         if let Some(file) = &self.file {
             write!(f, " at {file}")?;
@@ -195,6 +196,44 @@ impl Display for PanicInfo {
     }
 }
 
+impl FromStr for PanicInfo {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut info = PanicInfo {
+            msg: String::new(),
+            thread: String::new(),
+            file: None,
+            line: None,
+            column: None,
+        };
+
+        let mut lines = s.lines();
+
+        let msg = lines.next().ok_or(())?;
+        let (_, msg) = msg.split_once("panic:").ok_or(())?;
+        info.msg = msg.trim().to_owned();
+
+        let thread = lines.next().ok_or(())?;
+        let (_, thread) = thread.split_once("thread:").ok_or(())?;
+        info.thread = thread.trim().to_owned();
+
+        let file = lines.next().ok_or(())?;
+        let (_, file) = file.split_once("file:").ok_or(())?;
+        info.file = Some(file.trim().to_owned());
+
+        let line = lines.next().ok_or(())?;
+        let (_, line) = line.split_once("line:").ok_or(())?;
+        info.line = Some(line.trim().parse().map_err(|_| ())?);
+
+        let column = lines.next().ok_or(())?;
+        let (_, column) = column.split_once("column:").ok_or(())?;
+        info.column = Some(column.trim().parse().map_err(|_| ())?);
+
+        Ok(info)
+    }
+}
+
 impl From<&panic::PanicInfo<'_>> for PanicInfo {
     fn from(info: &panic::PanicInfo) -> Self {
         let payload = info.payload();
@@ -205,45 +244,20 @@ impl From<&panic::PanicInfo<'_>> for PanicInfo {
             .map(ToString::to_string)
             .unwrap_or_default();
 
+        let current_thread = thread::current();
+
+        let thread = match current_thread.name() {
+            Some(name) if !name.is_empty() => name,
+            _ => "<unnamed>",
+        };
+
         Self {
             msg,
+            thread: thread.to_owned(),
             file: info.location().map(|l| l.file().to_owned()),
             line: info.location().map(Location::line),
             column: info.location().map(Location::column),
         }
-    }
-}
-
-impl FromStr for PanicInfo {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut info = PanicInfo {
-            msg: s.to_owned(),
-            file: None,
-            line: None,
-            column: None,
-        };
-
-        let mut lines = s.lines();
-
-        let first = lines.next().ok_or(())?;
-        let (_, msg) = first.split_once("panic:").ok_or(())?;
-        info.msg = msg.trim().to_owned();
-
-        let second = lines.next().ok_or(())?;
-        let (_, file) = second.split_once("file:").ok_or(())?;
-        info.file = Some(file.trim().to_owned());
-
-        let third = lines.next().ok_or(())?;
-        let (_, line) = third.split_once("line:").ok_or(())?;
-        info.line = Some(line.trim().parse().map_err(|_| ())?);
-
-        let fourth = lines.next().ok_or(())?;
-        let (_, column) = fourth.split_once("column:").ok_or(())?;
-        info.column = Some(column.trim().parse().map_err(|_| ())?);
-
-        Ok(info)
     }
 }
 
