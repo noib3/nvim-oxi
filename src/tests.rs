@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::env;
 use std::fmt::{Debug, Display};
-use std::panic::{self, Location};
+use std::panic::{self, Location, UnwindSafe};
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 use std::str::FromStr;
@@ -34,8 +34,9 @@ pub fn target_dir(manifest_dir: &Path) -> PathBuf {
 }
 
 /// TODO: docs
-pub fn plugin_body<R>(test_body: impl Fn() -> R)
+pub fn plugin_body<F, R>(test_body: F)
 where
+    F: FnOnce() -> R + UnwindSafe,
     R: IntoResult,
 {
     let panic_info = Arc::new(OnceLock::new());
@@ -66,10 +67,10 @@ where
     let result = match panic::catch_unwind(|| test_body().into_result()) {
         Ok(Ok(())) => Ok(()),
         Ok(Err(err)) => Err(Failure::Error(err.to_string())),
-        Err(_) => Err(Failure::Panic(panic_info.get().unwrap())),
+        Err(_) => Err(Failure::Panic(panic_info.get().unwrap().clone())),
     };
 
-    if let Err(failure) = result {
+    if let Err(failure) = &result {
         eprintln!("{failure}");
     }
 
@@ -86,13 +87,13 @@ pub fn test_body(
     {
         let panic_info = panic_info.clone();
         panic::set_hook(Box::new(move |_| {
-            println!("{info}", panic_info.get().unwrap());
+            println!("{}", panic_info.get().unwrap());
         }));
     }
 
     let output = run_nvim_command(plugin_name, extra_cmd)
         .output()
-        .map_err(ToString::to_string)?;
+        .map_err(|err| err.to_string())?;
 
     if output.status.success() {
         return Ok(());
@@ -110,7 +111,9 @@ pub fn test_body(
         return Err(msg);
     }
 
-    let Ok(failure) = Failure::from_str(&stderr) else { return Err(stderr) };
+    let Ok(failure) = Failure::from_str(&stderr) else {
+        return Err(stderr.into_owned());
+    };
 
     match failure {
         Failure::Error(err) => return Err(err),
@@ -148,18 +151,23 @@ fn run_nvim_command(plugin_name: &str, extra_cmd: Option<&str>) -> Command {
     let load_library = format!(
         "lua local f = package.loadlib([[{}]], 'luaopen_{}'); f()",
         library_path.display(),
-        stringify!(plugin_name),
+        plugin_name,
     );
 
-    Command::new("nvim")
+    let mut command = Command::new("nvim");
+
+    command
         .args(["-u", "NONE", "--headless"])
         .args(["-i", "NONE"])
         .args(["-c", "set noswapfile"])
         .args(extra_cmd.map(|cmd| ["-c", cmd]).unwrap_or_default())
         .args(["-c", &load_library])
-        .args(["+quit"])
+        .args(["+quit"]);
+
+    command
 }
 
+#[derive(Clone)]
 struct PanicInfo {
     msg: String,
     file: Option<String>,
@@ -169,7 +177,7 @@ struct PanicInfo {
 
 impl Debug for PanicInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "panic:{self.msg}")?;
+        write!(f, "panic:{}", self.msg)?;
 
         if let Some(file) = &self.file {
             write!(f, "\nfile:{file}")?;
