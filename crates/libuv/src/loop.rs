@@ -1,5 +1,6 @@
+use core::cell::OnceCell;
+
 use luajit::ffi::lua_State;
-use once_cell::unsync::OnceCell;
 
 use crate::ffi;
 

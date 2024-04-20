@@ -1,4 +1,4 @@
-use once_cell::unsync::OnceCell;
+use core::cell::OnceCell;
 
 use crate::ffi::lua_State;
 

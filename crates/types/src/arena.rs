@@ -1,8 +1,8 @@
+use core::cell::OnceCell;
 use core::ffi::c_char;
 use core::ptr;
 
 use libc::size_t;
-use once_cell::unsync::OnceCell;
 
 thread_local! {
     static ARENA: OnceCell<Arena> = const { OnceCell::new() };

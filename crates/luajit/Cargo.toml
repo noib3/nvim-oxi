@@ -8,7 +8,6 @@ documentation.workspace = true
 license.workspace = true
 
 [dependencies]
-once_cell = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]
