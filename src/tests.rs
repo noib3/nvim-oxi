@@ -89,6 +89,10 @@ pub fn test_body(
         return Ok(());
     }
 
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    println!("{}", stdout.trim());
+
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     if stderr.is_empty() {
