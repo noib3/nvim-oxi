@@ -65,7 +65,8 @@ where
 
 /// TODO: docs
 pub fn test_body(
-    library_path: &Path,
+    crate_name: &str,
+    manifest_dir: &str,
     plugin_name: &str,
     extra_cmd: Option<&str>,
 ) -> Result<(), String> {
@@ -79,9 +80,10 @@ pub fn test_body(
         eprintln!("{}", info);
     }));
 
-    let output = run_nvim_command(library_path, plugin_name, extra_cmd)?
-        .output()
-        .map_err(|err| err.to_string())?;
+    let output =
+        run_nvim_command(crate_name, manifest_dir, plugin_name, extra_cmd)?
+            .output()
+            .map_err(|err| err.to_string())?;
 
     if output.status.success() {
         return Ok(());
@@ -111,10 +113,21 @@ pub fn test_body(
 
 /// TODO: docs
 fn run_nvim_command(
-    library_path: &Path,
+    crate_name: &str,
+    manifest_dir: &str,
     plugin_name: &str,
     extra_cmd: Option<&str>,
 ) -> Result<Command, String> {
+    let library_name = format!(
+        "{prefix}{crate_name}{suffix}",
+        prefix = env::consts::DLL_PREFIX,
+        suffix = env::consts::DLL_SUFFIX,
+    );
+
+    // The full path to the compiled library.
+    let library_path =
+        target_dir(Path::new(manifest_dir)).join("debug").join(library_name);
+
     if !library_path.exists() {
         return Err(format!(
             "Compiled library not found in '{}'. Please run `cargo build` \
