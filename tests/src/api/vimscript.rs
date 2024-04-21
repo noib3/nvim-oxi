@@ -9,7 +9,7 @@ fn call_function() {
 }
 
 #[cfg(not(feature = "neovim-0-8"))]
-#[oxi::test]
+#[oxi::test(cmd = "set autoread")] // getting `W13` warnings otherwise
 fn cmd_basic() {
     let cmd = "checktime";
     let infos = CmdInfos::builder().cmd(cmd).build();

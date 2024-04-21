@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Block, ItemFn, LitStr, Token};
+use syn::{parse_macro_input, ItemFn, LitStr, Token};
 
 use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 use crate::plugin::NvimOxi;
@@ -17,169 +17,44 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     let plugin_name = Ident::new(&format!("__{test_name}"), Span::call_site());
 
-    let test_body = test_body(&attrs, &plugin_name);
-
-    let plugin_body = plugin_body(&attrs, &block, &sig.output);
+    let ret = &sig.output;
 
     let nvim_oxi = &attrs.nvim_oxi;
 
+    let extra_cmd = match &attrs.cmd {
+        Some(Cmd { cmd, .. }) => quote! { Some(#cmd) },
+        None => quote! { None },
+    };
+
+    let plugin_body = match &attrs.test_fn {
+        Some(TestFn { name, .. }) => {
+            quote! { #nvim_oxi::tests::plugin_body(#name) }
+        },
+        None => quote! {
+            fn __test_fn() #ret {
+                #block
+            }
+            #nvim_oxi::tests::plugin_body(__test_fn)
+        },
+    };
+
     quote! {
         #[test]
-        fn #test_name() {
-            #test_body
+        fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
+            #nvim_oxi::tests::test_body(
+                env!("CARGO_CRATE_NAME"),
+                env!("CARGO_MANIFEST_DIR"),
+                stringify!(#plugin_name),
+                #extra_cmd,
+            )
         }
 
         #[#nvim_oxi::plugin(nvim_oxi = #nvim_oxi)]
-        fn #plugin_name() -> #nvim_oxi::Object {
+        fn #plugin_name()  {
             #plugin_body
         }
     }
     .into()
-}
-
-fn test_body(
-    attrs: &Attributes,
-    plugin_name: &Ident,
-) -> proc_macro2::TokenStream {
-    let nvim_oxi = &attrs.nvim_oxi;
-
-    let cmd = match &attrs.cmd {
-        Some(cmd) => quote! { ["-c", #cmd] },
-        None => quote! { ::core::iter::empty::<&str>() },
-    };
-
-    quote! {
-        let library_name = {
-            let mut s = ::std::string::String::new();
-            s.push_str(::std::env::consts::DLL_PREFIX);
-            s.push_str(env!("CARGO_CRATE_NAME"));
-            s.push_str(::std::env::consts::DLL_SUFFIX);
-            s
-        };
-
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-
-        // The full path to the compiled library.
-        let library_path = #nvim_oxi::__test::get_target_dir(manifest_dir.as_ref())
-            .join("debug")
-            .join(library_name);
-
-        if !library_path.exists() {
-            panic!(
-                "Compiled library not found in '{}'. Please run `cargo \
-                 build` before running the tests.",
-                library_path.display()
-            )
-        }
-
-        let load_library = format!(
-            "lua local f = package.loadlib([[{}]], 'luaopen_{}'); f()",
-            library_path.display(),
-            stringify!(#plugin_name),
-        );
-
-        let out = ::std::process::Command::new("nvim")
-            .args(["-u", "NONE", "--headless"])
-            .args(["-i", "NONE"])
-            .args(["-c", "set noswapfile"])
-            .args(#cmd)
-            .args(["-c", &load_library])
-            .args(["+quit"])
-            .output()
-            .expect("Couldn't find `nvim` binary in $PATH");
-
-        if out.status.success() {
-            return;
-        }
-
-        let mut stderr = ::std::string::String::from_utf8_lossy(&out.stderr);
-
-        if !stderr.is_empty() {
-            let print_from =
-                // The test failed due to a panic.
-                if stderr.starts_with("thread") {
-                    // Remove the last 2 lines for a cleaner error msg.
-                    stderr = {
-                        let lines = stderr.lines().collect::<Vec<_>>();
-                        let up_to = lines.len().saturating_sub(2);
-                        ::std::borrow::Cow::Owned(lines[..up_to].join("\n"))
-                    };
-
-                    let panicked_at = "panicked at ";
-
-                    stderr.match_indices(panicked_at)
-                        .next()
-                        .map(|(offset, _)| offset + panicked_at.len())
-                        .unwrap_or(0)
-                }
-                // The test failed because an error was returned.
-                else {
-                    0
-                };
-
-            panic!("{}", &stderr[print_from..]);
-        } else if let Some(code) = out.status.code() {
-            panic!("Neovim exited with non-zero exit code: {}", code);
-        } else {
-            panic!("Neovim segfaulted");
-        }
-    }
-}
-
-fn plugin_body(
-    attrs: &Attributes,
-    test_body: &Block,
-    test_return_ty: &syn::ReturnType,
-) -> proc_macro2::TokenStream {
-    if let Some(test_fn) = &attrs.test_fn {
-        let fn_name = &test_fn.name;
-        quote! { #fn_name().into() }
-    } else {
-        quote! {
-            trait __IntoResult {
-                type Error: ::core::fmt::Debug;
-                fn into_result(self) -> ::core::result::Result<(), Self::Error>;
-            }
-
-            impl __IntoResult for () {
-                type Error = ::core::convert::Infallible;
-                fn into_result(self) -> ::core::result::Result<(), Self::Error> {
-                    Ok(())
-                }
-            }
-
-            impl<E: ::core::fmt::Debug> __IntoResult for ::core::result::Result<(), E> {
-                type Error = E;
-                fn into_result(self) -> ::core::result::Result<(), E> {
-                    self
-                }
-            }
-
-            fn __test_fn() #test_return_ty {
-                #test_body
-            }
-
-            let result = ::std::panic::catch_unwind(|| {
-                __IntoResult::into_result(__test_fn())
-            });
-
-            let exit_code = match result {
-                Ok(Ok(())) => 0,
-
-                Ok(Err(err)) => {
-                    eprintln!("{:?}", err);
-                    1
-                },
-
-                Err(panic) => {
-                    eprintln!("{:?}", panic);
-                    1
-                },
-            };
-
-            ::std::process::exit(exit_code)
-        }
-    }
 }
 
 #[derive(Default)]
