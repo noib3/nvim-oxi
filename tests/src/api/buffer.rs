@@ -254,7 +254,7 @@ fn buf_set_get_del_var() {
 
 #[nvim::test]
 fn buf_set_get_name() {
-    let mut buf = Buffer::current();
+    let mut buf = api::create_buf(true, false).unwrap();
 
     assert_eq!("", buf.get_name().unwrap().display().to_string());
 
