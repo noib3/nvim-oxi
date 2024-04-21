@@ -69,17 +69,15 @@ pub fn test_body(
     plugin_name: &str,
     extra_cmd: Option<&str>,
 ) -> Result<(), String> {
-    let panic_info = Arc::new(OnceLock::new());
+    panic::set_hook(Box::new(move |info| {
+        let info = info
+            .payload()
+            .downcast_ref::<PanicInfo>()
+            .cloned()
+            .unwrap_or_else(|| info.into());
 
-    {
-        let panic_info = panic_info.clone();
-        panic::set_hook(Box::new(move |infos| {
-            let infos =
-                panic_info.get().cloned().unwrap_or_else(|| infos.into());
-
-            println!("{}", infos);
-        }));
-    }
+        eprintln!("{}", info);
+    }));
 
     let output = run_nvim_command(library_path, plugin_name, extra_cmd)?
         .output()
@@ -107,10 +105,7 @@ pub fn test_body(
 
     match failure {
         Failure::Error(err) => return Err(err),
-        Failure::Panic(info) => {
-            panic_info.set(info).unwrap();
-            panic!()
-        },
+        Failure::Panic(info) => panic::panic_any(info),
     }
 }
 
@@ -208,27 +203,22 @@ impl FromStr for PanicInfo {
             column: None,
         };
 
-        let mut lines = s.lines();
+        let (_, s) = s.split_once("panic:").ok_or(())?;
 
-        let msg = lines.next().ok_or(())?;
-        let (_, msg) = msg.split_once("panic:").ok_or(())?;
+        let (msg, s) = s.split_once("thread:").ok_or(())?;
         info.msg = msg.trim().to_owned();
 
-        let thread = lines.next().ok_or(())?;
-        let (_, thread) = thread.split_once("thread:").ok_or(())?;
+        let (thread, s) = s.split_once("file:").ok_or(())?;
         info.thread = thread.trim().to_owned();
 
-        let file = lines.next().ok_or(())?;
-        let (_, file) = file.split_once("file:").ok_or(())?;
+        let (file, s) = s.split_once("line:").ok_or(())?;
         info.file = Some(file.trim().to_owned());
 
-        let line = lines.next().ok_or(())?;
-        let (_, line) = line.split_once("line:").ok_or(())?;
+        let (line, s) = s.split_once("column:").ok_or(())?;
         info.line = Some(line.trim().parse().map_err(|_| ())?);
 
-        let column = lines.next().ok_or(())?;
-        let (_, column) = column.split_once("column:").ok_or(())?;
-        info.column = Some(column.trim().parse().map_err(|_| ())?);
+        let column = s.trim().parse().map_err(|_| ())?;
+        info.column = Some(column);
 
         Ok(info)
     }
