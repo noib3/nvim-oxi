@@ -85,13 +85,16 @@ pub fn test_body(
             .output()
             .map_err(|err| err.to_string())?;
 
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout = stdout.trim();
+
+    if !stdout.is_empty() {
+        println!("{}", stdout)
+    }
+
     if output.status.success() {
         return Ok(());
     }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    println!("{}", stdout.trim());
 
     let stderr = String::from_utf8_lossy(&output.stderr);
 
