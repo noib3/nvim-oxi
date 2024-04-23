@@ -1,6 +1,6 @@
 /// Options passed to
 /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetExtmarksOpts {
@@ -8,7 +8,7 @@ pub struct GetExtmarksOpts {
     limits: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetExtmarksOpts {
     #[inline(always)]
     /// Creates a new [`GetExtmarksOptsBuilder`].
@@ -17,11 +17,11 @@ impl GetExtmarksOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct GetExtmarksOptsBuilder(GetExtmarksOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetExtmarksOptsBuilder {
     /// Whether to include the extmark's
     /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of
@@ -86,7 +86,7 @@ impl GetExtmarksOptsBuilder {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl From<&GetExtmarksOpts> for types::Dictionary {
     fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([

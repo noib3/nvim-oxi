@@ -60,7 +60,7 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
-            #[cfg(not(feature = "neovim-0-8"))]
+            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             LUA_INTERNAL_CALL,
             name.non_owning(),
             command.non_owning(),
@@ -179,13 +179,16 @@ where
         .collect::<Array>();
 
     let mut err = nvim::Error::new();
-    #[cfg(feature = "neovim-0-8")]
+    #[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
     let opts = Dictionary::from(opts);
     unsafe {
         nvim_echo(
             chunks.non_owning(),
             history,
-            #[cfg(feature = "neovim-0-8")]
+            #[cfg(not(any(
+                feature = "neovim-0-9",
+                feature = "neovim-nightly"
+            )))]
             opts.non_owning(),
             #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             opts,
@@ -486,13 +489,13 @@ pub fn get_mark(
     opts: &GetMarkOpts,
 ) -> Result<(usize, usize, Buffer, String)> {
     let name = nvim::String::from(name);
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let mark = unsafe {
         nvim_get_mark(
             name.non_owning(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            #[cfg(not(feature = "neovim-nightly"))]
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,
@@ -549,7 +552,10 @@ where
     let obj = unsafe {
         nvim_get_option(
             name.non_owning(),
-            #[cfg(feature = "neovim-0-9")]
+            #[cfg(all(
+                feature = "neovim-0-9",
+                not(feature = "neovim-nightly")
+            ))]
             types::arena(),
             &mut err,
         )
@@ -898,13 +904,13 @@ pub fn notify(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_open_term()
 pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let channel_id = unsafe {
         nvim_open_term(
             buffer.0,
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            #[cfg(not(feature = "neovim-nightly"))]
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,
@@ -1019,7 +1025,7 @@ pub fn select_popupmenu_item(
     finish: bool,
     opts: &SelectPopupMenuItemOpts,
 ) -> Result<()> {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
@@ -1027,7 +1033,7 @@ pub fn select_popupmenu_item(
             item.try_into()?,
             insert,
             finish,
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            #[cfg(not(feature = "neovim-nightly"))]
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,

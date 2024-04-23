@@ -74,7 +74,7 @@ pub struct CreateCommandOpts {
 
 /// Options passed to
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateCommandOpts {
@@ -92,7 +92,7 @@ pub struct CreateCommandOpts {
     keepscript: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl CreateCommandOpts {
     #[inline(always)]
     /// Creates a new [`CreateCommandOptsBuilder`].
@@ -101,11 +101,11 @@ impl CreateCommandOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct CreateCommandOptsBuilder(CreateCommandOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl CreateCommandOptsBuilder {
     #[inline]
     pub fn addr(&mut self, addr: CommandAddr) -> &mut Self {

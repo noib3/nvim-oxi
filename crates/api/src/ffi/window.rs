@@ -55,7 +55,8 @@ extern "C" {
     pub(crate) fn nvim_win_get_option(
         win: WinHandle,
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-0-9")] arena: *mut Arena,
+        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 

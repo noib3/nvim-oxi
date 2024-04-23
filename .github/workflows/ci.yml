@@ -46,7 +46,7 @@ jobs:
         run: cargo build ${{ matrix.features }}
         working-directory: ./tests
       - name: Run integration tests
-        run: cargo test ${{ matrix.features }}
+        run: cargo test
         working-directory: ./tests
 
   clippy:

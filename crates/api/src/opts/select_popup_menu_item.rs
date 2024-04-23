@@ -9,7 +9,7 @@ pub struct SelectPopupMenuItemOpts {
     mask: u64,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl From<&SelectPopupMenuItemOpts> for types::Dictionary {
     fn from(_: &SelectPopupMenuItemOpts) -> Self {
         Self::new()

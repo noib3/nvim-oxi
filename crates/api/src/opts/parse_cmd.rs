@@ -7,7 +7,7 @@ pub struct ParseCmdOpts {
     mask: u64,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl From<&ParseCmdOpts> for types::Dictionary {
     fn from(_: &ParseCmdOpts) -> Self {
         Self::new()

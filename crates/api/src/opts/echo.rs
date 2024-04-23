@@ -2,14 +2,14 @@
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct EchoOpts {
-    #[cfg(feature = "neovim-0-9")]
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
     verbose: types::Object,
 
     #[cfg(feature = "neovim-nightly")]
     verbose: bool,
 }
 
-#[cfg(feature = "neovim-0-8")]
+#[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
 impl From<&EchoOpts> for types::Dictionary {
     #[inline]
     fn from(_: &EchoOpts) -> Self {
@@ -41,7 +41,7 @@ pub struct EchoOptsBuilder(EchoOpts);
 impl EchoOptsBuilder {
     #[inline]
     pub fn verbose(&mut self, verbose: bool) -> &mut Self {
-        #[cfg(feature = "neovim-0-9")]
+        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
         {
             self.0.verbose = verbose.into();
         }

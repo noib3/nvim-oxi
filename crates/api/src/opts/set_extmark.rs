@@ -4,7 +4,7 @@ use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
 /// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct SetExtmarkOpts {
@@ -38,11 +38,11 @@ pub struct SetExtmarkOpts {
     cursorline_hl_group: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct SetExtmarkOptsBuilder(SetExtmarkOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetExtmarkOpts {
     #[inline(always)]
     pub fn builder() -> SetExtmarkOptsBuilder {
@@ -50,7 +50,7 @@ impl SetExtmarkOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetExtmarkOptsBuilder {
     /// Enable concealing symilar to `:syn-conceal`. If a character is supplied
     /// it is used as `:syn-cchar`.

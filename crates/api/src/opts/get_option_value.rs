@@ -31,7 +31,7 @@ pub struct OptionValueOpts {
 
 /// Options passed to
 /// [`set_option_value()`](crate::set_option_value).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct OptionValueOpts {
@@ -41,7 +41,7 @@ pub struct OptionValueOpts {
     filetype: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl OptionValueOpts {
     #[inline(always)]
     pub fn builder() -> OptionValueOptsBuilder {
@@ -49,11 +49,11 @@ impl OptionValueOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct OptionValueOptsBuilder(OptionValueOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl OptionValueOptsBuilder {
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {

@@ -8,7 +8,7 @@ fn call_function() {
     assert_eq!(Ok(7), res);
 }
 
-#[cfg(not(feature = "neovim-0-8"))]
+#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 #[oxi::test(cmd = "set autoread")] // getting `W13` warnings otherwise
 fn cmd_basic() {
     let cmd = "checktime";
@@ -17,7 +17,7 @@ fn cmd_basic() {
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
-#[cfg(not(feature = "neovim-0-8"))]
+#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 #[oxi::test]
 fn cmd_no_output() {
     let cmd = "checktime";
@@ -55,7 +55,7 @@ fn exec() {
     assert_eq!(Ok(Some("2".into())), add);
 }
 
-#[cfg(not(feature = "neovim-0-8"))]
+#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 #[oxi::test]
 fn parse_cmd_basic() {
     let res = api::parse_cmd("echo 'foo'", &Default::default());
@@ -68,7 +68,7 @@ fn parse_cmd_basic() {
     assert_eq!(Some(false), infos.bang);
     assert_eq!(Some("echo".into()), infos.cmd);
 
-    #[cfg(feature = "neovim-0-9")]
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
     assert_eq!(None, infos.count);
     #[cfg(feature = "neovim-nightly")]
     assert_eq!(Some(0), infos.count);
@@ -97,7 +97,7 @@ fn parse_cmd_basic() {
     assert_eq!(Some(CommandNArgs::Any), infos.nargs);
     assert_eq!(None, infos.nextcmd);
 
-    #[cfg(feature = "neovim-0-9")]
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
     assert_eq!(None, infos.range);
 
     #[cfg(feature = "neovim-nightly")]

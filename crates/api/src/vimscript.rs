@@ -146,14 +146,14 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
 pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
 
     let out = unsafe {
         nvim_parse_cmd(
             src.non_owning(),
-            #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+            #[cfg(not(feature = "neovim-nightly"))]
             opts.non_owning(),
             #[cfg(feature = "neovim-nightly")]
             opts,
@@ -163,7 +163,7 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
         )
     };
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     let out = CmdInfos::from_object(out.into())?;
 
     #[cfg(feature = "neovim-nightly")]
