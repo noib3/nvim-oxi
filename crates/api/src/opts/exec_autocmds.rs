@@ -45,7 +45,7 @@ pub struct ExecAutocmdsOpts {
 }
 
 /// Options passed to [`exec_autocmds()`](crate::exec_autocmds).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct ExecAutocmdsOpts {
@@ -56,7 +56,7 @@ pub struct ExecAutocmdsOpts {
     modeline: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl ExecAutocmdsOpts {
     #[inline(always)]
     pub fn builder() -> ExecAutocmdsOptsBuilder {
@@ -64,11 +64,11 @@ impl ExecAutocmdsOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct ExecAutocmdsOptsBuilder(ExecAutocmdsOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl ExecAutocmdsOptsBuilder {
     /// A specific [`Buffer`] for buffer-local autocommands. Cannot be used
     /// together with [`patterns`](ExecAutocmdsOptsBuilder::patterns).

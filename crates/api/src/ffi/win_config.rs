@@ -2,7 +2,7 @@ use types::*;
 
 use crate::types::WindowOpts;
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 pub(crate) type WinGetConfigOutput = Dictionary;
 
 #[cfg(feature = "neovim-nightly")]

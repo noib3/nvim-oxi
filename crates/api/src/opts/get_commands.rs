@@ -3,7 +3,7 @@
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetCommandsOpts {
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     builtin: types::Object,
 
     #[cfg(feature = "neovim-nightly")]
@@ -23,7 +23,7 @@ pub struct GetCommandsOptsBuilder(GetCommandsOpts);
 impl GetCommandsOptsBuilder {
     #[inline]
     pub fn builtin(&mut self, builtin: bool) -> &mut Self {
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+        #[cfg(not(feature = "neovim-nightly"))]
         {
             self.0.builtin = builtin.into();
         }

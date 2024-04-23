@@ -309,7 +309,7 @@ pub struct WindowOpts {
     row: Object,
     win: Object,
     style: Object,
-    #[cfg(feature = "neovim-0-9")]
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
     title: Object,
     width: Object,
     height: Object,
@@ -321,7 +321,7 @@ pub struct WindowOpts {
     relative: Object,
     focusable: Object,
     noautocmd: Object,
-    #[cfg(feature = "neovim-0-9")]
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
     title_pos: Object,
 }
 
@@ -347,9 +347,15 @@ impl From<&WindowConfig> for WindowOpts {
             relative: config.relative.as_ref().into(),
             row: config.row.into(),
             style: config.style.into(),
-            #[cfg(feature = "neovim-0-9")]
+            #[cfg(all(
+                feature = "neovim-0-9",
+                not(feature = "neovim-nightly")
+            ))]
             title: config.title.as_ref().into(),
-            #[cfg(feature = "neovim-0-9")]
+            #[cfg(all(
+                feature = "neovim-0-9",
+                not(feature = "neovim-nightly")
+            ))]
             title_pos: config.title_pos.as_ref().into(),
             width: config.width.into(),
             win: config.win.as_ref().into(),
@@ -358,7 +364,7 @@ impl From<&WindowConfig> for WindowOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl TryFrom<types::Dictionary> for WindowConfig {
     type Error = conversion::Error;
 

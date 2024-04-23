@@ -202,7 +202,10 @@ impl Window {
             nvim_win_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(feature = "neovim-0-9")]
+                #[cfg(all(
+                    feature = "neovim-0-9",
+                    not(feature = "neovim-nightly")
+                ))]
                 types::arena(),
                 &mut err,
             )

@@ -50,7 +50,7 @@ pub struct GetAutocmdsOpts {
 }
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
@@ -60,7 +60,7 @@ pub struct GetAutocmdsOpts {
     patterns: Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetAutocmdsOpts {
     #[inline(always)]
     pub fn builder() -> GetAutocmdsOptsBuilder {
@@ -68,11 +68,11 @@ impl GetAutocmdsOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct GetAutocmdsOptsBuilder(GetAutocmdsOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetAutocmdsOptsBuilder {
     /// Get the autocommands local to a specific `Buffer`. Cannot be used
     /// together with `patterns`.

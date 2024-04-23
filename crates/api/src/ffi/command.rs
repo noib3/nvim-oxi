@@ -2,7 +2,7 @@ use types::*;
 
 use crate::opts::*;
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 pub(crate) type ParseCmdOutput = Dictionary;
 
 #[cfg(feature = "neovim-nightly")]
@@ -15,7 +15,8 @@ pub(crate) type ParseCmdOutput = crate::types::KeyDict_cmd;
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
     pub(crate) fn nvim_buf_create_user_command(
-        #[cfg(not(feature = "neovim-0-8"))] channel_id: u64,
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+        channel_id: u64,
         buf: BufHandle,
         name: NonOwning<String>,
         command: NonOwning<Object>,
@@ -41,8 +42,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L98
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         error: *mut Error,

@@ -101,7 +101,7 @@ pub struct SetHighlightOpts {
 }
 
 /// Options passed to [`set_hl()`](crate::set_hl).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct SetHighlightOpts {
@@ -117,7 +117,7 @@ pub struct SetHighlightOpts {
     ctermbg: Object,
     ctermfg: Object,
     default: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     altfont: Object,
     reverse: Object,
     fallback: Object,
@@ -126,10 +126,10 @@ pub struct SetHighlightOpts {
     undercurl: Object,
     underline: Object,
     background: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     bg_indexed: Object,
     foreground: Object,
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     fg_indexed: Object,
     global_link: Object,
     underdashed: Object,
@@ -138,7 +138,7 @@ pub struct SetHighlightOpts {
     strikethrough: Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetHighlightOpts {
     /// Creates a new [`SetHighlightOptsBuilder`].
     #[inline]
@@ -147,11 +147,11 @@ impl SetHighlightOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct SetHighlightOptsBuilder(SetHighlightOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetHighlightOptsBuilder {
     #[inline]
     pub fn background(&mut self, background: &str) -> &mut Self {
@@ -285,21 +285,21 @@ impl SetHighlightOptsBuilder {
         self
     }
 
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     #[inline]
     pub fn altfont(&mut self, altfont: bool) -> &mut Self {
         self.0.altfont = altfont.into();
         self
     }
 
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     #[inline]
     pub fn bg_indexed(&mut self, bg_indexed: bool) -> &mut Self {
         self.0.bg_indexed = bg_indexed.into();
         self
     }
 
-    #[cfg(not(feature = "neovim-0-8"))]
+    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     #[inline]
     pub fn fg_indexed(&mut self, fg_indexed: bool) -> &mut Self {
         self.0.fg_indexed = fg_indexed.into();

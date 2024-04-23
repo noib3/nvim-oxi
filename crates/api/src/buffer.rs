@@ -169,7 +169,10 @@ impl Buffer {
         let command = command.to_object();
         unsafe {
             nvim_buf_create_user_command(
-                #[cfg(not(feature = "neovim-0-8"))]
+                #[cfg(any(
+                    feature = "neovim-0-9",
+                    feature = "neovim-nightly"
+                ))]
                 LUA_INTERNAL_CALL,
                 self.0,
                 name.non_owning(),
@@ -363,7 +366,10 @@ impl Buffer {
                 strict_indexing,
                 #[cfg(feature = "neovim-nightly")]
                 types::arena(),
-                #[cfg(not(feature = "neovim-0-8"))]
+                #[cfg(any(
+                    feature = "neovim-0-9",
+                    feature = "neovim-nightly"
+                ))]
                 // The nvim_buf_get_lines() function returns no line if we use
                 // an actual lstate here.
                 core::ptr::null_mut(),
@@ -449,7 +455,10 @@ impl Buffer {
             nvim_buf_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(feature = "neovim-0-9")]
+                #[cfg(all(
+                    feature = "neovim-0-9",
+                    not(feature = "neovim-nightly")
+                ))]
                 types::arena(),
                 &mut err,
             )
@@ -494,7 +503,10 @@ impl Buffer {
                 opts,
                 #[cfg(feature = "neovim-nightly")]
                 types::arena(),
-                #[cfg(not(feature = "neovim-0-8"))]
+                #[cfg(any(
+                    feature = "neovim-0-9",
+                    feature = "neovim-nightly"
+                ))]
                 // The nvim_buf_get_text() function returns no line if we use an actual lstate here
                 std::ptr::null_mut(),
                 &mut err,
@@ -644,7 +656,7 @@ impl Buffer {
     ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+        #[cfg(not(feature = "neovim-nightly"))]
         let opts = types::Dictionary::from(opts);
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
@@ -652,7 +664,7 @@ impl Buffer {
                 name.non_owning(),
                 line.try_into()?,
                 col.try_into()?,
-                #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+                #[cfg(not(feature = "neovim-nightly"))]
                 opts.non_owning(),
                 #[cfg(feature = "neovim-nightly")]
                 opts,

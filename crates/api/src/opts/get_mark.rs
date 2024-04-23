@@ -7,7 +7,7 @@ pub struct GetMarkOpts {
     mask: u64,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl From<&GetMarkOpts> for types::Dictionary {
     fn from(_: &GetMarkOpts) -> Self {
         Self::new()

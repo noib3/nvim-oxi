@@ -84,7 +84,7 @@ extern "C" {
         end: Integer,
         strict_indexing: bool,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        #[cfg(not(feature = "neovim-0-8"))]
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
     ) -> Array;
@@ -115,7 +115,8 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-0-9")] arena: *mut Arena,
+        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -130,7 +131,7 @@ extern "C" {
         #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetTextOpts,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        #[cfg(not(feature = "neovim-0-8"))]
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
     ) -> Array;
@@ -184,8 +185,7 @@ extern "C" {
         name: NonOwning<String>,
         line: Integer,
         col: Integer,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const SetMarkOpts,
         err: *mut Error,
     ) -> bool;

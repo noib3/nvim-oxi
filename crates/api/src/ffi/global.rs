@@ -23,7 +23,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
     pub(crate) fn nvim_create_user_command(
-        #[cfg(not(feature = "neovim-0-8"))] channel_id: u64,
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+        channel_id: u64,
         name: NonOwning<String>,
         command: NonOwning<Object>,
         opts: *const CreateCommandOpts,
@@ -63,7 +64,8 @@ extern "C" {
     pub(crate) fn nvim_echo(
         chunks: NonOwning<Array>,
         history: bool,
-        #[cfg(feature = "neovim-0-8")] opts: NonOwning<Dictionary>,
+        #[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
+        opts: NonOwning<Dictionary>,
         #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         opts: *const EchoOpts,
         err: *mut Error,
@@ -160,8 +162,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1987
     pub(crate) fn nvim_get_mark(
         name: NonOwning<String>,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetMarkOpts,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
@@ -175,7 +176,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
     pub(crate) fn nvim_get_option(
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-0-9")] arena: *mut Arena,
+        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -284,8 +286,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L952
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const OpenTermOpts,
         err: *mut Error,
     ) -> Integer;
@@ -324,8 +325,7 @@ extern "C" {
         item: Integer,
         insert: bool,
         finish: bool,
-        #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
-        opts: NonOwning<Dictionary>,
+        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")]
         opts: *const SelectPopupMenuItemOpts,
         err: *mut Error,

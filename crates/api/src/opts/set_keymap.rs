@@ -67,7 +67,7 @@ pub struct SetKeymapOpts {
 
 /// Options passed to [`Buffer::set_keymap()`](crate::Buffer::set_keymap)
 /// and [`set_keymap()`](crate::set_keymap).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct SetKeymapOpts {
@@ -82,7 +82,7 @@ pub struct SetKeymapOpts {
     replace_keycodes: Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetKeymapOpts {
     #[inline(always)]
     /// Creates a new [`SetKeymapOptsBuilder`].
@@ -91,11 +91,11 @@ impl SetKeymapOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct SetKeymapOptsBuilder(SetKeymapOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl SetKeymapOptsBuilder {
     /// A function to call when the mapping is executed.
     #[inline]

@@ -71,7 +71,7 @@ pub struct CreateAutocmdOpts {
 }
 
 /// Options passed to [`create_autocmd()`](crate::create_autocmd).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateAutocmdOpts {
@@ -85,7 +85,7 @@ pub struct CreateAutocmdOpts {
     callback: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl CreateAutocmdOpts {
     #[inline(always)]
     pub fn builder() -> CreateAutocmdOptsBuilder {
@@ -93,11 +93,11 @@ impl CreateAutocmdOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct CreateAutocmdOptsBuilder(CreateAutocmdOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl CreateAutocmdOptsBuilder {
     /// A specific `Buffer` for buffer-local autocommands.
     #[inline]

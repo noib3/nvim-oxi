@@ -24,7 +24,7 @@ pub struct OpenTermOpts {
     #[builder(mask)]
     mask: u64,
 
-    #[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+    #[cfg(not(feature = "neovim-nightly"))]
     #[builder(
         generics = "F: ToFunction<OnInputArgs, ()>",
         argtype = "F",
@@ -43,7 +43,7 @@ pub struct OpenTermOpts {
     on_input: types::LuaRef,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl From<&OpenTermOpts> for types::Dictionary {
     fn from(opts: &OpenTermOpts) -> Self {
         Self::from_iter([("on_input", opts.on_input.clone())])

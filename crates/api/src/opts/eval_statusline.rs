@@ -3,7 +3,7 @@ use types::Object;
 use crate::Window;
 
 /// Options passed to [`eval_statusline()`](crate::eval_statusline).
-#[cfg(feature = "neovim-0-8")]
+#[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct EvalStatuslineOpts {

@@ -18,14 +18,14 @@ pub struct GetContextOpts {
 }
 
 /// Options passed to [`get_context()`](crate::get_context).
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetContextOpts {
     types: types::Object,
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetContextOpts {
     /// Creates a new [`GetContextOptsBuilder`].
     #[inline]
@@ -34,11 +34,11 @@ impl GetContextOpts {
     }
 }
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
 pub struct GetContextOptsBuilder(GetContextOpts);
 
-#[cfg(any(feature = "neovim-0-8", feature = "neovim-0-9"))]
+#[cfg(not(feature = "neovim-nightly"))]
 impl GetContextOptsBuilder {
     /// List of [`ContextType`]s to gather, or empty for all.
     #[inline]
