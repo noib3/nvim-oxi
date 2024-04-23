@@ -8,6 +8,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
+default = ["neovim-0-8"]
 neovim-0-8 = ["nvim-oxi/neovim-0-8"]
 neovim-0-9 = ["nvim-oxi/neovim-0-9"]
 neovim-nightly = ["nvim-oxi/neovim-nightly"]
