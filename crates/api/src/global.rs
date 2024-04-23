@@ -848,9 +848,14 @@ pub fn list_uis() -> impl SuperIterator<UiInfos> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_wins()
 pub fn list_wins() -> impl SuperIterator<Window> {
-    unsafe { nvim_list_wins() }
-        .into_iter()
-        .map(|obj| Window::from_object(obj).unwrap())
+    unsafe {
+        nvim_list_wins(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    }
+    .into_iter()
+    .map(|obj| Window::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_load_context()`][1].

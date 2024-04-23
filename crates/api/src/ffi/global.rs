@@ -266,7 +266,9 @@ extern "C" {
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L827
-    pub(crate) fn nvim_list_wins() -> Array;
+    pub(crate) fn nvim_list_wins(
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+    ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1355
     pub(crate) fn nvim_load_context(dict: NonOwning<Dictionary>) -> Object;
