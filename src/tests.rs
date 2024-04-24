@@ -68,6 +68,7 @@ pub fn test_body(
     crate_name: &str,
     manifest_dir: &str,
     plugin_name: &str,
+    library_path: Option<impl AsRef<Path>>,
     extra_cmd: Option<&str>,
 ) -> Result<(), String> {
     panic::set_hook(Box::new(move |info| {
@@ -80,10 +81,15 @@ pub fn test_body(
         eprintln!("{}", info);
     }));
 
-    let output =
-        run_nvim_command(crate_name, manifest_dir, plugin_name, extra_cmd)?
-            .output()
-            .map_err(|err| err.to_string())?;
+    let output = run_nvim_command(
+        crate_name,
+        manifest_dir,
+        plugin_name,
+        library_path,
+        extra_cmd,
+    )?
+    .output()
+    .map_err(|err| err.to_string())?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stdout = stdout.trim();
@@ -123,17 +129,21 @@ fn run_nvim_command(
     crate_name: &str,
     manifest_dir: &str,
     plugin_name: &str,
+    library_path: Option<impl AsRef<Path>>,
     extra_cmd: Option<&str>,
 ) -> Result<Command, String> {
-    let library_name = format!(
-        "{prefix}{crate_name}{suffix}",
-        prefix = env::consts::DLL_PREFIX,
-        suffix = env::consts::DLL_SUFFIX,
-    );
-
-    // The full path to the compiled library.
-    let library_path =
-        target_dir(Path::new(manifest_dir)).join("debug").join(library_name);
+    let library_path = library_path
+        .map(|path| path.as_ref().to_owned())
+        .unwrap_or_else(|| {
+            let library_name = format!(
+                "{prefix}{crate_name}{suffix}",
+                prefix = env::consts::DLL_PREFIX,
+                suffix = env::consts::DLL_SUFFIX,
+            );
+            target_dir(Path::new(manifest_dir))
+                .join("debug")
+                .join(library_name)
+        });
 
     if !library_path.exists() {
         return Err(format!(
