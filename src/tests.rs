@@ -68,10 +68,33 @@ pub fn plugin_body_with_terminator<F>(_test_body: F)
 where
     F: FnOnce(Terminator),
 {
+    let lock = Arc::new(OnceLock::new());
+
+    let handle = {
+        let mut lock = lock.clone();
+        crate::libuv::AsyncHandle::new(move || {
+            let _res = Arc::get_mut(&mut lock).unwrap().take().unwrap();
+            Ok::<_, std::convert::Infallible>(())
+        })
+    }
+    .unwrap();
+
+    let terminator = Terminator { lock, handle };
 }
 
 /// TODO: docs
-pub struct Terminator {}
+pub struct Terminator {
+    lock: Arc<OnceLock<()>>,
+    handle: crate::libuv::AsyncHandle,
+}
+
+impl Terminator {
+    /// TODO: docs
+    pub fn terminate(self, res: ()) {
+        let Ok(()) = self.lock.set(res) else { unreachable!() };
+        self.handle.send().unwrap();
+    }
+}
 
 /// TODO: docs
 pub fn test_body(
