@@ -84,16 +84,26 @@ where
 
 /// TODO: docs
 pub struct Terminator {
-    lock: Arc<OnceLock<()>>,
+    lock: Arc<OnceLock<Result<(), Failure>>>,
     handle: crate::libuv::AsyncHandle,
 }
 
 impl Terminator {
     /// TODO: docs
-    pub fn terminate(self, res: ()) {
+    pub fn terminate<E: Display>(self, res: Result<(), TestFailure<'_, E>>) {
+        let res = res.map_err(|err| match err {
+            TestFailure::Error(err) => Failure::Error(err.to_string()),
+            TestFailure::Panic(info) => Failure::Panic(info.into()),
+        });
         let Ok(()) = self.lock.set(res) else { unreachable!() };
         self.handle.send().unwrap();
     }
+}
+
+/// TODO: docs
+pub enum TestFailure<'a, E> {
+    Error(E),
+    Panic(&'a std::panic::PanicInfo<'a>),
 }
 
 /// TODO: docs

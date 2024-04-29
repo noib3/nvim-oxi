@@ -94,5 +94,5 @@ pub use types::*;
 pub mod tests;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]
-pub use tests::Terminator;
+pub use tests::{Terminator, TestFailure};
 pub use toplevel::*;
