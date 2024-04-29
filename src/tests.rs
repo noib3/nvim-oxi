@@ -64,6 +64,16 @@ where
 }
 
 /// TODO: docs
+pub fn plugin_body_with_terminator<F>(_test_body: F)
+where
+    F: FnOnce(Terminator),
+{
+}
+
+/// TODO: docs
+pub struct Terminator {}
+
+/// TODO: docs
 pub fn test_body(
     crate_name: &str,
     manifest_dir: &str,

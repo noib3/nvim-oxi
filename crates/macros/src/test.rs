@@ -33,11 +33,19 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         None => quote! { ::core::option::Option::None },
     };
 
-    let plugin_body = quote! {
-        fn __test_fn() #ret {
-            #block
-        }
-        #nvim_oxi::tests::plugin_body(__test_fn)
+    let plugin_body = match &sig.inputs.first() {
+        Some(terminator) => quote! {
+           fn __test_fn(#terminator) #ret {
+               #block
+           }
+           #nvim_oxi::tests::plugin_body_with_terminator(__test_fn)
+        },
+        None => quote! {
+            fn __test_fn() #ret {
+                #block
+            }
+            #nvim_oxi::tests::plugin_body(__test_fn)
+        },
     };
 
     quote! {
