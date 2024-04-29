@@ -3,7 +3,7 @@ use std::env;
 use std::fmt::{Debug, Display};
 use std::panic::{self, Location, UnwindSafe};
 use std::path::{Path, PathBuf};
-use std::process::{exit, Command};
+use std::process::Command;
 use std::str::FromStr;
 use std::sync::{Arc, OnceLock};
 use std::thread;
@@ -56,30 +56,31 @@ where
         Err(_) => Err(Failure::Panic(panic_info.get().unwrap().clone())),
     };
 
-    if let Err(failure) = &result {
-        eprintln!("{failure}");
-    }
-
-    exit(result.is_err().into());
+    exit(result);
 }
 
 /// TODO: docs
-pub fn plugin_body_with_terminator<F>(_test_body: F)
+pub fn plugin_body_with_terminator<F>(test_body: F)
 where
     F: FnOnce(Terminator),
 {
-    let lock = Arc::new(OnceLock::new());
+    let lock = Arc::new(OnceLock::<Result<(), Failure>>::new());
 
     let handle = {
-        let mut lock = lock.clone();
+        let lock = lock.clone();
+
         crate::libuv::AsyncHandle::new(move || {
-            let _res = Arc::get_mut(&mut lock).unwrap().take().unwrap();
+            let result = lock.get().unwrap().clone();
+            crate::schedule(move |()| {
+                exit(result);
+                Ok(())
+            });
             Ok::<_, std::convert::Infallible>(())
         })
     }
     .unwrap();
 
-    let terminator = Terminator { lock, handle };
+    test_body(Terminator { lock, handle });
 }
 
 /// TODO: docs
@@ -104,6 +105,15 @@ impl Terminator {
 pub enum TestFailure<'a, E> {
     Error(E),
     Panic(&'a std::panic::PanicInfo<'a>),
+}
+
+fn exit(result: Result<(), Failure>) {
+    if let Err(failure) = result {
+        eprintln!("{failure}");
+        crate::api::exec("cquit 1", false).unwrap();
+    } else {
+        crate::api::exec("qall!", false).unwrap();
+    }
 }
 
 /// TODO: docs
@@ -209,8 +219,7 @@ fn run_nvim_command(
         .args(["-i", "NONE"])
         .args(["-c", "set noswapfile"])
         .args(extra_cmd.map(|cmd| ["-c", cmd]).unwrap_or_default())
-        .args(["-c", &load_library])
-        .args(["+quit"]);
+        .args(["-c", &load_library]);
 
     Ok(command)
 }
@@ -324,6 +333,7 @@ impl From<&panic::PanicInfo<'_>> for PanicInfo {
     }
 }
 
+#[derive(Clone)]
 enum Failure {
     Error(String),
     Panic(PanicInfo),
