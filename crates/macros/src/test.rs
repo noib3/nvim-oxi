@@ -11,7 +11,13 @@ use crate::plugin::NvimOxi;
 pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = parse_macro_input!(attrs as Attributes);
 
-    let ItemFn { sig, block, .. } = parse_macro_input!(item as syn::ItemFn);
+    let ItemFn { attrs: test_attrs, sig, block, .. } =
+        parse_macro_input!(item as syn::ItemFn);
+
+    let test_attrs = test_attrs
+        .into_iter()
+        .map(ToTokens::into_token_stream)
+        .collect::<proc_macro2::TokenStream>();
 
     let test_name = sig.ident;
 
@@ -59,6 +65,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     quote! {
         #[test]
+        #test_attrs
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
             #nvim_oxi::tests::test_body(
                 env!("CARGO_CRATE_NAME"),
