@@ -11,7 +11,13 @@ use crate::plugin::NvimOxi;
 pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let attrs = parse_macro_input!(attrs as Attributes);
 
-    let ItemFn { sig, block, .. } = parse_macro_input!(item as syn::ItemFn);
+    let ItemFn { attrs: test_attrs, sig, block, .. } =
+        parse_macro_input!(item as syn::ItemFn);
+
+    let test_attrs = test_attrs
+        .into_iter()
+        .map(ToTokens::into_token_stream)
+        .collect::<proc_macro2::TokenStream>();
 
     let test_name = sig.ident;
 
@@ -33,9 +39,13 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         None => quote! { ::core::option::Option::None },
     };
 
-    let plugin_body = match &attrs.test_fn {
-        Some(TestFn { name, .. }) => {
-            quote! { #nvim_oxi::tests::plugin_body(#name) }
+    #[cfg(feature = "test-terminator")]
+    let plugin_body = match &sig.inputs.first() {
+        Some(terminator) => quote! {
+           fn __test_fn(#terminator) #ret {
+               #block
+           }
+           #nvim_oxi::tests::plugin_body_with_terminator(__test_fn)
         },
         None => quote! {
             fn __test_fn() #ret {
@@ -45,8 +55,17 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         },
     };
 
+    #[cfg(not(feature = "test-terminator"))]
+    let plugin_body = quote! {
+        fn __test_fn() #ret {
+            #block
+        }
+        #nvim_oxi::tests::plugin_body(__test_fn)
+    };
+
     quote! {
         #[test]
+        #test_attrs
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
             #nvim_oxi::tests::test_body(
                 env!("CARGO_CRATE_NAME"),
@@ -70,7 +89,6 @@ struct Attributes {
     cmd: Option<Cmd>,
     library_path: Option<LibraryPath>,
     nvim_oxi: NvimOxi,
-    test_fn: Option<TestFn>,
 }
 
 impl Parse for Attributes {
@@ -101,12 +119,6 @@ impl Parse for Attributes {
                     this.nvim_oxi = nvim_oxi;
                     has_parsed_nvim_oxi = true;
                 },
-                Attribute::TestFn(test_fn) => {
-                    if this.test_fn.is_some() {
-                        return Err(DuplicateError(test_fn).into());
-                    }
-                    this.test_fn = Some(test_fn);
-                },
             }
 
             if !input.is_empty() {
@@ -122,7 +134,6 @@ enum Attribute {
     Cmd(Cmd),
     LibraryPath(LibraryPath),
     NvimOxi(NvimOxi),
-    TestFn(TestFn),
 }
 
 impl Parse for Attribute {
@@ -133,7 +144,6 @@ impl Parse for Attribute {
             .map(Self::Cmd)
             .or_else(|_| input.parse::<LibraryPath>().map(Self::LibraryPath))
             .or_else(|_| input.parse::<NvimOxi>().map(Self::NvimOxi))
-            .or_else(|_| input.parse::<TestFn>().map(Self::TestFn))
     }
 }
 
@@ -196,34 +206,6 @@ impl Parse for LibraryPath {
         Ok(Self {
             key_span: Span::call_site(),
             path: input.parse::<Keyed<Self>>()?.value,
-        })
-    }
-}
-
-/// The name of the function that will be executed in the entrypoint of the
-/// test.
-struct TestFn {
-    key_span: Span,
-    name: Ident,
-}
-
-impl KeyedAttribute for TestFn {
-    const KEY: &'static str = "test_fn";
-
-    type Value = Ident;
-
-    #[inline]
-    fn key_span(&self) -> Span {
-        self.key_span
-    }
-}
-
-impl Parse for TestFn {
-    #[inline]
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            key_span: Span::call_site(),
-            name: input.parse::<Keyed<Self>>()?.value,
         })
     }
 }

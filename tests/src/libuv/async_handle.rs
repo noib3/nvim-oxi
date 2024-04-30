@@ -5,6 +5,7 @@ use std::rc::Rc;
 use nvim_oxi::{self as nvim, libuv::*};
 
 #[nvim::test]
+#[ignore = "the callback is never called"]
 fn async_handle_0() {
     let num_called = Rc::new(RefCell::new(0));
 
@@ -23,9 +24,6 @@ fn async_handle_0() {
 
         let also_num_called = num_called.clone();
 
-        // This is not actually executing, we can panic inside the callback and
-        // the test will still pass.
-        //
         // TODO: how do we wait for the callback to be executed without
         // blocking the main thread?
         nvim::schedule(move |_| {
