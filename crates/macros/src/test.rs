@@ -33,6 +33,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         None => quote! { ::core::option::Option::None },
     };
 
+    #[cfg(feature = "test-terminator")]
     let plugin_body = match &sig.inputs.first() {
         Some(terminator) => quote! {
            fn __test_fn(#terminator) #ret {
@@ -46,6 +47,14 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
             }
             #nvim_oxi::tests::plugin_body(__test_fn)
         },
+    };
+
+    #[cfg(not(feature = "test-terminator"))]
+    let plugin_body = quote! {
+        fn __test_fn() #ret {
+            #block
+        }
+        #nvim_oxi::tests::plugin_body(__test_fn)
     };
 
     quote! {

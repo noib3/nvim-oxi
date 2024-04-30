@@ -92,7 +92,7 @@ pub use types::*;
 #[cfg(feature = "test")]
 #[doc(hidden)]
 pub mod tests;
-#[cfg(feature = "test")]
-#[cfg_attr(docsrs, doc(cfg(feature = "test")))]
-pub use tests::{Terminator, TestFailure};
+#[cfg(feature = "test-terminator")]
+#[cfg_attr(docsrs, doc(cfg(feature = "test-terminator")))]
+pub use tests::{TestFailure, TestTerminator};
 pub use toplevel::*;

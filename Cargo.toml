@@ -49,6 +49,7 @@ neovim-nightly = ["api/neovim-nightly"]
 libuv = ["dep:libuv"]
 mlua = ["dep:mlua"]
 test = ["macros/test", "miniserde"]
+test-terminator = ["test", "libuv", "macros/test-terminator"]
 __vendored_luajit = ["mlua/vendored"]
 
 [dependencies]

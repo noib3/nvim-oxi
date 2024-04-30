@@ -60,9 +60,10 @@ where
 }
 
 /// TODO: docs
+#[cfg(feature = "test-terminator")]
 pub fn plugin_body_with_terminator<F>(test_body: F)
 where
-    F: FnOnce(Terminator),
+    F: FnOnce(TestTerminator),
 {
     let lock = Arc::new(OnceLock::<Result<(), Failure>>::new());
 
@@ -80,16 +81,18 @@ where
     }
     .unwrap();
 
-    test_body(Terminator { lock, handle });
+    test_body(TestTerminator { lock, handle });
 }
 
 /// TODO: docs
-pub struct Terminator {
+#[cfg(feature = "test-terminator")]
+pub struct TestTerminator {
     lock: Arc<OnceLock<Result<(), Failure>>>,
     handle: crate::libuv::AsyncHandle,
 }
 
-impl Terminator {
+#[cfg(feature = "test-terminator")]
+impl TestTerminator {
     /// TODO: docs
     pub fn terminate<E: Display>(self, res: Result<(), TestFailure<'_, E>>) {
         let res = res.map_err(Into::into);
@@ -356,6 +359,7 @@ impl FromStr for Failure {
     }
 }
 
+#[cfg(feature = "test-terminator")]
 impl<E: Display> From<TestFailure<'_, E>> for Failure {
     fn from(err: TestFailure<'_, E>) -> Self {
         match err {
