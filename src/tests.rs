@@ -92,10 +92,7 @@ pub struct Terminator {
 impl Terminator {
     /// TODO: docs
     pub fn terminate<E: Display>(self, res: Result<(), TestFailure<'_, E>>) {
-        let res = res.map_err(|err| match err {
-            TestFailure::Error(err) => Failure::Error(err.to_string()),
-            TestFailure::Panic(info) => Failure::Panic(info.into()),
-        });
+        let res = res.map_err(Into::into);
         let Ok(()) = self.lock.set(res) else { unreachable!() };
         self.handle.send().unwrap();
     }
@@ -355,6 +352,15 @@ impl FromStr for Failure {
         match s.split_once("error:") {
             Some((_, msg)) => Ok(Failure::Error(msg.trim().to_owned())),
             None => PanicInfo::from_str(s).map(Self::Panic),
+        }
+    }
+}
+
+impl<E: Display> From<TestFailure<'_, E>> for Failure {
+    fn from(err: TestFailure<'_, E>) -> Self {
+        match err {
+            TestFailure::Error(err) => Self::Error(err.to_string()),
+            TestFailure::Panic(info) => Self::Panic(info.into()),
         }
     }
 }
