@@ -125,11 +125,17 @@ pub fn test_body(
     extra_cmd: Option<&str>,
 ) -> Result<(), String> {
     panic::set_hook(Box::new(move |info| {
-        let info = info
+        let mut info = info
             .payload()
             .downcast_ref::<PanicInfo>()
             .cloned()
             .unwrap_or_else(|| info.into());
+
+        if let Some(thread) = thread::current().name() {
+            if !thread.is_empty() {
+                info.thread = thread.to_owned();
+            }
+        }
 
         eprintln!("{}", info);
     }));
