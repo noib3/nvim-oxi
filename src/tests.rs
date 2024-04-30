@@ -89,7 +89,19 @@ where
 
 /// A handle used to terminate a test annotated by [`test`](crate::test).
 ///
-/// ..
+/// The `test` macro works by turning the annotated function into its own
+/// plugin, which is then loaded by Neovim and evalutated by `require`ing it
+/// when the test is run, before immediately quitting.
+///
+/// When testing asynchronous code this can be problematic, as the test may
+/// need to continue running after the generated plugin has been `require`d.
+///
+/// To allow for this, the test function can take a `TestTerminator` as its
+/// only argument. This allows the test to be terminated asynchronously by
+/// calling [`terminate`](Self::terminate).
+///
+/// Note that if the `TestTerminator` is dropped without first calling
+/// `terminate`, the test will run forever.
 #[cfg(feature = "test-terminator")]
 pub struct TestTerminator {
     lock: Arc<OnceLock<Result<(), Failure>>>,
