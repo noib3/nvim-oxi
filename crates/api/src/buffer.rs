@@ -16,11 +16,10 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::{buffer::*, command::*};
+use crate::ffi::buffer::*;
 use crate::opts::*;
-use crate::types::{CommandArgs, CommandInfos, KeymapInfos, Mode};
+use crate::types::{KeymapInfos, Mode};
 use crate::utils;
-use crate::StringOrFunction;
 use crate::SuperIterator;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Error, Result};
@@ -150,40 +149,6 @@ impl Buffer {
         })
     }
 
-    /// Binding to [`nvim_buf_create_user_command()`][1].
-    ///
-    /// Creates a new buffer-local user command.
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_create_user_command()
-    pub fn create_user_command<Cmd>(
-        &mut self,
-        name: &str,
-        command: Cmd,
-        opts: &CreateCommandOpts,
-    ) -> Result<()>
-    where
-        Cmd: StringOrFunction<CommandArgs, ()>,
-    {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        let command = command.to_object();
-        unsafe {
-            nvim_buf_create_user_command(
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
-                LUA_INTERNAL_CALL,
-                self.0,
-                name.non_owning(),
-                command.non_owning(),
-                opts,
-                &mut err,
-            )
-        };
-        choose!(err, ())
-    }
-
     /// Binding to [`nvim_buf_del_keymap()`][1].
     ///
     /// Unmaps a buffer-local mapping for the given mode.
@@ -223,22 +188,6 @@ impl Buffer {
                 _ => Err(Error::custom("Couldn't delete mark")),
             }
         )
-    }
-
-    /// Binding to [`nvim_buf_del_user_command()`][1].
-    ///
-    /// Deletes a buffer-local user-command. Use
-    /// [`del_user_command`](crate::del_user_command) to delete a global
-    /// command.
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_del_user_command()
-    pub fn del_user_command(&mut self, name: &str) -> Result<()> {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        unsafe {
-            nvim_buf_del_user_command(self.0, name.non_owning(), &mut err)
-        };
-        choose!(err, ())
     }
 
     /// Binding to [`nvim_buf_del_var()`][1].
@@ -286,32 +235,6 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let ct = unsafe { nvim_buf_get_changedtick(self.0, &mut err) };
         choose!(err, Ok(ct.try_into().expect("always positive")))
-    }
-
-    /// Binding to [`nvim_buf_get_commands()`][1].
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_commands()
-    pub fn get_commands(
-        &self,
-        opts: &GetCommandsOpts,
-    ) -> Result<impl SuperIterator<CommandInfos>> {
-        let mut err = nvim::Error::new();
-        let cmds = unsafe {
-            nvim_buf_get_commands(
-                self.0,
-                opts,
-                #[cfg(feature = "neovim-nightly")]
-                types::arena(),
-                &mut err,
-            )
-        };
-        choose!(
-            err,
-            Ok({
-                cmds.into_iter()
-                    .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
-            })
-        )
     }
 
     /// Binding to [`nvim_buf_get_keymap()`][1].
@@ -434,36 +357,6 @@ impl Buffer {
         let offset =
             unsafe { nvim_buf_get_offset(self.0, index as Integer, &mut err) };
         choose!(err, Ok(offset.try_into().expect("offset is positive")))
-    }
-
-    /// Binding to [`nvim_buf_get_option()`][1].
-    ///
-    /// Gets a buffer option value.
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_option()
-    #[cfg_attr(
-        feature = "neovim-nightly",
-        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
-    )]
-    pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
-    where
-        Opt: FromObject,
-    {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        let obj = unsafe {
-            nvim_buf_get_option(
-                self.0,
-                name.non_owning(),
-                #[cfg(all(
-                    feature = "neovim-0-9",
-                    not(feature = "neovim-nightly")
-                ))]
-                types::arena(),
-                &mut err,
-            )
-        };
-        choose!(err, Ok(Opt::from_object(obj)?))
     }
 
     /// Binding to [`nvim_buf_get_text()`][1].
@@ -689,34 +582,6 @@ impl Buffer {
         let name = nvim::String::from(name.as_ref());
         let mut err = nvim::Error::new();
         unsafe { nvim_buf_set_name(self.0, name.non_owning(), &mut err) };
-        choose!(err, ())
-    }
-
-    /// Binding to [`nvim_buf_set_option()`][1].
-    ///
-    /// Sets a buffer option value. Passing `None` as value deletes the option
-    /// (only works if there's a global fallback).
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_option()
-    #[cfg_attr(
-        feature = "neovim-nightly",
-        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
-    )]
-    pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
-    where
-        V: ToObject,
-    {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        unsafe {
-            nvim_buf_set_option(
-                LUA_INTERNAL_CALL,
-                self.0,
-                name.non_owning(),
-                value.to_object()?.non_owning(),
-                &mut err,
-            )
-        };
         choose!(err, ())
     }
 

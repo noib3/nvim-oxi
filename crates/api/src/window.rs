@@ -16,7 +16,6 @@ use types::{
 use crate::choose;
 use crate::ffi::window::*;
 use crate::Result;
-use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage};
 
 /// A wrapper around a Neovim window handle.
@@ -183,36 +182,6 @@ impl Window {
         choose!(err, Ok(nr.try_into().expect("always positive")))
     }
 
-    /// Binding to [`nvim_win_get_option()`][1].
-    ///
-    /// Gets a window option value.
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_option()
-    #[cfg_attr(
-        feature = "neovim-nightly",
-        deprecated(since = "0.5.0", note = "use `get_option_value` instead")
-    )]
-    pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
-    where
-        Opt: FromObject,
-    {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        let obj = unsafe {
-            nvim_win_get_option(
-                self.0,
-                name.non_owning(),
-                #[cfg(all(
-                    feature = "neovim-0-9",
-                    not(feature = "neovim-nightly")
-                ))]
-                types::arena(),
-                &mut err,
-            )
-        };
-        choose!(err, Ok(Opt::from_object(obj)?))
-    }
-
     /// Binding to [`nvim_win_get_position()`][1].
     ///
     /// Gets the window position in display cells.
@@ -333,34 +302,6 @@ impl Window {
     pub fn set_height(&mut self, height: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_height(self.0, height.into(), &mut err) };
-        choose!(err, ())
-    }
-
-    /// Binding to [`nvim_win_set_option()`][1].
-    ///
-    /// Sets a window option value. Passing `None` as value deletes the option
-    /// (only works if there's a global fallback).
-    ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_option()
-    #[cfg_attr(
-        feature = "neovim-nightly",
-        deprecated(since = "0.5.0", note = "use `set_option_value` instead")
-    )]
-    pub fn set_option<Opt>(&mut self, name: &str, value: Opt) -> Result<()>
-    where
-        Opt: ToObject,
-    {
-        let mut err = nvim::Error::new();
-        let name = nvim::String::from(name);
-        unsafe {
-            nvim_win_set_option(
-                LUA_INTERNAL_CALL,
-                self.0,
-                name.non_owning(),
-                value.to_object()?.non_owning(),
-                &mut err,
-            )
-        };
         choose!(err, ())
     }
 
