@@ -1,15 +1,4 @@
-#[cfg(feature = "neovim-nightly")]
-use types::Arena;
-use types::{
-    Array,
-    BufHandle,
-    Dictionary,
-    Error,
-    Integer,
-    NonOwning,
-    Object,
-    String,
-};
+use types::*;
 
 use crate::opts::*;
 
@@ -93,4 +82,28 @@ extern "C" {
         opts: *const DecorationProviderOpts,
         err: *mut Error,
     );
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1223
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_win_add_ns(
+        window: WinHandle,
+        ns_id: Integer,
+        err: *mut Error,
+    ) -> Boolean;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1246
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_win_get_ns(
+        window: WinHandle,
+        arena: *mut Arena,
+        err: *mut Error,
+    ) -> Array;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1268
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_win_remove_ns(
+        window: WinHandle,
+        ns_id: Integer,
+        err: *mut Error,
+    ) -> Boolean;
 }

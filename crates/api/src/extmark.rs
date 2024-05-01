@@ -11,6 +11,54 @@ use crate::Buffer;
 use crate::SuperIterator;
 use crate::{Error, Result};
 
+/// Binding to [`nvim_create_namespace()`][1].
+///
+/// Creates a new namespace or gets the id of an existing one. If `name`
+/// matches an existing namespace the associated id is returned.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_create_namespace()
+pub fn create_namespace(name: &str) -> u32 {
+    let name = nvim::String::from(name);
+    unsafe { nvim_create_namespace(name.non_owning()) }
+        .try_into()
+        .expect("always positive")
+}
+
+/// Binding to [`nvim_get_namespaces()`][1].
+///
+/// Returns an iterator over all the existing, non-anonymous namespace names
+/// and ids tuples `(name, id)`.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
+pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
+    unsafe {
+        nvim_get_namespaces(
+            #[cfg(feature = "neovim-nightly")]
+            types::arena(),
+        )
+    }
+    .into_iter()
+    .map(|(k, v)| {
+        let k = k.to_string_lossy().into();
+        let v = u32::from_object(v).expect("namespace id is positive");
+        (k, v)
+    })
+}
+
+/// Binding to [`nvim_set_decoration_provider()`][1].
+///
+/// Sets or changes a decoration provider for a namespace.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_decoration_provider()
+pub fn set_decoration_provider(
+    ns_id: u32,
+    opts: &DecorationProviderOpts,
+) -> Result<()> {
+    let mut err = nvim::Error::new();
+    unsafe { nvim_set_decoration_provider(ns_id as Integer, opts, &mut err) };
+    choose!(err, ())
+}
+
 impl Buffer {
     /// Binding to [`nvim_buf_add_highlight()`][1].
     ///
@@ -242,50 +290,53 @@ impl Buffer {
     }
 }
 
-/// Binding to [`nvim_create_namespace()`][1].
-///
-/// Creates a new namespace or gets the id of an existing one. If `name`
-/// matches an existing namespace the associated id is returned.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_create_namespace()
-pub fn create_namespace(name: &str) -> u32 {
-    let name = nvim::String::from(name);
-    unsafe { nvim_create_namespace(name.non_owning()) }
-        .try_into()
-        .expect("always positive")
-}
+impl crate::Window {
+    /// Binding to [`nvim_win_add_ns()`][1].
+    ///
+    /// Adds the namespace scope to the window, returning `true` if the
+    /// namespace was added, and `false` otherwise.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_add_ns()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn add_ns(&mut self, ns_id: u32) -> Result<bool> {
+        let mut err = nvim::Error::new();
+        let was_added =
+            unsafe { nvim_win_add_ns(self.0, ns_id as Integer, &mut err) };
+        choose!(err, Ok(was_added))
+    }
 
-/// Binding to [`nvim_get_namespaces()`][1].
-///
-/// Returns an iterator over all the existing, non-anonymous namespace names
-/// and ids tuples `(name, id)`.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
-pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
-    unsafe {
-        nvim_get_namespaces(
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
+    /// Binding to [`nvim_win_get_ns()`][1].
+    ///
+    /// Gets all the namespaces scopes associated with a window.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_ns()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn get_ns(&self) -> Result<impl SuperIterator<u32>> {
+        let mut err = nvim::Error::new();
+        let namespaces =
+            unsafe { nvim_win_get_ns(self.0, types::arena(), &mut err) };
+        choose!(
+            err,
+            Ok(namespaces
+                .into_iter()
+                .map(|namespace| u32::from_object(namespace).unwrap()))
         )
     }
-    .into_iter()
-    .map(|(k, v)| {
-        let k = k.to_string_lossy().into();
-        let v = u32::from_object(v).expect("namespace id is positive");
-        (k, v)
-    })
-}
 
-/// Binding to [`nvim_set_decoration_provider()`][1].
-///
-/// Sets or changes a decoration provider for a namespace.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_set_decoration_provider()
-pub fn set_decoration_provider(
-    ns_id: u32,
-    opts: &DecorationProviderOpts,
-) -> Result<()> {
-    let mut err = nvim::Error::new();
-    unsafe { nvim_set_decoration_provider(ns_id as Integer, opts, &mut err) };
-    choose!(err, ())
+    /// Binding to [`nvim_win_remove_ns()`][1].
+    ///
+    /// Removes the namespace scope from the window, returning `true` if the
+    /// namespace was removed, and `false` otherwise.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_remove_ns()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn remove_ns(&mut self, ns_id: u32) -> Result<bool> {
+        let mut err = nvim::Error::new();
+        let was_removed =
+            unsafe { nvim_win_remove_ns(self.0, ns_id as Integer, &mut err) };
+        choose!(err, Ok(was_removed))
+    }
 }

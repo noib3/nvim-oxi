@@ -1,7 +1,7 @@
-use nvim_oxi as oxi;
+use nvim_oxi as nvim;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer};
 
-#[oxi::test]
+#[nvim::test]
 fn add_highlight() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
@@ -9,7 +9,7 @@ fn add_highlight() {
     assert!(res.is_ok(), "{res:?}");
 }
 
-#[oxi::test]
+#[nvim::test]
 fn clear_namespace() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
@@ -17,7 +17,7 @@ fn clear_namespace() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_extmarks() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
@@ -85,7 +85,7 @@ fn get_extmarks() {
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_namespaces() {
     let id = api::create_namespace("Foo");
 
@@ -96,9 +96,9 @@ fn get_namespaces() {
     assert_eq!(id, out);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_decoration_provider() {
-    use nvim_oxi::print;
+    use nvim::print;
 
     let id = api::create_namespace("Foo");
 
@@ -136,7 +136,7 @@ fn set_decoration_provider() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_del_extmark() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
@@ -210,7 +210,7 @@ fn set_get_del_extmark() {
 }
 
 #[cfg(feature = "neovim-nightly")]
-#[oxi::test]
+#[nvim::test]
 fn virt_text_pos_inline() {
     let mut buf = Buffer::current();
 
@@ -232,4 +232,14 @@ fn virt_text_pos_inline() {
     };
 
     assert_eq!(infos.virt_text_pos, Some(ExtmarkVirtTextPosition::Inline));
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[nvim::test]
+fn extmark_win_add_get_remove_ns() {
+    let mut win = api::Window::current();
+    let ns = api::create_namespace("test");
+    assert!(win.add_ns(ns).unwrap());
+    assert_eq!(win.get_ns().unwrap().collect::<Vec<_>>(), [ns]);
+    assert!(win.remove_ns(ns).unwrap());
 }
