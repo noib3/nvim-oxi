@@ -15,10 +15,13 @@
 
 mod autocmd;
 mod buffer;
+mod command;
+mod deprecated;
 mod error;
 mod extmark;
 mod ffi;
 mod global;
+mod options;
 pub mod opts;
 pub(crate) mod serde_utils;
 mod tabpage;
@@ -31,10 +34,13 @@ mod window;
 
 pub use autocmd::*;
 pub use buffer::*;
+pub use command::*;
+pub use deprecated::*;
 pub use error::Error;
 use error::Result;
 pub use extmark::*;
 pub use global::*;
+pub use options::*;
 pub use tabpage::*;
 pub use trait_utils::*;
 pub use vimscript::*;

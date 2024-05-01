@@ -10,10 +10,9 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::{command::*, global::*};
+use crate::ffi::global::*;
 use crate::opts::*;
 use crate::types::*;
-use crate::StringOrFunction;
 use crate::SuperIterator;
 use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage, Window};
@@ -40,35 +39,6 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
     let mut err = nvim::Error::new();
     let handle = unsafe { nvim_create_buf(is_listed, is_scratch, &mut err) };
     choose!(err, Ok(handle.into()))
-}
-
-/// Binding to [`nvim_create_user_command()`][1].
-///
-/// Creates a new [user command](https://neovim.io/doc/user/map.html#user-commands).
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_create_user_command()
-pub fn create_user_command<Cmd>(
-    name: &str,
-    command: Cmd,
-    opts: &CreateCommandOpts,
-) -> Result<()>
-where
-    Cmd: StringOrFunction<CommandArgs, ()>,
-{
-    let name = nvim::String::from(name);
-    let command = command.to_object();
-    let mut err = nvim::Error::new();
-    unsafe {
-        nvim_create_user_command(
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-            LUA_INTERNAL_CALL,
-            name.non_owning(),
-            command.non_owning(),
-            opts,
-            &mut err,
-        )
-    };
-    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_current_line()`][1].
@@ -127,19 +97,6 @@ pub fn del_mark(name: char) -> Result<()> {
             _ => Err(Error::custom("Couldn't delete mark")),
         }
     )
-}
-
-/// Binding to [`nvim_del_user_command()`][1].
-///
-/// Deletes a global user-defined command.  Use [`Buffer::del_user_command`] to
-/// delete a buffer-local command.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_del_user_command()
-pub fn del_user_command(name: &str) -> Result<()> {
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    unsafe { nvim_del_user_command(name.non_owning(), &mut err) };
-    choose!(err, ())
 }
 
 /// Binding to [`nvim_del_var()`][1].
@@ -251,30 +208,6 @@ pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
     unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
 }
 
-/// Binding to [`nvim_get_all_options_info()`][1].
-///
-/// Gets the option information for all options.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_all_options_info()
-pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
-    let mut err = nvim::Error::new();
-    let infos = unsafe {
-        nvim_get_all_options_info(
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(
-        err,
-        Ok({
-            infos
-                .into_iter()
-                .map(|(_, optinf)| OptionInfos::from_object(optinf).unwrap())
-        })
-    )
-}
-
 /// Binding to [`nvim_get_chan_info()`][1].
 ///
 /// Gets information about a channel.
@@ -315,33 +248,6 @@ pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
     }
     .into_iter()
     .map(|(k, v)| (k.to_string_lossy().into(), u32::from_object(v).unwrap()))
-}
-
-/// Binding to [`nvim_get_commands()`][1].
-///
-/// Returns an iterator over the infos of the global ex commands. Only
-/// user-defined commands are returned, not builtin ones.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_commands()
-pub fn get_commands(
-    opts: &GetCommandsOpts,
-) -> Result<impl SuperIterator<CommandInfos>> {
-    let mut err = nvim::Error::new();
-    let cmds = unsafe {
-        nvim_get_commands(
-            opts,
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(
-        err,
-        Ok({
-            cmds.into_iter()
-                .map(|(_, cmd)| CommandInfos::from_object(cmd).unwrap())
-        })
-    )
 }
 
 /// Binding to [`nvim_get_context()`][1].
@@ -404,50 +310,6 @@ pub fn get_current_tabpage() -> TabPage {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
 pub fn get_current_win() -> Window {
     unsafe { nvim_get_current_win() }.into()
-}
-
-/// Binding to [`nvim_get_hl_by_id()`][1].
-///
-/// Gets a highlight definition by id.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_id[1]
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
-#[cfg_attr(
-    feature = "neovim-nightly",
-    deprecated(since = "0.5.0", note = "use `get_hl` instead")
-)]
-pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
-    let mut err = nvim::Error::new();
-
-    let hl = unsafe {
-        nvim_get_hl_by_id(hl_id.into(), rgb, core::ptr::null_mut(), &mut err)
-    };
-
-    choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
-}
-
-/// Binding to [`nvim_get_hl_by_name()`][1].
-///
-/// Gets a highlight definition by name.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()
-#[cfg_attr(
-    feature = "neovim-nightly",
-    deprecated(since = "0.5.0", note = "use `get_hl` instead")
-)]
-pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    let hl = unsafe {
-        nvim_get_hl_by_name(
-            name.non_owning(),
-            rgb,
-            core::ptr::null_mut(),
-            &mut err,
-        )
-    };
-    choose!(err, Ok(HighlightInfos::from_object(hl.into())?))
 }
 
 /// Binding to [`nvim_get_hl_id_by_name()`][1].
@@ -532,78 +394,6 @@ pub fn get_mode() -> Result<GotMode> {
         }
         .into(),
     )?)
-}
-
-/// Binding to [`nvim_get_option()`][1].
-///
-/// Gets the value of a global option.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option()
-#[cfg_attr(
-    feature = "neovim-nightly",
-    deprecated(since = "0.5.0", note = "use `get_option_value` instead")
-)]
-pub fn get_option<Opt>(name: &str) -> Result<Opt>
-where
-    Opt: FromObject,
-{
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_get_option(
-            name.non_owning(),
-            #[cfg(all(
-                feature = "neovim-0-9",
-                not(feature = "neovim-nightly")
-            ))]
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(err, Ok(Opt::from_object(obj)?))
-}
-
-/// Binding to [`nvim_get_option_info()`][1].
-///
-/// Gets all the informations related to an option.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info()
-#[cfg_attr(
-    feature = "neovim-nightly",
-    deprecated(since = "0.5.0", note = "use `get_option_info2` instead")
-)]
-pub fn get_option_info(name: &str) -> Result<OptionInfos> {
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_get_option_info(
-            name.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(err, Ok(OptionInfos::from_object(obj.into())?))
-}
-
-/// Binding to [`nvim_get_option_value()`][1].
-///
-/// Gets the local value of an option if it exists, or the global value
-/// otherwise. Local values always correspond to the current buffer or window.
-///
-/// To get a buffer-local orr window-local option for a specific buffer of
-/// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_value()
-pub fn get_option_value<Opt>(name: &str, opts: &OptionValueOpts) -> Result<Opt>
-where
-    Opt: FromObject,
-{
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    let obj =
-        unsafe { nvim_get_option_value(name.non_owning(), opts, &mut err) };
-    choose!(err, Ok(Opt::from_object(obj)?))
 }
 
 /// Binding to [`nvim_get_proc()`][1].
@@ -1155,63 +945,6 @@ pub fn set_keymap(
             mode.non_owning(),
             lhs.non_owning(),
             rhs.non_owning(),
-            opts,
-            &mut err,
-        )
-    };
-    choose!(err, ())
-}
-
-/// Binding to [`nvim_set_option()`][1].
-///
-/// Sets the global value of an option.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_set_option()
-#[cfg_attr(
-    feature = "neovim-nightly",
-    deprecated(since = "0.5.0", note = "use `set_option_value` instead")
-)]
-pub fn set_option<Opt>(name: &str, value: Opt) -> Result<()>
-where
-    Opt: ToObject,
-{
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    unsafe {
-        nvim_set_option(
-            LUA_INTERNAL_CALL,
-            name.non_owning(),
-            value.to_object()?.non_owning(),
-            &mut err,
-        )
-    };
-    choose!(err, ())
-}
-
-/// Binding to [`nvim_set_option_value()`][1].
-///
-/// Sets the value of an option. The behaviour of this function matches that of
-/// `:set`: for global-local options, both the global and local value are set
-/// unless specified otherwise in the [`scope`](OptionValueOptsBuilder::scope)
-/// field of `opts`.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_set_option_value()
-pub fn set_option_value<Opt>(
-    name: &str,
-    value: Opt,
-    opts: &OptionValueOpts,
-) -> Result<()>
-where
-    Opt: ToObject,
-{
-    let name = nvim::String::from(name);
-    let mut err = nvim::Error::new();
-    unsafe {
-        nvim_set_option_value(
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-            LUA_INTERNAL_CALL,
-            name.non_owning(),
-            value.to_object()?.non_owning(),
             opts,
             &mut err,
         )

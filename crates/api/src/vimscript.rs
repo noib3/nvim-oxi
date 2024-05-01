@@ -1,11 +1,9 @@
 use types::{self as nvim, conversion::FromObject, Array, Object};
 
-use super::opts::*;
 use crate::choose;
-use crate::ffi::{command::*, vimscript::*};
+use crate::ffi::vimscript::*;
 use crate::types::*;
 use crate::Result;
-use crate::LUA_INTERNAL_CALL;
 
 /// Binding to [`nvim_call_dict_function()`][1].
 ///
@@ -65,29 +63,6 @@ where
     choose!(err, Ok(Ret::from_object(res)?))
 }
 
-/// Binding to [`nvim_cmd()`][1].
-///
-/// Executes an Ex command. Unlike `crare::api::command` it takes a structured
-/// `CmdInfos` object instead of a string.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_cmd()
-pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
-    let mut err = nvim::Error::new();
-    let output = unsafe {
-        nvim_cmd(
-            LUA_INTERNAL_CALL,
-            &infos.into(),
-            opts,
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(err, {
-        Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
-    })
-}
-
 /// Binding to [`nvim_command()`][1].
 ///
 /// Executes an Ex command.
@@ -120,56 +95,6 @@ where
         )
     };
     choose!(err, Ok(V::from_object(output)?))
-}
-
-/// Binding to [`nvim_exec()`][1].
-///
-/// Executes a multiline block of Ex commands. If `output` is true the
-/// output is captured and returned.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_exec()
-pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
-    let src = nvim::String::from(src);
-    let mut err = nvim::Error::new();
-    let output = unsafe {
-        nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output, &mut err)
-    };
-    choose!(err, {
-        Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
-    })
-}
-
-/// Binding to [`nvim_parse_cmd()`][1].
-///
-/// Parses the command line.
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
-pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
-    let src = nvim::String::from(src);
-    #[cfg(not(feature = "neovim-nightly"))]
-    let opts = nvim::Dictionary::from(opts);
-    let mut err = nvim::Error::new();
-
-    let out = unsafe {
-        nvim_parse_cmd(
-            src.non_owning(),
-            #[cfg(not(feature = "neovim-nightly"))]
-            opts.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
-            opts,
-            #[cfg(feature = "neovim-nightly")]
-            types::arena(),
-            &mut err,
-        )
-    };
-
-    #[cfg(not(feature = "neovim-nightly"))]
-    let out = CmdInfos::from_object(out.into())?;
-
-    #[cfg(feature = "neovim-nightly")]
-    let out = CmdInfos::try_from(out)?;
-
-    choose!(err, Ok(out))
 }
 
 /// Binding to [`nvim_parse_expression()`][1].

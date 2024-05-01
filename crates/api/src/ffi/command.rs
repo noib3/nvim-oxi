@@ -24,6 +24,13 @@ extern "C" {
         err: *mut Error,
     );
 
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L145
+    pub(crate) fn nvim_buf_del_user_command(
+        buf: BufHandle,
+        name: NonOwning<String>,
+        err: *mut Error,
+    );
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1243
     pub(crate) fn nvim_buf_get_commands(
         buf: BufHandle,
@@ -31,6 +38,31 @@ extern "C" {
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
+
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L320
+    pub(crate) fn nvim_cmd(
+        channel_id: u64,
+        cmd: *const crate::types::KeyDict_cmd,
+        opts: *const CmdOpts,
+        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        err: *mut Error,
+    ) -> String;
+
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
+    pub(crate) fn nvim_create_user_command(
+        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
+        channel_id: u64,
+        name: NonOwning<String>,
+        command: NonOwning<Object>,
+        opts: *const CreateCommandOpts,
+        err: *mut Error,
+    );
+
+    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L949
+    pub(crate) fn nvim_del_user_command(
+        name: NonOwning<String>,
+        err: *mut Error,
+    );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
     pub(crate) fn nvim_get_commands(

@@ -40,13 +40,6 @@ extern "C" {
         err: *mut Error,
     ) -> bool;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L145
-    pub(crate) fn nvim_buf_del_user_command(
-        buf: BufHandle,
-        name: NonOwning<String>,
-        err: *mut Error,
-    );
-
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L979
     pub(crate) fn nvim_buf_del_var(
         buf: BufHandle,
@@ -110,15 +103,6 @@ extern "C" {
         index: Integer,
         err: *mut Error,
     ) -> Integer;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L373
-    pub(crate) fn nvim_buf_get_option(
-        buf: BufHandle,
-        name: NonOwning<String>,
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
-        arena: *mut Arena,
-        err: *mut Error,
-    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/buffer.c#L757
     pub(crate) fn nvim_buf_get_text(
@@ -194,15 +178,6 @@ extern "C" {
     pub(crate) fn nvim_buf_set_name(
         buf: BufHandle,
         name: NonOwning<String>,
-        err: *mut Error,
-    );
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L393
-    pub(crate) fn nvim_buf_set_option(
-        channel_id: u64,
-        buf: BufHandle,
-        name: NonOwning<String>,
-        value: NonOwning<Object>,
         err: *mut Error,
     );
 

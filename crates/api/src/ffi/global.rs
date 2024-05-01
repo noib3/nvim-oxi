@@ -21,16 +21,6 @@ extern "C" {
         err: *mut Error,
     ) -> BufHandle;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
-    pub(crate) fn nvim_create_user_command(
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-        channel_id: u64,
-        name: NonOwning<String>,
-        command: NonOwning<Object>,
-        opts: *const CreateCommandOpts,
-        err: *mut Error,
-    );
-
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L623
     pub(crate) fn nvim_del_current_line(
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
@@ -50,12 +40,6 @@ extern "C" {
         name: NonOwning<String>,
         err: *mut Error,
     ) -> bool;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L949
-    pub(crate) fn nvim_del_user_command(
-        name: NonOwning<String>,
-        err: *mut Error,
-    );
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L667
     pub(crate) fn nvim_del_var(name: NonOwning<String>, err: *mut Error);
@@ -91,12 +75,6 @@ extern "C" {
         mode: NonOwning<String>,
         escape_ks: bool,
     );
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L289
-    pub(crate) fn nvim_get_all_options_info(
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        err: *mut Error,
-    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1567
     pub(crate) fn nvim_get_chan_info(
@@ -134,22 +112,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L849
     pub(crate) fn nvim_get_current_win() -> WinHandle;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L188
-    pub(crate) fn nvim_get_hl_by_id(
-        hl_id: Integer,
-        rgb: bool,
-        arena: *mut core::ffi::c_void,
-        error: *mut Error,
-    ) -> Dictionary;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L209
-    pub(crate) fn nvim_get_hl_by_name(
-        name: NonOwning<String>,
-        rgb: bool,
-        arena: *mut core::ffi::c_void,
-        error: *mut Error,
-    ) -> Dictionary;
-
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L82
     pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
@@ -172,28 +134,6 @@ extern "C" {
     pub(crate) fn nvim_get_mode(
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
     ) -> Dictionary;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
-    pub(crate) fn nvim_get_option(
-        name: NonOwning<String>,
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
-        arena: *mut Arena,
-        err: *mut Error,
-    ) -> Object;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L520
-    pub(crate) fn nvim_get_option_info(
-        name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        err: *mut Error,
-    ) -> Dictionary;
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L146
-    pub(crate) fn nvim_get_option_value(
-        name: NonOwning<String>,
-        opts: *const OptionValueOpts,
-        err: *mut Error,
-    ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1842
     pub(crate) fn nvim_get_proc(
@@ -372,24 +312,6 @@ extern "C" {
         lhs: NonOwning<String>,
         rhs: NonOwning<String>,
         opts: *const SetKeymapOpts,
-        err: *mut Error,
-    );
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L350
-    pub(crate) fn nvim_set_option(
-        channel_id: u64,
-        name: NonOwning<String>,
-        value: NonOwning<Object>,
-        err: *mut Error,
-    );
-
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L232
-    pub(crate) fn nvim_set_option_value(
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-        channel_id: u64,
-        name: NonOwning<String>,
-        value: NonOwning<Object>,
-        opts: *const OptionValueOpts,
         err: *mut Error,
     );
 
