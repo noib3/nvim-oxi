@@ -105,6 +105,14 @@ extern "C" {
         err: *mut Error,
     );
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L464
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_win_set_hl(
+        win: WinHandle,
+        ns_id: Integer,
+        err: *mut Error,
+    );
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L251
     pub(crate) fn nvim_win_set_var(
         win: WinHandle,

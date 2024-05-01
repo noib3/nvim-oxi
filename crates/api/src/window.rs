@@ -305,6 +305,23 @@ impl Window {
         choose!(err, ())
     }
 
+    /// Binding to [`nvim_win_set_hl()`][1].
+    ///
+    /// Sets the highlight namespace for this window. This will the highlights
+    /// defined with [`set_hl`](crate::set_hl) for the given namespace, but
+    /// fall back to global highlights (`ns_id = 0`) if those are missing.
+    ///
+    /// This takes precedence over the `winhighlight` option.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_hl()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn set_hl(&mut self, ns_id: u32) -> Result<()> {
+        let mut err = nvim::Error::new();
+        unsafe { nvim_win_set_hl(self.0, ns_id.into(), &mut err) };
+        choose!(err, ())
+    }
+
     /// Binding to [`nvim_win_set_var()`][1].
     ///
     /// Sets a window-scoped (`w:`) variable.

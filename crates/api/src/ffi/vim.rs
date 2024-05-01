@@ -305,6 +305,14 @@ extern "C" {
         err: *mut Error,
     );
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L222
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_set_hl_ns(ns_id: Integer, err: *mut Error);
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L222
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_set_hl_ns_fast(ns_id: Integer, err: *mut Error);
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L1434
     pub(crate) fn nvim_set_keymap(
         channel_id: u64,

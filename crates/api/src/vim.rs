@@ -923,6 +923,39 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     choose!(err, ())
 }
 
+/// Binding to [`nvim_set_hl_ns()`][1].
+///
+/// Set the active namespace for the highlights defined with [`set_hl`]. This
+/// can be set for a single window, see [`Window::set_hl`].
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl_ns()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn set_hl_ns(ns_id: u32) -> Result<()> {
+    let mut err = nvim::Error::new();
+    unsafe { nvim_set_hl_ns(ns_id as Integer, &mut err) };
+    choose!(err, ())
+}
+
+/// Binding to [`nvim_set_hl_ns_fast()`][1].
+///
+/// Set the active namespace for the highlights defined with [`set_hl`] while
+/// redrawing.
+///
+/// This function is meant to be called while redrawing, primarily from
+/// [`set_decoration_provider`](crate::set_decorations_provider)'s `on_win` and
+/// `on_lines` callbacks, which are allowed to change the namespace during a
+/// redraw cycle.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl_ns_fast()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn set_hl_ns_fast(ns_id: u32) -> Result<()> {
+    let mut err = nvim::Error::new();
+    unsafe { nvim_set_hl_ns_fast(ns_id as Integer, &mut err) };
+    choose!(err, ())
+}
+
 /// Binding to [`nvim_set_keymap()`][1].
 ///
 /// Sets a global mapping for the given mode. To set a buffer-local mapping use
