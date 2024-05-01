@@ -10,7 +10,7 @@ use types::{
 };
 
 use crate::choose;
-use crate::ffi::global::*;
+use crate::ffi::vim::*;
 use crate::opts::*;
 use crate::types::*;
 use crate::SuperIterator;
