@@ -494,8 +494,6 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "bool")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     scoped: types::Boolean,
-
-    _subpriority: types::Integer,
 }
 
 #[inline]
