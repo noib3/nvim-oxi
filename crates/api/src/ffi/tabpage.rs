@@ -49,4 +49,12 @@ extern "C" {
         value: NonOwning<Object>,
         err: *mut Error,
     );
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/tabpage.c#L130
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_tabpage_set_win(
+        tabpage: TabHandle,
+        win: WinHandle,
+        err: *mut Error,
+    );
 }

@@ -184,4 +184,17 @@ impl TabPage {
         };
         choose!(err, ())
     }
+
+    /// Binding to [`nvim_tabpage_set_win()`][1].
+    ///
+    /// Sets the current window in the tabpage.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_set_win()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn set_win(&mut self, win: &Window) -> Result<()> {
+        let mut err = nvim::Error::new();
+        unsafe { nvim_tabpage_set_win(self.0, win.0, &mut err) };
+        choose!(err, ())
+    }
 }
