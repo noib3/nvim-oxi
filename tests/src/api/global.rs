@@ -203,9 +203,8 @@ fn set_get_option() {
 
 #[oxi::test]
 fn set_get_option_value() {
-    let opts = OptionValueOpts::builder()
-        .scope(api::opts::OptionScope::Global)
-        .build();
+    let opts =
+        OptionOpts::builder().scope(api::opts::OptionScope::Global).build();
 
     api::set_option_value("modified", true, &opts).unwrap();
 

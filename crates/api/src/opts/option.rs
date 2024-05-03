@@ -8,7 +8,7 @@ use crate::{Buffer, Window};
 #[cfg(feature = "neovim-nightly")]
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
-pub struct OptionValueOpts {
+pub struct OptionOpts {
     #[builder(mask)]
     mask: u64,
 
@@ -34,7 +34,7 @@ pub struct OptionValueOpts {
 #[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
-pub struct OptionValueOpts {
+pub struct OptionOpts {
     buf: types::Object,
     win: types::Object,
     scope: types::Object,
@@ -42,19 +42,19 @@ pub struct OptionValueOpts {
 }
 
 #[cfg(not(feature = "neovim-nightly"))]
-impl OptionValueOpts {
+impl OptionOpts {
     #[inline(always)]
-    pub fn builder() -> OptionValueOptsBuilder {
-        OptionValueOptsBuilder::default()
+    pub fn builder() -> OptionOptsBuilder {
+        OptionOptsBuilder::default()
     }
 }
 
 #[cfg(not(feature = "neovim-nightly"))]
 #[derive(Clone, Default)]
-pub struct OptionValueOptsBuilder(OptionValueOpts);
+pub struct OptionOptsBuilder(OptionOpts);
 
 #[cfg(not(feature = "neovim-nightly"))]
-impl OptionValueOptsBuilder {
+impl OptionOptsBuilder {
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {
         self.0.buf = buffer.into();
@@ -82,7 +82,7 @@ impl OptionValueOptsBuilder {
     }
 
     #[inline]
-    pub fn build(&mut self) -> OptionValueOpts {
+    pub fn build(&mut self) -> OptionOpts {
         std::mem::take(&mut self.0)
     }
 }

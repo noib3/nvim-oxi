@@ -17,7 +17,7 @@ extern "C" {
     #[cfg(feature = "neovim-nightly")]
     pub(crate) fn nvim_get_option_info2(
         name: NonOwning<String>,
-        opts: *const OptionValueOpts,
+        opts: *const OptionOpts,
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
@@ -25,7 +25,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L146
     pub(crate) fn nvim_get_option_value(
         name: NonOwning<String>,
-        opts: *const OptionValueOpts,
+        opts: *const OptionOpts,
         err: *mut Error,
     ) -> Object;
 
@@ -35,7 +35,7 @@ extern "C" {
         channel_id: u64,
         name: NonOwning<String>,
         value: NonOwning<Object>,
-        opts: *const OptionValueOpts,
+        opts: *const OptionOpts,
         err: *mut Error,
     );
 }

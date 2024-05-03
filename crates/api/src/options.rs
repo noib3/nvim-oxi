@@ -42,10 +42,7 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info2()
 #[cfg(feature = "neovim-nightly")]
 #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
-pub fn get_option_info2(
-    name: &str,
-    opts: &OptionValueOpts,
-) -> Result<OptionInfos> {
+pub fn get_option_info2(name: &str, opts: &OptionOpts) -> Result<OptionInfos> {
     let name = types::String::from(name);
     let mut err = types::Error::new();
     let dict = unsafe {
@@ -68,7 +65,7 @@ pub fn get_option_info2(
 /// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_value()
-pub fn get_option_value<Opt>(name: &str, opts: &OptionValueOpts) -> Result<Opt>
+pub fn get_option_value<Opt>(name: &str, opts: &OptionOpts) -> Result<Opt>
 where
     Opt: FromObject,
 {
@@ -83,14 +80,14 @@ where
 ///
 /// Sets the value of an option. The behaviour of this function matches that of
 /// `:set`: for global-local options, both the global and local value are set
-/// unless specified otherwise in the [`scope`](OptionValueOptsBuilder::scope)
+/// unless specified otherwise in the [`scope`](OptionOptsBuilder::scope)
 /// field of `opts`.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_option_value()
 pub fn set_option_value<Opt>(
     name: &str,
     value: Opt,
-    opts: &OptionValueOpts,
+    opts: &OptionOpts,
 ) -> Result<()>
 where
     Opt: ToObject,
