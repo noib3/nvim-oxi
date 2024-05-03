@@ -34,6 +34,31 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     )
 }
 
+/// Binding to [`nvim_get_option_info2()`][1].
+///
+/// Gets the option information for one option from an arbitrary buffer or
+/// window.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info2()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn get_option_info2(
+    name: &str,
+    opts: &OptionValueOpts,
+) -> Result<OptionInfos> {
+    let name = types::String::from(name);
+    let mut err = types::Error::new();
+    let dict = unsafe {
+        nvim_get_option_info2(
+            name.non_owning(),
+            opts,
+            types::arena(),
+            &mut err,
+        )
+    };
+    choose!(err, Ok(OptionInfos::from_object(dict.into())?))
+}
+
 /// Binding to [`nvim_get_option_value()`][1].
 ///
 /// Gets the local value of an option if it exists, or the global value

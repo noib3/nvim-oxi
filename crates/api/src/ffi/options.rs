@@ -13,6 +13,15 @@ extern "C" {
         err: *mut Error,
     ) -> Dictionary;
 
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/options.c#L305
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_get_option_info2(
+        name: NonOwning<String>,
+        opts: *const OptionValueOpts,
+        arena: *mut Arena,
+        err: *mut Error,
+    ) -> Dictionary;
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L146
     pub(crate) fn nvim_get_option_value(
         name: NonOwning<String>,
