@@ -1,6 +1,4 @@
-#[cfg(feature = "neovim-nightly")]
-use types::Arena;
-use types::{Array, Dictionary, Error, NonOwning, Object, String};
+use types::*;
 
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
@@ -33,6 +31,15 @@ extern "C" {
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/vimscript.c#L53
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_exec2(
+        channel_id: u64,
+        src: NonOwning<String>,
+        opts: *const crate::opts::ExecOpts,
+        error: *mut Error,
+    ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L438
     pub fn nvim_parse_expression(

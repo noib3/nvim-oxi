@@ -2,6 +2,8 @@ use types::{self as nvim, conversion::FromObject, Array, Object};
 
 use crate::choose;
 use crate::ffi::vimscript::*;
+#[cfg(feature = "neovim-nightly")]
+use crate::opts::ExecOpts;
 use crate::types::*;
 use crate::Result;
 
@@ -95,6 +97,30 @@ where
         )
     };
     choose!(err, Ok(V::from_object(output)?))
+}
+
+/// Binding to [`nvim_exec2()`][1].
+///
+/// Executes Vimscript (multiline block of Ex commands), like anonymous
+/// `:source`.
+///
+/// Unlike [`command`] this function supports heredocs, script-scope (s:), etc.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_exec2()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn exec2(src: &str, opts: &ExecOpts) -> Result<Option<nvim::String>> {
+    let src = types::String::from(src);
+    let mut err = types::Error::new();
+    let dict = unsafe {
+        nvim_exec2(crate::LUA_INTERNAL_CALL, src.non_owning(), opts, &mut err)
+    };
+    choose!(err, {
+        Ok(dict
+            .into_iter()
+            .next()
+            .map(|(_s, output)| nvim::String::from_object(output).unwrap()))
+    })
 }
 
 /// Binding to [`nvim_parse_expression()`][1].

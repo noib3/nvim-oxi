@@ -11,6 +11,8 @@ mod create_command;
 mod decoration_provider;
 mod echo;
 mod eval_statusline;
+#[cfg(feature = "neovim-nightly")]
+mod exec;
 mod exec_autocmds;
 mod get_autocmds;
 mod get_commands;
@@ -39,6 +41,8 @@ pub use create_command::*;
 pub use decoration_provider::*;
 pub use echo::*;
 pub use eval_statusline::*;
+#[cfg(feature = "neovim-nightly")]
+pub use exec::*;
 pub use exec_autocmds::*;
 pub use get_autocmds::*;
 pub use get_commands::*;
