@@ -30,6 +30,8 @@ mod set_extmark;
 mod set_highlight;
 mod set_keymap;
 mod set_mark;
+#[cfg(feature = "neovim-nightly")]
+mod win_text_height;
 
 pub use buf_attach::*;
 pub use buf_delete::*;
@@ -60,3 +62,5 @@ pub use set_extmark::*;
 pub use set_highlight::*;
 pub use set_keymap::*;
 pub use set_mark::*;
+#[cfg(feature = "neovim-nightly")]
+pub use win_text_height::*;

@@ -41,6 +41,8 @@ mod statusline_highlight_infos;
 mod statusline_infos;
 mod ui_infos;
 mod viml_ast_node;
+#[cfg(feature = "neovim-nightly")]
+mod win_text_height_infos;
 mod window_anchor;
 mod window_border;
 mod window_border_char;
@@ -91,6 +93,8 @@ pub use statusline_highlight_infos::*;
 pub use statusline_infos::*;
 pub use ui_infos::*;
 pub use viml_ast_node::*;
+#[cfg(feature = "neovim-nightly")]
+pub use win_text_height_infos::*;
 pub use window_anchor::*;
 pub use window_border::*;
 pub use window_border_char::*;

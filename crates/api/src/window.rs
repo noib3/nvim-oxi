@@ -15,6 +15,10 @@ use types::{
 
 use crate::choose;
 use crate::ffi::window::*;
+#[cfg(feature = "neovim-nightly")]
+use crate::opts::WinTextHeightOpts;
+#[cfg(feature = "neovim-nightly")]
+use crate::types::WinTextHeightInfos;
 use crate::Result;
 use crate::{Buffer, TabPage};
 
@@ -353,5 +357,24 @@ impl Window {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_width(self.0, width.into(), &mut err) };
         choose!(err, ())
+    }
+
+    /// Binding to [`nvim_win_text_height()`][1].
+    ///
+    /// Computes the number of screen lines occupied by a range of text in a
+    /// given window. Works for off-screen text and takes folds into account.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_text_height()
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    pub fn text_height(
+        &self,
+        opts: &WinTextHeightOpts,
+    ) -> Result<WinTextHeightInfos> {
+        let mut err = nvim::Error::new();
+        let dict = unsafe {
+            nvim_win_text_height(self.0, opts, types::arena(), &mut err)
+        };
+        choose!(err, dict.try_into().map_err(Into::into))
     }
 }

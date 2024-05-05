@@ -127,4 +127,13 @@ extern "C" {
         width: Integer,
         err: *mut Error,
     );
+
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L510
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_win_text_height(
+        win: WinHandle,
+        opts: *const crate::opts::WinTextHeightOpts,
+        arena: *mut Arena,
+        err: *mut Error,
+    ) -> Dictionary;
 }
