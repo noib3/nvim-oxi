@@ -943,7 +943,7 @@ pub fn set_hl_ns(ns_id: u32) -> Result<()> {
 /// redrawing.
 ///
 /// This function is meant to be called while redrawing, primarily from
-/// [`set_decoration_provider`](crate::set_decorations_provider)'s `on_win` and
+/// [`set_decoration_provider`](crate::set_decoration_provider)'s `on_win` and
 /// `on_lines` callbacks, which are allowed to change the namespace during a
 /// redraw cycle.
 ///

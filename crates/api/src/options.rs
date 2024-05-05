@@ -62,7 +62,8 @@ pub fn get_option_info2(name: &str, opts: &OptionOpts) -> Result<OptionInfos> {
 /// otherwise. Local values always correspond to the current buffer or window.
 ///
 /// To get a buffer-local orr window-local option for a specific buffer of
-/// window consider using [`Buffer::get_option`] or [`Window::get_option`] instead.
+/// window consider using [`Buffer::get_option`](crate::Buffer::get_option) or
+/// [`Window::get_option`](crate::Window::get_option) instead.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_value()
 pub fn get_option_value<Opt>(name: &str, opts: &OptionOpts) -> Result<Opt>
