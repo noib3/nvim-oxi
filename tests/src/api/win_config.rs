@@ -77,6 +77,35 @@ fn open_win_full_config() {
     assert_eq!(config.border, got.border);
 }
 
+#[cfg(feature = "neovim-nightly")]
+#[oxi::test]
+fn open_split_win() {
+    let buf = api::create_buf(true, true).unwrap();
+    let old_win = api::get_current_win();
+
+    let config = WindowConfig::builder()
+        .vertical(true)
+        .split(SplitDirection::Right)
+        .build();
+
+    let res = api::open_win(&buf, true, &config);
+    assert!(res.is_ok(), "{res:?}");
+
+    let win = res.unwrap();
+
+    let got = win.get_config();
+    assert!(got.is_ok(), "{got:?}");
+
+    let got = got.unwrap();
+    // `vim.api.nvim_win_get_config` does not seem
+    // to ever return `vertical` field
+    // assert_eq!(config.vertical, got.vertical);
+    assert_eq!(config.split, got.split);
+
+    let new_win = api::get_current_win();
+    assert_ne!(old_win, new_win);
+}
+
 #[oxi::test]
 fn set_config() {
     let buf = api::create_buf(true, true).unwrap();

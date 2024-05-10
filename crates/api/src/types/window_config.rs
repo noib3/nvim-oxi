@@ -223,13 +223,32 @@ impl WindowConfigBuilder {
         self
     }
 
-    /// What the window is positioned relative to.
+    /// Sets the window layout to `floating`
+    /// Decides what the window is positioned relatively to.
     #[inline]
     pub fn relative(&mut self, relative: WindowRelativeTo) -> &mut Self {
         if let WindowRelativeTo::Window(win) = &relative {
             self.0.win = Some(win.clone());
         }
         self.0.relative = Some(relative);
+        self
+    }
+
+    /// Configures where a split window is opened.
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[inline]
+    pub fn split(&mut self, direction: super::SplitDirection) -> &mut Self {
+        self.0.split = Some(direction);
+        self
+    }
+
+    /// Should the split window be opened as vertical.
+    #[cfg(feature = "neovim-nightly")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[inline]
+    pub fn vertical(&mut self, vertical: bool) -> &mut Self {
+        self.0.vertical = Some(vertical);
         self
     }
 
@@ -443,6 +462,10 @@ impl From<&WindowConfig> for WindowOpts {
             builder.relative(relative.clone().into());
         }
 
+        if let Some(split) = config.split {
+            builder.split(split.into());
+        }
+
         if let Some(win) = &config.win {
             builder.win(win.0);
         }
@@ -460,6 +483,10 @@ impl From<&WindowConfig> for WindowOpts {
 
         if let Some(focusable) = config.focusable {
             builder.focusable(focusable);
+        }
+
+        if let Some(vertical) = config.vertical {
+            builder.vertical(vertical);
         }
 
         if let Some(zindex) = config.zindex {
@@ -557,17 +584,22 @@ impl TryFrom<WindowOpts> for WindowConfig {
             Mouse,
         }
 
-        let relative = match deserialize(relative)? {
-            WindowRelative::Editor => WindowRelativeTo::Editor,
-            WindowRelative::Win => {
-                let win = deserialize(win)?;
-                WindowRelativeTo::Window(win)
+        let relative = match utils::empty_string_is_none(Deserializer::new(
+            relative.into(),
+        ))? {
+            Some(relative) => match relative {
+                WindowRelative::Editor => Some(WindowRelativeTo::Editor),
+                WindowRelative::Win => {
+                    let win = deserialize(win)?;
+                    Some(WindowRelativeTo::Window(win))
+                },
+                WindowRelative::Cursor => Some(WindowRelativeTo::Cursor),
+                WindowRelative::Mouse => Some(WindowRelativeTo::Mouse),
             },
-            WindowRelative::Cursor => WindowRelativeTo::Cursor,
-            WindowRelative::Mouse => WindowRelativeTo::Mouse,
+            None => None,
         };
 
-        let win = if let WindowRelativeTo::Window(win) = &relative {
+        let win = if let Some(WindowRelativeTo::Window(win)) = &relative {
             Some(win.clone())
         } else {
             None
@@ -592,7 +624,7 @@ impl TryFrom<WindowOpts> for WindowConfig {
             height: deserialize(height)?,
             hide: deserialize(hide)?,
             noautocmd: deserialize(noautocmd)?,
-            relative: Some(relative),
+            relative,
             row: deserialize(row)?,
             split: utils::empty_string_is_none(Deserializer::new(
                 split.into(),
