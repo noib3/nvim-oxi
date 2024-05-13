@@ -32,11 +32,11 @@ fn open_win_basic_config() {
     assert!(got.is_ok(), "{got:?}");
 
     let got = got.unwrap();
-    assert_eq!(config.relative, got.relative);
-    assert_eq!(config.height, got.height);
-    assert_eq!(config.width, got.width);
-    assert_eq!(config.row, got.row);
-    assert_eq!(config.col, got.col);
+    assert_eq!(config.relative.unwrap(), got.relative.unwrap());
+    assert_eq!(config.height.unwrap(), got.height.unwrap());
+    assert_eq!(config.width.unwrap(), got.width.unwrap());
+    assert_eq!(config.row.unwrap(), got.row.unwrap());
+    assert_eq!(config.col.unwrap(), got.col.unwrap());
 }
 
 #[oxi::test]
@@ -69,12 +69,12 @@ fn open_win_full_config() {
     assert!(got.is_ok(), "{got:?}");
 
     let got = got.unwrap();
-    assert_eq!(config.relative, got.relative);
-    assert_eq!(config.height, got.height);
-    assert_eq!(config.width, got.width);
-    assert_eq!(config.row, got.row);
-    assert_eq!(config.col, got.col);
-    assert_eq!(config.border, got.border);
+    assert_eq!(config.relative.unwrap(), got.relative.unwrap());
+    assert_eq!(config.height.unwrap(), got.height.unwrap());
+    assert_eq!(config.width.unwrap(), got.width.unwrap());
+    assert_eq!(config.row.unwrap(), got.row.unwrap());
+    assert_eq!(config.col.unwrap(), got.col.unwrap());
+    assert_eq!(config.border.unwrap(), got.border.unwrap());
 }
 
 #[cfg(feature = "neovim-nightly")]
@@ -97,10 +97,7 @@ fn open_split_win() {
     assert!(got.is_ok(), "{got:?}");
 
     let got = got.unwrap();
-    // `vim.api.nvim_win_get_config` does not seem
-    // to ever return `vertical` field
-    // assert_eq!(config.vertical, got.vertical);
-    assert_eq!(config.split, got.split);
+    assert_eq!(config.split.unwrap(), got.split.unwrap());
 
     let new_win = api::get_current_win();
     assert_ne!(old_win, new_win);
