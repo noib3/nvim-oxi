@@ -83,25 +83,25 @@ extern "C" {
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1223
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1226
     #[cfg(feature = "neovim-nightly")]
-    pub(crate) fn nvim_win_add_ns(
+    pub(crate) fn nvim__win_add_ns(
         window: WinHandle,
         ns_id: Integer,
         err: *mut Error,
     ) -> Boolean;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1246
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1252
     #[cfg(feature = "neovim-nightly")]
-    pub(crate) fn nvim_win_get_ns(
+    pub(crate) fn nvim__win_get_ns(
         window: WinHandle,
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1268
+    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1275
     #[cfg(feature = "neovim-nightly")]
-    pub(crate) fn nvim_win_remove_ns(
+    pub(crate) fn nvim__win_del_ns(
         window: WinHandle,
         ns_id: Integer,
         err: *mut Error,
