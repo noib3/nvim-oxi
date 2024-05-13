@@ -5,6 +5,7 @@ use crate::Window;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[serde(rename_all = "lowercase")]
 /// Specifies what a floating window is positioned relative to.
 pub enum WindowRelativeTo {
     /// Positions the window relative to the global Neovim editor grid.
