@@ -1,5 +1,6 @@
 mod autocmd;
 mod buffer;
+mod command;
 mod extmark;
 mod global;
 mod tabpage;
