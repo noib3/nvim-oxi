@@ -291,32 +291,32 @@ impl Buffer {
 }
 
 impl crate::Window {
-    /// Binding to [`nvim_win_add_ns()`][1].
+    /// Binding to [`nvim__win_add_ns()`][1].
     ///
     /// Adds the namespace scope to the window, returning `true` if the
     /// namespace was added, and `false` otherwise.
     ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_add_ns()
+    /// [1]: https://neovim.io/doc/user/api.html#nvim__win_add_ns()
     #[cfg(feature = "neovim-nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     pub fn add_ns(&mut self, ns_id: u32) -> Result<bool> {
         let mut err = nvim::Error::new();
         let was_added =
-            unsafe { nvim_win_add_ns(self.0, ns_id as Integer, &mut err) };
+            unsafe { nvim__win_add_ns(self.0, ns_id as Integer, &mut err) };
         choose!(err, Ok(was_added))
     }
 
-    /// Binding to [`nvim_win_get_ns()`][1].
+    /// Binding to [`nvim__win_get_ns()`][1].
     ///
     /// Gets all the namespaces scopes associated with a window.
     ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_ns()
+    /// [1]: https://neovim.io/doc/user/api.html#nvim__win_get_ns()
     #[cfg(feature = "neovim-nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
     pub fn get_ns(&self) -> Result<impl SuperIterator<u32>> {
         let mut err = nvim::Error::new();
         let namespaces =
-            unsafe { nvim_win_get_ns(self.0, types::arena(), &mut err) };
+            unsafe { nvim__win_get_ns(self.0, types::arena(), &mut err) };
         choose!(
             err,
             Ok(namespaces
@@ -325,18 +325,18 @@ impl crate::Window {
         )
     }
 
-    /// Binding to [`nvim_win_remove_ns()`][1].
+    /// Binding to [`nvim__win_del_ns()`][1].
     ///
     /// Removes the namespace scope from the window, returning `true` if the
     /// namespace was removed, and `false` otherwise.
     ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_remove_ns()
+    /// [1]: https://neovim.io/doc/user/api.html#nvim__win_del_ns()
     #[cfg(feature = "neovim-nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
-    pub fn remove_ns(&mut self, ns_id: u32) -> Result<bool> {
+    pub fn del_ns(&mut self, ns_id: u32) -> Result<bool> {
         let mut err = nvim::Error::new();
         let was_removed =
-            unsafe { nvim_win_remove_ns(self.0, ns_id as Integer, &mut err) };
+            unsafe { nvim__win_del_ns(self.0, ns_id as Integer, &mut err) };
         choose!(err, Ok(was_removed))
     }
 }

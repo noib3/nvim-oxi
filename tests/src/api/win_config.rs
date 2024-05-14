@@ -32,11 +32,11 @@ fn open_win_basic_config() {
     assert!(got.is_ok(), "{got:?}");
 
     let got = got.unwrap();
-    assert_eq!(config.relative, got.relative);
-    assert_eq!(config.height, got.height);
-    assert_eq!(config.width, got.width);
-    assert_eq!(config.row, got.row);
-    assert_eq!(config.col, got.col);
+    assert_eq!(config.relative.unwrap(), got.relative.unwrap());
+    assert_eq!(config.height.unwrap(), got.height.unwrap());
+    assert_eq!(config.width.unwrap(), got.width.unwrap());
+    assert_eq!(config.row.unwrap(), got.row.unwrap());
+    assert_eq!(config.col.unwrap(), got.col.unwrap());
 }
 
 #[oxi::test]
@@ -69,12 +69,38 @@ fn open_win_full_config() {
     assert!(got.is_ok(), "{got:?}");
 
     let got = got.unwrap();
-    assert_eq!(config.relative, got.relative);
-    assert_eq!(config.height, got.height);
-    assert_eq!(config.width, got.width);
-    assert_eq!(config.row, got.row);
-    assert_eq!(config.col, got.col);
-    assert_eq!(config.border, got.border);
+    assert_eq!(config.relative.unwrap(), got.relative.unwrap());
+    assert_eq!(config.height.unwrap(), got.height.unwrap());
+    assert_eq!(config.width.unwrap(), got.width.unwrap());
+    assert_eq!(config.row.unwrap(), got.row.unwrap());
+    assert_eq!(config.col.unwrap(), got.col.unwrap());
+    assert_eq!(config.border.unwrap(), got.border.unwrap());
+}
+
+#[cfg(feature = "neovim-nightly")]
+#[oxi::test]
+fn open_split_win() {
+    let buf = api::create_buf(true, true).unwrap();
+    let old_win = api::get_current_win();
+
+    let config = WindowConfig::builder()
+        .vertical(true)
+        .split(SplitDirection::Right)
+        .build();
+
+    let res = api::open_win(&buf, true, &config);
+    assert!(res.is_ok(), "{res:?}");
+
+    let win = res.unwrap();
+
+    let got = win.get_config();
+    assert!(got.is_ok(), "{got:?}");
+
+    let got = got.unwrap();
+    assert_eq!(config.split.unwrap(), got.split.unwrap());
+
+    let new_win = api::get_current_win();
+    assert_ne!(old_win, new_win);
 }
 
 #[oxi::test]
