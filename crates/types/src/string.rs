@@ -153,6 +153,13 @@ impl From<char> for String {
     }
 }
 
+impl From<Cow<'_, str>> for String {
+    #[inline]
+    fn from(moo: Cow<'_, str>) -> Self {
+        moo.as_ref().into()
+    }
+}
+
 impl From<&Path> for String {
     #[inline]
     fn from(path: &Path) -> Self {
