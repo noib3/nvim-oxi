@@ -323,6 +323,19 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
     id.try_into().map_err(Into::into)
 }
 
+/// Binding to [`nvim_get_hl_ns()`][1].
+///
+/// Gets the active highlight namespace.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_ns()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn get_hl_ns(opts: &GetNamespaceOpts) -> Result<i64> {
+    let mut err = nvim::Error::new();
+    let res = unsafe { nvim_get_hl_ns(opts, &mut err) };
+    choose!(err, Ok(res))
+}
+
 /// Binding to [`nvim_get_keymap()`][1].
 ///
 /// Returns an iterator over the global mapping definitions.

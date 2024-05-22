@@ -20,6 +20,8 @@ mod get_context;
 mod get_extmark_by_id;
 mod get_extmarks;
 mod get_mark;
+#[cfg(feature = "neovim-nightly")]
+mod get_namespace;
 mod get_text;
 mod notify;
 mod open_term;
@@ -52,6 +54,8 @@ pub use get_context::*;
 pub use get_extmark_by_id::*;
 pub use get_extmarks::*;
 pub use get_mark::*;
+#[cfg(feature = "neovim-nightly")]
+pub use get_namespace::*;
 pub use get_text::*;
 pub use notify::*;
 pub use open_term::*;

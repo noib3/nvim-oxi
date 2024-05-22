@@ -115,6 +115,13 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L82
     pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L204
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_get_hl_ns(
+        opts: *const GetNamespaceOpts,
+        err: *mut Error,
+    ) -> Integer;
+
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/vim.c#L1397
     pub(crate) fn nvim_get_keymap(
         mode: NonOwning<String>,
