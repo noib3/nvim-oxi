@@ -13,9 +13,9 @@ use crate::ToFunction;
 /// - `f`: last row in the updated range;
 /// - `g`: byte count of previous contents;
 /// - `h`: deleted UTF-32 codepoints (if
-/// [`utf_sizes`](BufAttachOptsBuilder::utf_sizes) was `true`);
+///   [`utf_sizes`](BufAttachOptsBuilder::utf_sizes) was `true`);
 /// - `i`: deleted UTF-16 codeunits (if
-/// [`utf_sizes`](BufAttachOptsBuilder::utf_sizes) was `true`);
+///   [`utf_sizes`](BufAttachOptsBuilder::utf_sizes) was `true`);
 pub type OnLinesArgs = (
     String,
     Buffer,
