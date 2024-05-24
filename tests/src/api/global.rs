@@ -74,6 +74,18 @@ fn get_highlights() {
     assert_eq!(api::get_hl_by_id(id, true), api::get_hl_by_name(&name, true));
 }
 
+#[cfg(feature = "neovim-nightly")]
+#[oxi::test]
+fn get_hl() {
+    let infos = api::get_hl(0, &Default::default()).unwrap();
+    let GetHlInfos::Map(map_iter) = infos else { panic!("expected a map") };
+    assert!(!map_iter.collect::<Vec<_>>().is_empty());
+
+    let opts = GetHighlightOpts::builder().name("Normal").build();
+    let infos = api::get_hl(0, &opts).unwrap();
+    let GetHlInfos::Single(_) = infos else { panic!("expected a single") };
+}
+
 #[oxi::test]
 fn get_mode() {
     let got_mode = api::get_mode().unwrap();

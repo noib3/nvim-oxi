@@ -9,11 +9,15 @@ use types::{
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Default)]
 pub struct HighlightInfos {
+    pub altfont: Option<bool>,
     pub background: Option<u32>,
     pub bg_indexed: Option<bool>,
     pub blend: Option<u32>,
     pub bold: Option<bool>,
+    pub default: Option<bool>,
+    pub fallback: Option<bool>,
     pub fg_indexed: Option<bool>,
+    pub force: Option<bool>,
     pub foreground: Option<u32>,
     pub italic: Option<bool>,
     pub reverse: Option<bool>,
@@ -25,7 +29,6 @@ pub struct HighlightInfos {
     pub underdot: Option<bool>,
     pub underline: Option<bool>,
     pub underlineline: Option<bool>,
-    pub altfont: Option<bool>,
 }
 
 impl FromObject for HighlightInfos {

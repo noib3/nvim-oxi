@@ -312,6 +312,47 @@ pub fn get_current_win() -> Window {
     unsafe { nvim_get_current_win() }.into()
 }
 
+/// Binding to [`nvim_get_hl()`][1].
+///
+/// Gets all or specific highlight groups in a namespace.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl()
+#[cfg(feature = "neovim-nightly")]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub fn get_hl(
+    ns_id: u32,
+    opts: &GetHighlightOpts,
+) -> Result<GetHlInfos<impl SuperIterator<(types::String, HighlightInfos)>>> {
+    let mut err = nvim::Error::new();
+    let dict = unsafe {
+        nvim_get_hl(ns_id as Integer, opts, types::arena(), &mut err)
+    };
+    if err.is_err() {
+        return Err(err.into());
+    }
+
+    let is_map = dict
+        .iter()
+        .next()
+        .map(|(_, hl_infos)| {
+            let d = types::serde::Deserializer::new(hl_infos.clone());
+            <HighlightInfos as serde::Deserialize>::deserialize(d).is_ok()
+        })
+        .unwrap_or(false);
+
+    if is_map {
+        let iter = dict.into_iter().map(|(hl_name, hl_infos)| {
+            let infos = HighlightInfos::from_object(hl_infos).unwrap();
+            (hl_name, infos)
+        });
+        Ok(GetHlInfos::Map(iter))
+    } else {
+        HighlightInfos::from_object(dict.into())
+            .map(GetHlInfos::Single)
+            .map_err(Into::into)
+    }
+}
+
 /// Binding to [`nvim_get_hl_id_by_name()`][1].
 ///
 /// Gets a highlight definition by name.
