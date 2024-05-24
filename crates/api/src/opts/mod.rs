@@ -19,6 +19,8 @@ mod get_commands;
 mod get_context;
 mod get_extmark_by_id;
 mod get_extmarks;
+#[cfg(feature = "neovim-nightly")]
+mod get_highlight;
 mod get_mark;
 #[cfg(feature = "neovim-nightly")]
 mod get_namespace;
@@ -53,6 +55,8 @@ pub use get_commands::*;
 pub use get_context::*;
 pub use get_extmark_by_id::*;
 pub use get_extmarks::*;
+#[cfg(feature = "neovim-nightly")]
+pub use get_highlight::*;
 pub use get_mark::*;
 #[cfg(feature = "neovim-nightly")]
 pub use get_namespace::*;

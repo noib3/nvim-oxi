@@ -21,6 +21,8 @@ mod extmark_infos;
 mod extmark_position;
 mod extmark_virt_text_chunk;
 mod extmark_virt_text_position;
+#[cfg(feature = "neovim-nightly")]
+mod get_hl_infos;
 mod got_mode;
 mod highlight_infos;
 mod keymap_infos;
@@ -73,6 +75,8 @@ pub use extmark_infos::*;
 pub use extmark_position::*;
 pub use extmark_virt_text_chunk::*;
 pub use extmark_virt_text_position::*;
+#[cfg(feature = "neovim-nightly")]
+pub use get_hl_infos::GetHlInfos;
 pub use got_mode::*;
 pub use highlight_infos::*;
 pub use keymap_infos::*;

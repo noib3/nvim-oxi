@@ -112,6 +112,15 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L849
     pub(crate) fn nvim_get_current_win() -> WinHandle;
 
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L118
+    #[cfg(feature = "neovim-nightly")]
+    pub(crate) fn nvim_get_hl(
+        ns_id: Integer,
+        opts: *const GetHighlightOpts,
+        arena: *mut Arena,
+        err: *mut Error,
+    ) -> Dictionary;
+
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vim.c#L82
     pub(crate) fn nvim_get_hl_id_by_name(name: NonOwning<String>) -> Integer;
 
