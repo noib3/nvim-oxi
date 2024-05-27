@@ -4,7 +4,7 @@ use nvim_oxi::api::{self, types::*, Buffer, TabPage, Window};
 #[oxi::test]
 fn win_call() {
     let win = Window::current();
-    let res = win.call(|_| Ok(()));
+    let res = win.call(|_| ());
     assert_eq!(Ok(()), res);
 }
 
@@ -49,7 +49,6 @@ fn get_set_buf() {
     let res = win.call(move |_| {
         let win = Window::current();
         assert_eq!(Ok(buf), win.get_buf());
-        Ok(())
     });
 
     assert_eq!(Ok(()), res);

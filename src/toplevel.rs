@@ -1,3 +1,5 @@
+use std::error::Error as StdError;
+
 use luajit::{self as lua, ffi::*, macros::cstr};
 use types::Function;
 
@@ -13,7 +15,8 @@ use crate::IntoResult;
 pub fn schedule<F, R>(fun: F)
 where
     F: FnOnce(()) -> R + 'static,
-    R: IntoResult<(), Error = crate::Error>,
+    R: IntoResult<()>,
+    R::Error: StdError + 'static,
 {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/lua/executor.c#L363
     //

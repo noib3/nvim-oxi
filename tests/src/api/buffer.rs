@@ -58,7 +58,7 @@ fn buf_attach_on_bytes() -> Result<(), api::Error> {
 #[nvim::test]
 fn buf_call() {
     let buf = Buffer::current();
-    let res = buf.call(|_| Ok(()));
+    let res = buf.call(|_| ());
     assert_eq!(Ok(()), res);
 }
 

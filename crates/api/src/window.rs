@@ -1,3 +1,4 @@
+use std::error::Error as StdError;
 use std::fmt;
 use std::result::Result as StdResult;
 
@@ -94,7 +95,8 @@ impl Window {
     pub fn call<F, Res, Ret>(&self, fun: F) -> Result<Ret>
     where
         F: FnOnce(()) -> Res + 'static,
-        Res: IntoResult<Ret, Error = crate::Error>,
+        Res: IntoResult<Ret>,
+        Res::Error: StdError + 'static,
         Ret: Pushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
