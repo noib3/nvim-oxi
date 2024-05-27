@@ -27,12 +27,13 @@ impl<A, R> fmt::Debug for Function<A, R> {
     }
 }
 
-impl<A, R, F, E> From<F> for Function<A, R>
+impl<A, R, F, O> From<F> for Function<A, R>
 where
-    F: FnMut(A) -> Result<R, E> + 'static,
+    F: Fn(A) -> O + 'static,
     A: Poppable,
+    O: IntoResult<R>,
     R: Pushable,
-    E: StdError + 'static,
+    O::Error: StdError + 'static,
 {
     fn from(fun: F) -> Function<A, R> {
         Function::from_fn_mut(fun)
@@ -93,28 +94,30 @@ impl<A, R> Function<A, R> {
         Self::from_ref(lua::function::store(fun))
     }
 
-    pub fn from_fn_mut<F, E>(fun: F) -> Self
+    pub fn from_fn_mut<F, O>(fun: F) -> Self
     where
-        F: FnMut(A) -> Result<R, E> + 'static,
+        F: FnMut(A) -> O + 'static,
         A: Poppable,
+        O: IntoResult<R>,
         R: Pushable,
-        E: StdError + 'static,
+        O::Error: StdError + 'static,
     {
         let fun = RefCell::new(fun);
 
         Self::from_fn(move |args| {
             let fun = &mut *fun.try_borrow_mut().map_err(Error::from_err)?;
 
-            fun(args).map_err(Error::from_err)
+            fun(args).into_result().map_err(Error::from_err)
         })
     }
 
-    pub fn from_fn_once<F, E>(fun: F) -> Self
+    pub fn from_fn_once<F, O>(fun: F) -> Self
     where
-        F: FnOnce(A) -> Result<R, E> + 'static,
+        F: FnOnce(A) -> O + 'static,
         A: Poppable,
+        O: IntoResult<R>,
         R: Pushable,
-        E: StdError + 'static,
+        O::Error: StdError + 'static,
     {
         let fun = RefCell::new(Some(fun));
 
@@ -127,7 +130,7 @@ impl<A, R> Function<A, R> {
                     Error::from_str("Cannot call function twice")
                 })?;
 
-            fun(args).map_err(Error::from_err)
+            fun(args).into_result().map_err(Error::from_err)
         })
     }
 

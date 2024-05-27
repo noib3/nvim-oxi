@@ -22,7 +22,7 @@ use crate::types::{KeymapInfos, Mode};
 use crate::utils;
 use crate::SuperIterator;
 use crate::LUA_INTERNAL_CALL;
-use crate::{Error, Result};
+use crate::{Error, IntoResult, Result};
 
 /// A wrapper around a Neovim buffer handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -134,10 +134,11 @@ impl Buffer {
     /// Calls a function with this buffer as the temporary current buffer.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_call()
-    pub fn call<F, R>(&self, fun: F) -> Result<R>
+    pub fn call<F, Res, Ret>(&self, fun: F) -> Result<Ret>
     where
-        F: FnOnce(()) -> Result<R> + 'static,
-        R: Pushable + FromObject,
+        F: FnOnce(()) -> Res + 'static,
+        Res: IntoResult<Ret, Error = crate::Error>,
+        Ret: Pushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
@@ -145,7 +146,7 @@ impl Buffer {
 
         choose!(err, {
             fun.remove_from_lua_registry();
-            Ok(R::from_object(obj)?)
+            Ok(Ret::from_object(obj)?)
         })
     }
 

@@ -8,14 +8,14 @@ fn mechanic() -> Dictionary {
     Dictionary::from_iter([("fix", Function::from_fn(fix))])
 }
 
-fn fix(mut car: Car) -> nvim_oxi::Result<Car> {
+fn fix(mut car: Car) -> Car {
     if car.works {
-        return Ok(car);
+        return car;
     }
 
     if car.problem.is_none() {
         api::err_writeln("Well, what's the issue?");
-        return Ok(car);
+        return car;
     }
 
     use CarManufacturer::*;
@@ -31,7 +31,7 @@ fn fix(mut car: Car) -> nvim_oxi::Result<Car> {
     car.works = true;
     car.problem = None;
 
-    Ok(car)
+    car
 }
 
 #[derive(Serialize, Deserialize)]

@@ -20,7 +20,7 @@ use crate::opts::WinTextHeightOpts;
 #[cfg(feature = "neovim-nightly")]
 use crate::types::WinTextHeightInfos;
 use crate::Result;
-use crate::{Buffer, TabPage};
+use crate::{Buffer, IntoResult, TabPage};
 
 /// A wrapper around a Neovim window handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -91,10 +91,11 @@ impl Window {
     /// Calls a function with this window as the temporary current window.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_call()
-    pub fn call<R, F>(&self, fun: F) -> Result<R>
+    pub fn call<F, Res, Ret>(&self, fun: F) -> Result<Ret>
     where
-        F: FnOnce(()) -> Result<R> + 'static,
-        R: Pushable + FromObject,
+        F: FnOnce(()) -> Res + 'static,
+        Res: IntoResult<Ret, Error = crate::Error>,
+        Ret: Pushable + FromObject,
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
@@ -102,7 +103,7 @@ impl Window {
 
         choose!(err, {
             fun.remove_from_lua_registry();
-            Ok(R::from_object(obj)?)
+            Ok(Ret::from_object(obj)?)
         })
     }
 
