@@ -1,4 +1,3 @@
-use std::convert::Infallible;
 use std::sync::mpsc;
 use std::thread::sleep;
 use std::time::Duration;
@@ -15,7 +14,6 @@ fn timer_handle_0() {
 
     let mut handle = TimerHandle::start(timeout, repeat, move |_| {
         tx.send(()).unwrap();
-        Ok::<_, Infallible>(())
     })
     .unwrap();
 

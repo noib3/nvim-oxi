@@ -19,8 +19,6 @@ fn libuv() -> Result<()> {
         } else {
             timer.stop().unwrap();
         }
-
-        Ok::<_, Error>(())
     };
 
     let _handle = TimerHandle::start(
@@ -34,7 +32,6 @@ fn libuv() -> Result<()> {
 
     let _handle = TimerHandle::once(Duration::from_secs(2), move || {
         schedule(move |_| Ok(print!("{msg}")));
-        Ok::<_, Error>(())
     });
 
     // --
@@ -44,9 +41,7 @@ fn libuv() -> Result<()> {
         let i = receiver.blocking_recv().unwrap();
         schedule(move |_| {
             print!("Received number {i} from backround thread");
-            Ok(())
         });
-        Ok::<_, Error>(())
     })?;
 
     let _ = thread::spawn(move || send_numbers(handle, sender));

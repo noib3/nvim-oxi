@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::convert::Infallible;
 use std::rc::Rc;
 
 use nvim_oxi::{self as nvim, libuv::*};
@@ -13,7 +12,6 @@ fn async_handle_0() {
 
     let handle = AsyncHandle::new(move || {
         *also_num_called.borrow_mut() += 1;
-        Ok::<_, Infallible>(())
     })
     .unwrap();
 
@@ -28,7 +26,6 @@ fn async_handle_0() {
         // blocking the main thread?
         nvim::schedule(move |_| {
             assert_eq!(*also_num_called.borrow(), i);
-            Ok(())
         });
     }
 }
