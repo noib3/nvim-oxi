@@ -4,7 +4,7 @@ use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
-use luajit::{self as lua, ffi, Poppable, Pushable};
+use luajit::{self as lua, ffi, IntoResult, Poppable, Pushable};
 
 use crate::{Error, LuaRef};
 
@@ -82,12 +82,13 @@ impl<A, R> Function<A, R> {
         self.lua_ref
     }
 
-    pub fn from_fn<F, E>(fun: F) -> Self
+    pub fn from_fn<F, O>(fun: F) -> Self
     where
-        F: Fn(A) -> Result<R, E> + 'static,
+        F: Fn(A) -> O + 'static,
         A: Poppable,
+        O: IntoResult<R>,
         R: Pushable,
-        E: StdError + 'static,
+        O::Error: StdError + 'static,
     {
         Self::from_ref(lua::function::store(fun))
     }
