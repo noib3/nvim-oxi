@@ -14,8 +14,7 @@ fn create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res =
-        api::create_user_command("Bar", |_args| Ok(()), &Default::default());
+    let res = api::create_user_command("Bar", |_args| (), &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
@@ -164,7 +163,7 @@ fn set_get_del_current_line() {
 #[oxi::test]
 fn set_get_del_keymap() {
     let opts = SetKeymapOpts::builder()
-        .callback(|_| Ok(()))
+        .callback(|_| ())
         .desc("does nothing")
         .expr(true)
         .build();

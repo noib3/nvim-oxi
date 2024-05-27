@@ -11,11 +11,11 @@ fn buf_attach() {
     let buf = Buffer::current();
 
     let opts = BufAttachOpts::builder()
-        .on_lines(|_args| Ok(false))
-        .on_bytes(|_args| Ok(false))
-        .on_detach(|_args| Ok(false))
-        .on_reload(|_args| Ok(false))
-        .on_changedtick(|_args| Ok(false))
+        .on_lines(|_args| false)
+        .on_bytes(|_args| false)
+        .on_detach(|_args| false)
+        .on_reload(|_args| false)
+        .on_changedtick(|_args| false)
         .build();
 
     let res = buf.attach(false, &opts);
@@ -37,7 +37,7 @@ fn buf_attach_on_bytes() -> Result<(), api::Error> {
         BufAttachOpts::builder()
             .on_lines(move |_args| {
                 count.set(count.get() + 1);
-                Ok(false)
+                false
             })
             .build()
     };
@@ -58,7 +58,7 @@ fn buf_attach_on_bytes() -> Result<(), api::Error> {
 #[nvim::test]
 fn buf_call() {
     let buf = Buffer::current();
-    let res = buf.call(|_| Ok(()));
+    let res = buf.call(|_| ());
     assert_eq!(Ok(()), res);
 }
 
@@ -70,8 +70,7 @@ fn buf_create_del_user_command() {
     assert_eq!(Ok(()), res);
     api::command("Foo").unwrap();
 
-    let res =
-        buf.create_user_command("Bar", |_args| Ok(()), &Default::default());
+    let res = buf.create_user_command("Bar", |_args| (), &Default::default());
     assert_eq!(Ok(()), res);
     api::command("Bar").unwrap();
 
@@ -143,7 +142,7 @@ fn buf_set_get_del_keymap() {
     let mut buf = Buffer::current();
 
     let opts = SetKeymapOpts::builder()
-        .callback(|_| Ok(()))
+        .callback(|_| ())
         .desc("does nothing")
         .expr(true)
         .build();

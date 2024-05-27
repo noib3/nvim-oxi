@@ -1,7 +1,9 @@
+use std::error::Error as StdError;
+
 use luajit::{self as lua, ffi::*, macros::cstr};
 use types::Function;
 
-use crate::Result;
+use crate::IntoResult;
 
 /// Binding to [`vim.schedule()`][1].
 ///
@@ -10,9 +12,11 @@ use crate::Result;
 ///
 /// [1]: https://neovim.io/doc/user/lua.html#vim.schedule()
 /// [2]: https://neovim.io/doc/user/eval.html#textlock
-pub fn schedule<F>(fun: F)
+pub fn schedule<F, R>(fun: F)
 where
-    F: FnOnce(()) -> Result<()> + 'static,
+    F: FnOnce(()) -> R + 'static,
+    R: IntoResult<()>,
+    R::Error: StdError + 'static,
 {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/lua/executor.c#L363
     //

@@ -83,7 +83,7 @@ pub mod mlua {
 }
 
 pub use error::{Error, Result};
-pub use luajit::{dbg, print};
+pub use luajit::{dbg, print, IntoResult};
 pub use macros::plugin;
 #[cfg(feature = "test")]
 #[cfg_attr(docsrs, doc(cfg(feature = "test")))]

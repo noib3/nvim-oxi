@@ -1,6 +1,6 @@
 use std::error::Error as StdError;
 
-use crate::{ffi, Error, Handle};
+use crate::{ffi, Error, Handle, IntoResult};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 
@@ -20,10 +20,11 @@ impl AsyncHandle {
     /// Registers a new callback on the Neovim event loop, returning an
     /// [`AsyncHandle`] which can be used to execute the callback from any
     /// thread. The callback will always be executed on the main thread.
-    pub fn new<E, Cb>(mut callback: Cb) -> Result<Self, Error>
+    pub fn new<Cb, R>(mut callback: Cb) -> Result<Self, Error>
     where
-        E: StdError + 'static,
-        Cb: FnMut() -> Result<(), E> + 'static,
+        Cb: FnMut() -> R + 'static,
+        R: IntoResult<()>,
+        R::Error: StdError + 'static,
     {
         let mut handle = Handle::new(|uv_loop, handle| unsafe {
             ffi::uv_async_init(
@@ -35,7 +36,9 @@ impl AsyncHandle {
 
         let callback: Callback = Box::new(move || {
             // Type erase the callback by boxing its error.
-            callback().map_err(|err| Box::new(err) as Box<dyn StdError>)
+            callback()
+                .into_result()
+                .map_err(|err| Box::new(err) as Box<dyn StdError>)
         });
 
         unsafe { handle.set_data(callback) };

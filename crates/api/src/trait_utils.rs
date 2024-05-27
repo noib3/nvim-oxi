@@ -1,9 +1,12 @@
+use std::error::Error as StdError;
 use std::iter::FusedIterator;
 
 use luajit::{Poppable, Pushable};
 use types::{Array, Function, LuaRef, Object};
 #[cfg(feature = "neovim-nightly")]
 use types::{HlGroupId, Integer};
+
+use crate::IntoResult;
 
 /// A super trait of most common traits implemented on iterators.
 pub trait SuperIterator<I>:
@@ -66,11 +69,13 @@ pub trait ToFunction<A, R> {
     fn into_luaref(self) -> LuaRef;
 }
 
-impl<A, R, F> ToFunction<A, R> for F
+impl<A, R, F, O> ToFunction<A, R> for F
 where
     A: Poppable,
     R: Pushable,
-    F: FnMut(A) -> crate::Result<R> + 'static,
+    F: FnMut(A) -> O + 'static,
+    O: IntoResult<R>,
+    O::Error: StdError + 'static,
 {
     #[inline]
     fn into_luaref(self) -> LuaRef {
@@ -104,11 +109,13 @@ impl<A, R> StringOrFunction<A, R> for String {
     }
 }
 
-impl<A, R, F> StringOrFunction<A, R> for F
+impl<F, A, R, O> StringOrFunction<A, R> for F
 where
+    F: FnMut(A) -> O + 'static,
     A: Poppable,
     R: Pushable,
-    F: FnMut(A) -> crate::Result<R> + 'static,
+    O: IntoResult<R>,
+    O::Error: StdError + 'static,
 {
     #[inline]
     fn to_object(self) -> Object {

@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::time::Duration;
 
-use crate::{ffi, Error, Handle};
+use crate::{ffi, Error, Handle, IntoResult};
 
 pub(crate) type Callback = Box<
     dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,
@@ -28,20 +28,23 @@ impl TimerHandle {
     ///
     /// If the timeout is zero the callback will fire on the next event loop
     /// iteration.
-    pub fn start<Cb, E>(
+    pub fn start<Cb, R>(
         timeout: Duration,
         repeat: Duration,
         mut callback: Cb,
     ) -> Result<Self, Error>
     where
-        Cb: FnMut(&mut Self) -> Result<(), E> + 'static,
-        E: StdError + 'static,
+        Cb: FnMut(&mut Self) -> R + 'static,
+        R: IntoResult<()>,
+        R::Error: StdError + 'static,
     {
         let mut timer = Self::new()?;
 
         let callback: Callback = Box::new(move |timer| {
             // Type erase the callback by boxing its error.
-            callback(timer).map_err(|err| Box::new(err) as Box<dyn StdError>)
+            callback(timer)
+                .into_result()
+                .map_err(|err| Box::new(err) as Box<dyn StdError>)
         });
 
         unsafe { timer.handle.set_data(callback) };
@@ -64,10 +67,11 @@ impl TimerHandle {
 
     /// Same as [`start()`](TimerHandle::start) but accepts a closure that
     /// will be called once before being automatically stopped.
-    pub fn once<Cb, E>(timeout: Duration, callback: Cb) -> Result<Self, Error>
+    pub fn once<Cb, R>(timeout: Duration, callback: Cb) -> Result<Self, Error>
     where
-        Cb: FnOnce() -> Result<(), E> + 'static,
-        E: StdError + 'static,
+        Cb: FnOnce() -> R + 'static,
+        R: IntoResult<()>,
+        R::Error: StdError + 'static,
     {
         let mut callback = Some(callback);
 

@@ -4,15 +4,16 @@ use std::mem;
 use std::ptr;
 
 use crate::ffi::{self, lua_State};
-use crate::{utils, Poppable, Pushable};
+use crate::{utils, IntoResult, Poppable, Pushable};
 
 /// Stores a function in the Lua registry, returning its ref.
-pub fn store<F, A, R, E>(fun: F) -> c_int
+pub fn store<F, A, R, O>(fun: F) -> c_int
 where
-    F: Fn(A) -> Result<R, E> + 'static,
+    F: Fn(A) -> R + 'static,
     A: Poppable,
-    R: Pushable,
-    E: Error + 'static,
+    R: IntoResult<O>,
+    O: Pushable,
+    R::Error: Error + 'static,
 {
     type Callback =
         Box<dyn Fn(*mut lua_State) -> Result<c_int, crate::Error> + 'static>;
@@ -32,6 +33,7 @@ where
             let fun = move |lstate| {
                 let args = A::pop(lstate)?;
                 let ret = fun(args)
+                    .into_result()
                     .map_err(crate::Error::push_error_from_err::<R, _>)?;
                 ret.push(lstate)
             };

@@ -39,6 +39,7 @@ pub use deprecated::*;
 pub use error::Error;
 use error::Result;
 pub use extmark::*;
+pub use luajit::IntoResult;
 pub use options::*;
 pub use tabpage::*;
 pub use trait_utils::*;
