@@ -10,6 +10,8 @@ use std::thread;
 
 use miniserde::json;
 
+use crate::IntoResult;
+
 /// Returns the `target` directory in which cargo will place the compiled
 /// artifacts for the crate whose manifest is located at `manifest_dir`.
 pub fn target_dir(manifest_dir: &Path) -> PathBuf {
@@ -39,7 +41,8 @@ pub fn target_dir(manifest_dir: &Path) -> PathBuf {
 pub fn plugin_body<F, R>(test_body: F)
 where
     F: FnOnce() -> R + UnwindSafe,
-    R: IntoResult,
+    R: IntoResult<()>,
+    R::Error: Display,
 {
     let panic_info: Arc<OnceLock<PanicInfo>> = Arc::default();
 
@@ -399,28 +402,6 @@ impl<E: Display> From<TestFailure<'_, E>> for Failure {
             TestFailure::Error(err) => Self::Error(err.to_string()),
             TestFailure::Panic(info) => Self::Panic(info.into()),
         }
-    }
-}
-
-pub trait IntoResult {
-    type Error: Display;
-
-    fn into_result(self) -> Result<(), Self::Error>;
-}
-
-impl IntoResult for () {
-    type Error = std::convert::Infallible;
-
-    fn into_result(self) -> Result<(), Self::Error> {
-        Ok(())
-    }
-}
-
-impl<E: Display> IntoResult for Result<(), E> {
-    type Error = E;
-
-    fn into_result(self) -> Result<(), E> {
-        self
     }
 }
 
