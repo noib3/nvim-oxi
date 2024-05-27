@@ -105,23 +105,20 @@ fn set_decoration_provider() {
     let opts = DecorationProviderOpts::builder()
         .on_start(|args| {
             print!("{args:?}");
-            Ok(true)
+            true
         })
         .on_buf(|args| {
             print!("{args:?}");
-            Ok(())
         })
         .on_win(|args| {
             print!("{args:?}");
-            Ok(true)
+            true
         })
         .on_line(|args| {
             print!("{args:?}");
-            Ok(())
         })
         .on_end(|args| {
             print!("{args:?}");
-            Ok(())
         })
         .build();
 
