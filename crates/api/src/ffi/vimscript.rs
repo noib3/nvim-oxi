@@ -5,7 +5,7 @@ use types::*;
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
 extern "C" {
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L283
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L278
     pub(crate) fn nvim_call_dict_function(
         dict: NonOwning<Object>,
         r#fn: NonOwning<String>,
@@ -15,7 +15,7 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L268
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L263
     pub(crate) fn nvim_call_function(
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
@@ -24,10 +24,10 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L138
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L135
     pub(crate) fn nvim_command(command: NonOwning<String>, err: *mut Error);
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L154
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L151
     pub(crate) fn nvim_eval(
         expr: NonOwning<String>,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -44,7 +44,7 @@ extern "C" {
         error: *mut Error,
     ) -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L438
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L430
     pub fn nvim_parse_expression(
         expr: NonOwning<String>,
         flags: NonOwning<String>,

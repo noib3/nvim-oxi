@@ -13,7 +13,7 @@ pub(crate) type WinGetConfigOutput = WindowOpts;
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
 extern "C" {
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L159
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/win_config.c#L159
     pub(crate) fn nvim_open_win(
         buffer: BufHandle,
         enter: Boolean,
@@ -21,7 +21,7 @@ extern "C" {
         err: *mut Error,
     ) -> WinHandle;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L240
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/win_config.c#L240
     pub(crate) fn nvim_win_get_config(
         window: WinHandle,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -29,7 +29,7 @@ extern "C" {
         err: *mut Error,
     ) -> WinGetConfigOutput;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/win_config.c#L202
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/win_config.c#L202
     pub(crate) fn nvim_win_set_config(
         window: WinHandle,
         config: *const WindowOpts,

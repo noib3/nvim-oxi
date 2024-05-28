@@ -5,7 +5,7 @@ use types::*;
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
 extern "C" {
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L373
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L559
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
@@ -14,7 +14,7 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L393
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L581
     pub(crate) fn nvim_buf_set_option(
         channel_id: u64,
         buf: BufHandle,
@@ -23,7 +23,7 @@ extern "C" {
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L33
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L37
     pub(crate) fn nvim_exec(
         channel_id: u64,
         src: NonOwning<String>,
@@ -31,7 +31,7 @@ extern "C" {
         error: *mut Error,
     ) -> String;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L188
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L186
     pub(crate) fn nvim_get_hl_by_id(
         hl_id: Integer,
         rgb: bool,
@@ -39,7 +39,7 @@ extern "C" {
         error: *mut Error,
     ) -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L209
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L207
     pub(crate) fn nvim_get_hl_by_name(
         name: NonOwning<String>,
         rgb: bool,
@@ -47,7 +47,7 @@ extern "C" {
         error: *mut Error,
     ) -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L545
     pub(crate) fn nvim_get_option(
         name: NonOwning<String>,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
@@ -55,7 +55,7 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L520
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L518
     pub(crate) fn nvim_get_option_info(
         name: NonOwning<String>,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly
@@ -63,7 +63,7 @@ extern "C" {
         err: *mut Error,
     ) -> Dictionary;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L350
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L532
     pub(crate) fn nvim_set_option(
         channel_id: u64,
         name: NonOwning<String>,
@@ -71,7 +71,7 @@ extern "C" {
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L411
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L601
     pub(crate) fn nvim_win_get_option(
         win: WinHandle,
         name: NonOwning<String>,
@@ -80,7 +80,7 @@ extern "C" {
         err: *mut Error,
     ) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L431
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L623
     pub(crate) fn nvim_win_set_option(
         channel_id: u64,
         win: WinHandle,
