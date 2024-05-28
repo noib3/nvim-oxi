@@ -2,7 +2,7 @@ use crate::Buffer;
 use crate::StringOrInt;
 
 /// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct ClearAutocmdsOpts {
@@ -12,7 +12,7 @@ pub struct ClearAutocmdsOpts {
     pattern: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl ClearAutocmdsOpts {
     /// Creates a new [`ClearAutocmdsOptsBuilder`].
     #[inline(always)]
@@ -21,11 +21,11 @@ impl ClearAutocmdsOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct ClearAutocmdsOptsBuilder(ClearAutocmdsOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl ClearAutocmdsOptsBuilder {
     /// Only clear the autocommands local to a specific `Buffer`. Cannot be
     /// used together with [`patterns`](ClearAutocmdsOptsBuilder::patterns).
@@ -77,7 +77,7 @@ impl ClearAutocmdsOptsBuilder {
 }
 
 /// Options passed to [`clear_autocmds()`](crate::clear_autocmds).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct ClearAutocmdsOpts {

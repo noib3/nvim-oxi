@@ -5,7 +5,7 @@ use crate::{Buffer, Window};
 
 /// Options passed to
 /// [`set_option_value()`](crate::set_option_value).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct OptionOpts {
@@ -31,7 +31,7 @@ pub struct OptionOpts {
 
 /// Options passed to
 /// [`set_option_value()`](crate::set_option_value).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct OptionOpts {
@@ -41,7 +41,7 @@ pub struct OptionOpts {
     filetype: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl OptionOpts {
     #[inline(always)]
     pub fn builder() -> OptionOptsBuilder {
@@ -49,11 +49,11 @@ impl OptionOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct OptionOptsBuilder(OptionOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl OptionOptsBuilder {
     #[inline]
     pub fn buffer(&mut self, buffer: Buffer) -> &mut Self {

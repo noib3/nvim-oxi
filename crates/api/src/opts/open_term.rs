@@ -20,11 +20,11 @@ pub type OnInputArgs = (
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct OpenTermOpts {
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[builder(mask)]
     mask: u64,
 
-    #[cfg(not(feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     #[builder(
         generics = "F: ToFunction<OnInputArgs, ()>",
         argtype = "F",
@@ -33,7 +33,7 @@ pub struct OpenTermOpts {
     /// Callback invoked on data input (like keypresses in terminal mode).
     on_input: types::Object,
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[builder(
         generics = "F: ToFunction<OnInputArgs, ()>",
         argtype = "F",
@@ -43,7 +43,7 @@ pub struct OpenTermOpts {
     on_input: types::LuaRef,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl From<&OpenTermOpts> for types::Dictionary {
     fn from(opts: &OpenTermOpts) -> Self {
         Self::from_iter([("on_input", opts.on_input.clone())])

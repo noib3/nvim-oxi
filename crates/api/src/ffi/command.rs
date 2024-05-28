@@ -2,10 +2,10 @@ use types::*;
 
 use crate::opts::*;
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 pub(crate) type ParseCmdOutput = Dictionary;
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub(crate) type ParseCmdOutput = crate::types::KeyDict_cmd;
 
 #[cfg_attr(
@@ -34,7 +34,8 @@ extern "C" {
     pub(crate) fn nvim_buf_get_commands(
         buf: BufHandle,
         opts: *const GetCommandsOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -43,7 +44,8 @@ extern "C" {
         channel_id: u64,
         cmd: *const crate::types::KeyDict_cmd,
         opts: *const CmdOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> String;
 
@@ -65,16 +67,20 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L1230
     pub(crate) fn nvim_get_commands(
         opts: *const GetCommandsOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         error: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L98
     pub(crate) fn nvim_parse_cmd(
         src: NonOwning<String>,
-        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-nightly")] opts: *const ParseCmdOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
+        opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        opts: *const ParseCmdOpts,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         error: *mut Error,
     ) -> ParseCmdOutput;
 }

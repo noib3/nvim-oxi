@@ -82,7 +82,7 @@ pub type OnReloadArgs = (String, Buffer);
 pub type ShouldDetach = bool;
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 pub struct BufAttachOpts {
     on_bytes: types::Object,
@@ -94,7 +94,7 @@ pub struct BufAttachOpts {
     utf_sizes: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl BufAttachOpts {
     #[inline(always)]
     /// Creates a new [`BufAttachOptsBuilder`].
@@ -103,11 +103,11 @@ impl BufAttachOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct BufAttachOptsBuilder(BufAttachOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl BufAttachOptsBuilder {
     /// Callback invoked on change. It receives more granular information about
     /// the change compared to [`on_lines`](BufAttachOptsBuilder::on_lines).
@@ -186,7 +186,7 @@ impl BufAttachOptsBuilder {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl From<&BufAttachOpts> for types::Dictionary {
     #[inline]
     fn from(opts: &BufAttachOpts) -> Self {
@@ -203,7 +203,7 @@ impl From<&BufAttachOpts> for types::Dictionary {
 }
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct BufAttachOpts {

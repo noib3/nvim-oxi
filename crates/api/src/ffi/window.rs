@@ -35,7 +35,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L63
     pub(crate) fn nvim_win_get_cursor(
         win: WinHandle,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -54,7 +55,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/window.c#L285
     pub(crate) fn nvim_win_get_position(
         win: WinHandle,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -68,7 +70,8 @@ extern "C" {
     pub(crate) fn nvim_win_get_var(
         win: WinHandle,
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -106,7 +109,7 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L464
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_win_set_hl(
         win: WinHandle,
         ns_id: Integer,
@@ -129,7 +132,7 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L510
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_win_text_height(
         win: WinHandle,
         opts: *const crate::opts::WinTextHeightOpts,

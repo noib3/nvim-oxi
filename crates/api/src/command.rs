@@ -22,7 +22,7 @@ pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
             LUA_INTERNAL_CALL,
             &infos.into(),
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -86,7 +86,7 @@ pub fn get_commands(
     let cmds = unsafe {
         nvim_get_commands(
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -107,27 +107,27 @@ pub fn get_commands(
 /// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
 pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    #[cfg(not(feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
 
     let out = unsafe {
         nvim_parse_cmd(
             src.non_owning(),
-            #[cfg(not(feature = "neovim-nightly"))]
+            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
             opts.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
     };
 
-    #[cfg(not(feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     let out = CmdInfos::from_object(out.into())?;
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     let out = CmdInfos::try_from(out)?;
 
     choose!(err, Ok(out))
@@ -196,7 +196,7 @@ impl Buffer {
             nvim_buf_get_commands(
                 self.0,
                 opts,
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )

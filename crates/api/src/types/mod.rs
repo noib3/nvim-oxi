@@ -21,7 +21,7 @@ mod extmark_infos;
 mod extmark_position;
 mod extmark_virt_text_chunk;
 mod extmark_virt_text_position;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod get_hl_infos;
 mod got_mode;
 mod highlight_infos;
@@ -36,14 +36,14 @@ mod parsed_viml_expression;
 mod paste_phase;
 mod proc_infos;
 mod register_type;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod split_direction;
 mod split_modifier;
 mod statusline_highlight_infos;
 mod statusline_infos;
 mod ui_infos;
 mod viml_ast_node;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod win_text_height_infos;
 mod window_anchor;
 mod window_border;
@@ -75,7 +75,7 @@ pub use extmark_infos::*;
 pub use extmark_position::*;
 pub use extmark_virt_text_chunk::*;
 pub use extmark_virt_text_position::*;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub use get_hl_infos::GetHlInfos;
 pub use got_mode::*;
 pub use highlight_infos::*;
@@ -90,14 +90,14 @@ pub use parsed_viml_expression::*;
 pub use paste_phase::*;
 pub use proc_infos::*;
 pub use register_type::*;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub use split_direction::*;
 pub use split_modifier::*;
 pub use statusline_highlight_infos::*;
 pub use statusline_infos::*;
 pub use ui_infos::*;
 pub use viml_ast_node::*;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub use win_text_height_infos::*;
 pub use window_anchor::*;
 pub use window_border::*;

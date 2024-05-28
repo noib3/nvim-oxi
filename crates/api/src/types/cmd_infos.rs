@@ -5,7 +5,7 @@ use types::{
     Array,
     Object,
 };
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, Dictionary, Integer, String as NvimString};
 
 use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};
@@ -164,7 +164,7 @@ impl FromObject for CmdInfos {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -182,7 +182,7 @@ pub(crate) struct KeyDict_cmd {
     nextcmd: Object,
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -226,7 +226,7 @@ pub(crate) struct KeyDict_cmd {
 impl From<&CmdInfos> for KeyDict_cmd {
     #[inline]
     fn from(infos: &CmdInfos) -> Self {
-        #[cfg(not(feature = "neovim-nightly"))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         {
             Self {
                 cmd: infos.cmd.clone().into(),
@@ -254,7 +254,7 @@ impl From<&CmdInfos> for KeyDict_cmd {
                 nextcmd: infos.nextcmd.clone().into(),
             }
         }
-        #[cfg(feature = "neovim-nightly")]
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         {
             let mut mask = 0;
 
@@ -353,7 +353,7 @@ impl From<&CmdInfos> for KeyDict_cmd {
     }
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl TryFrom<KeyDict_cmd> for CmdInfos {
     type Error = conversion::Error;
 

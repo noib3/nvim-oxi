@@ -9,7 +9,7 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NonOwning<String>,
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -50,7 +50,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/options.c#L361
     pub(crate) fn nvim_get_option(
         name: NonOwning<String>,
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -58,7 +58,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/deprecated.c#L520
     pub(crate) fn nvim_get_option_info(
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
@@ -74,7 +75,7 @@ extern "C" {
     pub(crate) fn nvim_win_get_option(
         win: WinHandle,
         name: NonOwning<String>,
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;

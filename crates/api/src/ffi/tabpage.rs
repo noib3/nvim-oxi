@@ -22,7 +22,8 @@ extern "C" {
     pub(crate) fn nvim_tabpage_get_var(
         tabpage: TabHandle,
         name: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -38,7 +39,8 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/tabpage.c#L21
     pub(crate) fn nvim_tabpage_list_wins(
         tabpage: TabHandle,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -51,7 +53,7 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/tabpage.c#L130
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_tabpage_set_win(
         tabpage: TabHandle,
         win: WinHandle,

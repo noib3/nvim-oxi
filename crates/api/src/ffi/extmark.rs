@@ -40,9 +40,12 @@ extern "C" {
         buf: BufHandle,
         ns_id: Integer,
         id: Integer,
-        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarkByIdOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
+        opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        opts: *const GetExtmarkByIdOpts,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -52,9 +55,12 @@ extern "C" {
         ns_id: Integer,
         start: Object,
         end: Object,
-        #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-nightly")] opts: *const GetExtmarksOpts,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
+        opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        opts: *const GetExtmarksOpts,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
@@ -73,7 +79,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L73
     pub(crate) fn nvim_get_namespaces(
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/extmark.c#L1074
@@ -84,7 +91,7 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1226
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim__win_add_ns(
         window: WinHandle,
         ns_id: Integer,
@@ -92,7 +99,7 @@ extern "C" {
     ) -> Boolean;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1252
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim__win_get_ns(
         window: WinHandle,
         arena: *mut Arena,
@@ -100,7 +107,7 @@ extern "C" {
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1275
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim__win_del_ns(
         window: WinHandle,
         ns_id: Integer,

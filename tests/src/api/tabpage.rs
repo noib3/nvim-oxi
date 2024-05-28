@@ -1,7 +1,4 @@
-use nvim_oxi::{
-    self as nvim,
-    api::{self, TabPage},
-};
+use nvim_oxi::{self as nvim, api::TabPage};
 
 #[nvim::test]
 fn get_list_wins() {
@@ -38,10 +35,10 @@ fn tabpage_set_get_del_var() {
 }
 
 #[nvim::test]
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 fn tabpage_set_get_win() {
-    let config = api::types::WindowConfig::builder()
-        .relative(api::types::WindowRelativeTo::Editor)
+    let config = nvim::api::types::WindowConfig::builder()
+        .relative(nvim::api::types::WindowRelativeTo::Editor)
         .height(10)
         .width(5)
         .row(1.5)
@@ -49,7 +46,8 @@ fn tabpage_set_get_win() {
         .build();
 
     let window =
-        api::open_win(&api::Buffer::current(), true, &config).unwrap();
+        nvim::api::open_win(&nvim::api::Buffer::current(), true, &config)
+            .unwrap();
 
     let mut tab = TabPage::current();
 

@@ -4,7 +4,7 @@ use crate::trait_utils::StringOrInt;
 use crate::Buffer;
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
@@ -50,7 +50,7 @@ pub struct GetAutocmdsOpts {
 }
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetAutocmdsOpts {
@@ -60,7 +60,7 @@ pub struct GetAutocmdsOpts {
     patterns: Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl GetAutocmdsOpts {
     #[inline(always)]
     pub fn builder() -> GetAutocmdsOptsBuilder {
@@ -68,11 +68,11 @@ impl GetAutocmdsOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct GetAutocmdsOptsBuilder(GetAutocmdsOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl GetAutocmdsOptsBuilder {
     /// Get the autocommands local to a specific `Buffer`. Cannot be used
     /// together with `patterns`.

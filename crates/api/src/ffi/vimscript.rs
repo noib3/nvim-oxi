@@ -10,7 +10,8 @@ extern "C" {
         dict: NonOwning<Object>,
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -18,7 +19,8 @@ extern "C" {
     pub(crate) fn nvim_call_function(
         r#fn: NonOwning<String>,
         args: NonOwning<Array>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -28,12 +30,13 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/vimscript.c#L154
     pub(crate) fn nvim_eval(
         expr: NonOwning<String>,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vimscript.c#L53
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_exec2(
         channel_id: u64,
         src: NonOwning<String>,
@@ -46,7 +49,8 @@ extern "C" {
         expr: NonOwning<String>,
         flags: NonOwning<String>,
         highlight: bool,
-        #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 }

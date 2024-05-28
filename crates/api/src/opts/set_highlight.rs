@@ -1,8 +1,8 @@
 use types::Object;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, Integer};
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, PartialEq, macros::OptsBuilder)]
 #[repr(C)]
 pub struct SetHighlightOpts {
@@ -101,7 +101,7 @@ pub struct SetHighlightOpts {
 }
 
 /// Options passed to [`set_hl()`](crate::set_hl).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct SetHighlightOpts {
@@ -135,7 +135,7 @@ pub struct SetHighlightOpts {
     strikethrough: Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetHighlightOpts {
     /// Creates a new [`SetHighlightOptsBuilder`].
     #[inline]
@@ -144,11 +144,11 @@ impl SetHighlightOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct SetHighlightOptsBuilder(SetHighlightOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetHighlightOptsBuilder {
     #[inline]
     pub fn background(&mut self, background: &str) -> &mut Self {

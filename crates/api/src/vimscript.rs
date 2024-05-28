@@ -2,7 +2,7 @@ use types::{self as nvim, conversion::FromObject, Array, Object};
 
 use crate::choose;
 use crate::ffi::vimscript::*;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use crate::opts::ExecOpts;
 use crate::types::*;
 use crate::Result;
@@ -31,7 +31,7 @@ where
             dict.non_owning(),
             func.non_owning(),
             args.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -57,7 +57,7 @@ where
         nvim_call_function(
             func.non_owning(),
             args.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -91,7 +91,7 @@ where
     let output = unsafe {
         nvim_eval(
             expr.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -107,8 +107,11 @@ where
 /// Unlike [`command`] this function supports heredocs, script-scope (s:), etc.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_exec2()
-#[cfg(feature = "neovim-nightly")]
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+)]
 pub fn exec2(src: &str, opts: &ExecOpts) -> Result<Option<nvim::String>> {
     let src = types::String::from(src);
     let mut err = types::Error::new();
@@ -141,7 +144,7 @@ pub fn parse_expression(
             expr.non_owning(),
             flags.non_owning(),
             include_highlight,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )

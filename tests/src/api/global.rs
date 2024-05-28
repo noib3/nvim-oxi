@@ -73,7 +73,7 @@ fn get_highlights() {
     assert_eq!(api::get_hl_by_id(id, true), api::get_hl_by_name(&name, true));
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[oxi::test]
 fn get_hl() {
     let infos = api::get_hl(0, &Default::default()).unwrap();

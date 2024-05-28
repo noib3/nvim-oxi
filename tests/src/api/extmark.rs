@@ -62,13 +62,13 @@ fn get_extmarks() {
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     let virt_text = vec![ExtmarkVirtTextChunk {
         text: "foo".to_owned(),
         hl_groups: vec!["Foo".into(), "Bar".into()],
     }];
 
-    #[cfg(not(feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     let virt_text = vec![
         ExtmarkVirtTextChunk {
             text: "".to_owned(),
@@ -170,7 +170,7 @@ fn set_get_del_extmark() {
     assert_eq!(Some(String::from("Bar")), infos.hl_group);
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     let virt_text = vec![
         ExtmarkVirtTextChunk {
             text: "foo".to_owned(),
@@ -182,7 +182,7 @@ fn set_get_del_extmark() {
         },
     ];
 
-    #[cfg(not(feature = "neovim-nightly"))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     let virt_text = vec![
         ExtmarkVirtTextChunk {
             text: "foo".to_owned(),
@@ -206,7 +206,7 @@ fn set_get_del_extmark() {
     assert_eq!(Ok(()), res);
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim::test]
 fn virt_text_pos_inline() {
     let mut buf = Buffer::current();
@@ -231,7 +231,7 @@ fn virt_text_pos_inline() {
     assert_eq!(infos.virt_text_pos, Some(ExtmarkVirtTextPosition::Inline));
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim::test]
 fn extmark_win_add_get_remove_ns() {
     let mut win = api::Window::current();
