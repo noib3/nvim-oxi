@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## [0.5.0] - May 28 2024
+
 ### Added
+
+- support for Neovim 0.10;
 
 - the ability to return a `Result<(), T>` from the `nvim_oxi::test` macro
   ([#159](https://github.com/noib3/nvim-oxi/pull/159));
@@ -22,6 +26,11 @@
 - `nvim_oxi::api:echo()` now requires a 3rd parameter of type `EchoOpts`
   ([#145](https://github.com/noib3/nvim-oxi/pull/145));
 
+
+### Removed
+
+- support for Neovim 0.8;
+
 ## [0.4.2] - Jan 29 2024
 
 ## [0.4.1] - Dec 16 2023
@@ -40,7 +49,8 @@
 
 ## [0.4.0] - Dec 11 2023
 
-[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/noib3/nvim-oxi/tree/v0.5.0
 [0.4.2]: https://github.com/noib3/nvim-oxi/tree/v0.4.2
 [0.4.1]: https://github.com/noib3/nvim-oxi/tree/v0.4.1
 [0.4.0]: https://github.com/noib3/nvim-oxi/tree/v0.4.0
