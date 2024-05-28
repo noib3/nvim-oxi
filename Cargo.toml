@@ -42,8 +42,8 @@ features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-neovim-0-8 = ["api/neovim-0-8"]
 neovim-0-9 = ["api/neovim-0-9"]
+neovim-0-10 = ["api/neovim-0-10"]
 neovim-nightly = ["api/neovim-nightly"]
 
 libuv = ["dep:libuv"]
