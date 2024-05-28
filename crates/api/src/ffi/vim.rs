@@ -48,8 +48,6 @@ extern "C" {
     pub(crate) fn nvim_echo(
         chunks: NonOwning<Array>,
         history: bool,
-        #[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
-        opts: NonOwning<Dictionary>,
         #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         opts: *const EchoOpts,
         err: *mut Error,

@@ -136,17 +136,10 @@ where
         .collect::<Array>();
 
     let mut err = nvim::Error::new();
-    #[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
-    let opts = Dictionary::from(opts);
     unsafe {
         nvim_echo(
             chunks.non_owning(),
             history,
-            #[cfg(not(any(
-                feature = "neovim-0-9",
-                feature = "neovim-nightly"
-            )))]
-            opts.non_owning(),
             #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             opts,
             &mut err,

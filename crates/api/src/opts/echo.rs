@@ -9,14 +9,6 @@ pub struct EchoOpts {
     verbose: bool,
 }
 
-#[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
-impl From<&EchoOpts> for types::Dictionary {
-    #[inline]
-    fn from(_: &EchoOpts) -> Self {
-        Self::default()
-    }
-}
-
 impl EchoOpts {
     #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
     #[cfg_attr(
