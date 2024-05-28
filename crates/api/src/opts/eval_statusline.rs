@@ -3,7 +3,6 @@ use types::Object;
 use crate::Window;
 
 /// Options passed to [`eval_statusline()`](crate::eval_statusline).
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct EvalStatuslineOpts {
@@ -50,11 +49,6 @@ impl EvalStatuslineOptsBuilder {
         self
     }
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline]
     pub fn use_statuscol_lnum(
         &mut self,

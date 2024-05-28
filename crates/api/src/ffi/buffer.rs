@@ -77,7 +77,6 @@ extern "C" {
         end: Integer,
         strict_indexing: bool,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
     ) -> Array;
@@ -115,7 +114,6 @@ extern "C" {
         #[cfg(not(feature = "neovim-nightly"))] opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-nightly")] opts: *const GetTextOpts,
         #[cfg(feature = "neovim-nightly")] arena: *mut Arena,
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         lstate: *mut luajit::ffi::lua_State,
         err: *mut Error,
     ) -> Array;

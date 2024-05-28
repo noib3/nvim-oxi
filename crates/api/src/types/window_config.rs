@@ -82,18 +82,8 @@ pub struct WindowConfig {
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub style: Option<WindowStyle>,
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     pub title: Option<super::WindowTitle>,
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub title_pos: Option<super::WindowTitlePosition>,
 
@@ -281,22 +271,12 @@ impl WindowConfigBuilder {
         self
     }
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline]
     pub fn title(&mut self, title: super::WindowTitle) -> &mut Self {
         self.0.title = Some(title);
         self
     }
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline]
     pub fn title_pos(
         &mut self,

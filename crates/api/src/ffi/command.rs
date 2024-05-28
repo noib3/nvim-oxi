@@ -15,7 +15,6 @@ pub(crate) type ParseCmdOutput = crate::types::KeyDict_cmd;
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
     pub(crate) fn nvim_buf_create_user_command(
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         channel_id: u64,
         buf: BufHandle,
         name: NonOwning<String>,
@@ -50,7 +49,6 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/command.c#L938
     pub(crate) fn nvim_create_user_command(
-        #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
         channel_id: u64,
         name: NonOwning<String>,
         command: NonOwning<Object>,

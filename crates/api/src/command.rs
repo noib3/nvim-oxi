@@ -50,7 +50,6 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_create_user_command(
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             LUA_INTERNAL_CALL,
             name.non_owning(),
             command.non_owning(),

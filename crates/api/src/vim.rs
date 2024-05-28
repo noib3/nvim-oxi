@@ -136,15 +136,7 @@ where
         .collect::<Array>();
 
     let mut err = nvim::Error::new();
-    unsafe {
-        nvim_echo(
-            chunks.non_owning(),
-            history,
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-            opts,
-            &mut err,
-        )
-    };
+    unsafe { nvim_echo(chunks.non_owning(), history, opts, &mut err) };
     choose!(err, ())
 }
 

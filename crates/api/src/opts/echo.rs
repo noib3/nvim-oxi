@@ -10,26 +10,15 @@ pub struct EchoOpts {
 }
 
 impl EchoOpts {
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline(always)]
     pub fn builder() -> EchoOptsBuilder {
         EchoOptsBuilder::default()
     }
 }
 
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-)]
 #[derive(Clone, Default)]
 pub struct EchoOptsBuilder(EchoOpts);
 
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 impl EchoOptsBuilder {
     #[inline]
     pub fn verbose(&mut self, verbose: bool) -> &mut Self {
