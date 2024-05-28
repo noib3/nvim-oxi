@@ -1,13 +1,13 @@
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 use types::Object;
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, LuaRef};
 
 use crate::ToFunction;
 
 /// Options passed to [`Buffer::set_keymap()`](crate::Buffer::set_keymap)
 /// and [`set_keymap()`](crate::set_keymap).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, PartialEq, macros::OptsBuilder)]
 #[repr(C)]
 pub struct SetKeymapOpts {
@@ -67,7 +67,7 @@ pub struct SetKeymapOpts {
 
 /// Options passed to [`Buffer::set_keymap()`](crate::Buffer::set_keymap)
 /// and [`set_keymap()`](crate::set_keymap).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct SetKeymapOpts {
@@ -82,7 +82,7 @@ pub struct SetKeymapOpts {
     replace_keycodes: Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetKeymapOpts {
     #[inline(always)]
     /// Creates a new [`SetKeymapOptsBuilder`].
@@ -91,11 +91,11 @@ impl SetKeymapOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct SetKeymapOptsBuilder(SetKeymapOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetKeymapOptsBuilder {
     /// A function to call when the mapping is executed.
     #[inline]

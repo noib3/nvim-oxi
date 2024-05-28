@@ -11,7 +11,7 @@ use crate::Buffer;
 
 /// Options passed to [`create_user_command`](crate::create_user_command) and
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct CreateCommandOpts {
@@ -74,7 +74,7 @@ pub struct CreateCommandOpts {
 
 /// Options passed to
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateCommandOpts {
@@ -92,7 +92,7 @@ pub struct CreateCommandOpts {
     keepscript: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl CreateCommandOpts {
     #[inline(always)]
     /// Creates a new [`CreateCommandOptsBuilder`].
@@ -101,11 +101,11 @@ impl CreateCommandOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct CreateCommandOptsBuilder(CreateCommandOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl CreateCommandOptsBuilder {
     #[inline]
     pub fn addr(&mut self, addr: CommandAddr) -> &mut Self {

@@ -18,7 +18,7 @@ pub fn clear_autocmds(opts: &ClearAutocmdsOpts) -> Result<()> {
     unsafe {
         nvim_clear_autocmds(
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -67,7 +67,7 @@ where
             LUA_INTERNAL_CALL,
             events.non_owning(),
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -125,7 +125,7 @@ where
         nvim_exec_autocmds(
             events.non_owning(),
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -147,7 +147,7 @@ pub fn get_autocmds(
     let infos = unsafe {
         nvim_get_autocmds(
             opts,
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )

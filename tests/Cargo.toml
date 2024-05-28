@@ -8,10 +8,10 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["neovim-0-8"]
-neovim-0-8 = ["nvim-oxi/neovim-0-8"]
+default = ["neovim-0-9"]
 neovim-0-9 = ["nvim-oxi/neovim-0-9"]
-neovim-nightly = ["nvim-oxi/neovim-nightly"]
+neovim-0-10 = ["neovim-0-9", "nvim-oxi/neovim-0-10"]
+neovim-nightly = ["neovim-0-10", "nvim-oxi/neovim-nightly"]
 
 [target.'cfg(not(any(target_os = "windows", target_env = "msvc")))'.dependencies]
 all_asserts = "2.3"

@@ -1,12 +1,12 @@
 /// Options passed to [`Buffer::delete()`](crate::Buffer::delete).
 #[derive(Clone, Debug, Default)]
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 pub struct BufDeleteOpts {
     force: types::Object,
     unload: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl BufDeleteOpts {
     #[inline(always)]
     pub fn builder() -> BufDeleteOptsBuilder {
@@ -15,10 +15,10 @@ impl BufDeleteOpts {
 }
 
 #[derive(Clone, Default)]
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 pub struct BufDeleteOptsBuilder(BufDeleteOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl BufDeleteOptsBuilder {
     /// Force deletion ignoring unsaved changes.
     #[inline]
@@ -40,7 +40,7 @@ impl BufDeleteOptsBuilder {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl From<&BufDeleteOpts> for types::Dictionary {
     fn from(opts: &BufDeleteOpts) -> Self {
         Self::from_iter([
@@ -51,7 +51,7 @@ impl From<&BufDeleteOpts> for types::Dictionary {
 }
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct BufDeleteOpts {

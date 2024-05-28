@@ -1,6 +1,6 @@
 /// Options passed to
 /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GetExtmarksOpts {
@@ -8,7 +8,7 @@ pub struct GetExtmarksOpts {
     limits: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl GetExtmarksOpts {
     #[inline(always)]
     /// Creates a new [`GetExtmarksOptsBuilder`].
@@ -17,11 +17,11 @@ impl GetExtmarksOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct GetExtmarksOptsBuilder(GetExtmarksOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl GetExtmarksOptsBuilder {
     /// Whether to include the extmark's
     /// [`ExtmarkInfos`](crate::types::ExtmarkInfos) as the last element of
@@ -29,11 +29,11 @@ impl GetExtmarksOptsBuilder {
     /// [`Buffer::get_extmarks()`](crate::Buffer::get_extmarks).
     #[inline]
     pub fn details(&mut self, details: bool) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         {
             self.0.details = details.into();
         }
-        #[cfg(feature = "neovim-nightly")]
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         {
             self.0.details = details;
             self.0.mask |= 0b1001;
@@ -41,7 +41,7 @@ impl GetExtmarksOptsBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[inline]
     pub fn hl_name(&mut self, hl_name: bool) -> &mut Self {
         self.0.hl_name = hl_name;
@@ -51,11 +51,11 @@ impl GetExtmarksOptsBuilder {
 
     #[inline]
     pub fn limits(&mut self, limits: bool) -> &mut Self {
-        #[cfg(not(feature = "neovim-nightly"))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         {
             self.0.limits = limits.into();
         }
-        #[cfg(feature = "neovim-nightly")]
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         {
             self.0.limits = limits as Integer;
             self.0.mask |= 0b101;
@@ -63,7 +63,7 @@ impl GetExtmarksOptsBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[inline]
     pub fn overlap(&mut self, overlap: bool) -> &mut Self {
         self.0.overlap = overlap;
@@ -71,7 +71,7 @@ impl GetExtmarksOptsBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[inline]
     pub fn ty<S: Into<nvim::String>>(&mut self, ty: S) -> &mut Self {
         self.0.ty = ty.into();
@@ -86,7 +86,7 @@ impl GetExtmarksOptsBuilder {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl From<&GetExtmarksOpts> for types::Dictionary {
     fn from(opts: &GetExtmarksOpts) -> Self {
         Self::from_iter([
@@ -96,7 +96,7 @@ impl From<&GetExtmarksOpts> for types::Dictionary {
     }
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 /// Options passed to

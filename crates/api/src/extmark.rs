@@ -33,7 +33,7 @@ pub fn create_namespace(name: &str) -> u32 {
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
     unsafe {
         nvim_get_namespaces(
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
         )
     }
@@ -163,7 +163,7 @@ impl Buffer {
         extmark_id: u32,
         opts: &GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
-        #[cfg(not(feature = "neovim-nightly"))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         let opts = types::Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let tuple = unsafe {
@@ -171,11 +171,11 @@ impl Buffer {
                 self.0,
                 ns_id as Integer,
                 extmark_id as Integer,
-                #[cfg(not(feature = "neovim-nightly"))]
+                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 opts.non_owning(),
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -216,7 +216,7 @@ impl Buffer {
         opts: &GetExtmarksOpts,
     ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
     {
-        #[cfg(not(feature = "neovim-nightly"))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         let opts = types::Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
@@ -225,11 +225,11 @@ impl Buffer {
                 ns_id as Integer,
                 start.into(),
                 end.into(),
-                #[cfg(not(feature = "neovim-nightly"))]
+                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 opts.non_owning(),
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -297,8 +297,11 @@ impl crate::Window {
     /// namespace was added, and `false` otherwise.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim__win_add_ns()
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub fn add_ns(&mut self, ns_id: u32) -> Result<bool> {
         let mut err = nvim::Error::new();
         let was_added =
@@ -311,8 +314,11 @@ impl crate::Window {
     /// Gets all the namespaces scopes associated with a window.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim__win_get_ns()
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub fn get_ns(&self) -> Result<impl SuperIterator<u32>> {
         let mut err = nvim::Error::new();
         let namespaces =
@@ -331,8 +337,11 @@ impl crate::Window {
     /// namespace was removed, and `false` otherwise.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim__win_del_ns()
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub fn del_ns(&mut self, ns_id: u32) -> Result<bool> {
         let mut err = nvim::Error::new();
         let was_removed =

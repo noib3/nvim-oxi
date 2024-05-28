@@ -7,7 +7,7 @@ use types::{
     Integer,
     Object,
 };
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, String as NvimString, WinHandle};
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};
@@ -39,28 +39,40 @@ pub struct WindowConfig {
     /// top-level window.
     pub external: Option<bool>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub fixed: Option<bool>,
 
     /// Enable focus by user actions like mouse events. Non-focusable windows
     /// can be entered by [`set_current_win`](crate::set_current_win).
     pub focusable: Option<bool>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub footer: Option<super::WindowTitle>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub footer_pos: Option<super::WindowTitlePosition>,
 
     /// Window height in character cells. Minimum of 1.
     pub height: Option<u32>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub hide: Option<bool>,
 
     /// If `true` then no buffer-related autocommand events such as `BufEnter`
@@ -73,8 +85,11 @@ pub struct WindowConfig {
     /// Row position in units of screen cell height. May be fractional.
     pub row: Option<Float>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub split: Option<super::SplitDirection>,
 
@@ -82,23 +97,16 @@ pub struct WindowConfig {
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub style: Option<WindowStyle>,
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     pub title: Option<super::WindowTitle>,
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[serde(default, deserialize_with = "utils::empty_string_is_none")]
     pub title_pos: Option<super::WindowTitlePosition>,
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     pub vertical: Option<bool>,
 
     /// Window width in character cells. Minimum of 1.
@@ -165,8 +173,11 @@ impl WindowConfigBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn fixed(&mut self, fixed: bool) -> &mut Self {
         self.0.fixed = Some(fixed);
@@ -181,16 +192,22 @@ impl WindowConfigBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn footer(&mut self, footer: super::WindowTitle) -> &mut Self {
         self.0.footer = Some(footer);
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn footer_pos(
         &mut self,
@@ -200,8 +217,11 @@ impl WindowConfigBuilder {
         self
     }
 
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn hide(&mut self, hide: bool) -> &mut Self {
         self.0.hide = Some(hide);
@@ -235,8 +255,11 @@ impl WindowConfigBuilder {
     }
 
     /// Configures where a split window is opened.
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn split(&mut self, direction: super::SplitDirection) -> &mut Self {
         self.0.split = Some(direction);
@@ -244,8 +267,11 @@ impl WindowConfigBuilder {
     }
 
     /// Should the split window be opened as vertical.
-    #[cfg(feature = "neovim-nightly")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     #[inline]
     pub fn vertical(&mut self, vertical: bool) -> &mut Self {
         self.0.vertical = Some(vertical);
@@ -281,22 +307,12 @@ impl WindowConfigBuilder {
         self
     }
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline]
     pub fn title(&mut self, title: super::WindowTitle) -> &mut Self {
         self.0.title = Some(title);
         self
     }
 
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline]
     pub fn title_pos(
         &mut self,
@@ -319,7 +335,7 @@ impl FromObject for WindowConfig {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
@@ -328,7 +344,7 @@ pub struct WindowOpts {
     row: Object,
     win: Object,
     style: Object,
-    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     title: Object,
     width: Object,
     height: Object,
@@ -340,11 +356,11 @@ pub struct WindowOpts {
     relative: Object,
     focusable: Object,
     noautocmd: Object,
-    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     title_pos: Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl From<&WindowConfig> for WindowOpts {
     fn from(config: &WindowConfig) -> Self {
         let bufpos = match config.bufpos {
@@ -383,7 +399,7 @@ impl From<&WindowConfig> for WindowOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl TryFrom<types::Dictionary> for WindowConfig {
     type Error = conversion::Error;
 
@@ -403,7 +419,7 @@ impl TryFrom<types::Dictionary> for WindowConfig {
     }
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Default, Debug, macros::OptsBuilder)]
 #[repr(C)]
 pub struct WindowOpts {
@@ -433,7 +449,7 @@ pub struct WindowOpts {
     hide: Boolean,
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl From<&WindowConfig> for WindowOpts {
     fn from(config: &WindowConfig) -> Self {
         let mut builder = WindowOptsBuilder::default();
@@ -533,7 +549,7 @@ impl From<&WindowConfig> for WindowOpts {
     }
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl TryFrom<WindowOpts> for WindowConfig {
     type Error = conversion::Error;
 

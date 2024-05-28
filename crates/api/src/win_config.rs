@@ -34,7 +34,7 @@ impl Window {
         let out = unsafe {
             nvim_win_get_config(
                 self.0,
-                #[cfg(feature = "neovim-nightly")]
+                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )

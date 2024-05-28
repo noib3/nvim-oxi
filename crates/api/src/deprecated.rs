@@ -90,10 +90,7 @@ where
     let obj = unsafe {
         nvim_get_option(
             name.non_owning(),
-            #[cfg(all(
-                feature = "neovim-0-9",
-                not(feature = "neovim-nightly")
-            ))]
+            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
             types::arena(),
             &mut err,
         )
@@ -116,7 +113,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let obj = unsafe {
         nvim_get_option_info(
             name.non_owning(),
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -170,10 +167,7 @@ impl Buffer {
             nvim_buf_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(all(
-                    feature = "neovim-0-9",
-                    not(feature = "neovim-nightly")
-                ))]
+                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 types::arena(),
                 &mut err,
             )
@@ -230,10 +224,7 @@ impl Window {
             nvim_win_get_option(
                 self.0,
                 name.non_owning(),
-                #[cfg(all(
-                    feature = "neovim-0-9",
-                    not(feature = "neovim-nightly")
-                ))]
+                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 types::arena(),
                 &mut err,
             )

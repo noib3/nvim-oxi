@@ -2,50 +2,31 @@
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct EchoOpts {
-    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
     verbose: types::Object,
 
-    #[cfg(feature = "neovim-nightly")]
+    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     verbose: bool,
 }
 
-#[cfg(not(any(feature = "neovim-0-9", feature = "neovim-nightly")))]
-impl From<&EchoOpts> for types::Dictionary {
-    #[inline]
-    fn from(_: &EchoOpts) -> Self {
-        Self::default()
-    }
-}
-
 impl EchoOpts {
-    #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-    )]
     #[inline(always)]
     pub fn builder() -> EchoOptsBuilder {
         EchoOptsBuilder::default()
     }
 }
 
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-9", feature = "neovim-nightly")))
-)]
 #[derive(Clone, Default)]
 pub struct EchoOptsBuilder(EchoOpts);
 
-#[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
 impl EchoOptsBuilder {
     #[inline]
     pub fn verbose(&mut self, verbose: bool) -> &mut Self {
-        #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         {
             self.0.verbose = verbose.into();
         }
-        #[cfg(feature = "neovim-nightly")]
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         {
             self.0.verbose = verbose;
         }

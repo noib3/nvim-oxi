@@ -5,7 +5,7 @@ use crate::StringOrInt;
 pub type ShouldDeleteAutocmd = bool;
 
 /// Options passed to [`create_autocmd()`](crate::create_autocmd).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct CreateAutocmdOpts {
@@ -71,7 +71,7 @@ pub struct CreateAutocmdOpts {
 }
 
 /// Options passed to [`create_autocmd()`](crate::create_autocmd).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateAutocmdOpts {
@@ -85,7 +85,7 @@ pub struct CreateAutocmdOpts {
     callback: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl CreateAutocmdOpts {
     #[inline(always)]
     pub fn builder() -> CreateAutocmdOptsBuilder {
@@ -93,11 +93,11 @@ impl CreateAutocmdOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct CreateAutocmdOptsBuilder(CreateAutocmdOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl CreateAutocmdOptsBuilder {
     /// A specific `Buffer` for buffer-local autocommands.
     #[inline]

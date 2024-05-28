@@ -77,7 +77,7 @@ fn open_win_full_config() {
     assert_eq!(config.border.unwrap(), got.border.unwrap());
 }
 
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[oxi::test]
 fn open_split_win() {
     let buf = api::create_buf(true, true).unwrap();

@@ -19,7 +19,7 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
     let infos = unsafe {
         nvim_get_all_options_info(
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -40,8 +40,11 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
 /// window.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info2()
-#[cfg(feature = "neovim-nightly")]
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+#[cfg_attr(
+    docsrs,
+    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+)]
 pub fn get_option_info2(name: &str, opts: &OptionOpts) -> Result<OptionInfos> {
     let name = types::String::from(name);
     let mut err = types::Error::new();
@@ -97,7 +100,6 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_option_value(
-            #[cfg(any(feature = "neovim-0-9", feature = "neovim-nightly"))]
             crate::LUA_INTERNAL_CALL,
             name.non_owning(),
             value.to_object()?.non_owning(),

@@ -4,7 +4,7 @@ use crate::trait_utils::StringOrListOfStrings;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
 /// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct SetExtmarkOpts {
@@ -38,11 +38,11 @@ pub struct SetExtmarkOpts {
     cursorline_hl_group: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 #[derive(Clone, Default)]
 pub struct SetExtmarkOptsBuilder(SetExtmarkOpts);
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetExtmarkOpts {
     #[inline(always)]
     pub fn builder() -> SetExtmarkOptsBuilder {
@@ -50,7 +50,7 @@ impl SetExtmarkOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
 impl SetExtmarkOptsBuilder {
     /// Enable concealing symilar to `:syn-conceal`. If a character is supplied
     /// it is used as `:syn-cchar`.
@@ -296,7 +296,7 @@ impl SetExtmarkOptsBuilder {
 }
 
 /// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
-#[cfg(feature = "neovim-nightly")]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct SetExtmarkOpts {
@@ -480,7 +480,10 @@ pub struct SetExtmarkOpts {
     ///
     /// Defaults to `true`.
     #[builder(argtype = "bool")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     undo_restore: types::Boolean,
 
     /// A URL to associate with this extmark.
@@ -492,7 +495,10 @@ pub struct SetExtmarkOpts {
 
     /// Whether the extmark should only be displayed in the namespace scope.
     #[builder(argtype = "bool")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
+    )]
     scoped: types::Boolean,
 }
 
