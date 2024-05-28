@@ -78,10 +78,7 @@ where
 
         crate::libuv::AsyncHandle::new(move || {
             let result = lock.get().unwrap().clone();
-            crate::schedule(move |()| {
-                exit(result);
-                Ok(())
-            });
+            crate::schedule(move |()| exit(result));
             Ok::<_, std::convert::Infallible>(())
         })
     }
