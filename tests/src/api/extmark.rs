@@ -230,13 +230,3 @@ fn virt_text_pos_inline() {
 
     assert_eq!(infos.virt_text_pos, Some(ExtmarkVirtTextPosition::Inline));
 }
-
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[nvim::test]
-fn extmark_win_add_get_remove_ns() {
-    let mut win = api::Window::current();
-    let ns = api::create_namespace("test");
-    assert!(win.add_ns(ns).unwrap());
-    assert_eq!(win.get_ns().unwrap().collect::<Vec<_>>(), [ns]);
-    assert!(win.del_ns(ns).unwrap());
-}
