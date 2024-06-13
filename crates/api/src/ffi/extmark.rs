@@ -89,28 +89,4 @@ extern "C" {
         opts: *const DecorationProviderOpts,
         err: *mut Error,
     );
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1226
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    pub(crate) fn nvim__win_add_ns(
-        window: WinHandle,
-        ns_id: Integer,
-        err: *mut Error,
-    ) -> Boolean;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1252
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    pub(crate) fn nvim__win_get_ns(
-        window: WinHandle,
-        arena: *mut Arena,
-        err: *mut Error,
-    ) -> Array;
-
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/extmark.c#L1275
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    pub(crate) fn nvim__win_del_ns(
-        window: WinHandle,
-        ns_id: Integer,
-        err: *mut Error,
-    ) -> Boolean;
 }

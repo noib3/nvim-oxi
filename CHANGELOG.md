@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Removed
+
+- the following methods were included in Neovim 0.10 as experimental, but have
+  subsequently been removed on nightly:
+    * `nvim_oxi::api::SetExtmarkOptsBuilder::scoped()`
+    * `nvim_oxi::api::Window::add_ns()`
+    * `nvim_oxi::api::Window::get_ns()`
+    * `nvim_oxi::api::Window::del_ns()`
+
 ## [0.5.0] - May 28 2024
 
 ### Added

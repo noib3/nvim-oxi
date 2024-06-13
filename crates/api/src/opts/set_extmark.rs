@@ -493,12 +493,11 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "&str", inline = "types::String::from({0})")]
     url: types::String,
 
-    /// Whether the extmark should only be displayed in the namespace scope.
-    #[builder(argtype = "bool")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
+    // This was an experimental option in Neovim 0.10, and was removed on
+    // nightly. We only include it when compiling for 0.10, without ever
+    // defining a builder method for it.
+    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+    // Only on 0.10.
     scoped: types::Boolean,
 }
 
