@@ -93,6 +93,12 @@ impl Buffer {
         crate::get_current_buf()
     }
 
+    /// Retrieve buffer's underlying id/handle
+    #[inline(always)]
+    pub fn handle(&self) -> i32 {
+        self.0
+    }
+
     /// Binding to [`nvim_buf_attach()`][1].
     ///
     /// Used to register a set of callbacks on specific buffer events.

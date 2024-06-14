@@ -87,6 +87,12 @@ impl Window {
         crate::get_current_win()
     }
 
+    /// Retrieve window's underlying id/handle
+    #[inline(always)]
+    pub fn handle(&self) -> i32 {
+        self.0
+    }
+
     /// Binding to [`nvim_win_call()`][1].
     ///
     /// Calls a function with this window as the temporary current window.

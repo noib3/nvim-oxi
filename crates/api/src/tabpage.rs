@@ -74,6 +74,12 @@ impl TabPage {
         crate::get_current_tabpage()
     }
 
+    /// Retrieve tabpage's underlying id/handle
+    #[inline(always)]
+    pub fn handle(&self) -> i32 {
+        self.0
+    }
+
     /// Binding to [`nvim_tabpage_del_var()`][1].
     ///
     /// Removes a tab-scoped (`t:`) variable.
