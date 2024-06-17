@@ -35,10 +35,7 @@ jobs:
             neovim: true
             version: ${{ matrix.neovim }}
       - name: Install latest stable `rustc`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
+        uses: dtolnay/rust-toolchain@stable
       - name: Run unit tests
         run: cargo test ${{ matrix.features }}
         working-directory: .
