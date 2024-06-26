@@ -493,11 +493,8 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "&str", inline = "types::String::from({0})")]
     url: types::String,
 
-    // This was an experimental option in Neovim 0.10, and was removed on
-    // nightly. We only include it when compiling for 0.10, without ever
-    // defining a builder method for it.
-    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
-    // Only on 0.10.
+    // This was an experimental option in Neovim 0.10 but has been removed from
+    // the public API on nightly, even though it's still included in the opts.
     scoped: types::Boolean,
 }
 
