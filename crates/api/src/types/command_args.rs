@@ -7,8 +7,9 @@ use types::{
 
 use crate::serde_utils as utils;
 
-/// Arguments passed to functions executed by commands. See
-/// [`Buffer::create_user_command`](crate::Buffer::create_user_command) to
+/// Arguments passed to functions executed by commands.
+///
+/// See [`Buffer::create_user_command`](crate::Buffer::create_user_command) to
 /// create a buffer-local command or
 /// [`create_user_command`](crate::create_user_command) to create a global one.
 #[non_exhaustive]

@@ -2,8 +2,9 @@ use crate::Buffer;
 use crate::ToFunction;
 
 /// Arguments passed to the callback registered to
-/// [`on_lines`](BufAttachOptsBuilder::on_lines). The `(a, b, c, d, e, f, g, h,
-/// i)` tuple represents:
+/// [`on_lines`](BufAttachOptsBuilder::on_lines).
+///
+/// The `(a, b, c, d, e, f, g, h, i)` tuple represents:
 ///
 /// - `a`: the string literal `"lines"`;
 /// - `b`: the [`Buffer`] that triggered the callback;
@@ -28,7 +29,9 @@ pub type OnLinesArgs = (
     Option<usize>,
 );
 
-/// Arguments passed to the callback registered to [`on_bytes`](BufAttachOptsBuilder::on_bytes). The `(a, b, c, d, e, f, g, h, i, j, k, l)`
+/// Arguments passed to the callback registered to [`on_bytes`](BufAttachOptsBuilder::on_bytes).
+///
+/// The `(a, b, c, d, e, f, g, h, i, j, k, l)`
 /// - `a`: the string literal `"bytes"`;
 /// - `b`: the [`Buffer`] that triggered the callback;
 /// - `c`: the value of the buffer-local `b:changedtick` variable;
@@ -57,24 +60,27 @@ pub type OnBytesArgs = (
 );
 
 /// Arguments passed to the callback registered to
-/// [`on_changedtick`](BufAttachOptsBuilder::on_changedtick). The first tuple
-/// element is the string literal `"changedtick"`, the second is the [`Buffer`]
-/// that triggered the callback and the third is current value of the
-/// buffer-local
+/// [`on_changedtick`](BufAttachOptsBuilder::on_changedtick).
+///
+/// The first tuple element is the string literal `"changedtick"`, the second
+/// is the [`Buffer`] that triggered the callback and the third is current
+/// value of the buffer-local
 /// [`b:changedtick`](https://neovim.io/doc/user/eval.html#b:changedtick)
 /// variable.
 pub type OnChangedtickArgs = (String, Buffer, u32);
 
 /// Arguments passed to the callback registered to
-/// [`on_detach`](BufAttachOptsBuilder::on_detach). The first tuple element is
-/// the string literal `"detach"`, the second is the [`Buffer`] that triggered
-/// the callback.
+/// [`on_detach`](BufAttachOptsBuilder::on_detach).
+///
+/// The first tuple element is the string literal `"detach"`, the second is the
+/// [`Buffer`] that triggered the callback.
 pub type OnDetachArgs = (String, Buffer);
 
 /// Arguments passed to the callback registered to
-/// [`on_reload`](BufAttachOptsBuilder::on_reload). The first tuple element is
-/// the string literal `"reload"`, the second is the [`Buffer`] that triggered
-/// the callback.
+/// [`on_reload`](BufAttachOptsBuilder::on_reload).
+///
+/// The first tuple element is the string literal `"reload"`, the second is the
+/// [`Buffer`] that triggered the callback.
 pub type OnReloadArgs = (String, Buffer);
 
 /// All the registered callbacks can detach by returning `true`, as described
