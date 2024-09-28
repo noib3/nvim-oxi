@@ -2,7 +2,7 @@
 
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
-use core::{ffi, slice};
+use core::{ffi, fmt, ptr, slice};
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
@@ -19,7 +19,15 @@ use crate::NonOwning;
 #[repr(C)]
 pub struct String {
     pub(super) data: *mut ffi::c_char,
-    pub(super) size: usize,
+    pub(super) len: usize,
+}
+
+/// A builder that can be used to efficiently build a [`nvim_oxi::String`](String).
+pub struct StringBuilder {
+    /// The underlying string being constructed.
+    pub(super) inner: String,
+    /// Current capacity (i.e., allocated memory) of this builder in bytes.
+    pub(super) cap: usize,
 }
 
 impl Default for String {
@@ -43,6 +51,20 @@ impl core::fmt::Display for String {
     }
 }
 
+impl Default for StringBuilder {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Write for StringBuilder {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.push_bytes(s.as_bytes());
+        Ok(())
+    }
+}
+
 impl String {
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
@@ -50,7 +72,7 @@ impl String {
             &[]
         } else {
             assert!(self.len() <= isize::MAX as usize);
-            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+            unsafe { slice::from_raw_parts(self.data as *const u8, self.len) }
         }
     }
 
@@ -65,20 +87,9 @@ impl String {
     /// by a null byte.
     #[inline]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let data =
-            unsafe { libc::malloc(bytes.len() + 1) as *mut ffi::c_char };
-
-        unsafe {
-            libc::memcpy(
-                data as *mut _,
-                bytes.as_ptr() as *const _,
-                bytes.len(),
-            )
-        };
-
-        unsafe { *data.add(bytes.len()) = 0 };
-
-        Self { data: data as *mut _, size: bytes.len() }
+        let mut s = StringBuilder::new();
+        s.push_bytes(bytes);
+        s.finish()
     }
 
     /// Returns `true` if the `String` has a length of zero.
@@ -90,13 +101,13 @@ impl String {
     /// Returns the length of the `String`, *not* including the final null byte.
     #[inline]
     pub fn len(&self) -> usize {
-        self.size
+        self.len
     }
 
     /// Creates a new, empty `String`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: core::ptr::null_mut(), size: 0 }
+        Self { data: ptr::null_mut(), len: 0 }
     }
 
     /// Makes a non-owning version of this `String`.
@@ -115,6 +126,86 @@ impl String {
     }
 }
 
+impl StringBuilder {
+    /// Create a new empty `StringBuilder`.
+    #[inline]
+    pub fn new() -> Self {
+        Self { inner: String::new(), cap: 0 }
+    }
+
+    /// Push new bytes to the builder.
+    #[inline]
+    pub fn push_bytes(&mut self, bytes: &[u8]) {
+        if self.inner.data.is_null() {
+            let len = bytes.len();
+            let cap = len + 1;
+
+            let data = unsafe {
+                let data = libc::malloc(cap) as *mut ffi::c_char;
+
+                libc::memcpy(data as *mut _, bytes.as_ptr() as *const _, len);
+
+                *data.add(len) = 0;
+
+                data
+            };
+
+            self.inner.data = data;
+            self.inner.len = len;
+            self.cap = cap;
+
+            return;
+        }
+
+        let slice_len = bytes.len();
+        let required_cap = self.inner.len + slice_len + 1;
+
+        // Reallocate if pushing the bytes overflows the allocated memory.
+        if self.cap < required_cap {
+            // The smallest number `n`, such that `required_cap <= * 2^n`.
+            let n = (required_cap - 1).ilog2() + 1;
+            let new_cap = 2_usize.pow(n).max(4);
+
+            self.inner.data = unsafe {
+                libc::realloc(self.inner.data as *mut _, new_cap)
+                    as *mut ffi::c_char
+            };
+
+            self.cap = new_cap;
+            debug_assert!(self.inner.len < self.cap)
+        }
+
+        // Pushing the `bytes` is safe now.
+        let new_len = unsafe {
+            libc::memcpy(
+                self.inner.data.add(self.inner.len) as *mut _,
+                bytes.as_ptr() as *const _,
+                slice_len,
+            );
+
+            let new_len = self.inner.len + slice_len;
+
+            *self.inner.data.add(new_len) = 0;
+
+            new_len
+        };
+
+        self.inner.len = new_len;
+        debug_assert!(self.inner.len < self.cap);
+    }
+
+    /// Build the `String`.
+    #[inline]
+    pub fn finish(self) -> String {
+        let s = String { data: self.inner.data, len: self.inner.len };
+
+        // Prevent self's destructor from being called.
+        std::mem::forget(self);
+
+        s
+    }
+}
+
 impl Clone for String {
     #[inline]
     fn clone(&self) -> Self {
@@ -129,6 +220,14 @@ impl Drop for String {
         //
         // TODO: we're leaking memory here if the pointer points to allocated
         // memory.
+    }
+}
+
+impl Drop for StringBuilder {
+    fn drop(&mut self) {
+        if !self.inner.data.is_null() {
+            unsafe { libc::free(self.inner.data as *mut _) }
+        }
     }
 }
 
@@ -229,7 +328,7 @@ impl PartialEq<std::string::String> for String {
 impl core::hash::Hash for String {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.as_bytes().hash(state);
-        self.size.hash(state);
+        self.len.hash(state);
     }
 }
 
@@ -358,5 +457,22 @@ mod tests {
         let rhs = String::from(foo.as_str());
 
         assert_eq!(lhs, rhs);
+    }
+
+    #[test]
+    fn builder() {
+        let str = "foo bar";
+        let bytes = b"baz foo bar";
+
+        let mut s = StringBuilder::new();
+        s.push_bytes(str.as_bytes());
+        s.push_bytes(bytes);
+
+        assert_eq!(s.inner.len, str.len() + bytes.len());
+        assert_eq!(s.cap, 32); // Allocation size
+        assert_eq!(unsafe { *s.inner.data.add(s.inner.len) }, 0); // Null termination
+
+        let s = s.finish();
+        assert_eq!(s.len(), str.len() + bytes.len());
     }
 }
