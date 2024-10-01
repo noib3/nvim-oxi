@@ -24,12 +24,10 @@ pub struct String {
 
 /// A builder that can be used to efficiently build a [`nvim_oxi::String`](String).
 pub struct StringBuilder {
-    /// Pointer to the allocated memory.
-    pub(super) data: *mut ffi::c_char,
-    /// Current length of the string in bytes, excluding the final null byte.
-    pub(super) len: usize,
-    /// Size of the allocated memory in bytes.
-    pub(super) size: usize,
+    /// The underlying string being constructed.
+    pub(super) inner: String,
+    /// Current capacity (i.e., allocated memory) of this builder in bytes.
+    pub(super) cap: usize,
 }
 
 impl Default for String {
@@ -132,86 +130,81 @@ impl StringBuilder {
     /// Create a new empty `StringBuilder`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: ptr::null_mut(), len: 0, size: 0 }
+        Self { inner: String::new(), cap: 0 }
     }
 
     /// Push new bytes to the builder.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
-        if self.data.is_null() {
+        if self.inner.data.is_null() {
             let len = bytes.len();
-            let size = len + 1;
+            let cap = len + 1;
 
             let data = unsafe {
-                let data = libc::malloc(size) as *mut ffi::c_char;
+                let data = libc::malloc(cap) as *mut ffi::c_char;
 
-                libc::memcpy(
-                    data as *mut _,
-                    bytes.as_ptr() as *const _,
-                    bytes.len(),
-                );
+                libc::memcpy(data as *mut _, bytes.as_ptr() as *const _, len);
 
                 *data.add(len) = 0;
 
                 data
             };
 
-            self.data = data;
-            self.len = len;
-            self.size = size;
+            self.inner.data = data;
+            self.inner.len = len;
+            self.cap = cap;
 
             return;
         }
 
         let slice_len = bytes.len();
-        let required_size = self.len + slice_len + 1;
+        let required_cap = self.inner.len + slice_len + 1;
 
         // Reallocate if pushing the bytes overflows the allocated memory.
-        if self.size < required_size {
-            // Same as `let n = (required_size as f64 / self.size as f64).ceil()` but using integer
+        if self.cap < required_cap {
+            // Same as `let n = (required_cap as f64 / self.cap as f64).ceil()` but using integer
             // arithmetic.
             //
-            // `n` is the smallest number that, when multiplied by `self.size`, gives a
-            // number that is at least equal to `required_size`.
-            let n = (required_size + self.size - 1) / self.size;
-            let new_size = self.size * n;
+            // `n` is the smallest number that, when multiplied by `self.cap`, gives a
+            // number that is at least equal to `required_cap`.
+            let n = (required_cap + self.cap - 1) / self.cap;
+            let new_cap = self.cap * n;
 
-            self.data = unsafe {
-                libc::realloc(self.data as *mut _, new_size)
+            self.inner.data = unsafe {
+                libc::realloc(self.inner.data as *mut _, new_cap)
                     as *mut ffi::c_char
             };
 
-            self.size = new_size;
-            debug_assert!(self.len < self.size)
+            self.cap = new_cap;
+            debug_assert!(self.inner.len < self.cap)
         }
 
         // Pushing the `bytes` is safe now.
         let new_len = unsafe {
             libc::memcpy(
-                self.data.add(self.len) as *mut _,
+                self.inner.data.add(self.inner.len) as *mut _,
                 bytes.as_ptr() as *const _,
                 slice_len,
             );
 
-            let new_len = self.len + slice_len;
+            let new_len = self.inner.len + slice_len;
 
-            *self.data.add(new_len) = 0;
+            *self.inner.data.add(new_len) = 0;
 
             new_len
         };
 
-        self.len = new_len;
-
-        debug_assert!(self.len < self.size);
+        self.inner.len = new_len;
+        debug_assert!(self.inner.len < self.cap);
     }
 
     /// Build the `String`.
     #[inline]
-    pub fn finish(mut self) -> String {
-        let s = String { data: self.data, len: self.len };
+    pub fn finish(self) -> String {
+        let s = String { data: self.inner.data, len: self.inner.len };
 
         // Prevent the `Drop` implementation from freeing this memory.
-        self.data = ptr::null_mut();
+        std::mem::forget(self);
 
         s
     }
@@ -236,8 +229,8 @@ impl Drop for String {
 
 impl Drop for StringBuilder {
     fn drop(&mut self) {
-        if !self.data.is_null() {
-            unsafe { libc::free(self.data as *mut _) }
+        if !self.inner.data.is_null() {
+            unsafe { libc::free(self.inner.data as *mut _) }
         }
     }
 }
@@ -479,9 +472,9 @@ mod tests {
         s.push_bytes(str.as_bytes());
         s.push_bytes(bytes);
 
-        assert_eq!(s.len, str.len() + bytes.len());
-        assert_eq!(s.size, 24); // Allocation size
-        assert_eq!(unsafe { *s.data.add(s.len) }, 0); // Null termination
+        assert_eq!(s.inner.len, str.len() + bytes.len());
+        assert_eq!(s.cap, 24); // Allocation size
+        assert_eq!(unsafe { *s.inner.data.add(s.inner.len) }, 0); // Null termination
 
         let s = s.finish();
         assert_eq!(s.len(), str.len() + bytes.len());
