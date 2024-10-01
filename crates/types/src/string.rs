@@ -19,7 +19,7 @@ use crate::NonOwning;
 #[repr(C)]
 pub struct String {
     pub(super) data: *mut ffi::c_char,
-    pub(super) size: usize,
+    pub(super) len: usize,
 }
 
 /// A builder that can be used to efficiently build a [`nvim_oxi::String`](String).
@@ -75,7 +75,7 @@ impl String {
             &[]
         } else {
             assert!(self.len() <= isize::MAX as usize);
-            unsafe { slice::from_raw_parts(self.data as *const u8, self.size) }
+            unsafe { slice::from_raw_parts(self.data as *const u8, self.len) }
         }
     }
 
@@ -104,13 +104,13 @@ impl String {
     /// Returns the length of the `String`, *not* including the final null byte.
     #[inline]
     pub fn len(&self) -> usize {
-        self.size
+        self.len
     }
 
     /// Creates a new, empty `String`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: ptr::null_mut(), size: 0 }
+        Self { data: ptr::null_mut(), len: 0 }
     }
 
     /// Makes a non-owning version of this `String`.
@@ -209,7 +209,7 @@ impl StringBuilder {
     /// Build the `String`.
     #[inline]
     pub fn finish(mut self) -> String {
-        let s = String { data: self.data, size: self.len };
+        let s = String { data: self.data, len: self.len };
 
         // Prevent the `Drop` implementation from freeing this memory.
         self.data = ptr::null_mut();
@@ -340,7 +340,7 @@ impl PartialEq<std::string::String> for String {
 impl core::hash::Hash for String {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.as_bytes().hash(state);
-        self.size.hash(state);
+        self.len.hash(state);
     }
 }
 
