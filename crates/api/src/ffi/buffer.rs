@@ -83,7 +83,7 @@ extern "C" {
         strict_indexing: bool,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
-        lstate: *mut luajit::ffi::lua_State,
+        lstate: *mut luajit::ffi::State,
         err: *mut Error,
     ) -> Array;
 
@@ -124,7 +124,7 @@ extern "C" {
         opts: *const GetTextOpts,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
-        lstate: *mut luajit::ffi::lua_State,
+        lstate: *mut luajit::ffi::State,
         err: *mut Error,
     ) -> Array;
 

@@ -116,9 +116,7 @@ impl core::iter::FusedIterator for ArrayIterator {}
 
 impl lua::Poppable for Array {
     #[inline]
-    unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
-    ) -> Result<Self, lua::Error> {
+    unsafe fn pop(lstate: *mut lua::ffi::State) -> Result<Self, lua::Error> {
         use lua::ffi::*;
 
         if lua_gettop(lstate) == 0 {
@@ -150,7 +148,7 @@ impl lua::Pushable for Array {
     #[inline]
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> Result<core::ffi::c_int, lua::Error> {
         use lua::ffi::*;
 

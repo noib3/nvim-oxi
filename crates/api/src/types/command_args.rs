@@ -58,7 +58,7 @@ impl FromObject for CommandArgs {
 
 impl luajit::Poppable for CommandArgs {
     unsafe fn pop(
-        lstate: *mut luajit::ffi::lua_State,
+        lstate: *mut luajit::ffi::State,
     ) -> Result<Self, luajit::Error> {
         let obj = Object::pop(lstate)?;
 

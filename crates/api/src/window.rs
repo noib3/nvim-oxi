@@ -65,7 +65,7 @@ impl FromObject for Window {
 
 impl Poppable for Window {
     unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> std::result::Result<Self, lua::Error> {
         WinHandle::pop(lstate).map(Into::into)
     }
@@ -74,7 +74,7 @@ impl Poppable for Window {
 impl Pushable for Window {
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> std::result::Result<std::ffi::c_int, lua::Error> {
         self.0.push(lstate)
     }

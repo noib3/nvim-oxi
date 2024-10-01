@@ -41,9 +41,7 @@ where
 }
 
 impl<A, R> Poppable for Function<A, R> {
-    unsafe fn pop(
-        state: *mut lua::ffi::lua_State,
-    ) -> Result<Self, lua::Error> {
+    unsafe fn pop(state: *mut lua::ffi::State) -> Result<Self, lua::Error> {
         if ffi::lua_gettop(state) == 0 {
             return Err(lua::Error::PopEmptyStack);
         }
@@ -66,7 +64,7 @@ impl<A, R> Poppable for Function<A, R> {
 impl<A, R> Pushable for Function<A, R> {
     unsafe fn push(
         self,
-        state: *mut lua::ffi::lua_State,
+        state: *mut lua::ffi::State,
     ) -> Result<c_int, lua::Error> {
         ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, self.lua_ref);
         Ok(1)

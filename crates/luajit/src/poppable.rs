@@ -8,12 +8,12 @@ use crate::Error;
 /// Trait implemented for types that can be popped off the Lua stack.
 pub trait Poppable: Sized {
     /// Pops the value at the top of the stack.
-    unsafe fn pop(lua_state: *mut lua_State) -> Result<Self, Error>;
+    unsafe fn pop(lua_state: *mut State) -> Result<Self, Error>;
 }
 
 impl Poppable for () {
     #[inline(always)]
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, crate::Error> {
         if lua_gettop(state) == 0 {
             Ok(())
         } else if lua_type(state, -1) == LUA_TNIL {
@@ -26,7 +26,7 @@ impl Poppable for () {
 }
 
 impl Poppable for bool {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -42,8 +42,8 @@ impl Poppable for bool {
     }
 }
 
-impl Poppable for lua_Integer {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+impl Poppable for Integer {
+    unsafe fn pop(state: *mut State) -> Result<Self, crate::Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -60,14 +60,12 @@ impl Poppable for lua_Integer {
 }
 
 /// Implements `Poppable` for a integer types that implement
-/// `TryFrom<lua_Integer>`.
+/// `TryFrom<Integer>`.
 macro_rules! pop_try_from_integer {
     ($integer:ty) => {
         impl Poppable for $integer {
-            unsafe fn pop(
-                lstate: *mut lua_State,
-            ) -> Result<Self, crate::Error> {
-                lua_Integer::pop(lstate)?
+            unsafe fn pop(lstate: *mut State) -> Result<Self, crate::Error> {
+                Integer::pop(lstate)?
                     .try_into()
                     .map_err(Error::pop_error_from_err::<Self, _>)
             }
@@ -85,8 +83,8 @@ pop_try_from_integer!(i64);
 pop_try_from_integer!(u64);
 pop_try_from_integer!(usize);
 
-impl Poppable for lua_Number {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+impl Poppable for Number {
+    unsafe fn pop(state: *mut State) -> Result<Self, crate::Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -103,13 +101,13 @@ impl Poppable for lua_Number {
 }
 
 impl Poppable for f32 {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
-        lua_Number::pop(state).map(|n| n as f32)
+    unsafe fn pop(state: *mut State) -> Result<Self, crate::Error> {
+        Number::pop(state).map(|n| n as f32)
     }
 }
 
 impl Poppable for String {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -139,7 +137,7 @@ impl<T> Poppable for Option<T>
 where
     T: Poppable,
 {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
             return Ok(None);
         }
@@ -158,7 +156,7 @@ impl<T> Poppable for Vec<T>
 where
     T: Poppable,
 {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -192,7 +190,7 @@ where
     K: Poppable + Eq + Hash,
     V: Poppable,
 {
-    unsafe fn pop(state: *mut lua_State) -> Result<Self, Error> {
+    unsafe fn pop(state: *mut State) -> Result<Self, Error> {
         if lua_gettop(state) == 0 {
             return Err(Error::PopEmptyStack);
         }
@@ -239,7 +237,7 @@ macro_rules! pop_tuple {
             $($name: Poppable,)*
         {
             #[allow(non_snake_case)]
-            unsafe fn pop(state: *mut lua_State) -> Result<Self, crate::Error> {
+            unsafe fn pop(state: *mut State) -> Result<Self, crate::Error> {
                 crate::utils::grow_stack(state, count!($($name)*));
                 pop_reverse!(state, $($name)*);
                 Ok(($($name,)*))

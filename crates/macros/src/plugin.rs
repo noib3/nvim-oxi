@@ -24,7 +24,7 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         #[no_mangle]
         unsafe extern "C" fn #lua_module(
-            state: *mut #nvim_oxi::lua::ffi::lua_State,
+            state: *mut #nvim_oxi::lua::ffi::State,
         ) -> ::core::ffi::c_int {
             #nvim_oxi::entrypoint::entrypoint(state, #plugin_name)
         }

@@ -3,7 +3,7 @@ use std::ffi::{c_int, CStr};
 use std::mem;
 use std::ptr;
 
-use crate::ffi::{self, lua_State};
+use crate::ffi::{self, State};
 use crate::{utils, IntoResult, Poppable, Pushable};
 
 /// Stores a function in the Lua registry, returning its ref.
@@ -16,9 +16,9 @@ where
     R::Error: Error + 'static,
 {
     type Callback =
-        Box<dyn Fn(*mut lua_State) -> Result<c_int, crate::Error> + 'static>;
+        Box<dyn Fn(*mut State) -> Result<c_int, crate::Error> + 'static>;
 
-    unsafe extern "C" fn c_fun(lstate: *mut lua_State) -> c_int {
+    unsafe extern "C" fn c_fun(lstate: *mut State) -> c_int {
         let fun = {
             let idx = ffi::lua_upvalueindex(1);
             let upv = ffi::lua_touserdata(lstate, idx) as *mut Callback;
