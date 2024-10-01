@@ -204,7 +204,7 @@ impl StringBuilder {
     pub fn finish(self) -> String {
         let s = String { data: self.inner.data, len: self.inner.len };
 
-        // Prevent the `Drop` implementation from freeing this memory.
+        // Prevent self's destructor from being called.
         std::mem::forget(self);
 
         s
