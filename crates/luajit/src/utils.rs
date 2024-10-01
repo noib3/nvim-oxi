@@ -1,5 +1,5 @@
-use std::ffi::{c_int, CStr};
-use std::fmt::Display;
+use core::ffi::{c_int, CStr};
+use core::fmt::Display;
 
 use crate::ffi::{self, State};
 

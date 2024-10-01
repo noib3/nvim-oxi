@@ -1,7 +1,7 @@
-use std::error::Error;
-use std::ffi::{c_int, CStr};
-use std::mem;
-use std::ptr;
+use core::error::Error;
+use core::ffi::{c_int, CStr};
+use core::mem;
+use core::ptr;
 
 use crate::ffi::{self, State};
 use crate::{utils, IntoResult, Poppable, Pushable};

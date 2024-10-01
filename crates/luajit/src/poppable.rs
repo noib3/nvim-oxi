@@ -1,5 +1,5 @@
+use core::hash::Hash;
 use std::collections::HashMap;
-use std::hash::Hash;
 
 use crate::ffi::*;
 use crate::macros::count;

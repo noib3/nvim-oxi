@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_int};
+use core::ffi::{c_char, c_int};
 
 use crate::ffi::{self, Integer, Number, State};
 use crate::macros::count;

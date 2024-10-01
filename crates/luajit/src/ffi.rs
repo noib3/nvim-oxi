@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use std::ffi::{c_char, c_double, c_int, c_void};
-use std::marker::{PhantomData, PhantomPinned};
+use core::ffi::{c_char, c_double, c_int, c_void};
+use core::marker::{PhantomData, PhantomPinned};
 
 #[repr(C)]
 pub struct State {
