@@ -162,13 +162,14 @@ impl StringBuilder {
 
         // Reallocate if pushing the bytes overflows the allocated memory.
         if self.cap < required_cap {
-            // Same as `let n = (required_cap as f64 / self.cap as f64).ceil()` but using integer
-            // arithmetic.
+            // The smallest number `n`, such that `required_cap <= self.cap * 2^n`.
             //
-            // `n` is the smallest number that, when multiplied by `self.cap`, gives a
-            // number that is at least equal to `required_cap`.
-            let n = (required_cap + self.cap - 1) / self.cap;
-            let new_cap = self.cap * n;
+            // `self.cap` here should never be `0`; and if it is, then there is a logic error
+            // somewhere else, and panicking at that point is warranted.
+            let n = (required_cap / self.cap).ilog2() + 1;
+
+            // Double `cap`, `n` times.
+            let new_cap = self.cap * 2_usize.pow(n);
 
             self.inner.data = unsafe {
                 libc::realloc(self.inner.data as *mut _, new_cap)
@@ -473,7 +474,7 @@ mod tests {
         s.push_bytes(bytes);
 
         assert_eq!(s.inner.len, str.len() + bytes.len());
-        assert_eq!(s.cap, 24); // Allocation size
+        assert_eq!(s.cap, 32); // Allocation size
         assert_eq!(unsafe { *s.inner.data.add(s.inner.len) }, 0); // Null termination
 
         let s = s.finish();
