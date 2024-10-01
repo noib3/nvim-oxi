@@ -23,7 +23,6 @@ pub struct String {
 }
 
 /// A builder that can be used to efficiently build a [`nvim_oxi::String`](String).
-#[repr(C)]
 pub struct StringBuilder {
     /// Pointer to the allocated memory.
     pub(super) data: *mut ffi::c_char,
