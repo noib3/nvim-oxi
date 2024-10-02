@@ -128,10 +128,10 @@ pub enum TestFailure<'a, E> {
     Error(E),
 
     /// This is used to indicate that the test failed due to a panic. The
-    /// [`PanicInfo`](std::panic::PanicInfo) contains information about the
-    /// panic and can be obtained by calling
+    /// [`PanicHookInfo`](std::panic::PanicHookInfo) contains information about
+    /// the panic and can be obtained by calling
     /// [`set_hook`](std::panic::set_hook).
-    Panic(&'a std::panic::PanicInfo<'a>),
+    Panic(&'a std::panic::PanicHookInfo<'a>),
 }
 
 fn exit(result: Result<(), Failure>) {
@@ -339,8 +339,8 @@ impl FromStr for PanicInfo {
     }
 }
 
-impl From<&panic::PanicInfo<'_>> for PanicInfo {
-    fn from(info: &panic::PanicInfo) -> Self {
+impl From<&panic::PanicHookInfo<'_>> for PanicInfo {
+    fn from(info: &panic::PanicHookInfo) -> Self {
         let payload = info.payload();
 
         let msg = downcast_display::<&str>(payload)
