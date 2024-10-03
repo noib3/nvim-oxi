@@ -116,21 +116,22 @@ pub fn del_var(name: &str) -> Result<()> {
 /// Echoes a message to the Neovim message area.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
-pub fn echo<'hl, Text, Chunks>(
+pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,
     opts: &EchoOpts,
 ) -> Result<()>
 where
-    Chunks: IntoIterator<Item = (Text, Option<&'hl str>)>,
+    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
     Text: Into<nvim::String>,
+    HlGroup: Into<nvim::String>,
 {
     let chunks = chunks
         .into_iter()
         .map(|(text, hlgroup)| {
             Array::from_iter([
                 Object::from(text.into()),
-                Object::from(hlgroup.map(|hl| hl.to_owned())),
+                Object::from(hlgroup.map(Into::into)),
             ])
         })
         .collect::<Array>();
