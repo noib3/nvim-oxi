@@ -2,6 +2,7 @@
 
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
+use core::str::{self, Utf8Error};
 use core::{ffi, slice};
 use std::path::{Path, PathBuf};
 
@@ -104,6 +105,12 @@ impl String {
     #[doc(hidden)]
     pub fn non_owning(&self) -> NonOwning<'_, String> {
         NonOwning::new(Self { ..*self })
+    }
+
+    /// Yields a string slice if the [`String`]'s contents are valid UTF-8.
+    #[inline]
+    pub fn to_str(&self) -> Result<&str, Utf8Error> {
+        str::from_utf8(self.as_bytes())
     }
 
     /// Converts the `String` into Rust's `std::string::String`. If it already
