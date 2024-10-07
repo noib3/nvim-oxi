@@ -110,6 +110,19 @@ fn get_runtime_file() {
 }
 
 #[oxi::test]
+fn hl_foreground() {
+    let opts = SetHighlightOpts::builder()
+        .foreground("#FF0000")
+        .strikethrough(true)
+        .bold(true)
+        .build();
+    api::set_hl(0, "Header", &opts).unwrap();
+
+    let infos = api::get_hl_by_name("Header", true).unwrap();
+    assert_eq!(infos.foreground, Some(16711680));
+}
+
+#[oxi::test]
 fn hl_underline() {
     let opts = SetHighlightOpts::builder().underline(true).build();
     api::set_hl(0, "MatchParen", &opts).unwrap();

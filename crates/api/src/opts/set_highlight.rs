@@ -1,6 +1,6 @@
 use types::Object;
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-use types::{Boolean, Integer};
+use types::{Boolean, Integer, String as NvimString};
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, PartialEq, macros::OptsBuilder)]
@@ -98,6 +98,9 @@ pub struct SetHighlightOpts {
 
     #[builder(argtype = "bool")]
     force: Boolean,
+
+    #[builder(skip)]
+    url: NvimString,
 }
 
 /// Options passed to [`set_hl()`](crate::set_hl).

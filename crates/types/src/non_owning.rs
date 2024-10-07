@@ -11,13 +11,13 @@ pub struct NonOwning<'a, T> {
     lt: PhantomData<&'a ()>,
 }
 
-impl<'a, T> NonOwning<'a, T> {
+impl<T> NonOwning<'_, T> {
     pub const fn new(value: T) -> Self {
         Self { inner: ManuallyDrop::new(value), lt: PhantomData }
     }
 }
 
-impl<'a, T> core::fmt::Debug for NonOwning<'a, T>
+impl<T> core::fmt::Debug for NonOwning<'_, T>
 where
     T: core::fmt::Debug,
 {
@@ -27,7 +27,7 @@ where
     }
 }
 
-impl<'a, T> Default for NonOwning<'a, T>
+impl<T> Default for NonOwning<'_, T>
 where
     T: Default,
 {

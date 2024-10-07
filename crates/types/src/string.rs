@@ -295,7 +295,7 @@ mod serde {
         {
             struct StringVisitor;
 
-            impl<'de> Visitor<'de> for StringVisitor {
+            impl Visitor<'_> for StringVisitor {
                 type Value = crate::String;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -70,7 +70,7 @@ impl<'a> From<&'a DeriveInput> for OptsBuilder<'a> {
     }
 }
 
-impl<'a> OptsBuilder<'a> {
+impl OptsBuilder<'_> {
     /// Returns the `impl Clone` block for the builder.
     #[inline]
     fn impl_clone(&self) -> TokenStream {
@@ -187,7 +187,7 @@ impl<'a> TryFrom<&'a DeriveInput> for OptsFields<'a> {
     }
 }
 
-impl<'a> OptsFields<'a> {
+impl OptsFields<'_> {
     #[inline]
     fn setters(&self) -> impl Iterator<Item = TokenStream> + '_ {
         self.fields.iter().filter_map(|field| field.setter(self.mask_name))
@@ -249,7 +249,7 @@ impl<'a> TryFrom<&'a Field> for OptsField<'a> {
     }
 }
 
-impl<'a> OptsField<'a> {
+impl OptsField<'_> {
     /// TODO: docs
     #[inline]
     fn setter(&self, mask_name: Option<&Ident>) -> Option<TokenStream> {
