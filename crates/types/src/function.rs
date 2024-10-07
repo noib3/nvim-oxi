@@ -176,7 +176,7 @@ mod serde {
 
             struct FunctionVisitor<A, R>(PhantomData<A>, PhantomData<R>);
 
-            impl<'de, A, R> Visitor<'de> for FunctionVisitor<A, R> {
+            impl<A, R> Visitor<'_> for FunctionVisitor<A, R> {
                 type Value = Function<A, R>;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
