@@ -7,6 +7,9 @@
 - a `String::to_str()` method which returns a `&str` if the string contains
   valid UTF-8 data;
 
+- a `WindowConfig::mouse` field and a `WindowOptsBuilder::mouse()` method
+  on nightly ([#189](https://github.com/noib3/nvim-oxi/pull/189));
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of
