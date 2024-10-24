@@ -75,6 +75,11 @@ pub struct WindowConfig {
     )]
     pub hide: Option<bool>,
 
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")] // On 0.10 and nightly.
+    #[serde(default)]
+    pub mouse: bool,
+
     /// If `true` then no buffer-related autocommand events such as `BufEnter`
     /// or `BufLeave` are fired when calling [`open_win`](crate::open_win).
     pub noautocmd: Option<bool>,
@@ -436,6 +441,9 @@ pub struct WindowOpts {
     bufpos: Array,
     external: Boolean,
     focusable: Boolean,
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    mouse: Boolean,
     vertical: Boolean,
     zindex: Integer,
     border: Object,
@@ -500,6 +508,9 @@ impl From<&WindowConfig> for WindowOpts {
         if let Some(focusable) = config.focusable {
             builder.focusable(focusable);
         }
+
+        #[cfg(feature = "neovim-nightly")]
+        builder.mouse(config.mouse);
 
         if let Some(vertical) = config.vertical {
             builder.vertical(vertical);
@@ -567,6 +578,8 @@ impl TryFrom<WindowOpts> for WindowConfig {
             footer_pos,
             height,
             hide,
+            #[cfg(feature = "neovim-nightly")]
+            mouse,
             noautocmd,
             relative,
             row,
@@ -639,6 +652,8 @@ impl TryFrom<WindowOpts> for WindowConfig {
             ))?,
             height: deserialize(height)?,
             hide: deserialize(hide)?,
+            #[cfg(feature = "neovim-nightly")]
+            mouse,
             noautocmd: deserialize(noautocmd)?,
             relative,
             row: deserialize(row)?,
