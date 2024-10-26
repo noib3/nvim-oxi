@@ -73,10 +73,10 @@ pub mod mlua {
     ///     Ok(())
     /// }
     /// ```
-    pub fn lua() -> &'static mlua::Lua {
+    pub fn lua() -> mlua::Lua {
         unsafe {
             luajit::with_state(|lua_state| {
-                mlua::Lua::init_from_ptr(lua_state as *mut _).into_static()
+                mlua::Lua::init_from_ptr(lua_state as *mut _)
             })
         }
     }
