@@ -163,7 +163,7 @@ impl HlGroup for &str {
         let hl_id = unsafe {
             crate::ffi::helpers::object_to_hl_id(
                 obj,
-                b"hl_group\0".as_ptr() as *const _,
+                c"hl_group".as_ptr() as *const _,
                 &mut err,
             )
         };

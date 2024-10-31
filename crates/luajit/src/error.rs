@@ -1,4 +1,4 @@
-use std::ffi::c_int;
+use core::ffi::c_int;
 
 use thiserror::Error as ThisError;
 
@@ -54,7 +54,7 @@ impl Error {
     }
 
     pub unsafe fn pop_wrong_type_at_idx<T>(
-        lstate: *mut crate::ffi::lua_State,
+        lstate: *mut crate::ffi::State,
         idx: std::ffi::c_int,
     ) -> Self {
         let expected = std::any::type_name::<T>();

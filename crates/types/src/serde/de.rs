@@ -16,7 +16,7 @@ impl Deserializer {
     }
 }
 
-impl<'de> IntoDeserializer<'de, DeserializeError> for Object {
+impl IntoDeserializer<'_, DeserializeError> for Object {
     type Deserializer = Deserializer;
 
     #[inline]

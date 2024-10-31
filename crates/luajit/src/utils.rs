@@ -1,11 +1,11 @@
-use std::ffi::{c_int, CStr};
-use std::fmt::Display;
+use core::ffi::{c_int, CStr};
+use core::fmt::Display;
 
-use crate::ffi::{self, lua_State};
+use crate::ffi::{self, State};
 
 /// Does nothing if the stack is already taller than `n`, grows the stack
 /// height to `n` by adding `nil`s if it's not.
-pub unsafe fn grow_stack(lstate: *mut lua_State, n: c_int) {
+pub unsafe fn grow_stack(lstate: *mut State, n: c_int) {
     if ffi::lua_gettop(lstate) < n {
         ffi::lua_settop(lstate, n);
     }
@@ -13,10 +13,7 @@ pub unsafe fn grow_stack(lstate: *mut lua_State, n: c_int) {
 
 /// Returns a displayable representation of the Lua value at a given stack
 /// index.
-pub unsafe fn debug_value(
-    lstate: *mut lua_State,
-    n: c_int,
-) -> Box<dyn Display> {
+pub unsafe fn debug_value(lstate: *mut State, n: c_int) -> Box<dyn Display> {
     match ffi::lua_type(lstate, n) {
         ffi::LUA_TNONE | ffi::LUA_TNIL => Box::new("()"),
 
@@ -34,7 +31,7 @@ pub unsafe fn debug_value(
 
 /// Assumes that the value at index `index` is a table and returns whether it's
 /// an array table (as opposed to a dictionary table).
-pub unsafe fn is_table_array(lstate: *mut lua_State, index: c_int) -> bool {
+pub unsafe fn is_table_array(lstate: *mut State, index: c_int) -> bool {
     ffi::lua_pushnil(lstate);
 
     if ffi::lua_next(lstate, index - 1) == 0 {
@@ -52,12 +49,12 @@ pub unsafe fn is_table_array(lstate: *mut lua_State, index: c_int) -> bool {
 }
 
 /// Returns the type of the Lua value at a given stack index.
-pub unsafe fn debug_type(lstate: *mut lua_State, n: c_int) -> impl Display {
+pub unsafe fn debug_type(lstate: *mut State, n: c_int) -> impl Display {
     CStr::from_ptr(ffi::luaL_typename(lstate, n)).to_string_lossy()
 }
 
 /// Pretty prints the contents of the Lua stack to the Neovim message area.
-pub unsafe fn debug_stack(lstate: *mut lua_State) {
+pub unsafe fn debug_stack(lstate: *mut State) {
     let height = ffi::lua_gettop(lstate);
 
     let stack_pp = (1..height + 1)
@@ -75,7 +72,7 @@ pub unsafe fn debug_stack(lstate: *mut lua_State) {
 
 pub unsafe fn push_error<E: core::fmt::Display + ?Sized>(
     err: &E,
-    lstate: *mut lua_State,
+    lstate: *mut State,
 ) -> ! {
     let msg = err.to_string();
     ffi::lua_pushlstring(lstate, msg.as_ptr() as *const _, msg.len());

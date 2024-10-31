@@ -1,6 +1,6 @@
 use core::cell::OnceCell;
 
-use luajit::ffi::lua_State;
+use luajit::ffi::State;
 
 use crate::ffi;
 
@@ -13,7 +13,7 @@ thread_local! {
 /// NOTE: this function **must** be called before calling any other function
 /// exposed by this crate or there will be segfaults.
 #[doc(hidden)]
-pub unsafe fn init(lua_state: *mut lua_State) {
+pub unsafe fn init(lua_state: *mut State) {
     LOOP.with(|uv_loop| uv_loop.set(ffi::luv_loop(lua_state)))
         .unwrap_unchecked();
 }

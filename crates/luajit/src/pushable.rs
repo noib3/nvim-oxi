@@ -1,6 +1,6 @@
-use std::ffi::{c_char, c_int};
+use core::ffi::{c_char, c_int};
 
-use crate::ffi::{self, lua_Integer, lua_Number, lua_State};
+use crate::ffi::{self, Integer, Number, State};
 use crate::macros::count;
 use crate::utils;
 
@@ -8,52 +8,40 @@ use crate::utils;
 pub trait Pushable {
     /// Pushes all its values on the Lua stack, returning the number of values
     /// that it pushed.
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error>;
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error>;
 }
 
 impl Pushable for () {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_pushnil(lstate);
         Ok(1)
     }
 }
 
 impl Pushable for bool {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_pushboolean(lstate, self as _);
         Ok(1)
     }
 }
 
-impl Pushable for lua_Integer {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+impl Pushable for Integer {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_pushinteger(lstate, self);
         Ok(1)
     }
 }
 
 /// Implements `LuaPushable` for an integer type that implements
-/// `Into<lua_Integer>`.
+/// `Into<Integer>`.
 macro_rules! push_into_integer {
     ($integer:ty) => {
         impl Pushable for $integer {
             unsafe fn push(
                 self,
-                lstate: *mut lua_State,
+                lstate: *mut State,
             ) -> Result<c_int, crate::Error> {
-                let n: lua_Integer = self.into();
+                let n: Integer = self.into();
                 n.push(lstate)
             }
         }
@@ -61,15 +49,15 @@ macro_rules! push_into_integer {
 }
 
 /// Implements `LuaPushable` for an integer type that implements
-/// `TryInto<lua_Integer>`.
+/// `TryInto<Integer>`.
 macro_rules! push_try_into_integer {
     ($integer:ty) => {
         impl Pushable for $integer {
             unsafe fn push(
                 self,
-                lstate: *mut lua_State,
+                lstate: *mut State,
             ) -> Result<c_int, crate::Error> {
-                let n: lua_Integer = self.try_into().map_err(
+                let n: Integer = self.try_into().map_err(
                     |err: std::num::TryFromIntError| {
                         crate::Error::push_error(
                             std::any::type_name::<$integer>(),
@@ -93,30 +81,21 @@ push_try_into_integer!(i64);
 push_try_into_integer!(u64);
 push_try_into_integer!(usize);
 
-impl Pushable for lua_Number {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+impl Pushable for Number {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_pushnumber(lstate, self);
         Ok(1)
     }
 }
 
 impl Pushable for f32 {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
-        (self as lua_Number).push(lstate)
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
+        (self as Number).push(lstate)
     }
 }
 
 impl Pushable for String {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_pushlstring(
             lstate,
             self.as_ptr() as *const c_char,
@@ -130,10 +109,7 @@ impl<T> Pushable for Option<T>
 where
     T: Pushable,
 {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         match self {
             Some(t) => t.push(lstate),
             None => ().push(lstate),
@@ -145,10 +121,7 @@ impl<T> Pushable for Vec<T>
 where
     T: Pushable,
 {
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         ffi::lua_createtable(lstate, self.len() as _, 0);
 
         for (i, obj) in self.into_iter().enumerate() {
@@ -166,10 +139,7 @@ where
     E: core::fmt::Display,
 {
     #[inline]
-    unsafe fn push(
-        self,
-        lstate: *mut lua_State,
-    ) -> Result<c_int, crate::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, crate::Error> {
         match self {
             Ok(value) => value.push(lstate),
             Err(err) => utils::push_error(&err, lstate),
@@ -187,7 +157,7 @@ macro_rules! push_tuple {
             #[allow(non_snake_case)]
             unsafe fn push(
                 self,
-                lstate: *mut lua_State,
+                lstate: *mut State,
             ) -> Result<c_int, crate::Error> {
                 let ($($name,)*) = self;
                 $($name.push(lstate)?;)*

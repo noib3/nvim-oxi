@@ -42,7 +42,7 @@ impl crate::ProperLayout for uv_timer_t {}
 extern "C" {
     // https://github.com/luvit/luv/blob/master/src/luv.c#L751
     pub(crate) fn luv_loop(
-        lua_state: *mut luajit::ffi::lua_State,
+        lua_state: *mut luajit::ffi::State,
     ) -> *mut uv_loop_t;
 
     pub(crate) fn uv_async_init(

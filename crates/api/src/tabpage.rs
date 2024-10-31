@@ -46,7 +46,7 @@ impl From<TabPage> for Object {
 
 impl Poppable for TabPage {
     unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> std::result::Result<Self, lua::Error> {
         TabHandle::pop(lstate).map(Into::into)
     }
@@ -55,7 +55,7 @@ impl Poppable for TabPage {
 impl Pushable for TabPage {
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> std::result::Result<std::ffi::c_int, lua::Error> {
         self.0.push(lstate)
     }

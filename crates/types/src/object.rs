@@ -462,7 +462,7 @@ where
 }
 
 impl Pushable for Object {
-    unsafe fn push(self, lstate: *mut lua_State) -> Result<c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut State) -> Result<c_int, lua::Error> {
         match self.kind() {
             ObjectKind::Nil => ().push(lstate),
             ObjectKind::Boolean => self.as_boolean_unchecked().push(lstate),
@@ -483,7 +483,7 @@ impl Pushable for Object {
 }
 
 impl Poppable for Object {
-    unsafe fn pop(lstate: *mut lua_State) -> Result<Self, lua::Error> {
+    unsafe fn pop(lstate: *mut State) -> Result<Self, lua::Error> {
         if lua_gettop(lstate) == 0 {
             return Ok(Self::nil());
         }
@@ -494,11 +494,11 @@ impl Poppable for Object {
             LUA_TBOOLEAN => bool::pop(lstate).map(Into::into),
 
             LUA_TNUMBER => {
-                let n = lua_Number::pop(lstate)?;
+                let n = Number::pop(lstate)?;
 
                 // This checks that the number is in the range (i32::MIN,
                 // i32::MAX) andd that it has no fractional component.
-                if n == (n as c_int) as lua_Number {
+                if n == (n as c_int) as Number {
                     Ok(Object::from(n as c_int))
                 } else {
                     Ok(Object::from(n))

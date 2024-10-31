@@ -3,6 +3,7 @@
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::{ffi, fmt, ptr, slice};
+use core::str::{self, Utf8Error};
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
@@ -115,6 +116,12 @@ impl String {
     #[doc(hidden)]
     pub fn non_owning(&self) -> NonOwning<'_, String> {
         NonOwning::new(Self { ..*self })
+    }
+
+    /// Yields a string slice if the [`String`]'s contents are valid UTF-8.
+    #[inline]
+    pub fn to_str(&self) -> Result<&str, Utf8Error> {
+        str::from_utf8(self.as_bytes())
     }
 
     /// Converts the `String` into Rust's `std::string::String`. If it already
@@ -336,7 +343,7 @@ impl lua::Pushable for String {
     #[inline]
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> Result<ffi::c_int, lua::Error> {
         lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
         Ok(1)
@@ -345,9 +352,7 @@ impl lua::Pushable for String {
 
 impl lua::Poppable for String {
     #[inline]
-    unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
-    ) -> Result<Self, lua::Error> {
+    unsafe fn pop(lstate: *mut lua::ffi::State) -> Result<Self, lua::Error> {
         use lua::ffi::*;
 
         if lua_gettop(lstate) < 0 {
@@ -389,7 +394,7 @@ mod serde {
         {
             struct StringVisitor;
 
-            impl<'de> Visitor<'de> for StringVisitor {
+            impl Visitor<'_> for StringVisitor {
                 type Value = crate::String;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

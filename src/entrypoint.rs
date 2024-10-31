@@ -1,16 +1,13 @@
 use core::ffi::c_int;
 
-use luajit::{ffi::lua_State, Pushable};
+use luajit::{ffi::State, Pushable};
 
 /// The entrypoint of the plugin.
 ///
 /// Initializes the Lua state, executes the entrypoint function and pushes the
 /// result on the stack.
 #[inline(always)]
-pub unsafe fn entrypoint<T>(
-    lua_state: *mut lua_State,
-    body: fn() -> T,
-) -> c_int
+pub unsafe fn entrypoint<T>(lua_state: *mut State, body: fn() -> T) -> c_int
 where
     T: Pushable,
 {

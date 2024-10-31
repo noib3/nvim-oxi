@@ -35,7 +35,7 @@ impl<'de> de::Deserialize<'de> for CommandRange {
     {
         struct CommandRangeVisitor;
 
-        impl<'de> de::Visitor<'de> for CommandRangeVisitor {
+        impl de::Visitor<'_> for CommandRangeVisitor {
             type Value = CommandRange;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

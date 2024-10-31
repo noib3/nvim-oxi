@@ -267,9 +267,7 @@ impl core::iter::FusedIterator for DictIterMut<'_> {}
 
 impl lua::Poppable for Dictionary {
     #[inline]
-    unsafe fn pop(
-        lstate: *mut lua::ffi::lua_State,
-    ) -> Result<Self, lua::Error> {
+    unsafe fn pop(lstate: *mut lua::ffi::State) -> Result<Self, lua::Error> {
         use lua::ffi::*;
 
         if lua_gettop(lstate) == 0 {
@@ -306,7 +304,7 @@ impl lua::Pushable for Dictionary {
     #[inline]
     unsafe fn push(
         self,
-        lstate: *mut lua::ffi::lua_State,
+        lstate: *mut lua::ffi::State,
     ) -> Result<core::ffi::c_int, lua::Error> {
         use lua::ffi::*;
 

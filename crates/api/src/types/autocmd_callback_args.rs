@@ -47,7 +47,7 @@ impl FromObject for AutocmdCallbackArgs {
 
 impl luajit::Poppable for AutocmdCallbackArgs {
     unsafe fn pop(
-        lstate: *mut luajit::ffi::lua_State,
+        lstate: *mut luajit::ffi::State,
     ) -> Result<Self, luajit::Error> {
         let obj = Object::pop(lstate)?;
 
