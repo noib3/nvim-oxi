@@ -2,8 +2,8 @@
 
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
-use core::{ffi, fmt, ptr, slice};
 use core::str::{self, Utf8Error};
+use core::{ffi, fmt, ptr, slice};
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
