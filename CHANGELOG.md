@@ -10,6 +10,11 @@
 - a `WindowConfig::mouse` field and a `WindowOptsBuilder::mouse()` method
   on nightly ([#189](https://github.com/noib3/nvim-oxi/pull/189));
 
+- a `string!` macro that produces `nvim_oxi::String`s from string literals;
+
+- a `StringBuilder` struct that can be used to incrementally build
+  `nvim_oxi::String`s;
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of
