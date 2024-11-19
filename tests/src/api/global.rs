@@ -1,14 +1,14 @@
 use all_asserts::*;
-use nvim_oxi as oxi;
+use nvim_oxi as nvim;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
 
-#[oxi::test]
+#[nvim::test]
 fn chan_send_fail() {
     let res = api::chan_send(42, "hello there");
     assert!(res.is_err());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn create_del_user_command() {
     let res = api::create_user_command("Foo", ":", &Default::default());
     assert_eq!(Ok(()), res);
@@ -28,7 +28,7 @@ fn create_del_user_command() {
     assert_eq!(Ok(()), api::del_user_command("Bar"));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn echo() {
     api::echo(
         [("Hello ", None), ("World", Some("WarningMsg"))],
@@ -38,20 +38,20 @@ fn echo() {
     .unwrap();
 }
 
-#[oxi::test]
+#[nvim::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
     let res = api::eval_statusline("foo", &opts);
     assert_eq!(Ok("foo".into()), res.map(|infos| infos.str));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_chan_info() {
     let res = api::get_chan_info(0);
     assert!(res.is_err());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_colors() {
     let colors = api::get_color_map().collect::<Vec<_>>();
     assert_lt!(0, colors.len());
@@ -60,21 +60,21 @@ fn get_colors() {
     assert_eq!(color, api::get_color_by_name(&name).unwrap());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_context() {
     let res = api::get_context(&Default::default());
     assert!(res.is_ok());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_highlights() {
     let (name, _) = api::get_color_map().next().unwrap();
-    let id = api::get_hl_id_by_name(&*name).unwrap();
+    let id = api::get_hl_id_by_name(&name).unwrap();
     assert_eq!(api::get_hl_by_id(id, true), api::get_hl_by_name(&name, true));
 }
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[oxi::test]
+#[nvim::test]
 fn get_hl() {
     let infos = api::get_hl(0, &Default::default()).unwrap();
     let GetHlInfos::Map(map_iter) = infos else { panic!("expected a map") };
@@ -85,31 +85,33 @@ fn get_hl() {
     let GetHlInfos::Single(_) = infos else { panic!("expected a single") };
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_mode() {
     let got_mode = api::get_mode().unwrap();
     assert_eq!(Mode::Normal, got_mode.mode);
     assert!(!got_mode.blocking);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_options() {
     let res = api::get_all_options_info();
     assert_lt!(0, res.unwrap().collect::<Vec<_>>().len());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_option_info() {
-    api::set_option("number", true).unwrap();
+    let opts =
+        OptionOpts::builder().scope(api::opts::OptionScope::Global).build();
+    api::set_option_value("number", true, &opts).unwrap();
     assert!(api::get_option_info("number").is_ok());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn get_runtime_file() {
     assert!(api::get_runtime_file("*", true).unwrap().next().is_some());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn hl_foreground() {
     let opts = SetHighlightOpts::builder()
         .foreground("#FF0000")
@@ -122,7 +124,7 @@ fn hl_foreground() {
     assert_eq!(infos.foreground, Some(16711680));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn hl_underline() {
     let opts = SetHighlightOpts::builder().underline(true).build();
     api::set_hl(0, "MatchParen", &opts).unwrap();
@@ -131,7 +133,7 @@ fn hl_underline() {
     assert_eq!(Some(true), infos.underline);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn list_bufs() {
     let _ = api::create_buf(true, false);
     let _ = api::create_buf(true, false);
@@ -142,12 +144,12 @@ fn list_bufs() {
     assert_eq!(vec![Buffer::from(1), Buffer::from(2), Buffer::from(3)], bufs);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn list_runtime_paths() {
     assert!(api::list_runtime_paths().unwrap().next().is_some());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn list_wins() {
     api::command("vsp").unwrap();
     api::command("vsp").unwrap();
@@ -161,7 +163,7 @@ fn list_wins() {
     );
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_del_current_line() {
     let res = api::set_current_line("foo");
     assert_eq!(Ok(()), res);
@@ -173,7 +175,7 @@ fn set_get_del_current_line() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_del_keymap() {
     let opts = SetKeymapOpts::builder()
         .callback(|_| ())
@@ -191,7 +193,7 @@ fn set_get_del_keymap() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_del_mark() {
     let mut buf = api::create_buf(true, false).unwrap();
 
@@ -209,14 +211,17 @@ fn set_get_del_mark() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_del_var() {
     api::set_var("foo", 42).unwrap();
     assert_eq!(Ok(42), api::get_var("foo"));
     assert_eq!(Ok(()), api::del_var("foo"));
 }
 
-#[oxi::test]
+// `api::{get,set}_option()` were deprecated on 0.11, so only test on 0.9 and
+// 0.10.
+#[cfg(all(feature = "neovim-0-9", not(feature = "neovim-nightly")))]
+#[nvim::test]
 fn set_get_option() {
     api::set_option("modified", true).unwrap();
     assert!(api::get_option::<bool>("modified").unwrap());
@@ -225,22 +230,20 @@ fn set_get_option() {
     assert!(!api::get_option::<bool>("modified").unwrap());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn set_get_option_value() {
     let opts =
         OptionOpts::builder().scope(api::opts::OptionScope::Global).build();
-
     api::set_option_value("modified", true, &opts).unwrap();
-
     assert!(api::get_option_value::<bool>("modified", &opts).unwrap());
 }
 
-#[oxi::test]
+#[nvim::test]
 fn strwidth() {
     assert_eq!(Ok(2), api::strwidth("｜"));
 }
 
-#[oxi::test]
+#[nvim::test]
 fn user_command_with_count() {
     let opts = CreateCommandOpts::builder().count(32).build();
     api::create_user_command("Foo", "echo 'foo'", &opts).unwrap();
