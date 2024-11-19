@@ -16,13 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        neovim: [v0.9.5, v0.10.0, nightly]
+        neovim: [v0.9.5, v0.10.2, Nightly]
         include:
           - neovim: v0.9.5
             features: "--features neovim-0-9"
-          - neovim: v0.10.0
+          - neovim: v0.10.2
             features: "--features neovim-0-10"
-          - neovim: nightly
+          - neovim: Nightly
             features: "--features neovim-nightly"
 
     runs-on: ${{ matrix.os }}
