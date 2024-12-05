@@ -78,11 +78,19 @@ pub struct SetHighlightOpts {
     #[builder(skip)]
     sp: Object,
 
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    link: Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    link: types::HlGroupId,
 
-    #[builder(argtype = "&str", inline = "types::String::from({0}).into()")]
-    global_link: Object,
+    #[builder(
+        generics = "Hl: crate::HlGroup",
+        argtype = "Hl",
+        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
+    )]
+    global_link: types::HlGroupId,
 
     #[builder(argtype = "bool")]
     fallback: Boolean,
