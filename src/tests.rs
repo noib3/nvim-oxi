@@ -135,11 +135,20 @@ pub enum TestFailure<'a, E> {
 }
 
 fn exit(result: Result<(), Failure>) {
+    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-0-10")))]
+    let exec = |cmd: &str| crate::api::exec(cmd, false).unwrap();
+
+    #[cfg(feature = "neovim-0-10")]
+    let exec = |cmd: &str| {
+        let opts = crate::api::opts::ExecOpts::builder().output(false).build();
+        crate::api::exec2(cmd, &opts).unwrap();
+    };
+
     if let Err(failure) = result {
         eprintln!("{failure}");
-        crate::api::exec("cquit 1", false).unwrap();
+        exec("cquit 1");
     } else {
-        crate::api::exec("qall!", false).unwrap();
+        exec("qall!");
     }
 }
 
