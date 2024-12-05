@@ -107,7 +107,37 @@ impl Window {
     {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
-        let obj = unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
+
+        let obj = if cfg!(not(feature = "neovim-0-10")) {
+            // Only on 0.9.
+            unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) }
+        } else {
+            // On 0.10 and Nightly.
+            let ref_or_nil =
+                unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
+
+            let lua_ref = match ref_or_nil.kind() {
+                types::ObjectKind::LuaRef => unsafe {
+                    ref_or_nil.as_luaref_unchecked()
+                },
+                types::ObjectKind::Nil => {
+                    return Ret::from_object(Object::nil()).map_err(Into::into)
+                },
+                other => panic!("Unexpected object kind: {:?}", other),
+            };
+
+            unsafe {
+                lua::with_state(|lstate| {
+                    lua::ffi::lua_rawgeti(
+                        lstate,
+                        lua::ffi::LUA_REGISTRYINDEX,
+                        lua_ref,
+                    );
+                    Object::pop(lstate)
+                })
+            }
+            .map_err(crate::Error::custom)?
+        };
 
         choose!(err, {
             fun.remove_from_lua_registry();
