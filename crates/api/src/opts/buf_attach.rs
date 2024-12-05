@@ -37,13 +37,13 @@ pub type OnLinesArgs = (
 /// - `c`: the value of the buffer-local `b:changedtick` variable;
 /// - `d`: start row of the changed text (0-indexed);
 /// - `e`: start column of the changed text;
-/// - `f`: byte offset of the changed text from the start of the buffer;
-/// - `g`: number of rows deleted;
-/// - `h`: number of columns deleted;
-/// - `i`: number of bytes deleted;
-/// - `j`: number of rows added;
-/// - `k`: number of columns added;
-/// - `l`: number of bytes added;
+/// - `f`: byte offset of the changed text (from the start of the buffer);
+/// - `g`: old end row of the changed text (offset from start row);
+/// - `h`: old end column of the changed text (if old end row = 0, offset from start column);
+/// - `i`: old end byte length of the changed text;
+/// - `j`: new end row of the changed text (offset from start row);
+/// - `k`: new end column of the changed text (if new end row = 0, offset from start column);
+/// - `l`: new end byte length of the changed text;
 pub type OnBytesArgs = (
     String,
     Buffer,
