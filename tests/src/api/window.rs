@@ -1,14 +1,20 @@
-use nvim_oxi as oxi;
 use nvim_oxi::api::{self, types::*, Buffer, TabPage, Window};
 
-#[oxi::test]
-fn win_call() {
+#[nvim_oxi::test]
+fn win_call_nil() {
     let win = Window::current();
     let res = win.call(|_| ());
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
+fn win_call_int() {
+    let win = Window::current();
+    let res = win.call(|_| 42);
+    assert_eq!(Ok(42), res);
+}
+
+#[nvim_oxi::test]
 fn close_hide() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
@@ -27,17 +33,17 @@ fn close_hide() {
     assert_eq!(Ok(()), win.hide());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn win_get_number() {
     assert_eq!(Ok(1), Window::current().get_number());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn get_position() {
     assert_eq!(Ok((0, 0)), Window::current().get_position());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn get_set_buf() {
     let mut win = Window::current();
 
@@ -54,7 +60,7 @@ fn get_set_buf() {
     assert_eq!(Ok(()), res);
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn get_set_height_width() {
     let config = WindowConfig::builder()
         .relative(WindowRelativeTo::Editor)
@@ -78,12 +84,12 @@ fn get_set_height_width() {
     assert_eq!(10, win.get_width().unwrap());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn get_tabpage() {
     assert_eq!(Ok(TabPage::current()), Window::current().get_tabpage())
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn set_get_cursor() {
     let mut buf = Buffer::current();
     buf.set_lines(.., true, ["foo"]).unwrap();
@@ -101,7 +107,7 @@ fn set_get_cursor() {
     assert_eq!(Ok((1, 0)), win.get_cursor());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn win_set_get_option() {
     let mut win = Window::current();
 
@@ -112,7 +118,7 @@ fn win_set_get_option() {
     assert!(!win.get_option::<bool>("spell").unwrap());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn win_set_get_del_var() {
     let mut win = Window::current();
     win.set_var("foo", 42).unwrap();
