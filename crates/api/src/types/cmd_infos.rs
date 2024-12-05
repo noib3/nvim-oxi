@@ -168,7 +168,7 @@ impl FromObject for CmdInfos {
 #[derive(Default, Debug)]
 #[allow(non_camel_case_types)]
 #[repr(C)]
-pub(crate) struct KeyDict_cmd {
+pub(crate) struct ParseCmdOutput {
     cmd: Object,
     reg: Object,
     bang: Object,
@@ -183,47 +183,39 @@ pub(crate) struct KeyDict_cmd {
 }
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[derive(Default, Debug)]
-#[allow(non_camel_case_types)]
+#[derive(Default, Debug, Clone, macros::OptsBuilder)]
 #[repr(C)]
-pub(crate) struct KeyDict_cmd {
+pub(crate) struct ParseCmdOutput {
+    #[builder(mask)]
     mask: u64,
-
-    /// 1st in the mask.
     cmd: NvimString,
-
-    /// 10th in the mask.
     range: Array,
-
-    /// 7th in the mask.
     count: Integer,
-
-    /// 2nd in the mask.
     reg: NvimString,
-
-    /// 3rd in the mask.
     bang: Boolean,
-
-    /// 6th in the mask.
     args: Array,
-
-    /// 8th in the mask.
     magic: Dictionary,
-
-    /// 5th in the mask.
     mods: Dictionary,
-
-    /// 9th in the mask.
     nargs: Object,
 
-    /// 4th in the mask.
+    // Only on 0.10.
+    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
     addr: Object,
 
-    /// 11th in the mask.
+    // Only on Nightly.
+    #[cfg(feature = "neovim-nightly")]
+    addr: NvimString,
+
+    // Only on Nightly.
+    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
     nextcmd: Object,
+
+    // Only on 0.10.
+    #[cfg(feature = "neovim-nightly")]
+    nextcmd: NvimString,
 }
 
-impl From<&CmdInfos> for KeyDict_cmd {
+impl From<&CmdInfos> for ParseCmdOutput {
     #[inline]
     fn from(infos: &CmdInfos) -> Self {
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
@@ -256,110 +248,64 @@ impl From<&CmdInfos> for KeyDict_cmd {
         }
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         {
-            let mut mask = 0;
+            let mut builder = Self::builder();
 
-            let cmd = if let Some(cmd) = infos.cmd.as_deref() {
-                mask |= 0b11;
-                NvimString::from(cmd)
-            } else {
-                NvimString::default()
-            };
-
-            let range = if let Some(range) = infos.range {
-                mask |= 0b10000000001;
-                Array::from(range)
-            } else {
-                Array::default()
-            };
-
-            let count = if let Some(count) = infos.count {
-                mask |= 0b10000001;
-                count as Integer
-            } else {
-                Integer::default()
-            };
-
-            let reg = if let Some(reg) = infos.reg {
-                mask |= 0b101;
-                reg.into()
-            } else {
-                NvimString::default()
-            };
-
-            let bang = if let Some(bang) = infos.bang {
-                mask |= 0b1001;
-                bang
-            } else {
-                Boolean::default()
-            };
-
-            let args = if !infos.args.is_empty() {
-                mask |= 0b1000001;
-                Array::from_iter(infos.args.clone())
-            } else {
-                Array::default()
-            };
-
-            let magic = if let Some(magic) = infos.magic {
-                mask |= 0b100000001;
-                Dictionary::from(magic)
-            } else {
-                Dictionary::default()
-            };
-
-            let mods = if let Some(mods) = infos.mods {
-                mask |= 0b100001;
-                Dictionary::from(mods)
-            } else {
-                Dictionary::default()
-            };
-
-            let nargs = if let Some(nargs) = infos.nargs {
-                mask |= 0b1000000001;
-                nargs.to_object().unwrap()
-            } else {
-                Object::default()
-            };
-
-            let addr = if let Some(addr) = infos.addr {
-                mask |= 0b10001;
-                addr.to_object().unwrap()
-            } else {
-                Object::default()
-            };
-
-            let nextcmd = if let Some(nextcmd) = infos.nextcmd.as_deref() {
-                mask |= 0b100000000001;
-                NvimString::from(nextcmd).into()
-            } else {
-                Object::default()
-            };
-
-            Self {
-                mask,
-                cmd,
-                reg,
-                bang,
-                addr,
-                mods,
-                args,
-                count,
-                magic,
-                nargs,
-                range,
-                nextcmd,
+            if let Some(cmd) = infos.cmd.as_deref() {
+                builder.cmd(cmd.into());
             }
+
+            if let Some(range) = infos.range {
+                builder.range(Array::from(range));
+            }
+
+            if let Some(count) = infos.count {
+                builder.count(count as Integer);
+            }
+
+            if let Some(reg) = infos.reg {
+                builder.reg(reg.into());
+            }
+
+            if let Some(bang) = infos.bang {
+                builder.bang(bang);
+            }
+
+            if !infos.args.is_empty() {
+                builder.args(Array::from_iter(infos.args.clone()));
+            }
+
+            if let Some(magic) = infos.magic {
+                builder.magic(Dictionary::from(magic));
+            }
+
+            if let Some(mods) = infos.mods {
+                builder.mods(Dictionary::from(mods));
+            }
+
+            if let Some(nargs) = infos.nargs {
+                builder.nargs(nargs.to_object().unwrap());
+            }
+
+            if let Some(addr) = infos.addr {
+                builder.addr(addr.as_str().into());
+            }
+
+            if let Some(nextcmd) = infos.nextcmd.as_deref() {
+                builder.nextcmd(nextcmd.into());
+            };
+
+            builder.build()
         }
     }
 }
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-impl TryFrom<KeyDict_cmd> for CmdInfos {
+impl TryFrom<ParseCmdOutput> for CmdInfos {
     type Error = conversion::Error;
 
     #[inline]
-    fn try_from(cmd: KeyDict_cmd) -> Result<Self, Self::Error> {
-        let KeyDict_cmd {
+    fn try_from(cmd: ParseCmdOutput) -> Result<Self, Self::Error> {
+        let ParseCmdOutput {
             addr,
             args,
             bang,
@@ -385,7 +331,7 @@ impl TryFrom<KeyDict_cmd> for CmdInfos {
         }
 
         Ok(Self {
-            addr: utils::none_literal_is_none(Deserializer::new(addr))?,
+            addr: utils::none_literal_is_none(Deserializer::new(addr.into()))?,
             args: deserialize(args)?,
             bang: deserialize(bang)?,
             cmd: deserialize(cmd)?,
@@ -393,7 +339,9 @@ impl TryFrom<KeyDict_cmd> for CmdInfos {
             magic: deserialize(magic)?,
             mods: deserialize(mods)?,
             nargs: deserialize(nargs)?,
-            nextcmd: utils::empty_string_is_none(Deserializer::new(nextcmd))?,
+            nextcmd: utils::empty_string_is_none(Deserializer::new(
+                nextcmd.into(),
+            ))?,
             range: deserialize(range)?,
             reg: utils::char_from_string(Deserializer::new(reg.into()))?,
         })

@@ -6,7 +6,7 @@ use crate::opts::*;
 pub(crate) type ParseCmdOutput = Dictionary;
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-pub(crate) type ParseCmdOutput = crate::types::KeyDict_cmd;
+pub(crate) type ParseCmdOutput = crate::types::ParseCmdOutput;
 
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
@@ -42,7 +42,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L308
     pub(crate) fn nvim_cmd(
         channel_id: u64,
-        cmd: *const crate::types::KeyDict_cmd,
+        cmd: *const crate::types::ParseCmdOutput,
         opts: *const CmdOpts,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
