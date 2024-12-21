@@ -60,16 +60,16 @@ might add a new example documenting your use case (if it can be done).
 
 ## Testing
 
-The `test` feature flag enables the `#[nvim_oxi::test]` proc macro. This macro
-replaces the regular `#[test]` annotations and can be used to test a piece of
-code from within a Neovim instance using Rust's excellent testing framework.
+Turning on the `test` feature enables `#[nvim_oxi::test]`, which replaces the
+regular `#[test]` macro and allows you to test a piece of code from within a
+Neovim instance using Rust's testing framework.
 
 For example:
 
 ```rust
-use nvim_oxi::{self as oxi, api};
+use nvim_oxi::api;
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn set_get_del_var() {
     api::set_var("foo", 42).unwrap();
     assert_eq!(Ok(42), api::get_var("foo"));
@@ -77,14 +77,11 @@ fn set_get_del_var() {
 }
 ```
 
-Then `cargo test` will spawn a new Neovim process with an empty config, run
-that code and exit. There are a couple of gotchas:
+When `cargo test` is executed, the generated code will spawn a new Neovim
+process with the `nvim` binary in your `$PATH`, test your code, and exit.
 
-- after changing a piece of code, `cargo build` has to be run before you can
-  test that with `cargo test`;
-
-- you cannot have two test functions with the same name, even if they belong to
-  different modules. For example this won't work:
+There's a gotcha: you can't have two tests with the same name in the same
+crate, even if they belong to different modules. For example, this won't work:
 
 ```rust
 mod a {
@@ -95,5 +92,15 @@ mod a {
 mod b {
     #[nvim_oxi::test]
     fn foo() {}
+}
+```
+
+Note that all integration tests must live inside a separate `cdylib` crate with
+the following build script:
+
+```rust
+// build.rs
+fn main() -> Result<(), nvim_oxi::tests::BuildError> {
+    nvim_oxi::tests::build()
 }
 ```
