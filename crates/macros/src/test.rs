@@ -69,7 +69,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
             #nvim_oxi::tests::test_macro::test_body(
                 env!("CARGO_CRATE_NAME"),
-                env!("CARGO_MANIFEST_DIR"),
+                env!("CARGO_MANIFEST_PATH"),
                 stringify!(#plugin_name),
                 #library_path,
                 #extra_cmd,

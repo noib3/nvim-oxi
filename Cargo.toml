@@ -20,8 +20,9 @@ api = { path = "./crates/api", package = "nvim-oxi-api" }
 libuv = { path = "./crates/libuv", package = "nvim-oxi-libuv" }
 luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
 macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
-thiserror = "1.0"
 types = { path = "./crates/types", package = "nvim-oxi-types" }
+
+thiserror = "1.0"
 
 [workspace.lints.clippy]
 mixed_attributes_style = "allow"
@@ -48,19 +49,20 @@ neovim-nightly = ["api/neovim-nightly"]
 
 libuv = ["dep:libuv"]
 mlua = ["dep:mlua"]
-test = ["macros/test", "miniserde"]
+test = ["macros/test", "dep:cargo_metadata"]
 test-terminator = ["test", "libuv", "macros/test-terminator"]
 __vendored_luajit = ["mlua/vendored"]
 
 [dependencies]
 api = { workspace = true }
-libuv = { workspace = true, optional = true }
 luajit = { workspace = true }
 macros = { workspace = true, features = ["plugin"] }
-miniserde = { version = "0.1", optional = true }
-mlua = { version = "0.10", features = ["luajit"], optional = true }
-thiserror = { workspace = true }
 types = { workspace = true, features = ["serde"] }
+libuv = { workspace = true, optional = true }
+
+thiserror = { workspace = true }
+cargo_metadata = { version = "0.19", optional = true }
+mlua = { version = "0.10", features = ["luajit"], optional = true }
 
 [dev-dependencies]
 mlua = { version = "0.10", features = ["luajit", "module"] }
