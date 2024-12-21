@@ -4,7 +4,7 @@ use std::any::Any;
 use std::env;
 use std::fmt::{Debug, Display};
 use std::panic::{self, Location, UnwindSafe};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 use std::sync::{Arc, OnceLock};
