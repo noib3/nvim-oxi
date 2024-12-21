@@ -21,7 +21,7 @@ luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
 macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
 types = { path = "./crates/types", package = "nvim-oxi-types" }
 
-thiserror = "1.0"
+thiserror = "2.0"
 
 [workspace.lints.clippy]
 mixed_attributes_style = "allow"
