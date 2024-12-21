@@ -1,7 +1,17 @@
-use nvim_oxi as oxi;
 use nvim_oxi::api::{self, types::*, Buffer, Window};
 
-#[oxi::test]
+#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+#[nvim_oxi::test]
+fn open_hsplit() {
+    let config = WindowConfig::builder()
+        .split(SplitDirection::Below)
+        .height(10)
+        .build();
+
+    let _win = api::open_win(&Buffer::current(), true, &config).unwrap();
+}
+
+#[nvim_oxi::test]
 fn open_win_empty_config() {
     let buf = Buffer::current();
     let config = WindowConfig::builder().build();
@@ -12,7 +22,7 @@ fn open_win_empty_config() {
     );
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn open_win_basic_config() {
     let buf = api::create_buf(true, true).unwrap();
     let config = WindowConfig::builder()
@@ -39,7 +49,7 @@ fn open_win_basic_config() {
     assert_eq!(config.col.unwrap(), got.col.unwrap());
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn open_win_full_config() {
     let buf = api::create_buf(true, true).unwrap();
 
@@ -78,7 +88,7 @@ fn open_win_full_config() {
 }
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[oxi::test]
+#[nvim_oxi::test]
 fn open_split_win() {
     let buf = api::create_buf(true, true).unwrap();
     let old_win = api::get_current_win();
@@ -103,7 +113,7 @@ fn open_split_win() {
     assert_ne!(old_win, new_win);
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn set_config() {
     let buf = api::create_buf(true, true).unwrap();
 
