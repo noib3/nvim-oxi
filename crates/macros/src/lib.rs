@@ -141,28 +141,6 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// If the given string spans multiple lines, it will be joined into a single
 /// line using `;` as the separator.
-///
-/// ## `library_path`
-///
-/// The `library_path` attribute is used to specify the path to the compiled
-/// shared library containing the code to test. This can be useful if you're
-/// building your own macro on top of `test`, but should otherwise be left
-/// unspecified.
-///
-/// It can be set to any expression that evaluates to a type implementing
-/// `AsRef<Path>`.
-///
-/// ```ignore
-/// # use nvim_oxi::api;
-/// # use std::path::PathBuf;
-/// #[nvim_oxi::test(library_path = my_custom_library_path())]
-/// fn print_42() -> Result<(), api::Error> {
-///     api::command("lua print(42)")
-/// }
-///
-/// fn my_custom_library_path() -> PathBuf {
-///     todo!();
-/// }
 /// ```
 #[cfg(feature = "test")]
 #[proc_macro_attribute]
