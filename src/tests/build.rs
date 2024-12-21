@@ -4,7 +4,36 @@ use std::path::Path;
 use std::process::Command;
 use std::{env, io};
 
-/// TODO: docs.
+/// Builds the library required to run integration tests within Neovim.
+///
+/// This function is designed to be used in the build script (`build.rs`) of a
+/// crate containing integration tests for Neovim plugins. It is tightly
+/// coupled with the [`test`](crate::test) macro, which is used to annotate the
+/// functions to test.
+///
+/// Together, they enable a workflow where the build script compiles the test
+/// crate into a dynamic library, and the macro generates functions that load
+/// this library into Neovim and execute the tests within it.
+///
+/// # Usage
+///
+/// Add the following to your test crate's `build.rs`:
+///
+/// ```ignore
+/// fn main() -> Result<(), nvim_oxi::tests::BuildError> {
+///     nvim_oxi::tests::build()
+/// }
+/// ```
+///
+/// # Notes
+///
+/// Like the plugin crate, the test crate must also be configured to be built
+/// as a dynamic library by including the following in its Cargo.toml:
+///
+/// ```toml
+/// [lib]
+/// crate-type = ["cdylib"]
+/// ```
 pub fn build() -> Result<(), BuildError> {
     let Some(_g) = BuildGuard::<EnvVarGuard>::new()? else { return Ok(()) };
     let compilation_opts = CompilationOpts::from_env()?;
@@ -20,7 +49,7 @@ pub fn build() -> Result<(), BuildError> {
     Ok(())
 }
 
-/// TODO: docs.
+/// An opaque error returned when [`build`]ing a test crate fails.
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 pub struct BuildError {
