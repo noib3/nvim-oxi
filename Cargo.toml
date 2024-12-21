@@ -1,6 +1,5 @@
 [workspace]
-members = ["crates/*", "examples/*"]
-exclude = ["tests"]
+members = ["crates/*", "examples/*", "tests"]
 resolver = "2"
 
 [workspace.package]
@@ -44,8 +43,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 neovim-0-9 = ["api/neovim-0-9"]
-neovim-0-10 = ["api/neovim-0-10"]
-neovim-nightly = ["api/neovim-nightly"]
+neovim-0-10 = ["neovim-0-9", "api/neovim-0-10"]
+neovim-nightly = ["neovim-0-10", "api/neovim-nightly"]
 
 libuv = ["dep:libuv"]
 mlua = ["dep:mlua"]
