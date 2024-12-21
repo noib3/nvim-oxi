@@ -605,13 +605,12 @@ pub fn input_mouse(
 
 /// Binding to [`nvim_list_bufs()`][1].
 ///
-/// Gets the current list of [`Buffer`]s, including unlisted [1]
+/// Gets the current list of [`Buffer`]s, including [unlisted][2]
 /// buffers (like `:ls!`). Use [`Buffer::is_loaded`] to check if a
 /// buffer is loaded.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
-///
-/// [1]: unloaded/deleted
+/// [2]: unloaded/deleted
 pub fn list_bufs() -> impl SuperIterator<Buffer> {
     let bufs = unsafe {
         nvim_list_bufs(
