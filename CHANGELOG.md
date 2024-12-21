@@ -15,6 +15,10 @@
 - a `StringBuilder` struct that can be used to incrementally build
   `nvim_oxi::String`s;
 
+- a `nvim_oxi::tests::build()` function to be used in the build script of
+  a crate containing integration tests annotated with `#[nvim_oxi::test]`
+  ([#201](https://github.com/noib3/nvim-oxi/pull/201));
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of

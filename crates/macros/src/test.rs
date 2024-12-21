@@ -27,13 +27,6 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     let nvim_oxi = &attrs.nvim_oxi;
 
-    let library_path = match &attrs.library_path {
-        Some(LibraryPath { path, .. }) => {
-            quote! { ::core::option::Option::Some(#path) }
-        },
-        None => quote! { ::core::option::Option::<&str>::None },
-    };
-
     let extra_cmd = match &attrs.cmd {
         Some(Cmd { cmd, .. }) => quote! { ::core::option::Option::Some(#cmd) },
         None => quote! { ::core::option::Option::None },
@@ -45,13 +38,13 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
            fn __test_fn(#terminator) #ret {
                #block
            }
-           #nvim_oxi::tests::plugin_body_with_terminator(__test_fn)
+           #nvim_oxi::tests::test_macro::plugin_body_with_terminator(__test_fn)
         },
         None => quote! {
             fn __test_fn() #ret {
                 #block
             }
-            #nvim_oxi::tests::plugin_body(__test_fn)
+            #nvim_oxi::tests::test_macro::plugin_body(__test_fn)
         },
     };
 
@@ -60,18 +53,17 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         fn __test_fn() #ret {
             #block
         }
-        #nvim_oxi::tests::plugin_body(__test_fn)
+        #nvim_oxi::tests::test_macro::plugin_body(__test_fn)
     };
 
     quote! {
         #[test]
         #test_attrs
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
-            #nvim_oxi::tests::test_body(
+            #nvim_oxi::tests::test_macro::test_body(
                 env!("CARGO_CRATE_NAME"),
-                env!("CARGO_MANIFEST_DIR"),
+                env!("CARGO_MANIFEST_PATH"),
                 stringify!(#plugin_name),
-                #library_path,
                 #extra_cmd,
             )
         }
@@ -87,7 +79,6 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 #[derive(Default)]
 struct Attributes {
     cmd: Option<Cmd>,
-    library_path: Option<LibraryPath>,
     nvim_oxi: NvimOxi,
 }
 
@@ -105,12 +96,6 @@ impl Parse for Attributes {
                         return Err(DuplicateError(cmd).into());
                     }
                     this.cmd = Some(cmd);
-                },
-                Attribute::LibraryPath(library_path) => {
-                    if this.library_path.is_some() {
-                        return Err(DuplicateError(library_path).into());
-                    }
-                    this.library_path = Some(library_path);
                 },
                 Attribute::NvimOxi(nvim_oxi) => {
                     if has_parsed_nvim_oxi {
@@ -132,7 +117,6 @@ impl Parse for Attributes {
 
 enum Attribute {
     Cmd(Cmd),
-    LibraryPath(LibraryPath),
     NvimOxi(NvimOxi),
 }
 
@@ -142,7 +126,6 @@ impl Parse for Attribute {
         input
             .parse::<Cmd>()
             .map(Self::Cmd)
-            .or_else(|_| input.parse::<LibraryPath>().map(Self::LibraryPath))
             .or_else(|_| input.parse::<NvimOxi>().map(Self::NvimOxi))
     }
 }
@@ -180,32 +163,5 @@ impl ToTokens for Cmd {
         let str = self.cmd.value().lines().collect::<Vec<_>>().join(";");
         let lit = LitStr::new(&str, self.cmd.span());
         lit.to_tokens(tokens);
-    }
-}
-
-/// The path to the compiled test library.
-struct LibraryPath {
-    key_span: Span,
-    path: Expr,
-}
-
-impl KeyedAttribute for LibraryPath {
-    const KEY: &'static str = "library_path";
-
-    type Value = Expr;
-
-    #[inline]
-    fn key_span(&self) -> Span {
-        self.key_span
-    }
-}
-
-impl Parse for LibraryPath {
-    #[inline]
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            key_span: Span::call_site(),
-            path: input.parse::<Keyed<Self>>()?.value,
-        })
     }
 }

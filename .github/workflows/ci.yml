@@ -36,15 +36,9 @@ jobs:
             version: ${{ matrix.neovim }}
       - name: Install latest stable `rustc`
         uses: dtolnay/rust-toolchain@stable
-      - name: Run unit tests
-        run: cargo test ${{ matrix.features }}
+      - name: Run tests
+        run: cargo test --workspace ${{ matrix.features }}
         working-directory: .
-      - name: Build the `tests` crate
-        run: cargo build ${{ matrix.features }}
-        working-directory: ./tests
-      - name: Run integration tests
-        run: cargo test ${{ matrix.features }}
-        working-directory: ./tests
 
   clippy:
     name: clippy
