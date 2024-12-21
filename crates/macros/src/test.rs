@@ -45,13 +45,13 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
            fn __test_fn(#terminator) #ret {
                #block
            }
-           #nvim_oxi::tests::plugin_body_with_terminator(__test_fn)
+           #nvim_oxi::tests::test_macro::plugin_body_with_terminator(__test_fn)
         },
         None => quote! {
             fn __test_fn() #ret {
                 #block
             }
-            #nvim_oxi::tests::plugin_body(__test_fn)
+            #nvim_oxi::tests::test_macro::plugin_body(__test_fn)
         },
     };
 
@@ -60,14 +60,14 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         fn __test_fn() #ret {
             #block
         }
-        #nvim_oxi::tests::plugin_body(__test_fn)
+        #nvim_oxi::tests::test_macro::plugin_body(__test_fn)
     };
 
     quote! {
         #[test]
         #test_attrs
         fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
-            #nvim_oxi::tests::test_body(
+            #nvim_oxi::tests::test_macro::test_body(
                 env!("CARGO_CRATE_NAME"),
                 env!("CARGO_MANIFEST_DIR"),
                 stringify!(#plugin_name),

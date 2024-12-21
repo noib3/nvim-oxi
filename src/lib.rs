@@ -90,10 +90,6 @@ pub use macros::plugin;
 pub use macros::test;
 pub use types::*;
 #[cfg(feature = "test")]
-#[doc(hidden)]
 pub mod tests;
-#[cfg(feature = "test-terminator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "test-terminator")))]
-pub use tests::{TestFailure, TestTerminator};
 pub use toplevel::*;
 pub use types::string;
