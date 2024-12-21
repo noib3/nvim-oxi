@@ -2,7 +2,7 @@ use std::thread;
 use std::time::Duration;
 
 use nvim_oxi::libuv::{AsyncHandle, TimerHandle};
-use nvim_oxi::{print, schedule, Error, Result};
+use nvim_oxi::{print, schedule, Result};
 use tokio::sync::mpsc::{self, UnboundedSender};
 use tokio::time;
 
