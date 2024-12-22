@@ -26,6 +26,14 @@
 
 - renamed the `lua_<Foo>` types to `<Foo>`;
 
+- the argument of `SetHighlightOptsBuilder::link()` from `&str` to any type
+  implementing `HlGroup`;
+
+### Removed
+
+- the `SetHighlightOptsBuilder::global_link()` method. Use
+  `SetHighlightOptsBuilder::link()` instead;
+
 - the argument of `SetHighlightOptsBuilder::{link,global_link}()` from `&str`
   to any type implementing `HlGroup`;
 
