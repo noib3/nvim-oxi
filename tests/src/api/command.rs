@@ -22,6 +22,7 @@ fn command_nargs_1() {
 fn regression_1() {
     let opts = CreateCommandOpts::builder()
         .bang(true)
+        .desc("play audio using echo.nvim")
         .nargs(CommandNArgs::ZeroOrOne)
         .build();
     api::create_user_command("Echo", "", &opts).unwrap();
