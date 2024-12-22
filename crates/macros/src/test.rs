@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, ItemFn, LitStr, Token};
+use syn::{parse_macro_input, AttrStyle, ItemFn, LitStr, Meta, Token};
 
 use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 use crate::plugin::NvimOxi;
@@ -14,6 +14,12 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let ItemFn { attrs: test_attrs, sig, block, .. } =
         parse_macro_input!(item as syn::ItemFn);
 
+    let should_panic = test_attrs.iter().any(|attr| {
+        let AttrStyle::Outer = &attr.style else { return false };
+        let Meta::Path(path) = &attr.meta else { return false };
+        path.segments.iter().any(|segment| segment.ident == "should_panic")
+    });
+
     let test_attrs = test_attrs
         .into_iter()
         .map(ToTokens::into_token_stream)
@@ -21,16 +27,29 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     let test_name = sig.ident;
 
-    let plugin_name = Ident::new(&format!("__{test_name}"), Span::call_site());
+    let test_ret = if should_panic {
+        quote!()
+    } else {
+        quote! {
+            -> ::core::result::Result<(), ::std::string::String>
+        }
+    };
+
+    let nvim_oxi = &attrs.nvim_oxi;
 
     let ret = &sig.output;
 
-    let nvim_oxi = &attrs.nvim_oxi;
+    let plugin_name = Ident::new(&format!("__{test_name}"), Span::call_site());
 
     let extra_cmd = match &attrs.cmd {
         Some(Cmd { cmd, .. }) => quote! { ::core::option::Option::Some(#cmd) },
         None => quote! { ::core::option::Option::None },
     };
+
+    let maybe_ignore_err =
+        should_panic.then(|| quote!(let _ = )).unwrap_or_default();
+
+    let maybe_semicolon = should_panic.then(|| quote!(;)).unwrap_or_default();
 
     #[cfg(feature = "test-terminator")]
     let plugin_body = match &sig.inputs.first() {
@@ -59,13 +78,13 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #[test]
         #test_attrs
-        fn #test_name() -> ::core::result::Result<(), ::std::string::String> {
-            #nvim_oxi::tests::test_macro::test_body(
+        fn #test_name() #test_ret {
+            #maybe_ignore_err #nvim_oxi::tests::test_macro::test_body(
                 env!("CARGO_CRATE_NAME"),
                 env!("CARGO_MANIFEST_PATH"),
                 stringify!(#plugin_name),
                 #extra_cmd,
-            )
+            )#maybe_semicolon
         }
 
         #[#nvim_oxi::plugin(nvim_oxi = #nvim_oxi)]
