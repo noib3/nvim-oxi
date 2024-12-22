@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use nvim_oxi::{self as nvim, libuv::*};
+use nvim_oxi::libuv::*;
 
-#[nvim::test]
+#[nvim_oxi::test]
 #[ignore = "the callback is never called"]
 fn async_handle_0() {
     let num_called = Rc::new(RefCell::new(0));
@@ -24,7 +24,7 @@ fn async_handle_0() {
 
         // TODO: how do we wait for the callback to be executed without
         // blocking the main thread?
-        nvim::schedule(move |_| {
+        nvim_oxi::schedule(move |_| {
             assert_eq!(*also_num_called.borrow(), i);
         });
     }

@@ -1,6 +1,6 @@
-use nvim_oxi::{self as nvim, api::TabPage};
+use nvim_oxi::api::TabPage;
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn get_list_wins() {
     let tab = TabPage::current();
 
@@ -16,17 +16,17 @@ fn get_list_wins() {
     assert_eq!(win, all_wins.into_iter().next().unwrap());
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn tabpage_get_number() {
     assert_eq!(Ok(1), TabPage::current().get_number())
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn is_valid() {
     assert!(TabPage::current().is_valid());
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn tabpage_set_get_del_var() {
     let mut tab = TabPage::current();
     tab.set_var("foo", 42).unwrap();
@@ -34,20 +34,23 @@ fn tabpage_set_get_del_var() {
     assert_eq!(Ok(()), tab.del_var("foo"));
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 fn tabpage_set_get_win() {
-    let config = nvim::api::types::WindowConfig::builder()
-        .relative(nvim::api::types::WindowRelativeTo::Editor)
+    let config = nvim_oxi::api::types::WindowConfig::builder()
+        .relative(nvim_oxi::api::types::WindowRelativeTo::Editor)
         .height(10)
         .width(5)
         .row(1.5)
         .col(1.5)
         .build();
 
-    let window =
-        nvim::api::open_win(&nvim::api::Buffer::current(), true, &config)
-            .unwrap();
+    let window = nvim_oxi::api::open_win(
+        &nvim_oxi::api::Buffer::current(),
+        true,
+        &config,
+    )
+    .unwrap();
 
     let mut tab = TabPage::current();
 

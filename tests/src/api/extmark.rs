@@ -1,7 +1,6 @@
-use nvim_oxi as nvim;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer};
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn add_highlight() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
@@ -9,7 +8,7 @@ fn add_highlight() {
     assert!(res.is_ok(), "{res:?}");
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn clear_namespace() {
     let mut buf = Buffer::current();
     let id = api::create_namespace("Foo");
@@ -17,7 +16,7 @@ fn clear_namespace() {
     assert_eq!(Ok(()), res);
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn get_extmarks() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
@@ -85,7 +84,7 @@ fn get_extmarks() {
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn get_namespaces() {
     let id = api::create_namespace("Foo");
 
@@ -96,29 +95,27 @@ fn get_namespaces() {
     assert_eq!(id, out);
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn set_decoration_provider() {
-    use nvim::print;
-
     let id = api::create_namespace("Foo");
 
     let opts = DecorationProviderOpts::builder()
         .on_start(|args| {
-            print!("{args:?}");
+            nvim_oxi::print!("{args:?}");
             true
         })
         .on_buf(|args| {
-            print!("{args:?}");
+            nvim_oxi::print!("{args:?}");
         })
         .on_win(|args| {
-            print!("{args:?}");
+            nvim_oxi::print!("{args:?}");
             true
         })
         .on_line(|args| {
-            print!("{args:?}");
+            nvim_oxi::print!("{args:?}");
         })
         .on_end(|args| {
-            print!("{args:?}");
+            nvim_oxi::print!("{args:?}");
         })
         .build();
 
@@ -133,7 +130,7 @@ fn set_decoration_provider() {
     assert!(bytes_written.is_ok(), "{bytes_written:?}");
 }
 
-#[nvim::test]
+#[nvim_oxi::test]
 fn set_get_del_extmark() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
@@ -207,7 +204,7 @@ fn set_get_del_extmark() {
 }
 
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[nvim::test]
+#[nvim_oxi::test]
 fn virt_text_pos_inline() {
     let mut buf = Buffer::current();
 

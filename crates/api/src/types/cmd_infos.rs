@@ -206,7 +206,7 @@ pub(crate) struct ParseCmdOutput {
     #[cfg(feature = "neovim-nightly")]
     addr: NvimString,
 
-    // Only on Nightly.
+    // Only on 0.10.
     #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
     nextcmd: Object,
 
@@ -331,6 +331,9 @@ impl TryFrom<ParseCmdOutput> for CmdInfos {
         }
 
         Ok(Self {
+            #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // Only on 0.10.
+            addr: utils::none_literal_is_none(Deserializer::new(addr))?,
+            #[cfg(feature = "neovim-nightly")] // Only on Nightly.
             addr: utils::none_literal_is_none(Deserializer::new(addr.into()))?,
             args: deserialize(args)?,
             bang: deserialize(bang)?,
@@ -339,6 +342,11 @@ impl TryFrom<ParseCmdOutput> for CmdInfos {
             magic: deserialize(magic)?,
             mods: deserialize(mods)?,
             nargs: deserialize(nargs)?,
+            #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // Only on 0.10.
+            nextcmd: utils::empty_string_is_none(Deserializer::new(
+                nextcmd,
+            ))?,
+            #[cfg(feature = "neovim-nightly")] // Only on Nightly.
             nextcmd: utils::empty_string_is_none(Deserializer::new(
                 nextcmd.into(),
             ))?,

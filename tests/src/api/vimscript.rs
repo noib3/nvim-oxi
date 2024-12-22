@@ -1,14 +1,12 @@
-use nvim_oxi as oxi;
-#[allow(unused_imports)]
 use nvim_oxi::api::{self, opts::*, types::*};
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn call_function() {
     let res = api::call_function::<_, usize>("strwidth", ("foo bar",));
     assert_eq!(Ok(7), res);
 }
 
-#[oxi::test(cmd = "set autoread")] // getting `W13` warnings otherwise
+#[nvim_oxi::test(cmd = "set autoread")] // getting `W13` warnings otherwise
 fn cmd_basic() {
     let cmd = "checktime";
     let infos = CmdInfos::builder().cmd(cmd).build();
@@ -16,7 +14,7 @@ fn cmd_basic() {
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn cmd_no_output() {
     let cmd = "checktime";
     let infos = CmdInfos::builder().cmd(cmd).build();
@@ -24,7 +22,7 @@ fn cmd_no_output() {
     assert_eq!(Ok(None), api::cmd(&infos, &opts));
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn command() {
     let res = api::command(":lua vim.api.nvim_buf_set_var(0, 'foo', 'bar')");
     assert_eq!(Ok(()), res);
@@ -35,7 +33,7 @@ fn command() {
     );
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn eval() {
     let res = api::eval::<u8>("41 + 1");
     assert_eq!(Ok(42), res);
@@ -44,7 +42,7 @@ fn eval() {
     assert_eq!(Ok(69), res); // nice
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn exec() {
     let no_op = api::exec(":", true);
     assert_eq!(Ok(None), no_op);
@@ -53,7 +51,7 @@ fn exec() {
     assert_eq!(Ok(Some("2".into())), add);
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn parse_cmd_basic() {
     let res = api::parse_cmd("echo 'foo'", &Default::default());
     assert!(res.is_ok(), "{res:?}");
@@ -71,25 +69,25 @@ fn parse_cmd_basic() {
     assert_eq!(Some(0), infos.count);
 
     let magic = infos.magic.unwrap();
-    assert_eq!(false, magic.file);
-    assert_eq!(false, magic.bar);
+    assert!(!magic.file);
+    assert!(!magic.bar);
 
     let mods = infos.mods.unwrap();
-    assert_eq!(false, mods.browse);
-    assert_eq!(false, mods.confirm);
-    assert_eq!(false, mods.emsg_silent);
-    assert_eq!(false, mods.hide);
-    assert_eq!(false, mods.keepalt);
-    assert_eq!(false, mods.keepjumps);
-    assert_eq!(false, mods.keepmarks);
-    assert_eq!(false, mods.keeppatterns);
-    assert_eq!(false, mods.lockmarks);
-    assert_eq!(false, mods.noautocmd);
-    assert_eq!(false, mods.sandbox);
-    assert_eq!(false, mods.silent);
+    assert!(!mods.browse);
+    assert!(!mods.confirm);
+    assert!(!mods.emsg_silent);
+    assert!(!mods.hide);
+    assert!(!mods.keepalt);
+    assert!(!mods.keepjumps);
+    assert!(!mods.keepmarks);
+    assert!(!mods.keeppatterns);
+    assert!(!mods.lockmarks);
+    assert!(!mods.noautocmd);
+    assert!(!mods.sandbox);
+    assert!(!mods.silent);
     assert_eq!(None, mods.split);
     assert_eq!(-1, mods.tab);
-    assert_eq!(false, mods.vertical);
+    assert!(!mods.vertical);
 
     assert_eq!(Some(CommandNArgs::Any), infos.nargs);
     assert_eq!(None, infos.nextcmd);
@@ -101,7 +99,7 @@ fn parse_cmd_basic() {
     assert_eq!(Some(CmdRange::None), infos.range);
 }
 
-#[oxi::test]
+#[nvim_oxi::test]
 fn parse_expression_basic() {
     let res = api::parse_expression("lua print('a')", "", true);
     assert!(res.is_ok(), "{res:?}");
