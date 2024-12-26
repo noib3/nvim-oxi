@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use all_asserts::*;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
-use nvim_oxi::mlua::{IntoLuaMulti, Lua, Result as LuaResult, Table};
+use nvim_oxi::mlua::{Error as LuaError, IntoLuaMulti, Lua, Table};
 use nvim_oxi::{Dictionary, Object};
 
 #[nvim_oxi::test]
@@ -200,6 +202,21 @@ fn notify_custom() {
 }
 
 #[nvim_oxi::test]
+fn notify_custom_err() {
+    #[derive(Debug, thiserror::Error)]
+    #[error("")]
+    struct CustomError;
+
+    // Set up a custom notification provider.
+    set_notification_provider(move |_lua, _msg, _level, _opts| {
+        Err::<(), _>(LuaError::ExternalError(Arc::new(CustomError)))
+    });
+
+    let opts = Dictionary::new();
+    let _err = api::notify("", LogLevel::Error, &opts).unwrap_err();
+}
+
+#[nvim_oxi::test]
 fn set_get_del_current_line() {
     let res = api::set_current_line("foo");
     assert_eq!(Ok(()), res);
@@ -299,7 +316,7 @@ fn hex_to_dec(hex_color: &str) -> u32 {
 
 fn set_notification_provider<P, R>(mut provider: P)
 where
-    P: FnMut(&Lua, String, u32, Table) -> LuaResult<R> + 'static,
+    P: FnMut(&Lua, String, u32, Table) -> Result<R, LuaError> + 'static,
     R: IntoLuaMulti,
 {
     let lua = nvim_oxi::mlua::lua();

@@ -13,12 +13,14 @@ neovim-0-9 = ["nvim-oxi/neovim-0-9"]
 neovim-0-10 = ["neovim-0-9", "nvim-oxi/neovim-0-10"]
 neovim-nightly = ["neovim-0-10", "nvim-oxi/neovim-nightly"]
 
-[target.'cfg(not(any(target_os = "windows", target_env = "msvc")))'.dependencies]
+[dependencies]
 all_asserts = "2.3"
+thiserror = { workspace = true }
+
+[target.'cfg(not(any(target_os = "windows", target_env = "msvc")))'.dependencies]
 nvim-oxi = { path = "..", features = ["libuv", "mlua", "test"] }
 
 [target.'cfg(any(target_os = "windows", target_env = "msvc"))'.dependencies]
-all_asserts = "2.3"
 nvim-oxi = { path = "..", features = ["mlua", "test"] }
 
 [build-dependencies]
