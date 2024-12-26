@@ -1,5 +1,6 @@
 use all_asserts::*;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
+use nvim_oxi::mlua::{IntoLuaMulti, Lua, Result as LuaResult, Table};
 use nvim_oxi::{Dictionary, Object};
 
 #[nvim_oxi::test]
@@ -180,9 +181,22 @@ fn list_wins() {
 #[nvim_oxi::test]
 fn notify() {
     let opts = Dictionary::new();
-    let ret =
-        api::notify("Something went wrong!", LogLevel::Error, &opts).unwrap();
+    let ret = api::notify("", LogLevel::Error, &opts).unwrap();
     assert_eq!(ret, Object::nil());
+}
+
+#[nvim_oxi::test]
+fn notify_custom() {
+    let message = "Notifier was called!";
+
+    // Set up a custom notification provider.
+    set_notification_provider(move |lua, _msg, _level, _opts| {
+        lua.create_string(message)
+    });
+
+    let opts = Dictionary::new();
+    let ret = api::notify("", LogLevel::Error, &opts).unwrap();
+    assert_eq!(ret, message.into());
 }
 
 #[nvim_oxi::test]
@@ -281,4 +295,19 @@ fn hex_to_dec(hex_color: &str) -> u32 {
     assert!(hex_color[1..].chars().all(|c| c.is_ascii_digit()
         || ('a'..='f').contains(&c.to_ascii_lowercase())));
     u32::from_str_radix(&hex_color[1..], 16).unwrap()
+}
+
+fn set_notification_provider<P, R>(mut provider: P)
+where
+    P: FnMut(&Lua, String, u32, Table) -> LuaResult<R> + 'static,
+    R: IntoLuaMulti,
+{
+    let lua = nvim_oxi::mlua::lua();
+    let vim = lua.globals().get::<Table>("vim").unwrap();
+    let notify = lua
+        .create_function_mut(move |lua, (msg, level, opts)| {
+            provider(lua, msg, level, opts)
+        })
+        .unwrap();
+    vim.set("notify", notify).unwrap();
 }
