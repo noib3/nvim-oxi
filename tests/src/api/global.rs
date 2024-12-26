@@ -1,5 +1,6 @@
 use all_asserts::*;
 use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
+use nvim_oxi::{Dictionary, Object};
 
 #[nvim_oxi::test]
 fn chan_send_fail() {
@@ -178,8 +179,10 @@ fn list_wins() {
 
 #[nvim_oxi::test]
 fn notify() {
-    let opts = NotifyOpts::builder().build();
-    api::notify("Something went wrong!", LogLevel::Error, &opts).unwrap();
+    let opts = Dictionary::new();
+    let ret =
+        api::notify("Something went wrong!", LogLevel::Error, &opts).unwrap();
+    assert_eq!(ret, Object::nil());
 }
 
 #[nvim_oxi::test]

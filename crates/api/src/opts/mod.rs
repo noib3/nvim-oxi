@@ -25,7 +25,6 @@ mod get_mark;
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod get_namespace;
 mod get_text;
-mod notify;
 mod open_term;
 mod option;
 mod parse_cmd;
@@ -61,7 +60,6 @@ pub use get_mark::*;
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub use get_namespace::*;
 pub use get_text::*;
-pub use notify::*;
 pub use open_term::*;
 pub use option::*;
 pub use parse_cmd::*;

@@ -715,12 +715,11 @@ pub fn load_context(ctx: EditorContext) {
 pub fn notify(
     msg: &str,
     log_level: LogLevel,
-    opts: &NotifyOpts,
-) -> Result<()> {
+    opts: &Dictionary,
+) -> Result<Object> {
     let msg = nvim::String::from(msg);
-    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
-    let _ = unsafe {
+    let obj = unsafe {
         nvim_notify(
             msg.non_owning(),
             log_level as Integer,
@@ -728,7 +727,7 @@ pub fn notify(
             &mut err,
         )
     };
-    choose!(err, ())
+    choose!(err, Ok(obj))
 }
 
 /// Binding to [`nvim_open_term()`][1].
