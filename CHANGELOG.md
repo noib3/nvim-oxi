@@ -29,6 +29,10 @@
 - the argument of `SetHighlightOptsBuilder::link()` from `&str` to any type
   implementing `HlGroup`;
 
+- `nvim_oxi::api::notify()` now takes a `&Dictionary` instead of `&NotifyOpts`
+  at its third parameter, and returns `Result<Object>` instead of `Result<()>`
+  ([#208](https://github.com/noib3/nvim-oxi/pull/208));
+
 ### Removed
 
 - the `SetHighlightOptsBuilder::global_link()` method. Use
