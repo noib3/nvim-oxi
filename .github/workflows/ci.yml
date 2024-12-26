@@ -34,11 +34,16 @@ jobs:
         with:
             neovim: true
             version: ${{ matrix.neovim }}
+      - name: Install libluajit (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libluajit-5.1-dev
+      - name: Install libluajit (macOS)
+        if: runner.os == 'macOS'
+        run: brew install luajit
       - name: Install latest stable `rustc`
         uses: dtolnay/rust-toolchain@stable
       - name: Run tests
         run: cargo test --workspace ${{ matrix.features }}
-        working-directory: .
 
   clippy:
     name: clippy

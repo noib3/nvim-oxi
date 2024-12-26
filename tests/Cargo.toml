@@ -21,7 +21,7 @@ thiserror = { workspace = true }
 nvim-oxi = { path = "..", features = ["libuv", "mlua", "test"] }
 
 [target.'cfg(any(target_os = "windows", target_env = "msvc"))'.dependencies]
-nvim-oxi = { path = "..", features = ["mlua", "test"] }
+nvim-oxi = { path = "..", features = ["mlua", "test", "__vendored_luajit"] }
 
 [build-dependencies]
 nvim-oxi = { path = "..", features = ["test"] }
