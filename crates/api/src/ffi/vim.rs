@@ -252,6 +252,8 @@ extern "C" {
         msg: NonOwning<String>,
         log_level: Integer,
         opts: NonOwning<Dictionary>,
+        #[cfg(feature = "neovim-0-10")] // On 0.10 and Nightly.
+        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 

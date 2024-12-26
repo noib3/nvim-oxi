@@ -724,6 +724,8 @@ pub fn notify(
             msg.non_owning(),
             log_level as Integer,
             opts.non_owning(),
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+            types::arena(),
             &mut err,
         )
     };
