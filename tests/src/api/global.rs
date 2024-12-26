@@ -177,6 +177,12 @@ fn list_wins() {
 }
 
 #[nvim_oxi::test]
+fn notify() {
+    let opts = NotifyOpts::builder().build();
+    api::notify("Something went wrong!", LogLevel::Error, &opts).unwrap();
+}
+
+#[nvim_oxi::test]
 fn set_get_del_current_line() {
     let res = api::set_current_line("foo");
     assert_eq!(Ok(()), res);
