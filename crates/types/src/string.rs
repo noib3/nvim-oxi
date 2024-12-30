@@ -185,7 +185,7 @@ impl StringBuilder {
     /// Does not allocate if enough space is available.
     pub fn reserve(&mut self, cap: usize) {
         // + 1 for the null byte
-        if self.cap - self.inner.len() < cap + 1 {
+        if cap != 0 && self.cap - self.inner.len() < cap + 1 {
             let n = (cap - 1).ilog2() + 1;
             let new_cap = 2_usize.pow(n).max(4);
             self.reserve_exact(new_cap);
@@ -197,7 +197,7 @@ impl StringBuilder {
     /// Does not allocate if enough space is available.
     pub fn reserve_exact(&mut self, cap: usize) {
         // + 1 for the null byte
-        if self.cap - self.inner.len() < cap + 1 {
+        if cap != 0 && self.cap - self.inner.len() < cap + 1 {
             // SAFETY: realloc is legal with null pointers, no need for an extra check.
             self.inner.data = unsafe {
                 libc::realloc(
