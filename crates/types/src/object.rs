@@ -160,7 +160,7 @@ impl Object {
     /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
-        debug_assert!(self.ty == ObjectKind::Boolean);
+        debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
         self.data.boolean
     }
 
@@ -177,7 +177,7 @@ impl Object {
     /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked_mut(&mut self) -> &mut bool {
-        debug_assert!(self.ty == ObjectKind::Boolean);
+        debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
         &mut self.data.boolean
     }
 
@@ -193,7 +193,7 @@ impl Object {
     /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
-        debug_assert!(self.ty == ObjectKind::Integer);
+        debug_assert!(self.ty == ObjectKind::Integer, "{:?}", self.ty);
         self.data.integer
     }
 
@@ -210,7 +210,7 @@ impl Object {
     /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_integer_unchecked_mut(&mut self) -> &mut Integer {
-        debug_assert!(self.ty == ObjectKind::Integer);
+        debug_assert!(self.ty == ObjectKind::Integer, "{:?}", self.ty);
         &mut self.data.integer
     }
 
@@ -226,7 +226,7 @@ impl Object {
     /// undefined behavior.
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
-        debug_assert!(self.ty == ObjectKind::Float);
+        debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
         self.data.float
     }
 
@@ -243,7 +243,7 @@ impl Object {
     /// undefined behavior.
     #[inline(always)]
     pub unsafe fn as_float_unchecked_mut(&mut self) -> &mut Float {
-        debug_assert!(self.ty == ObjectKind::Float);
+        debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
         &mut self.data.float
     }
 
@@ -259,7 +259,7 @@ impl Object {
     /// any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
-        debug_assert!(self.ty == ObjectKind::LuaRef);
+        debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
         self.data.luaref
     }
 
@@ -276,7 +276,7 @@ impl Object {
     /// any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked_mut(&mut self) -> &mut LuaRef {
-        debug_assert!(self.ty == ObjectKind::LuaRef);
+        debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
         &mut self.data.luaref
     }
 
@@ -291,7 +291,7 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     pub unsafe fn as_string_unchecked(&self) -> &crate::String {
-        debug_assert!(self.ty == ObjectKind::String);
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         &self.data.string
     }
 
@@ -307,7 +307,7 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     pub unsafe fn as_string_unchecked_mut(&mut self) -> &mut crate::String {
-        debug_assert!(self.ty == ObjectKind::String);
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         &mut self.data.string
     }
 
@@ -322,7 +322,7 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     pub unsafe fn into_string_unchecked(self) -> crate::String {
-        debug_assert!(self.ty == ObjectKind::String);
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
         let string = crate::String { ..*self.data.string };
         core::mem::forget(self);
@@ -340,7 +340,7 @@ impl Object {
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
     pub unsafe fn as_array_unchecked(&self) -> &Array {
-        debug_assert!(self.ty == ObjectKind::Array);
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         &self.data.array
     }
 
@@ -356,7 +356,7 @@ impl Object {
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
     pub unsafe fn as_array_unchecked_mut(&mut self) -> &mut Array {
-        debug_assert!(self.ty == ObjectKind::Array);
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         &mut self.data.array
     }
 
@@ -371,7 +371,7 @@ impl Object {
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
     pub unsafe fn into_array_unchecked(self) -> Array {
-        debug_assert!(self.ty == ObjectKind::Array);
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
         let array = Array(crate::kvec::KVec { ..self.data.array.0 });
         core::mem::forget(self);
@@ -389,7 +389,7 @@ impl Object {
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
     pub unsafe fn as_dictionary_unchecked(&self) -> &Dictionary {
-        debug_assert!(self.ty == ObjectKind::Dictionary);
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         &self.data.dictionary
     }
 
@@ -405,7 +405,7 @@ impl Object {
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
     pub unsafe fn as_dictionary_unchecked_mut(&mut self) -> &mut Dictionary {
-        debug_assert!(self.ty == ObjectKind::Dictionary);
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         &mut self.data.dictionary
     }
 
@@ -420,7 +420,7 @@ impl Object {
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
     pub unsafe fn into_dictionary_unchecked(self) -> Dictionary {
-        debug_assert!(self.ty == ObjectKind::Dictionary);
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
         let dict = Dictionary(crate::kvec::KVec { ..self.data.dictionary.0 });
         core::mem::forget(self);
