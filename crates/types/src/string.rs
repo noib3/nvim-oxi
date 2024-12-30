@@ -89,6 +89,7 @@ impl String {
     #[inline]
     pub fn from_bytes(bytes: &[u8]) -> Self {
         let mut s = StringBuilder::new();
+        s.reserve_exact(bytes.len());
         s.push_bytes(bytes);
         s.finish()
     }
