@@ -142,6 +142,9 @@ impl StringBuilder {
     }
 
     /// Push new bytes to the builder.
+    ///
+    /// When only pushing bytes once, prefer [`String::from_bytes`] as this method may allocate
+    /// extra space in the buffer.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
         let slice_len = bytes.len();
