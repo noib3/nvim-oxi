@@ -185,14 +185,7 @@ impl StringBuilder {
         if self.cap - self.inner.len() < cap + 1 {
             let n = (cap - 1).ilog2() + 1;
             let new_cap = 2_usize.pow(n).max(4);
-            // SAFETY: realloc is legal with null pointers, no need for an extra check.
-            self.inner.data = unsafe {
-                libc::realloc(
-                    self.inner.data as *mut _,
-                    self.inner.len() + 1 + new_cap,
-                ) as *mut ffi::c_char
-            };
-            self.cap = self.inner.len() + new_cap;
+            self.reserve_exact(new_cap);
         }
     }
 
