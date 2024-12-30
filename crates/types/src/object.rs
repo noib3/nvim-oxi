@@ -148,71 +148,322 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
+    /// Returns the boolean stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
+    /// with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
+        debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
         self.data.boolean
     }
 
+    /// Returns a mutable reference to the boolean stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
+    /// with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    #[inline(always)]
+    pub unsafe fn as_boolean_unchecked_mut(&mut self) -> &mut bool {
+        debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
+        &mut self.data.boolean
+    }
+
+    /// Returns the integer stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be one of
+    /// [`Integer`][ObjectKind::Integer], [`Buffer`][ObjectKind::Buffer],
+    /// [`Window`][ObjectKind::Window], or [`TabPage`][ObjectKind::TabPage].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined
+    /// behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
+        debug_assert!(
+            matches!(
+                self.ty,
+                ObjectKind::Integer
+                    | ObjectKind::Buffer
+                    | ObjectKind::Window
+                    | ObjectKind::TabPage
+            ),
+            "{:?}",
+            self.ty
+        );
         self.data.integer
     }
 
+    /// Returns a mutable reference to the integer stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be one of
+    /// [`Integer`][ObjectKind::Integer], [`Buffer`][ObjectKind::Buffer],
+    /// [`Window`][ObjectKind::Window], or [`TabPage`][ObjectKind::TabPage].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined
+    /// behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    #[inline(always)]
+    pub unsafe fn as_integer_unchecked_mut(&mut self) -> &mut Integer {
+        debug_assert!(
+            matches!(
+                self.ty,
+                ObjectKind::Integer
+                    | ObjectKind::Buffer
+                    | ObjectKind::Window
+                    | ObjectKind::TabPage
+            ),
+            "{:?}",
+            self.ty
+        );
+        &mut self.data.integer
+    }
+
+    /// Returns the float stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
+        debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
         self.data.float
     }
 
+    /// Returns a mutable reference to the float stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    #[inline(always)]
+    pub unsafe fn as_float_unchecked_mut(&mut self) -> &mut Float {
+        debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
+        &mut self.data.float
+    }
+
+    /// Returns the Lua reference stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
+        debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
         self.data.luaref
     }
 
+    /// Returns a mutable reference to the Lua reference stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
-    ///
-    /// Extracts the contained [`String`](crate::String) value without checking
-    /// that the object actually contains a [`String`](crate::String).
-    pub unsafe fn into_string_unchecked(self) -> crate::String {
-        #[allow(clippy::unnecessary_struct_initialization)]
-        let s = crate::String { ..*self.data.string };
-        core::mem::forget(self);
-        s
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    #[inline(always)]
+    pub unsafe fn as_luaref_unchecked_mut(&mut self) -> &mut LuaRef {
+        debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
+        &mut self.data.luaref
     }
 
+    /// Returns a reference to the string stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_string_unchecked(&self) -> &crate::String {
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
+        &self.data.string
+    }
+
+    /// Returns a mutable reference to the string stored in this
+    /// [`Object`].
     ///
-    /// Extracts the contained [`Array`] value without checking that the object
-    /// actually contains an [`Array`].
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_string_unchecked_mut(&mut self) -> &mut crate::String {
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
+        &mut self.data.string
+    }
+
+    /// Returns the string stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn into_string_unchecked(self) -> crate::String {
+        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
+        #[allow(clippy::unnecessary_struct_initialization)]
+        let string = crate::String { ..*self.data.string };
+        core::mem::forget(self);
+        string
+    }
+
+    /// Returns a reference to the array stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_array_unchecked(&self) -> &Array {
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
+        &self.data.array
+    }
+
+    /// Returns a mutable reference to the array stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_array_unchecked_mut(&mut self) -> &mut Array {
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
+        &mut self.data.array
+    }
+
+    /// Returns the array stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn into_array_unchecked(self) -> Array {
+        debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
         let array = Array(crate::kvec::KVec { ..self.data.array.0 });
         core::mem::forget(self);
         array
     }
 
+    /// Returns a reference to the dictionary stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_dictionary_unchecked(&self) -> &Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
+        &self.data.dictionary
+    }
+
+    /// Returns a mutable reference to the dictionary stored in this
+    /// [`Object`].
     ///
-    /// Extracts the contained [`Dictionary`] value without checking that the
-    /// object actually contains a [`Dictionary`].
-    pub unsafe fn into_dict_unchecked(self) -> Dictionary {
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn as_dictionary_unchecked_mut(&mut self) -> &mut Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
+        &mut self.data.dictionary
+    }
+
+    /// Returns the dictionary stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub unsafe fn into_dictionary_unchecked(self) -> Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
         let dict = Dictionary(crate::kvec::KVec { ..self.data.dictionary.0 });
         core::mem::forget(self);
@@ -473,7 +724,9 @@ impl Pushable for Object {
             ObjectKind::Float => self.as_float_unchecked().push(lstate),
             ObjectKind::String => self.into_string_unchecked().push(lstate),
             ObjectKind::Array => self.into_array_unchecked().push(lstate),
-            ObjectKind::Dictionary => self.into_dict_unchecked().push(lstate),
+            ObjectKind::Dictionary => {
+                self.into_dictionary_unchecked().push(lstate)
+            },
             ObjectKind::LuaRef => {
                 Function::<(), ()>::from_ref(self.as_luaref_unchecked())
                     .push(lstate)

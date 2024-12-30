@@ -44,6 +44,6 @@ impl ToObject for CommandModifiers {
 impl From<CommandModifiers> for Dictionary {
     fn from(mods: CommandModifiers) -> Self {
         let obj = mods.to_object().unwrap();
-        unsafe { obj.into_dict_unchecked() }
+        unsafe { obj.into_dictionary_unchecked() }
     }
 }

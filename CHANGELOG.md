@@ -19,6 +19,14 @@
   a crate containing integration tests annotated with `#[nvim_oxi::test]`
   ([#201](https://github.com/noib3/nvim-oxi/pull/201));
 
+- a series of `Object::as_{kind}_unchecked_mut()` methods to get a mutable
+  reference to an `Object`'s underlying value without performing any runtime
+  checks;
+
+- three `Object::as_{string,array,dictionary}_unchecked()` methods to get a
+  shared reference to an `Object`'s underlying string/array/dictionary without
+  performing any runtime checks;
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of
@@ -32,6 +40,9 @@
 - `nvim_oxi::api::notify()` now takes a `&Dictionary` instead of `&NotifyOpts`
   at its third parameter, and returns `Result<Object>` instead of `Result<()>`
   ([#208](https://github.com/noib3/nvim-oxi/pull/208));
+
+- renamed `Object::into_dict_unchecked()` to
+  `Object::into_dictionary_unchecked()`;
 
 ### Removed
 
