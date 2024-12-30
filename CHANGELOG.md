@@ -33,6 +33,9 @@
   at its third parameter, and returns `Result<Object>` instead of `Result<()>`
   ([#208](https://github.com/noib3/nvim-oxi/pull/208));
 
+- renamed `Object::into_dict_unchecked()` to
+  `Object::into_dictionary_unchecked()`;
+
 ### Removed
 
 - the `SetHighlightOptsBuilder::global_link()` method. Use

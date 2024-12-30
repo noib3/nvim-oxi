@@ -97,7 +97,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
         let (s, obj) = match self.obj.kind() {
             ObjectKind::Dictionary => {
                 let mut iter =
-                    unsafe { self.obj.into_dict_unchecked() }.into_iter();
+                    unsafe { self.obj.into_dictionary_unchecked() }.into_iter();
 
                 let (variant, value) = match iter.len() {
                     1 => iter.next().expect("checked length"),
@@ -135,7 +135,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
 
             // Empty dictionaries are also valid arrays.
             ObjectKind::Dictionary
-                if (unsafe { self.obj.into_dict_unchecked() }).is_empty() =>
+                if (unsafe { self.obj.into_dictionary_unchecked() }).is_empty() =>
             {
                 Array::new()
             },
@@ -185,7 +185,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
     {
         let dict = match self.obj.kind() {
             ObjectKind::Dictionary => unsafe {
-                self.obj.into_dict_unchecked()
+                self.obj.into_dictionary_unchecked()
             },
 
             // Empty arrays are also valid dictionaries.

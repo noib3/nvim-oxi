@@ -148,57 +148,103 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
+    /// Returns the boolean value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
+    /// with any other kind will result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
+        debug_assert!(self.ty == ObjectKind::Boolean);
         self.data.boolean
     }
 
+    /// Returns the integer value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be an
+    /// [`Integer`][ObjectKind::Integer]. Calling this method on an `Object`
+    /// with any other kind will result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
+        debug_assert!(self.ty == ObjectKind::Integer);
         self.data.integer
     }
 
+    /// Returns the float value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
+    /// Calling this method on an `Object` with any other kind will result in
+    /// undefined behavior.
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
+        debug_assert!(self.ty == ObjectKind::Float);
         self.data.float
     }
 
+    /// Returns the Lua reference stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
+    /// any other kind will result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
+        debug_assert!(self.ty == ObjectKind::LuaRef);
         self.data.luaref
     }
 
+    /// Returns the string value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
-    ///
-    /// Extracts the contained [`String`](crate::String) value without checking
-    /// that the object actually contains a [`String`](crate::String).
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind will result in undefined behavior.
     pub unsafe fn into_string_unchecked(self) -> crate::String {
         #[allow(clippy::unnecessary_struct_initialization)]
-        let s = crate::String { ..*self.data.string };
+        let string = crate::String { ..*self.data.string };
         core::mem::forget(self);
-        s
+        string
     }
 
+    /// Returns the array value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
-    ///
-    /// Extracts the contained [`Array`] value without checking that the object
-    /// actually contains an [`Array`].
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind will result in
+    /// undefined behavior.
     pub unsafe fn into_array_unchecked(self) -> Array {
         #[allow(clippy::unnecessary_struct_initialization)]
         let array = Array(crate::kvec::KVec { ..self.data.array.0 });
@@ -206,13 +252,18 @@ impl Object {
         array
     }
 
+    /// Returns the dictionary value stored in this [`Object`] without checking
+    /// its kind.
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// boolean value without performing any runtime checks.
+    ///
     /// # Safety
     ///
-    /// TODO
-    ///
-    /// Extracts the contained [`Dictionary`] value without checking that the
-    /// object actually contains a [`Dictionary`].
-    pub unsafe fn into_dict_unchecked(self) -> Dictionary {
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind will result in undefined behavior.
+    pub unsafe fn into_dictionary_unchecked(self) -> Dictionary {
         #[allow(clippy::unnecessary_struct_initialization)]
         let dict = Dictionary(crate::kvec::KVec { ..self.data.dictionary.0 });
         core::mem::forget(self);
@@ -473,7 +524,9 @@ impl Pushable for Object {
             ObjectKind::Float => self.as_float_unchecked().push(lstate),
             ObjectKind::String => self.into_string_unchecked().push(lstate),
             ObjectKind::Array => self.into_array_unchecked().push(lstate),
-            ObjectKind::Dictionary => self.into_dict_unchecked().push(lstate),
+            ObjectKind::Dictionary => {
+                self.into_dictionary_unchecked().push(lstate)
+            },
             ObjectKind::LuaRef => {
                 Function::<(), ()>::from_ref(self.as_luaref_unchecked())
                     .push(lstate)
