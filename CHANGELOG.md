@@ -23,6 +23,10 @@
   reference to an `Object`'s underlying value without performing any runtime
   checks;
 
+- three `Object::as_{string,array,dictionary}_unchecked()` methods to get a
+  shared reference to an `Object`'s underlying string/array/dictionary without
+  performing any runtime checks;
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of

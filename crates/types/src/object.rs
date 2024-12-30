@@ -148,7 +148,7 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
-    /// Returns the boolean value stored in this [`Object`].
+    /// Returns the boolean stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
     /// without performing any runtime checks.
@@ -164,7 +164,7 @@ impl Object {
         self.data.boolean
     }
 
-    /// Returns a mutable reference to the boolean value stored in this
+    /// Returns a mutable reference to the boolean stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
@@ -181,7 +181,7 @@ impl Object {
         &mut self.data.boolean
     }
 
-    /// Returns the integer value stored in this [`Object`].
+    /// Returns the integer stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
     /// value without performing any runtime checks.
@@ -197,7 +197,7 @@ impl Object {
         self.data.integer
     }
 
-    /// Returns a mutable reference to the integer value stored in this
+    /// Returns a mutable reference to the integer stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
@@ -214,7 +214,7 @@ impl Object {
         &mut self.data.integer
     }
 
-    /// Returns the float value stored in this [`Object`].
+    /// Returns the float stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
     /// value without performing any runtime checks.
@@ -230,7 +230,7 @@ impl Object {
         self.data.float
     }
 
-    /// Returns a mutable reference to the float value stored in this
+    /// Returns a mutable reference to the float stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
@@ -280,7 +280,22 @@ impl Object {
         &mut self.data.luaref
     }
 
-    /// Returns a mutable reference to the string value stored in this
+    /// Returns a reference to the string stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    pub unsafe fn as_string_unchecked(&self) -> &crate::String {
+        debug_assert!(self.ty == ObjectKind::String);
+        &self.data.string
+    }
+
+    /// Returns a mutable reference to the string stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
@@ -296,7 +311,7 @@ impl Object {
         &mut self.data.string
     }
 
-    /// Returns the string value stored in this [`Object`].
+    /// Returns the string stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
     /// without performing any runtime checks.
@@ -314,7 +329,22 @@ impl Object {
         string
     }
 
-    /// Returns a mutable reference to the array value stored in this
+    /// Returns a reference to the array stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    pub unsafe fn as_array_unchecked(&self) -> &Array {
+        debug_assert!(self.ty == ObjectKind::Array);
+        &self.data.array
+    }
+
+    /// Returns a mutable reference to the array stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
@@ -330,7 +360,7 @@ impl Object {
         &mut self.data.array
     }
 
-    /// Returns the array value stored in this [`Object`].
+    /// Returns the array stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
     /// without performing any runtime checks.
@@ -348,7 +378,22 @@ impl Object {
         array
     }
 
-    /// Returns a mutable reference to the dictionary value stored in this
+    /// Returns a reference to the dictionary stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind may result in undefined behavior.
+    pub unsafe fn as_dictionary_unchecked(&self) -> &Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary);
+        &self.data.dictionary
+    }
+
+    /// Returns a mutable reference to the dictionary stored in this
     /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
@@ -364,7 +409,7 @@ impl Object {
         &mut self.data.dictionary
     }
 
-    /// Returns the dictionary value stored in this [`Object`].
+    /// Returns the dictionary stored in this [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying value
     /// without performing any runtime checks.
