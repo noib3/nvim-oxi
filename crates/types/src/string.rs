@@ -201,6 +201,49 @@ impl StringBuilder {
         debug_assert!(self.inner.len < self.cap);
     }
 
+    /// Initialize [`StringBuilder`] with capacity.
+    pub fn with_capacity(cap: usize) -> Self {
+        let mut s = Self::new();
+        s.reserve(cap);
+        s
+    }
+
+    /// Reserve space for N more bytes.
+    ///
+    /// Does not allocate if enough space is available.
+    pub fn reserve(&mut self, cap: usize) {
+        // + 1 for the null byte
+        if self.cap - self.inner.len() < cap + 1 {
+            let n = (cap - 1).ilog2() + 1;
+            let new_cap = 2_usize.pow(n).max(4);
+            // SAFETY: realloc is legal with null pointers, no need for an extra check.
+            self.inner.data = unsafe {
+                libc::realloc(
+                    self.inner.data as *mut _,
+                    self.inner.len() + 1 + new_cap,
+                ) as *mut ffi::c_char
+            };
+            self.cap = self.inner.len() + new_cap;
+        }
+    }
+
+    /// Reserve space for exactly N more bytes.
+    ///
+    /// Does not allocate if enough space is available.
+    pub fn reserve_exact(&mut self, cap: usize) {
+        // + 1 for the null byte
+        if self.cap - self.inner.len() < cap + 1 {
+            // SAFETY: realloc is legal with null pointers, no need for an extra check.
+            self.inner.data = unsafe {
+                libc::realloc(
+                    self.inner.data as *mut _,
+                    self.inner.len() + 1 + cap,
+                ) as *mut ffi::c_char
+            };
+            self.cap = self.inner.len() + cap;
+        }
+    }
+
     /// Build the `String`.
     #[inline]
     pub fn finish(self) -> String {
