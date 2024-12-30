@@ -143,44 +143,12 @@ impl StringBuilder {
     /// Push new bytes to the builder.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
-        if self.inner.data.is_null() {
-            let len = bytes.len();
-            let cap = len + 1;
-
-            let data = unsafe {
-                let data = libc::malloc(cap) as *mut ffi::c_char;
-
-                libc::memcpy(data as *mut _, bytes.as_ptr() as *const _, len);
-
-                *data.add(len) = 0;
-
-                data
-            };
-
-            self.inner.data = data;
-            self.inner.len = len;
-            self.cap = cap;
-
-            return;
-        }
-
         let slice_len = bytes.len();
         let required_cap = self.inner.len + slice_len + 1;
 
         // Reallocate if pushing the bytes overflows the allocated memory.
-        if self.cap < required_cap {
-            // The smallest number `n`, such that `required_cap <= * 2^n`.
-            let n = (required_cap - 1).ilog2() + 1;
-            let new_cap = 2_usize.pow(n).max(4);
-
-            self.inner.data = unsafe {
-                libc::realloc(self.inner.data as *mut _, new_cap)
-                    as *mut ffi::c_char
-            };
-
-            self.cap = new_cap;
-            debug_assert!(self.inner.len < self.cap)
-        }
+        self.reserve(required_cap);
+        debug_assert!(self.inner.len < self.cap);
 
         // Pushing the `bytes` is safe now.
         let new_len = unsafe {
