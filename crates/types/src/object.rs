@@ -158,6 +158,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
     /// with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
         debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
@@ -175,6 +176,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
     /// with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked_mut(&mut self) -> &mut bool {
         debug_assert!(self.ty == ObjectKind::Boolean, "{:?}", self.ty);
@@ -188,12 +190,26 @@ impl Object {
     ///
     /// # Safety
     ///
-    /// This `Object`'s [`ObjectKind`] must be an
-    /// [`Integer`][ObjectKind::Integer]. Calling this method on an `Object`
-    /// with any other kind may result in undefined behavior.
+    /// This `Object`'s [`ObjectKind`] must be one of
+    /// [`Integer`][ObjectKind::Integer], [`Buffer`][ObjectKind::Buffer],
+    /// [`Window`][ObjectKind::Window], or [`TabPage`][ObjectKind::TabPage].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined
+    /// behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
-        debug_assert!(self.ty == ObjectKind::Integer, "{:?}", self.ty);
+        debug_assert!(
+            matches!(
+                self.ty,
+                ObjectKind::Integer
+                    | ObjectKind::Buffer
+                    | ObjectKind::Window
+                    | ObjectKind::TabPage
+            ),
+            "{:?}",
+            self.ty
+        );
         self.data.integer
     }
 
@@ -205,12 +221,26 @@ impl Object {
     ///
     /// # Safety
     ///
-    /// This `Object`'s [`ObjectKind`] must be an
-    /// [`Integer`][ObjectKind::Integer]. Calling this method on an `Object`
-    /// with any other kind may result in undefined behavior.
+    /// This `Object`'s [`ObjectKind`] must be one of
+    /// [`Integer`][ObjectKind::Integer], [`Buffer`][ObjectKind::Buffer],
+    /// [`Window`][ObjectKind::Window], or [`TabPage`][ObjectKind::TabPage].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined
+    /// behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_integer_unchecked_mut(&mut self) -> &mut Integer {
-        debug_assert!(self.ty == ObjectKind::Integer, "{:?}", self.ty);
+        debug_assert!(
+            matches!(
+                self.ty,
+                ObjectKind::Integer
+                    | ObjectKind::Buffer
+                    | ObjectKind::Window
+                    | ObjectKind::TabPage
+            ),
+            "{:?}",
+            self.ty
+        );
         &mut self.data.integer
     }
 
@@ -224,6 +254,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
         debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
@@ -241,6 +272,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_float_unchecked_mut(&mut self) -> &mut Float {
         debug_assert!(self.ty == ObjectKind::Float, "{:?}", self.ty);
@@ -257,6 +289,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
@@ -274,6 +307,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked_mut(&mut self) -> &mut LuaRef {
         debug_assert!(self.ty == ObjectKind::LuaRef, "{:?}", self.ty);
@@ -290,6 +324,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_string_unchecked(&self) -> &crate::String {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         &self.data.string
@@ -306,6 +341,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_string_unchecked_mut(&mut self) -> &mut crate::String {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         &mut self.data.string
@@ -321,6 +357,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn into_string_unchecked(self) -> crate::String {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
@@ -339,6 +376,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_array_unchecked(&self) -> &Array {
         debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         &self.data.array
@@ -355,6 +393,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_array_unchecked_mut(&mut self) -> &mut Array {
         debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         &mut self.data.array
@@ -370,6 +409,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
     /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn into_array_unchecked(self) -> Array {
         debug_assert!(self.ty == ObjectKind::Array, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
@@ -388,6 +428,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_dictionary_unchecked(&self) -> &Dictionary {
         debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         &self.data.dictionary
@@ -404,6 +445,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn as_dictionary_unchecked_mut(&mut self) -> &mut Dictionary {
         debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         &mut self.data.dictionary
@@ -419,6 +461,7 @@ impl Object {
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
     /// `Object` with any other kind may result in undefined behavior.
+    #[cfg_attr(debug_assertions, track_caller)]
     pub unsafe fn into_dictionary_unchecked(self) -> Dictionary {
         debug_assert!(self.ty == ObjectKind::Dictionary, "{:?}", self.ty);
         #[allow(clippy::unnecessary_struct_initialization)]
