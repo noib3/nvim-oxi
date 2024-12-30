@@ -148,7 +148,7 @@ impl StringBuilder {
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
         let slice_len = bytes.len();
-        let required_cap = self.inner.len + slice_len + 1;
+        let required_cap = self.inner.len + slice_len;
 
         // Reallocate if pushing the bytes overflows the allocated memory.
         self.reserve(required_cap);
