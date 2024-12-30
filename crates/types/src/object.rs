@@ -148,50 +148,81 @@ impl Object {
         unsafe { NonOwning::new(std::ptr::read(self)) }
     }
 
-    /// Returns the boolean value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns the boolean value stored in this [`Object`].
     ///
-    /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
-    /// with any other kind will result in undefined behavior.
+    /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_boolean_unchecked(&self) -> bool {
         debug_assert!(self.ty == ObjectKind::Boolean);
         self.data.boolean
     }
 
-    /// Returns the integer value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the boolean value stored in this
+    /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Boolean`][ObjectKind::Boolean]. Calling this method on an `Object`
+    /// with any other kind may result in undefined behavior.
+    #[inline(always)]
+    pub unsafe fn as_boolean_unchecked_mut(&mut self) -> &mut bool {
+        debug_assert!(self.ty == ObjectKind::Boolean);
+        &mut self.data.boolean
+    }
+
+    /// Returns the integer value stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be an
     /// [`Integer`][ObjectKind::Integer]. Calling this method on an `Object`
-    /// with any other kind will result in undefined behavior.
+    /// with any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_integer_unchecked(&self) -> Integer {
         debug_assert!(self.ty == ObjectKind::Integer);
         self.data.integer
     }
 
-    /// Returns the float value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the integer value stored in this
+    /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an
+    /// [`Integer`][ObjectKind::Integer]. Calling this method on an `Object`
+    /// with any other kind may result in undefined behavior.
+    #[inline(always)]
+    pub unsafe fn as_integer_unchecked_mut(&mut self) -> &mut Integer {
+        debug_assert!(self.ty == ObjectKind::Integer);
+        &mut self.data.integer
+    }
+
+    /// Returns the float value stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
-    /// Calling this method on an `Object` with any other kind will result in
+    /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
     #[inline(always)]
     pub unsafe fn as_float_unchecked(&self) -> Float {
@@ -199,71 +230,152 @@ impl Object {
         self.data.float
     }
 
-    /// Returns the Lua reference stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the float value stored in this
+    /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a [`Float`][ObjectKind::Float].
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    #[inline(always)]
+    pub unsafe fn as_float_unchecked_mut(&mut self) -> &mut Float {
+        debug_assert!(self.ty == ObjectKind::Float);
+        &mut self.data.float
+    }
+
+    /// Returns the Lua reference stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
-    /// any other kind will result in undefined behavior.
+    /// any other kind may result in undefined behavior.
     #[inline(always)]
     pub unsafe fn as_luaref_unchecked(&self) -> LuaRef {
         debug_assert!(self.ty == ObjectKind::LuaRef);
         self.data.luaref
     }
 
-    /// Returns the string value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the Lua reference stored in this
+    /// [`Object`].
     ///
     /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// value without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`LuaRef`][ObjectKind::LuaRef]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
+    #[inline(always)]
+    pub unsafe fn as_luaref_unchecked_mut(&mut self) -> &mut LuaRef {
+        debug_assert!(self.ty == ObjectKind::LuaRef);
+        &mut self.data.luaref
+    }
+
+    /// Returns a mutable reference to the string value stored in this
+    /// [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying
+    /// value without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
-    /// any other kind will result in undefined behavior.
+    /// any other kind may result in undefined behavior.
+    pub unsafe fn as_string_unchecked_mut(&mut self) -> &mut crate::String {
+        debug_assert!(self.ty == ObjectKind::String);
+        &mut self.data.string
+    }
+
+    /// Returns the string value stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
+    /// any other kind may result in undefined behavior.
     pub unsafe fn into_string_unchecked(self) -> crate::String {
+        debug_assert!(self.ty == ObjectKind::String);
         #[allow(clippy::unnecessary_struct_initialization)]
         let string = crate::String { ..*self.data.string };
         core::mem::forget(self);
         string
     }
 
-    /// Returns the array value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the array value stored in this
+    /// [`Object`].
     ///
-    /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
-    /// Calling this method on an `Object` with any other kind will result in
+    /// Calling this method on an `Object` with any other kind may result in
+    /// undefined behavior.
+    pub unsafe fn as_array_unchecked_mut(&mut self) -> &mut Array {
+        debug_assert!(self.ty == ObjectKind::Array);
+        &mut self.data.array
+    }
+
+    /// Returns the array value stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be an [`Array`][ObjectKind::Array].
+    /// Calling this method on an `Object` with any other kind may result in
     /// undefined behavior.
     pub unsafe fn into_array_unchecked(self) -> Array {
+        debug_assert!(self.ty == ObjectKind::Array);
         #[allow(clippy::unnecessary_struct_initialization)]
         let array = Array(crate::kvec::KVec { ..self.data.array.0 });
         core::mem::forget(self);
         array
     }
 
-    /// Returns the dictionary value stored in this [`Object`] without checking
-    /// its kind.
+    /// Returns a mutable reference to the dictionary value stored in this
+    /// [`Object`].
     ///
-    /// This is a zero-cost method that directly accesses the underlying
-    /// boolean value without performing any runtime checks.
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
     ///
     /// # Safety
     ///
     /// This `Object`'s [`ObjectKind`] must be a
     /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
-    /// `Object` with any other kind will result in undefined behavior.
+    /// `Object` with any other kind may result in undefined behavior.
+    pub unsafe fn as_dictionary_unchecked_mut(&mut self) -> &mut Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary);
+        &mut self.data.dictionary
+    }
+
+    /// Returns the dictionary value stored in this [`Object`].
+    ///
+    /// This is a zero-cost method that directly accesses the underlying value
+    /// without performing any runtime checks.
+    ///
+    /// # Safety
+    ///
+    /// This `Object`'s [`ObjectKind`] must be a
+    /// [`Dictionary`][ObjectKind::Dictionary]. Calling this method on an
+    /// `Object` with any other kind may result in undefined behavior.
     pub unsafe fn into_dictionary_unchecked(self) -> Dictionary {
+        debug_assert!(self.ty == ObjectKind::Dictionary);
         #[allow(clippy::unnecessary_struct_initialization)]
         let dict = Dictionary(crate::kvec::KVec { ..self.data.dictionary.0 });
         core::mem::forget(self);

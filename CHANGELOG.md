@@ -19,6 +19,10 @@
   a crate containing integration tests annotated with `#[nvim_oxi::test]`
   ([#201](https://github.com/noib3/nvim-oxi/pull/201));
 
+- a series of `Object::as_{kind}_unchecked_mut()` methods to get a mutable
+  reference to an `Object`'s underlying value without performing any runtime
+  checks;
+
 ### Changed
 
 - `nvim_oxi::api::echo` is now generic over the highlight group type instead of
