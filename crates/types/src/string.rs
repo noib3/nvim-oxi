@@ -91,7 +91,10 @@ impl String {
         let mut s = StringBuilder::new();
         s.reserve_exact(bytes.len());
         s.push_bytes(bytes);
-        s.finish()
+        
+        // no need to check if we need to shrink the allocation
+        // TODO: remove once strings are no longer leaked
+        s.finish_unchecked()
     }
 
     /// Returns `true` if the `String` has a length of zero.
@@ -237,9 +240,8 @@ impl StringBuilder {
 
     /// Build the `String`.
     #[inline]
-    pub fn finish(self) -> String {
-        let mut s = String { data: self.inner.data, len: self.inner.len };
-
+    pub fn finish(mut self) -> String {
+        let s = &mut self.inner;
         // TODO: since strings constructed via nvim-oxi are leaked, we should at least leak the
         // minimal amount possible. Once a more sophisticated solution is found this should be
         // removed since this can cause an allocation if the data needs to be moved to a new
@@ -256,9 +258,18 @@ impl StringBuilder {
             debug_assert!(s.is_empty());
         };
 
+        self.finish_unchecked()
+    }
+
+    /// Finish building the [`String`] but do not shrink the allocation
+    ///
+    /// Useful if we already know that the allocation does not have extra capacity.
+    #[inline]
+    fn finish_unchecked(self) -> String {
+        let s = String { data: self.inner.data, len: self.inner.len() };
+
         // Prevent self's destructor from being called.
         std::mem::forget(self);
-
         s
     }
 
