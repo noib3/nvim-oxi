@@ -238,7 +238,23 @@ impl StringBuilder {
     /// Build the `String`.
     #[inline]
     pub fn finish(self) -> String {
-        let s = String { data: self.inner.data, len: self.inner.len };
+        let mut s = String { data: self.inner.data, len: self.inner.len };
+
+        // TODO: since strings constructed via nvim-oxi are leaked, we should at least leak the
+        // minimal amount possible. Once a more sophisticated solution is found this should be
+        // removed since this can cause an allocation if the data needs to be moved to a new
+        // address.
+        if !s.data.is_null() && s.len() + 1 < self.cap {
+            let ptr = unsafe {
+                libc::realloc(s.data as *mut ffi::c_void, s.len() + 1)
+            };
+            if ptr.is_null() {
+                unable_to_alloc_memory();
+            }
+            s.data = ptr as *mut ffi::c_char;
+        } else if s.data.is_null() {
+            debug_assert!(s.is_empty());
+        };
 
         // Prevent self's destructor from being called.
         std::mem::forget(self);
