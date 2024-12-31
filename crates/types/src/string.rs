@@ -228,6 +228,10 @@ impl StringBuilder {
         self.cap = new_capacity;
     }
 
+    /// Reserve at least "by" bytes.
+    ///
+    /// This is marked unsafe as the allocation size should never be zero for portability reasons.
+    /// A check isn't included as all call sites should already handle the case.
     unsafe fn reserve_raw(&mut self, by: usize) {
         let ptr =
             unsafe { libc::realloc(self.inner.data as *mut ffi::c_void, by) };
