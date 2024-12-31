@@ -554,6 +554,23 @@ mod tests {
     }
 
     #[test]
+    fn with_capacity() {
+        let s = StringBuilder::with_capacity(0);
+        assert!(s.inner.data.is_null());
+        assert_eq!(s.cap, 0);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+        let s = StringBuilder::with_capacity(1);
+        assert_eq!(s.cap, 2);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+        let s = StringBuilder::with_capacity(5);
+        assert_eq!(s.cap, 6);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+    }
+
+    #[test]
     fn reserve() {
         let mut sb = StringBuilder::new();
         assert_eq!(sb.cap, 0);
