@@ -478,6 +478,58 @@ mod tests {
     fn as_bytes() {
         let s = String::from("hello");
         assert_eq!(s.as_bytes(), &[b'h', b'e', b'l', b'l', b'o'][..]);
+
+    #[test]
+    fn empty_from_bytes() {
+        let s = String::from_bytes(b"");
+        assert_eq!(s.len(), 0);
+        assert_eq!(s.data, ptr::null_mut());
+    }
+
+    #[test]
+    fn from_bytes() {
+        let s = String::from_bytes(b"Hello World!");
+        assert_eq!(s.len(), 12);
+    }
+
+    #[test]
+    fn reserve() {
+        let mut sb = StringBuilder::new();
+        assert_eq!(sb.cap, 0);
+        sb.reserve(10);
+        assert_eq!(sb.cap, 16);
+
+        // shouldn't change the pointer address as we have enough space
+        sb.reserve(10);
+        assert_eq!(sb.cap, 16);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"Hello World!");
+        // we already allocated the space needed the push above shouldn't change the pointer
+        assert_eq!(sb.inner.data, ptr);
+        sb.push_bytes(&[b'a'; 55]);
+        // we shouldn't check the pointer again as the block might be extended instead of being
+        // moved to a different address
+        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0);
+        assert_eq!(sb.cap, 128);
+    }
+
+    #[test]
+    fn reserve_exact() {
+        let mut sb = StringBuilder::new();
+        sb.reserve_exact(10);
+        assert_eq!(sb.cap, 11);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"hi");
+        assert_eq!(sb.inner.len(), 2);
+
+        // the space is already allocated, pushing bytes shouldn't change the ptr address
+        assert_eq!(ptr, sb.inner.data);
+        sb.push_bytes(b"Hello World!");
+        assert_eq!(sb.cap, 16);
+        assert_eq!(sb.inner.len(), 14);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"c");
+        assert_eq!(sb.inner.data, ptr);
     }
 
     #[test]
