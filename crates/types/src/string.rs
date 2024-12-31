@@ -213,7 +213,6 @@ impl StringBuilder {
     ///
     /// Does not allocate if enough space is available.
     pub fn reserve_exact(&mut self, cap: usize) {
-        // + 1 for the null byte
         if cap == 0 {
             return;
         }
