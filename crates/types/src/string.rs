@@ -182,9 +182,18 @@ impl StringBuilder {
 
     /// Initialize [`StringBuilder`] with capacity.
     pub fn with_capacity(cap: usize) -> Self {
-        let mut s = Self::new();
-        s.reserve(cap);
-        s
+        if cap == 0 {
+            return Self::new();
+        }
+        let real_cap = cap + 1;
+        let ptr = unsafe { libc::malloc(real_cap) };
+        if ptr.is_null() {
+            unable_to_alloc_memory();
+        }
+        Self {
+            inner: String { len: 0, data: ptr as *mut ffi::c_char },
+            cap: real_cap,
+        }
     }
 
     /// Reserve space for N more bytes.
@@ -265,7 +274,7 @@ impl StringBuilder {
     /// Finish building the [`String`] but do not shrink the allocation
     ///
     /// Useful if we already know that the allocation does not have extra capacity.
-    /// 
+    ///
     /// In debug mode checks if any of the following are true:
     /// - data ptr is null with a capacity and length of zero.
     /// - ptr points to an allocation and capacity > length.
@@ -274,7 +283,7 @@ impl StringBuilder {
     #[inline]
     fn finish_unchecked(self) -> String {
         let s = String { data: self.inner.data, len: self.inner.len() };
-        
+
         // extra sanity check
         if s.data.is_null() {
             debug_assert!(s.is_empty());
