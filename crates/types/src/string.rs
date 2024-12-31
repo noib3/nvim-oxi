@@ -91,7 +91,7 @@ impl String {
         let mut s = StringBuilder::new();
         s.reserve_exact(bytes.len());
         s.push_bytes(bytes);
-        
+
         // no need to check if we need to shrink the allocation
         // TODO: remove once strings are no longer leaked
         s.finish_unchecked()
@@ -254,8 +254,6 @@ impl StringBuilder {
                 unable_to_alloc_memory();
             }
             s.data = ptr as *mut ffi::c_char;
-        } else if s.data.is_null() {
-            debug_assert!(s.is_empty());
         };
 
         self.finish_unchecked()
@@ -264,9 +262,23 @@ impl StringBuilder {
     /// Finish building the [`String`] but do not shrink the allocation
     ///
     /// Useful if we already know that the allocation does not have extra capacity.
+    /// 
+    /// In debug mode checks if any of the following are true:
+    /// - data ptr is null with a capacity and length of zero.
+    /// - ptr points to an allocation and capacity > length.
+    /// - ptr points to an allocation with a capacity > 1 (if the capacity is 1 we are creating the
+    ///     allocation just to store a null byte, we should return null instead)
     #[inline]
     fn finish_unchecked(self) -> String {
         let s = String { data: self.inner.data, len: self.inner.len() };
+        
+        // extra sanity check
+        if s.data.is_null() {
+            debug_assert!(s.is_empty());
+            debug_assert_eq!(self.cap, 0);
+        } else {
+            debug_assert!(self.cap > self.inner.len());
+        }
 
         // Prevent self's destructor from being called.
         std::mem::forget(self);
@@ -277,8 +289,17 @@ impl StringBuilder {
     #[inline(always)]
     fn remaining_capacity(&self) -> usize {
         if self.inner.data.is_null() {
+            debug_assert_eq!(self.inner.len(), 0);
             return 0;
         }
+        debug_assert!(
+            self.cap > 0,
+            "when data ptr is not null capacity must always be larger than 0"
+        );
+        debug_assert!(
+            self.cap > self.inner.len(),
+            "allocated capacity must always be bigger than length"
+        );
         self.cap - self.inner.len() - 1
     }
 }
