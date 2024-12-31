@@ -493,7 +493,8 @@ mod tests {
     #[test]
     fn as_bytes() {
         let s = String::from("hello");
-        assert_eq!(s.as_bytes(), &[b'h', b'e', b'l', b'l', b'o'][..]);
+        assert_eq!(s.as_bytes(), b"hello");
+    }
 
     #[test]
     fn empty_from_bytes() {
@@ -583,18 +584,18 @@ mod tests {
 
     #[test]
     fn builder() {
-        let str = "foo bar";
+        let s = "foo bar";
         let bytes = b"baz foo bar";
 
-        let mut s = StringBuilder::new();
-        s.push_bytes(str.as_bytes());
-        s.push_bytes(bytes);
+        let mut sb = StringBuilder::new();
+        sb.push_bytes(s.as_bytes());
+        sb.push_bytes(bytes);
 
-        assert_eq!(s.inner.len, str.len() + bytes.len());
-        assert_eq!(s.cap, 32); // Allocation size
-        assert_eq!(unsafe { *s.inner.data.add(s.inner.len) }, 0); // Null termination
+        assert_eq!(sb.inner.len, s.len() + bytes.len());
+        assert_eq!(sb.cap, 32); // Allocation size
+        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0); // Null termination
 
-        let s = s.finish();
-        assert_eq!(s.len(), str.len() + bytes.len());
+        let nv_str = sb.finish();
+        assert_eq!(nv_str.len(), s.len() + bytes.len());
     }
 }
