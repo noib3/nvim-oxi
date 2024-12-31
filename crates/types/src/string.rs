@@ -148,10 +148,14 @@ impl StringBuilder {
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
         let slice_len = bytes.len();
-        let required_cap = self.inner.len + slice_len;
+        if slice_len == 0 {
+            // we should return early as if no bytes are provided we shouldn't reallocate or add a
+            // null byte.
+            return;
+        }
 
         // Reallocate if pushing the bytes overflows the allocated memory.
-        self.reserve(required_cap);
+        self.reserve(bytes.len());
         debug_assert!(self.inner.len < self.cap);
 
         // Pushing the `bytes` is safe now.
@@ -184,12 +188,22 @@ impl StringBuilder {
     ///
     /// Does not allocate if enough space is available.
     pub fn reserve(&mut self, cap: usize) {
-        // + 1 for the null byte
-        if cap != 0 && self.cap - self.inner.len() < cap + 1 {
-            let n = (cap - 1).ilog2() + 1;
-            let new_cap = 2_usize.pow(n).max(4);
-            self.reserve_exact(new_cap);
+        if cap == 0 {
+            return;
         }
+        let remaining = self.remaining_capacity();
+        if remaining > cap {
+            return;
+        }
+        let needed_space =
+            if self.inner.data.is_null() { cap + 1 } else { cap - remaining };
+        let new_capacity = (self.cap + needed_space)
+            .checked_next_power_of_two()
+            // in the rare case that the next power of two overflows we should allocate the minimal
+            // amount to avoid OOM problems
+            .unwrap_or(self.cap + needed_space);
+        unsafe { self.reserve_raw(new_capacity) };
+        self.cap = new_capacity;
     }
 
     /// Reserve space for exactly N more bytes.
@@ -197,16 +211,28 @@ impl StringBuilder {
     /// Does not allocate if enough space is available.
     pub fn reserve_exact(&mut self, cap: usize) {
         // + 1 for the null byte
-        if cap != 0 && self.cap - self.inner.len() < cap + 1 {
-            // SAFETY: realloc is legal with null pointers, no need for an extra check.
-            self.inner.data = unsafe {
-                libc::realloc(
-                    self.inner.data as *mut _,
-                    self.inner.len() + 1 + cap,
-                ) as *mut ffi::c_char
-            };
-            self.cap = self.inner.len() + cap;
+        if cap == 0 {
+            return;
         }
+        let remaining = self.remaining_capacity();
+        if remaining > cap {
+            return;
+        }
+        let needed_space =
+            if self.inner.data.is_null() { cap + 1 } else { cap - remaining };
+        let new_capacity = self.cap + needed_space;
+        unsafe { self.reserve_raw(new_capacity) };
+        self.cap = new_capacity;
+    }
+
+    unsafe fn reserve_raw(&mut self, by: usize) {
+        let ptr =
+            unsafe { libc::realloc(self.inner.data as *mut ffi::c_void, by) };
+        // realloc may return null if it is unable to allocate the requested memory
+        if ptr.is_null() {
+            unable_to_alloc_memory();
+        }
+        self.inner.data = ptr as *mut ffi::c_char;
     }
 
     /// Build the `String`.
@@ -219,6 +245,21 @@ impl StringBuilder {
 
         s
     }
+
+    /// Returns the remaining capacity including the space for a null byte.
+    #[inline(always)]
+    fn remaining_capacity(&self) -> usize {
+        if self.inner.data.is_null() {
+            return 0;
+        }
+        self.cap - self.inner.len() - 1
+    }
+}
+
+#[cold]
+#[inline(never)]
+fn unable_to_alloc_memory() {
+    panic!("unable to alloc memory with libc::realloc")
 }
 
 impl Clone for String {
