@@ -161,8 +161,8 @@ impl StringBuilder {
         // Pushing the `bytes` is safe now.
         let new_len = unsafe {
             libc::memcpy(
-                self.inner.data.add(self.inner.len) as *mut _,
-                bytes.as_ptr() as *const _,
+                self.inner.data.add(self.inner.len) as *mut ffi::c_void,
+                bytes.as_ptr() as *const ffi::c_void,
                 slice_len,
             );
 
@@ -282,7 +282,7 @@ impl Drop for String {
 impl Drop for StringBuilder {
     fn drop(&mut self) {
         if !self.inner.data.is_null() {
-            unsafe { libc::free(self.inner.data as *mut _) }
+            unsafe { libc::free(self.inner.data as *mut ffi::c_void) }
         }
     }
 }
