@@ -199,8 +199,8 @@ impl StringBuilder {
     /// Reserve space for N more bytes.
     ///
     /// Does not allocate if enough space is available.
-    pub fn reserve(&mut self, aditional: usize) {
-        let Some(min_capacity) = self.min_capacity_for_additional(aditional)
+    pub fn reserve(&mut self, additional: usize) {
+        let Some(min_capacity) = self.min_capacity_for_additional(additional)
         else {
             return;
         };
@@ -212,8 +212,8 @@ impl StringBuilder {
     /// Reserve space for exactly N more bytes.
     ///
     /// Does not allocate if enough space is available.
-    pub fn reserve_exact(&mut self, aditional: usize) {
-        if let Some(new_capacity) = self.min_capacity_for_additional(aditional)
+    pub fn reserve_exact(&mut self, additional: usize) {
+        if let Some(new_capacity) = self.min_capacity_for_additional(additional)
         {
             self.reserve_raw(new_capacity);
         }
@@ -286,17 +286,17 @@ impl StringBuilder {
     #[inline]
     fn min_capacity_for_additional(
         &self,
-        aditional: usize,
+        additional: usize,
     ) -> Option<NonZeroUsize> {
         let remaining = self.remaining_capacity();
-        if remaining >= aditional {
+        if remaining >= additional {
             return None;
         }
         if self.inner.data.is_null() {
             debug_assert_eq!(self.cap, 0);
-            NonZeroUsize::new(aditional + 1)
+            NonZeroUsize::new(additional + 1)
         } else {
-            NonZeroUsize::new(self.cap + aditional - remaining)
+            NonZeroUsize::new(self.cap + additional - remaining)
         }
     }
 }
