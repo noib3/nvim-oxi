@@ -264,7 +264,8 @@ impl StringBuilder {
         s
     }
 
-    /// Returns the remaining capacity including the space for a null byte.
+    /// Returns the remaining *usable* capacity, i.e. the remaining capacity minus
+    /// the space reserved for the null terminator.
     #[inline(always)]
     fn remaining_capacity(&self) -> usize {
         if self.inner.data.is_null() {
