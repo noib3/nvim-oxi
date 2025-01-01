@@ -288,9 +288,6 @@ impl StringBuilder {
         &self,
         aditional: usize,
     ) -> Option<NonZeroUsize> {
-        if aditional == 0 {
-            return None;
-        }
         let remaining = self.remaining_capacity();
         if remaining >= aditional {
             return None;
