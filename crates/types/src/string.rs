@@ -204,7 +204,7 @@ impl StringBuilder {
             return;
         }
         let remaining = self.remaining_capacity();
-        if remaining > cap {
+        if remaining >= cap {
             return;
         }
         let needed_space =
