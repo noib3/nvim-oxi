@@ -258,14 +258,22 @@ impl StringBuilder {
         // minimal amount possible. Once a more sophisticated solution is found this should be
         // removed since this can cause an allocation if the data needs to be moved to a new
         // address.
-        if !s.data.is_null() && s.len() + 1 < self.cap {
-            let ptr = unsafe {
-                libc::realloc(s.data as *mut ffi::c_void, s.len() + 1)
-            };
-            if ptr.is_null() {
-                unable_to_alloc_memory();
+        if !s.data.is_null() {
+            if s.is_empty() {
+                unsafe { libc::free(s.data as *mut ffi::c_void) };
+                // still call `StringBuilder::finish_unchecked` for the debug assertions and
+                // mem::forget
+                _ = self.finish_unchecked();
+                return String::new();
+            } else if s.len() + 1 < self.cap {
+                let ptr = unsafe {
+                    libc::realloc(s.data as *mut ffi::c_void, s.len() + 1)
+                };
+                if ptr.is_null() {
+                    unable_to_alloc_memory();
+                }
+                s.data = ptr as *mut ffi::c_char;
             }
-            s.data = ptr as *mut ffi::c_char;
         };
 
         self.finish_unchecked()
