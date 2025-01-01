@@ -92,8 +92,6 @@ impl String {
         let mut s = StringBuilder::with_capacity(bytes.len());
         s.push_bytes(bytes);
 
-        // no need to check if we need to shrink the allocation
-        // TODO: remove once strings are no longer leaked
         s.finish()
     }
 
@@ -152,8 +150,6 @@ impl StringBuilder {
     pub fn push_bytes(&mut self, bytes: &[u8]) {
         let slice_len = bytes.len();
         if slice_len == 0 {
-            // we should return early as if no bytes are provided we shouldn't reallocate or add a
-            // null byte.
             return;
         }
 
@@ -220,9 +216,6 @@ impl StringBuilder {
     }
 
     /// Allocate new_capacity bytes.
-    ///
-    /// Accepts [`NonZeroUsize`] allocation size should never be zero for portability reasons.
-    /// A check isn't included as all call sites should already handle the case.
     fn reserve_raw(&mut self, new_capacity: NonZeroUsize) {
         let ptr = unsafe {
             libc::realloc(
@@ -238,15 +231,7 @@ impl StringBuilder {
         self.cap = new_capacity.get();
     }
 
-    /// Finish building the [`String`] but do not shrink the allocation
-    ///
-    /// Useful if we already know that the allocation does not have extra capacity.
-    ///
-    /// In debug mode checks if any of the following are true:
-    /// - data ptr is null with a capacity and length of zero.
-    /// - ptr points to an allocation and capacity > length.
-    /// - ptr points to an allocation with a capacity > 1 (if the capacity is 1 we are creating the
-    ///     allocation just to store a null byte, we should return null instead)
+    /// Finish building the [`String`]
     #[inline]
     fn finish(self) -> String {
         let s = String { data: self.inner.data, len: self.inner.len() };
