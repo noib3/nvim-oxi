@@ -4,6 +4,7 @@ use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
 use core::{ffi, fmt, ptr, slice};
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
@@ -198,55 +199,43 @@ impl StringBuilder {
     /// Reserve space for N more bytes.
     ///
     /// Does not allocate if enough space is available.
-    pub fn reserve(&mut self, cap: usize) {
-        if cap == 0 {
+    pub fn reserve(&mut self, aditional: usize) {
+        let Some(min_capacity) = self.min_capacity_for_additional(aditional)
+        else {
             return;
-        }
-        let remaining = self.remaining_capacity();
-        if remaining >= cap {
-            return;
-        }
-        let needed_space =
-            if self.inner.data.is_null() { cap + 1 } else { cap - remaining };
-        let new_capacity = (self.cap + needed_space)
-            .checked_next_power_of_two()
-            // in the rare case that the next power of two overflows we should allocate the minimal
-            // amount to avoid OOM problems
-            .unwrap_or(self.cap + needed_space);
-        unsafe { self.reserve_raw(new_capacity) };
-        self.cap = new_capacity;
+        };
+        let new_capacity =
+            min_capacity.checked_next_power_of_two().unwrap_or(min_capacity);
+        self.reserve_raw(new_capacity);
     }
 
     /// Reserve space for exactly N more bytes.
     ///
     /// Does not allocate if enough space is available.
-    pub fn reserve_exact(&mut self, cap: usize) {
-        if cap == 0 {
-            return;
+    pub fn reserve_exact(&mut self, aditional: usize) {
+        if let Some(new_capacity) = self.min_capacity_for_additional(aditional)
+        {
+            self.reserve_raw(new_capacity);
         }
-        let remaining = self.remaining_capacity();
-        if remaining > cap {
-            return;
-        }
-        let needed_space =
-            if self.inner.data.is_null() { cap + 1 } else { cap - remaining };
-        let new_capacity = self.cap + needed_space;
-        unsafe { self.reserve_raw(new_capacity) };
-        self.cap = new_capacity;
     }
 
-    /// Reserve at least "by" bytes.
+    /// Allocate new_capacity bytes.
     ///
-    /// This is marked unsafe as the allocation size should never be zero for portability reasons.
+    /// Accepts [`NonZeroUsize`] allocation size should never be zero for portability reasons.
     /// A check isn't included as all call sites should already handle the case.
-    unsafe fn reserve_raw(&mut self, by: usize) {
-        let ptr =
-            unsafe { libc::realloc(self.inner.data as *mut ffi::c_void, by) };
+    fn reserve_raw(&mut self, new_capacity: NonZeroUsize) {
+        let ptr = unsafe {
+            libc::realloc(
+                self.inner.data as *mut ffi::c_void,
+                new_capacity.get(),
+            )
+        };
         // realloc may return null if it is unable to allocate the requested memory
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
         self.inner.data = ptr as *mut ffi::c_char;
+        self.cap = new_capacity.get();
     }
 
     /// Finish building the [`String`] but do not shrink the allocation
@@ -291,6 +280,26 @@ impl StringBuilder {
             "allocated capacity must always be bigger than length"
         );
         self.cap - self.inner.len() - 1
+    }
+
+    #[inline]
+    fn min_capacity_for_additional(
+        &self,
+        aditional: usize,
+    ) -> Option<NonZeroUsize> {
+        if aditional == 0 {
+            return None;
+        }
+        let remaining = self.remaining_capacity();
+        if remaining >= aditional {
+            return None;
+        }
+        if self.inner.data.is_null() {
+            debug_assert_eq!(self.cap, 0);
+            NonZeroUsize::new(aditional + 1)
+        } else {
+            NonZeroUsize::new(self.cap + aditional - remaining)
+        }
     }
 }
 
