@@ -88,8 +88,7 @@ impl String {
     /// by a null byte.
     #[inline]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let mut s = StringBuilder::new();
-        s.reserve_exact(bytes.len());
+        let mut s = StringBuilder::with_capacity(bytes.len());
         s.push_bytes(bytes);
 
         // no need to check if we need to shrink the allocation
