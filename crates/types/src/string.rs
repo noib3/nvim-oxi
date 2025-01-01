@@ -93,7 +93,7 @@ impl String {
 
         // no need to check if we need to shrink the allocation
         // TODO: remove once strings are no longer leaked
-        s.finish_unchecked()
+        s.finish()
     }
 
     /// Returns `true` if the `String` has a length of zero.
@@ -249,35 +249,6 @@ impl StringBuilder {
         self.inner.data = ptr as *mut ffi::c_char;
     }
 
-    /// Build the `String`.
-    #[inline]
-    pub fn finish(mut self) -> String {
-        let s = &mut self.inner;
-        // TODO: since strings constructed via nvim-oxi are leaked, we should at least leak the
-        // minimal amount possible. Once a more sophisticated solution is found this should be
-        // removed since this can cause an allocation if the data needs to be moved to a new
-        // address.
-        if !s.data.is_null() {
-            if s.is_empty() {
-                unsafe { libc::free(s.data as *mut ffi::c_void) };
-                // still call `StringBuilder::finish_unchecked` for the debug assertions and
-                // mem::forget
-                _ = self.finish_unchecked();
-                return String::new();
-            } else if s.len() + 1 < self.cap {
-                let ptr = unsafe {
-                    libc::realloc(s.data as *mut ffi::c_void, s.len() + 1)
-                };
-                if ptr.is_null() {
-                    unable_to_alloc_memory();
-                }
-                s.data = ptr as *mut ffi::c_char;
-            }
-        };
-
-        self.finish_unchecked()
-    }
-
     /// Finish building the [`String`] but do not shrink the allocation
     ///
     /// Useful if we already know that the allocation does not have extra capacity.
@@ -288,7 +259,7 @@ impl StringBuilder {
     /// - ptr points to an allocation with a capacity > 1 (if the capacity is 1 we are creating the
     ///     allocation just to store a null byte, we should return null instead)
     #[inline]
-    fn finish_unchecked(self) -> String {
+    fn finish(self) -> String {
         let s = String { data: self.inner.data, len: self.inner.len() };
 
         // extra sanity check
