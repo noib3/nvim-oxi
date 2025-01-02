@@ -4,6 +4,7 @@ use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
 use core::{ffi, fmt, ptr, slice};
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
@@ -88,7 +89,7 @@ impl String {
     /// by a null byte.
     #[inline]
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        let mut s = StringBuilder::new();
+        let mut s = StringBuilder::with_capacity(bytes.len());
         s.push_bytes(bytes);
         s.finish()
     }
@@ -99,7 +100,8 @@ impl String {
         self.len() == 0
     }
 
-    /// Returns the length of the `String`, *not* including the final null byte.
+    /// Returns the length of the `String`, *not* including the final null
+    /// byte.
     #[inline]
     pub fn len(&self) -> usize {
         self.len
@@ -141,52 +143,25 @@ impl StringBuilder {
     }
 
     /// Push new bytes to the builder.
+    ///
+    /// When only pushing bytes once, prefer [`String::from_bytes`] as this
+    /// method may allocate extra space in the buffer.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
-        if self.inner.data.is_null() {
-            let len = bytes.len();
-            let cap = len + 1;
-
-            let data = unsafe {
-                let data = libc::malloc(cap) as *mut ffi::c_char;
-
-                libc::memcpy(data as *mut _, bytes.as_ptr() as *const _, len);
-
-                *data.add(len) = 0;
-
-                data
-            };
-
-            self.inner.data = data;
-            self.inner.len = len;
-            self.cap = cap;
-
+        let slice_len = bytes.len();
+        if slice_len == 0 {
             return;
         }
 
-        let slice_len = bytes.len();
-        let required_cap = self.inner.len + slice_len + 1;
-
         // Reallocate if pushing the bytes overflows the allocated memory.
-        if self.cap < required_cap {
-            // The smallest number `n`, such that `required_cap <= * 2^n`.
-            let n = (required_cap - 1).ilog2() + 1;
-            let new_cap = 2_usize.pow(n).max(4);
-
-            self.inner.data = unsafe {
-                libc::realloc(self.inner.data as *mut _, new_cap)
-                    as *mut ffi::c_char
-            };
-
-            self.cap = new_cap;
-            debug_assert!(self.inner.len < self.cap)
-        }
+        self.reserve(bytes.len());
+        debug_assert!(self.inner.len < self.cap);
 
         // Pushing the `bytes` is safe now.
         let new_len = unsafe {
             libc::memcpy(
-                self.inner.data.add(self.inner.len) as *mut _,
-                bytes.as_ptr() as *const _,
+                self.inner.data.add(self.inner.len) as *mut ffi::c_void,
+                bytes.as_ptr() as *const ffi::c_void,
                 slice_len,
             );
 
@@ -201,16 +176,142 @@ impl StringBuilder {
         debug_assert!(self.inner.len < self.cap);
     }
 
-    /// Build the `String`.
+    /// Initialize [`StringBuilder`] with capacity.
+    pub fn with_capacity(cap: usize) -> Self {
+        // Neovim uses `xstrdup` to clone strings, which doesn't support null
+        // pointers.
+        //
+        // For more infos, see https://github.com/noib3/nvim-oxi/pull/211#issuecomment-2566960494
+        //
+        // if cap == 0 {
+        //     return Self::new();
+        // }
+        let real_cap = cap + 1;
+        let ptr = unsafe { libc::malloc(real_cap) };
+        if ptr.is_null() {
+            unable_to_alloc_memory();
+        }
+        Self {
+            inner: String { len: 0, data: ptr as *mut ffi::c_char },
+            cap: real_cap,
+        }
+    }
+
+    /// Reserve space for `additional` more bytes.
+    ///
+    /// Does not allocate if enough space is available.
+    pub fn reserve(&mut self, additional: usize) {
+        let Some(min_capacity) = self.min_capacity_for_additional(additional)
+        else {
+            return;
+        };
+        let new_capacity =
+            min_capacity.checked_next_power_of_two().unwrap_or(min_capacity);
+        self.realloc(new_capacity);
+    }
+
+    /// Reserve space for exactly `additional` more bytes.
+    ///
+    /// Does not allocate if enough space is available.
+    pub fn reserve_exact(&mut self, additional: usize) {
+        if let Some(new_capacity) =
+            self.min_capacity_for_additional(additional)
+        {
+            self.realloc(new_capacity);
+        }
+    }
+
+    /// Reallocate the string with the given capacity.
+    fn realloc(&mut self, new_capacity: NonZeroUsize) {
+        let ptr = unsafe {
+            libc::realloc(
+                self.inner.data as *mut ffi::c_void,
+                new_capacity.get(),
+            )
+        };
+        // `realloc` may return null if it is unable to allocate the requested
+        // memory.
+        if ptr.is_null() {
+            unable_to_alloc_memory();
+        }
+        self.inner.data = ptr as *mut ffi::c_char;
+        self.cap = new_capacity.get();
+    }
+
+    /// Finish building the [`String`]
     #[inline]
     pub fn finish(self) -> String {
-        let s = String { data: self.inner.data, len: self.inner.len };
+        let mut s = String { data: self.inner.data, len: self.inner.len() };
+
+        if s.data.is_null() {
+            debug_assert!(s.is_empty());
+            debug_assert_eq!(self.cap, 0);
+
+            // The pointer of `String` should never be null, and it must be
+            // terminated by a null byte.
+            if s.data.is_null() {
+                unsafe {
+                    let ptr = libc::malloc(1) as *mut i8;
+                    if ptr.is_null() {
+                        unable_to_alloc_memory();
+                    }
+                    ptr.write(0);
+
+                    s.data = ptr;
+                }
+            }
+        } else {
+            debug_assert!(self.cap > self.inner.len());
+        }
 
         // Prevent self's destructor from being called.
         std::mem::forget(self);
-
         s
     }
+
+    /// Returns the remaining *usable* capacity, i.e. the remaining capacity
+    /// minus the space reserved for the null terminator.
+    #[inline(always)]
+    fn remaining_capacity(&self) -> usize {
+        if self.inner.data.is_null() {
+            debug_assert_eq!(self.inner.len(), 0);
+            return 0;
+        }
+        debug_assert!(
+            self.cap > 0,
+            "when data ptr is not null capacity must always be larger than 0"
+        );
+        debug_assert!(
+            self.cap > self.inner.len(),
+            "allocated capacity must always be bigger than length"
+        );
+        self.cap - self.inner.len() - 1
+    }
+
+    /// Returns the minimum capacity needed to allocate `additional` bytes, or
+    /// `None` if the current capacity is already large enough.
+    #[inline]
+    fn min_capacity_for_additional(
+        &self,
+        additional: usize,
+    ) -> Option<NonZeroUsize> {
+        let remaining = self.remaining_capacity();
+        if remaining >= additional {
+            return None;
+        }
+        if self.inner.data.is_null() {
+            debug_assert_eq!(self.cap, 0);
+            NonZeroUsize::new(additional + 1)
+        } else {
+            NonZeroUsize::new(self.cap + additional - remaining)
+        }
+    }
+}
+
+#[cold]
+#[inline(never)]
+fn unable_to_alloc_memory() {
+    panic!("unable to alloc memory with libc::realloc")
 }
 
 impl Clone for String {
@@ -233,7 +334,7 @@ impl Drop for String {
 impl Drop for StringBuilder {
     fn drop(&mut self) {
         if !self.inner.data.is_null() {
-            unsafe { libc::free(self.inner.data as *mut _) }
+            unsafe { libc::free(self.inner.data as *mut ffi::c_void) }
         }
     }
 }
@@ -428,7 +529,79 @@ mod tests {
     #[test]
     fn as_bytes() {
         let s = String::from("hello");
-        assert_eq!(s.as_bytes(), &[b'h', b'e', b'l', b'l', b'o'][..]);
+        assert_eq!(s.as_bytes(), b"hello");
+    }
+
+    #[test]
+    fn empty_from_bytes() {
+        let s = String::from_bytes(b"");
+        assert_eq!(s.len(), 0);
+        assert!(!s.data.is_null());
+    }
+
+    #[test]
+    fn from_bytes() {
+        let s = String::from_bytes(b"Hello World!");
+        assert_eq!(s.len(), 12);
+    }
+
+    #[test]
+    fn with_capacity() {
+        let s = StringBuilder::with_capacity(0);
+        assert!(!s.inner.data.is_null());
+        assert_eq!(s.cap, 1);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+        let s = StringBuilder::with_capacity(1);
+        assert_eq!(s.cap, 2);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+        let s = StringBuilder::with_capacity(5);
+        assert_eq!(s.cap, 6);
+        assert_eq!(s.inner.len(), 0);
+        s.finish();
+    }
+
+    #[test]
+    fn reserve() {
+        let mut sb = StringBuilder::new();
+        assert_eq!(sb.cap, 0);
+        sb.reserve(10);
+        assert_eq!(sb.cap, 16);
+
+        // Shouldn't change the pointer address as we have enough space.
+        sb.reserve(10);
+        assert_eq!(sb.cap, 16);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"Hello World!");
+        // We already allocated the space needed the push above shouldn't
+        // change the pointer.
+        assert_eq!(sb.inner.data, ptr);
+        sb.push_bytes(&[b'a'; 55]);
+        // We shouldn't check the pointer again as the block might be extended
+        // instead of being moved to a different address.
+        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0);
+        assert_eq!(sb.cap, 128);
+    }
+
+    #[test]
+    fn reserve_exact() {
+        let mut sb = StringBuilder::new();
+        sb.reserve_exact(10);
+        assert_eq!(sb.cap, 11);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"hi");
+        assert_eq!(sb.inner.len(), 2);
+
+        // The space is already allocated, pushing bytes shouldn't change the
+        // ptr address.
+        assert_eq!(ptr, sb.inner.data);
+        sb.push_bytes(b"Hello World!");
+        assert_eq!(sb.cap, 16);
+        assert_eq!(sb.inner.len(), 14);
+        let ptr = sb.inner.data;
+        sb.push_bytes(b"c");
+        assert_eq!(sb.inner.data, ptr);
     }
 
     #[test]
@@ -466,18 +639,18 @@ mod tests {
 
     #[test]
     fn builder() {
-        let str = "foo bar";
+        let s = "foo bar";
         let bytes = b"baz foo bar";
 
-        let mut s = StringBuilder::new();
-        s.push_bytes(str.as_bytes());
-        s.push_bytes(bytes);
+        let mut sb = StringBuilder::new();
+        sb.push_bytes(s.as_bytes());
+        sb.push_bytes(bytes);
 
-        assert_eq!(s.inner.len, str.len() + bytes.len());
-        assert_eq!(s.cap, 32); // Allocation size
-        assert_eq!(unsafe { *s.inner.data.add(s.inner.len) }, 0); // Null termination
+        assert_eq!(sb.inner.len, s.len() + bytes.len());
+        assert_eq!(sb.cap, 32); // Allocation size
+        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0); // Null termination
 
-        let s = s.finish();
-        assert_eq!(s.len(), str.len() + bytes.len());
+        let nv_str = sb.finish();
+        assert_eq!(nv_str.len(), s.len() + bytes.len());
     }
 }
