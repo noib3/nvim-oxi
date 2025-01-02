@@ -237,7 +237,7 @@ impl StringBuilder {
         if s.data.is_null() {
             debug_assert!(s.is_empty());
             debug_assert_eq!(self.cap, 0);
-            
+
             // the pointer of `String` should never be null, and it must be terminated by a null
             // byte.
             if s.data.is_null() {
