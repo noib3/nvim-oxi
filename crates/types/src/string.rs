@@ -178,6 +178,14 @@ impl StringBuilder {
 
     /// Initialize [`StringBuilder`] with capacity.
     pub fn with_capacity(cap: usize) -> Self {
+        // Neovim uses `xstrdup` to clone strings, which doesn't support null
+        // pointers.
+        //
+        // For more infos, see https://github.com/noib3/nvim-oxi/pull/211#issuecomment-2566960494
+        //
+        // if cap == 0 {
+        //     return Self::new();
+        // }
         let real_cap = cap + 1;
         let ptr = unsafe { libc::malloc(real_cap) };
         if ptr.is_null() {
