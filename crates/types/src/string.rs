@@ -178,9 +178,6 @@ impl StringBuilder {
 
     /// Initialize [`StringBuilder`] with capacity.
     pub fn with_capacity(cap: usize) -> Self {
-        if cap == 0 {
-            return Self::new();
-        }
         let real_cap = cap + 1;
         let ptr = unsafe { libc::malloc(real_cap) };
         if ptr.is_null() {
