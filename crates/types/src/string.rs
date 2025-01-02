@@ -91,7 +91,6 @@ impl String {
     pub fn from_bytes(bytes: &[u8]) -> Self {
         let mut s = StringBuilder::with_capacity(bytes.len());
         s.push_bytes(bytes);
-
         s.finish()
     }
 
@@ -101,7 +100,8 @@ impl String {
         self.len() == 0
     }
 
-    /// Returns the length of the `String`, *not* including the final null byte.
+    /// Returns the length of the `String`, *not* including the final null
+    /// byte.
     #[inline]
     pub fn len(&self) -> usize {
         self.len
@@ -144,8 +144,8 @@ impl StringBuilder {
 
     /// Push new bytes to the builder.
     ///
-    /// When only pushing bytes once, prefer [`String::from_bytes`] as this method may allocate
-    /// extra space in the buffer.
+    /// When only pushing bytes once, prefer [`String::from_bytes`] as this
+    /// method may allocate extra space in the buffer.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
         let slice_len = bytes.len();
@@ -189,7 +189,7 @@ impl StringBuilder {
         }
     }
 
-    /// Reserve space for N more bytes.
+    /// Reserve space for `additional` more bytes.
     ///
     /// Does not allocate if enough space is available.
     pub fn reserve(&mut self, additional: usize) {
@@ -202,7 +202,7 @@ impl StringBuilder {
         self.reserve_raw(new_capacity);
     }
 
-    /// Reserve space for exactly N more bytes.
+    /// Reserve space for exactly `additional` more bytes.
     ///
     /// Does not allocate if enough space is available.
     pub fn reserve_exact(&mut self, additional: usize) {
@@ -221,7 +221,8 @@ impl StringBuilder {
                 new_capacity.get(),
             )
         };
-        // realloc may return null if it is unable to allocate the requested memory
+        // `realloc` may return null if it is unable to allocate the requested
+        // memory.
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
@@ -238,8 +239,8 @@ impl StringBuilder {
             debug_assert!(s.is_empty());
             debug_assert_eq!(self.cap, 0);
 
-            // the pointer of `String` should never be null, and it must be terminated by a null
-            // byte.
+            // The pointer of `String` should never be null, and it must be
+            // terminated by a null byte.
             if s.data.is_null() {
                 unsafe {
                     let ptr = libc::malloc(1) as *mut i8;
@@ -260,8 +261,8 @@ impl StringBuilder {
         s
     }
 
-    /// Returns the remaining *usable* capacity, i.e. the remaining capacity minus
-    /// the space reserved for the null terminator.
+    /// Returns the remaining *usable* capacity, i.e. the remaining capacity
+    /// minus the space reserved for the null terminator.
     #[inline(always)]
     fn remaining_capacity(&self) -> usize {
         if self.inner.data.is_null() {
@@ -279,6 +280,8 @@ impl StringBuilder {
         self.cap - self.inner.len() - 1
     }
 
+    /// Returns the minimum capacity needed to allocate `additional` bytes, or
+    /// `None` if the current capacity is already large enough.
     #[inline]
     fn min_capacity_for_additional(
         &self,
@@ -558,16 +561,17 @@ mod tests {
         sb.reserve(10);
         assert_eq!(sb.cap, 16);
 
-        // shouldn't change the pointer address as we have enough space
+        // Shouldn't change the pointer address as we have enough space.
         sb.reserve(10);
         assert_eq!(sb.cap, 16);
         let ptr = sb.inner.data;
         sb.push_bytes(b"Hello World!");
-        // we already allocated the space needed the push above shouldn't change the pointer
+        // We already allocated the space needed the push above shouldn't
+        // change the pointer.
         assert_eq!(sb.inner.data, ptr);
         sb.push_bytes(&[b'a'; 55]);
-        // we shouldn't check the pointer again as the block might be extended instead of being
-        // moved to a different address
+        // We shouldn't check the pointer again as the block might be extended
+        // instead of being moved to a different address.
         assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0);
         assert_eq!(sb.cap, 128);
     }
@@ -581,7 +585,8 @@ mod tests {
         sb.push_bytes(b"hi");
         assert_eq!(sb.inner.len(), 2);
 
-        // the space is already allocated, pushing bytes shouldn't change the ptr address
+        // The space is already allocated, pushing bytes shouldn't change the
+        // ptr address.
         assert_eq!(ptr, sb.inner.data);
         sb.push_bytes(b"Hello World!");
         assert_eq!(sb.cap, 16);
