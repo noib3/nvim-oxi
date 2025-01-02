@@ -206,7 +206,8 @@ impl StringBuilder {
     ///
     /// Does not allocate if enough space is available.
     pub fn reserve_exact(&mut self, additional: usize) {
-        if let Some(new_capacity) = self.min_capacity_for_additional(additional)
+        if let Some(new_capacity) =
+            self.min_capacity_for_additional(additional)
         {
             self.reserve_raw(new_capacity);
         }
