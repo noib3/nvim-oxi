@@ -207,7 +207,7 @@ impl StringBuilder {
         };
         let new_capacity =
             min_capacity.checked_next_power_of_two().unwrap_or(min_capacity);
-        self.reserve_raw(new_capacity);
+        self.realloc(new_capacity);
     }
 
     /// Reserve space for exactly `additional` more bytes.
@@ -217,12 +217,12 @@ impl StringBuilder {
         if let Some(new_capacity) =
             self.min_capacity_for_additional(additional)
         {
-            self.reserve_raw(new_capacity);
+            self.realloc(new_capacity);
         }
     }
 
-    /// Allocate new_capacity bytes.
-    fn reserve_raw(&mut self, new_capacity: NonZeroUsize) {
+    /// Reallocate the string with the given capacity.
+    fn realloc(&mut self, new_capacity: NonZeroUsize) {
         let ptr = unsafe {
             libc::realloc(
                 self.inner.data as *mut ffi::c_void,
