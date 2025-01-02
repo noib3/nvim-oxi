@@ -231,7 +231,7 @@ impl StringBuilder {
 
     /// Finish building the [`String`]
     #[inline]
-    fn finish(self) -> String {
+    pub fn finish(self) -> String {
         let mut s = String { data: self.inner.data, len: self.inner.len() };
 
         if s.data.is_null() {
