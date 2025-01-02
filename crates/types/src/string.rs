@@ -232,12 +232,25 @@ impl StringBuilder {
     /// Finish building the [`String`]
     #[inline]
     fn finish(self) -> String {
-        let s = String { data: self.inner.data, len: self.inner.len() };
+        let mut s = String { data: self.inner.data, len: self.inner.len() };
 
-        // extra sanity check
         if s.data.is_null() {
             debug_assert!(s.is_empty());
             debug_assert_eq!(self.cap, 0);
+            
+            // the pointer of `String` should never be null, and it must be terminated by a null
+            // byte.
+            if s.data.is_null() {
+                unsafe {
+                    let ptr = libc::malloc(1) as *mut i8;
+                    if ptr.is_null() {
+                        unable_to_alloc_memory();
+                    }
+                    ptr.write(0);
+
+                    s.data = ptr;
+                }
+            }
         } else {
             debug_assert!(self.cap > self.inner.len());
         }
@@ -512,7 +525,7 @@ mod tests {
     fn empty_from_bytes() {
         let s = String::from_bytes(b"");
         assert_eq!(s.len(), 0);
-        assert_eq!(s.data, ptr::null_mut());
+        assert!(!s.data.is_null());
     }
 
     #[test]
@@ -524,8 +537,8 @@ mod tests {
     #[test]
     fn with_capacity() {
         let s = StringBuilder::with_capacity(0);
-        assert!(s.inner.data.is_null());
-        assert_eq!(s.cap, 0);
+        assert!(!s.inner.data.is_null());
+        assert_eq!(s.cap, 1);
         assert_eq!(s.inner.len(), 0);
         s.finish();
         let s = StringBuilder::with_capacity(1);
