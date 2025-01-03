@@ -138,6 +138,19 @@ impl Dictionary {
         #[allow(clippy::unnecessary_struct_initialization)]
         NonOwning::new(Self(KVec { ..self.0 }))
     }
+
+    /// Removes a `KeyValuePair` from the `Dictionary` and returns it.
+    ///
+    /// The removed pair is replaced by the last element of the dictionary.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    #[track_caller]
+    #[inline]
+    pub fn swap_remove(&mut self, index: usize) -> KeyValuePair {
+        self.0.swap_remove(index)
+    }
 }
 
 impl KeyValuePair {
