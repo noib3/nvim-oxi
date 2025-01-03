@@ -58,6 +58,19 @@ impl Array {
     {
         self.0.push(value.into());
     }
+
+    /// Removes an `Object` from the `Array` and returns it.
+    ///
+    /// The removed object is replaced by the last element of the array.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    #[track_caller]
+    #[inline]
+    pub fn swap_remove(&mut self, index: usize) -> Object {
+        self.0.swap_remove(index)
+    }
 }
 
 impl Deref for Array {
