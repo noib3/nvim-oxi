@@ -42,13 +42,25 @@ impl core::fmt::Debug for Dictionary {
 }
 
 impl Dictionary {
+    /// Returns a slice of all key-value pairs in the dictionary.
+    #[inline]
+    pub fn as_slice(&self) -> &[KeyValuePair] {
+        &self.0
+    }
+
+    /// Returns a mutable slice of all key-value pairs in the dictionary.
+    #[inline]
+    pub fn as_mut_slice(&mut self) -> &mut [KeyValuePair] {
+        &mut self.0
+    }
+
     /// Returns a reference to the value corresponding to the key.
     #[inline]
     pub fn get<Q>(&self, query: &Q) -> Option<&Object>
     where
         Q: ?Sized + PartialEq<crate::String>,
     {
-        self.get_index(query).map(|idx| self.0[idx].value())
+        self.get_index(query).map(|idx| self.as_slice()[idx].value())
     }
 
     /// Returns the index of the key-value pair corresponding to the key.
@@ -68,7 +80,7 @@ impl Dictionary {
     where
         Q: ?Sized + PartialEq<crate::String>,
     {
-        self.get_index(query).map(|idx| self.0[idx].value_mut())
+        self.get_index(query).map(|idx| self.as_mut_slice()[idx].value_mut())
     }
 
     /// Inserts a key-value pair into the dictionary.
