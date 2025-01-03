@@ -1,3 +1,5 @@
+use core::ops::{Deref, DerefMut};
+
 use luajit as lua;
 
 use crate::kvec::{self, KVec};
@@ -55,6 +57,22 @@ impl Array {
         V: Into<Object>,
     {
         self.0.push(value.into());
+    }
+}
+
+impl Deref for Array {
+    type Target = [Object];
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.0.as_slice()
+    }
+}
+
+impl DerefMut for Array {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.as_mut_slice()
     }
 }
 
