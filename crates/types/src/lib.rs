@@ -18,7 +18,7 @@ mod string;
 
 pub use arena::{arena, arena_init, Arena};
 pub use array::Array;
-pub use dictionary::Dictionary;
+pub use dictionary::{Dictionary, KeyValuePair};
 pub use error::Error;
 pub use function::Function;
 pub use non_owning::NonOwning;

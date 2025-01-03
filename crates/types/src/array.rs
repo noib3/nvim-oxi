@@ -1,3 +1,5 @@
+use core::ops::{Deref, DerefMut};
+
 use luajit as lua;
 
 use crate::kvec::{self, KVec};
@@ -55,6 +57,35 @@ impl Array {
         V: Into<Object>,
     {
         self.0.push(value.into());
+    }
+
+    /// Removes an `Object` from the `Array` and returns it.
+    ///
+    /// The removed object is replaced by the last element of the array.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    #[track_caller]
+    #[inline]
+    pub fn swap_remove(&mut self, index: usize) -> Object {
+        self.0.swap_remove(index)
+    }
+}
+
+impl Deref for Array {
+    type Target = [Object];
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.0.as_slice()
+    }
+}
+
+impl DerefMut for Array {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.as_mut_slice()
     }
 }
 

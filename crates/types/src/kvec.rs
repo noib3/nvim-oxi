@@ -115,6 +115,28 @@ impl<T> KVec<T> {
         self.size += 1;
     }
 
+    /// Removes an element from the `KVec` and returns it.
+    ///
+    /// The removed element is replaced by the last element of the vector.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    #[track_caller]
+    #[inline]
+    pub(crate) fn swap_remove(&mut self, index: usize) -> T {
+        let len = self.len();
+        if index >= len {
+            panic!("swap_remove index is {index}, but len is {len}");
+        }
+        unsafe {
+            let item = ptr::read(self.items.add(index));
+            ptr::copy(self.items.add(len - 1), self.items.add(index), 1);
+            self.size -= 1;
+            item
+        }
+    }
+
     /// Creates a new, empty `KVec<T>` with the specified capacity.
     #[inline]
     pub(crate) fn with_capacity(capacity: usize) -> Self {
@@ -147,6 +169,34 @@ impl<T: PartialEq> PartialEq for KVec<T> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice() == other.as_slice()
+    }
+}
+
+impl<T: PartialEq> PartialEq<[T]> for KVec<T> {
+    #[inline]
+    fn eq(&self, other: &[T]) -> bool {
+        self.as_slice() == other
+    }
+}
+
+impl<T: PartialEq> PartialEq<&[T]> for KVec<T> {
+    #[inline]
+    fn eq(&self, other: &&[T]) -> bool {
+        self.as_slice() == *other
+    }
+}
+
+impl<const N: usize, T: PartialEq> PartialEq<[T; N]> for KVec<T> {
+    #[inline]
+    fn eq(&self, other: &[T; N]) -> bool {
+        self == other.as_slice()
+    }
+}
+
+impl<const N: usize, T: PartialEq> PartialEq<&[T; N]> for KVec<T> {
+    #[inline]
+    fn eq(&self, other: &&[T; N]) -> bool {
+        self == *other
     }
 }
 
@@ -426,5 +476,19 @@ mod tests {
         assert_eq!(Some("bar"), iter2.next().as_deref());
         assert_eq!(Some("baz"), iter2.next().as_deref());
         assert_eq!(None, iter2.next());
+    }
+
+    #[test]
+    fn swap_remove() {
+        let mut kvec = KVec::from_iter([1, 2, 3, 4]);
+        assert_eq!(kvec.swap_remove(1), 2);
+        assert_eq!(kvec, &[1, 4, 3]);
+    }
+
+    #[should_panic]
+    #[test]
+    fn swap_remove_oob() {
+        let mut kvec = KVec::from_iter([1, 2, 3, 4]);
+        kvec.swap_remove(kvec.len());
     }
 }
