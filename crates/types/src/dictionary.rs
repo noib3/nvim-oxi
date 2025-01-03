@@ -10,12 +10,12 @@ use crate::Object;
 #[repr(transparent)]
 pub struct Dictionary(pub(super) KVec<KeyValuePair>);
 
-/// A key-value pair mapping a Neovim [`String`] to a Neovim [`Object`].
+/// A key-value pair mapping a [`String`] to an [`Object`].
 //
 // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L122-L125
 #[derive(Clone, PartialEq)]
 #[repr(C)]
-pub(super) struct KeyValuePair {
+pub struct KeyValuePair {
     key: crate::String,
     value: Object,
 }
@@ -48,7 +48,18 @@ impl Dictionary {
     where
         Q: ?Sized + PartialEq<crate::String>,
     {
-        self.iter().find_map(|(key, value)| (query == key).then_some(value))
+        self.get_index(query).map(|idx| self.0[idx].value())
+    }
+
+    /// Returns the index of the key-value pair corresponding to the key.
+    #[inline]
+    pub fn get_index<Q>(&self, query: &Q) -> Option<usize>
+    where
+        Q: ?Sized + PartialEq<crate::String>,
+    {
+        self.keys()
+            .enumerate()
+            .find_map(|(idx, key)| (query == key).then_some(idx))
     }
 
     /// Returns a mutable reference to the value corresponding to the key.
@@ -57,8 +68,7 @@ impl Dictionary {
     where
         Q: ?Sized + PartialEq<crate::String>,
     {
-        self.iter_mut()
-            .find_map(|(key, value)| (query == key).then_some(value))
+        self.get_index(query).map(|idx| self.0[idx].value_mut())
     }
 
     /// Inserts a key-value pair into the dictionary.
@@ -98,6 +108,12 @@ impl Dictionary {
         self.0.len()
     }
 
+    /// Returns an iterator over the keys of the dictionary.
+    #[inline]
+    pub fn keys(&self) -> impl Iterator<Item = &crate::String> + '_ {
+        self.iter().map(|(key, _)| key)
+    }
+
     /// Creates a new, empty `Dictionary`.
     #[inline]
     pub fn new() -> Self {
@@ -109,6 +125,62 @@ impl Dictionary {
     pub fn non_owning(&self) -> NonOwning<'_, Self> {
         #[allow(clippy::unnecessary_struct_initialization)]
         NonOwning::new(Self(KVec { ..self.0 }))
+    }
+}
+
+impl KeyValuePair {
+    /// Consumes the `KeyValuePair` and returns the key.
+    #[inline]
+    pub fn into_key(self) -> crate::String {
+        self.key
+    }
+
+    /// Consumes the `KeyValuePair` and returns a `(key, value)` tuple.
+    #[inline]
+    pub fn into_tuple(self) -> (crate::String, Object) {
+        (self.key, self.value)
+    }
+
+    /// Consumes the `KeyValuePair` and returns the value.
+    #[inline]
+    pub fn into_value(self) -> Object {
+        self.value
+    }
+
+    /// Returns a shared reference to the key of the `KeyValuePair`.
+    #[inline]
+    pub fn key(&self) -> &crate::String {
+        &self.key
+    }
+
+    /// Returns an exclusive reference to the key of the `KeyValuePair`.
+    #[inline]
+    pub fn key_mut(&mut self) -> &mut crate::String {
+        &mut self.key
+    }
+
+    /// Returns references to both the key and value as a tuple.
+    #[inline]
+    pub fn tuple(&self) -> (&crate::String, &Object) {
+        (&self.key, &self.value)
+    }
+
+    /// Returns exclusive references to both the key and value as a tuple.
+    #[inline]
+    pub fn tuple_mut(&mut self) -> (&mut crate::String, &mut Object) {
+        (&mut self.key, &mut self.value)
+    }
+
+    /// Returns a shared reference to the value of the `KeyValuePair`.
+    #[inline]
+    pub fn value(&self) -> &Object {
+        &self.value
+    }
+
+    /// Returns an exclusive reference to the value of the `KeyValuePair`.
+    #[inline]
+    pub fn value_mut(&mut self) -> &mut Object {
+        &mut self.value
     }
 }
 
@@ -173,7 +245,7 @@ impl Iterator for DictIterator {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|pair| (pair.key, pair.value))
+        self.0.next().map(KeyValuePair::into_tuple)
     }
 
     #[inline]
@@ -192,7 +264,7 @@ impl ExactSizeIterator for DictIterator {
 impl DoubleEndedIterator for DictIterator {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|pair| (pair.key, pair.value))
+        self.0.next_back().map(KeyValuePair::into_tuple)
     }
 }
 
@@ -207,7 +279,7 @@ impl<'a> Iterator for DictIter<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|pair| (&pair.key, &pair.value))
+        self.0.next().map(KeyValuePair::tuple)
     }
 
     #[inline]
@@ -226,7 +298,7 @@ impl ExactSizeIterator for DictIter<'_> {
 impl DoubleEndedIterator for DictIter<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|pair| (&pair.key, &pair.value))
+        self.0.next_back().map(KeyValuePair::tuple)
     }
 }
 
@@ -240,7 +312,7 @@ impl<'a> Iterator for DictIterMut<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|pair| (&mut pair.key, &mut pair.value))
+        self.0.next().map(KeyValuePair::tuple_mut)
     }
 
     #[inline]
@@ -259,7 +331,7 @@ impl ExactSizeIterator for DictIterMut<'_> {
 impl DoubleEndedIterator for DictIterMut<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|pair| (&mut pair.key, &mut pair.value))
+        self.0.next_back().map(KeyValuePair::tuple_mut)
     }
 }
 
