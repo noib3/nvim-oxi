@@ -175,6 +175,38 @@ impl HlGroup for &str {
     }
 }
 
+/// A trait implemented by types that can be passed to
+/// [`SetExtmarkOptsBuilder::hl_group`](crate::opts::SetExtmarkOptsBuilder::hl_group).
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+pub trait SetExtmarkHlGroup {
+    fn into_object(self) -> Object;
+}
+
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+impl SetExtmarkHlGroup for Integer {
+    #[inline]
+    fn into_object(self) -> Object {
+        self.into()
+    }
+}
+
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+impl SetExtmarkHlGroup for &str {
+    #[inline]
+    fn into_object(self) -> Object {
+        self.into()
+    }
+}
+
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+impl<T: StringOrInt> SetExtmarkHlGroup for Vec<T> {
+    #[inline]
+    fn into_object(self) -> Object {
+        self.into_iter().map(StringOrInt::to_object).collect::<Array>().into()
+    }
+}
+
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod sealed {
     pub trait Sealed {}

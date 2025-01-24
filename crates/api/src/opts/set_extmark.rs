@@ -319,12 +319,24 @@ pub struct SetExtmarkOpts {
     end_col: types::Integer,
 
     /// Name of the highlight group used to highlight this mark.
+    #[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+    #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-nightly"))))]
     #[builder(
         generics = "Hl: crate::HlGroup",
         argtype = "Hl",
         inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
     )]
     hl_group: types::HlGroupId,
+
+    /// Name of the highlight group used to highlight this mark.
+    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[builder(
+        generics = "Hl: crate::SetExtmarkHlGroup",
+        argtype = "Hl",
+        inline = r#"{0}.into_object()"#
+    )]
+    hl_group: types::Object,
 
     /// Virtual text to link to this mark. Every `(text, highlights)` tuple
     /// represents a text chunk with a specified highlight. The highlights
