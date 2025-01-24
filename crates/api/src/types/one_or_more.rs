@@ -24,3 +24,12 @@ impl From<&str> for OneOrMore<String> {
         OneOrMore::One(s.to_owned())
     }
 }
+
+impl<T: PartialEq> PartialEq<T> for OneOrMore<T> {
+    fn eq(&self, other: &T) -> bool {
+        match self {
+            OneOrMore::One(one) => one == other,
+            OneOrMore::List(_) => false,
+        }
+    }
+}

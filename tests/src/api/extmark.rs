@@ -58,7 +58,7 @@ fn get_extmarks() {
     assert_eq!((row, col), (0, 0));
     assert_eq!(Some(true), infos.end_right_gravity);
     assert_eq!(Some(0), infos.end_row);
-    assert_eq!(Some(String::from("Bar")), infos.hl_group);
+    assert_eq!(infos.hl_group.unwrap(), String::from("Bar"));
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
     #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -164,7 +164,7 @@ fn set_get_del_extmark() {
     let infos = infos.unwrap();
     assert_eq!(Some(true), infos.end_right_gravity);
     assert_eq!(Some(0), infos.end_row);
-    assert_eq!(Some(String::from("Bar")), infos.hl_group);
+    assert_eq!(infos.hl_group.unwrap(), String::from("Bar"));
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
     #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
