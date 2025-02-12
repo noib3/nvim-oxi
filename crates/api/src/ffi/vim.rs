@@ -200,7 +200,10 @@ extern "C" {
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L360
-    pub(crate) fn nvim_input(keys: NonOwning<String>) -> Integer;
+    pub(crate) fn nvim_input(
+        #[cfg(feature = "neovim-nightly")] channel_id: u64,
+        keys: NonOwning<String>,
+    ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L390
     pub(crate) fn nvim_input_mouse(

@@ -567,9 +567,15 @@ pub fn input<Input>(keys: Input) -> Result<usize>
 where
     Input: Into<nvim::String>,
 {
-    unsafe { nvim_input(keys.into().non_owning()) }
-        .try_into()
-        .map_err(From::from)
+    unsafe {
+        nvim_input(
+            #[cfg(feature = "neovim-nightly")]
+            LUA_INTERNAL_CALL,
+            keys.into().non_owning(),
+        )
+    }
+    .try_into()
+    .map_err(From::from)
 }
 
 /// Binding to [`nvim_input_mouse()`][1].
