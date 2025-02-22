@@ -187,7 +187,7 @@ impl StringBuilder {
         //     return Self::new();
         // }
         let real_cap = cap + 1;
-        let ptr = unsafe { libc::malloc(real_cap) };
+        let ptr = unsafe { libc::calloc(real_cap, 1) };
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
