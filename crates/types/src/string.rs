@@ -3,7 +3,7 @@
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
-use core::{ffi, fmt, ptr, slice};
+use core::{ffi, fmt, slice};
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
@@ -20,6 +20,9 @@ use crate::NonOwning;
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
+    // NOTE: strings built by nvim-oxi can never contain a null pointer as they are intended as
+    // lua strings in neovim. however a string returned by neovim can have a null pointer so a null
+    // check should performed on access
     pub(super) data: *mut ffi::c_char,
     pub(super) len: usize,
 }
@@ -110,7 +113,7 @@ impl String {
     /// Creates a new, empty `String`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: ptr::null_mut(), len: 0 }
+        Self::from_bytes(&[])
     }
 
     /// Makes a non-owning version of this `String`.
@@ -139,7 +142,7 @@ impl StringBuilder {
     /// Create a new empty `StringBuilder`.
     #[inline]
     pub fn new() -> Self {
-        Self { inner: String::new(), cap: 0 }
+        Self { inner: String { data: core::ptr::null_mut(), len: 0 }, cap: 0 }
     }
 
     /// Push new bytes to the builder.
@@ -187,14 +190,14 @@ impl StringBuilder {
         //     return Self::new();
         // }
         let real_cap = cap + 1;
-        let ptr = unsafe { libc::malloc(real_cap) };
+        let ptr = unsafe { libc::malloc(real_cap) as *mut libc::c_char };
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
-        Self {
-            inner: String { len: 0, data: ptr as *mut ffi::c_char },
-            cap: real_cap,
-        }
+
+        unsafe { ptr.write(0) };
+
+        Self { inner: String { len: 0, data: ptr }, cap: real_cap }
     }
 
     /// Reserve space for `additional` more bytes.
@@ -240,32 +243,30 @@ impl StringBuilder {
 
     /// Finish building the [`String`]
     #[inline]
-    pub fn finish(self) -> String {
-        let mut s = String { data: self.inner.data, len: self.inner.len() };
+    pub fn finish(mut self) -> String {
+        // when constructing the final string, the pointer it contains must always be non null and
+        // terminated with a null byte
+        if self.inner.data.is_null() {
+            // ensure we are in a valid state
+            assert!(self.inner.is_empty());
+            assert_eq!(self.cap, 0);
 
-        if s.data.is_null() {
-            debug_assert!(s.is_empty());
-            debug_assert_eq!(self.cap, 0);
-
-            // The pointer of `String` should never be null, and it must be
-            // terminated by a null byte.
-            if s.data.is_null() {
-                unsafe {
-                    let ptr = libc::malloc(1) as *mut i8;
-                    if ptr.is_null() {
-                        unable_to_alloc_memory();
-                    }
-                    ptr.write(0);
-
-                    s.data = ptr;
-                }
-            }
+            // Create a null terminated empty string
+            self.inner = String::from_bytes(&[]);
         } else {
-            debug_assert!(self.cap > self.inner.len());
+            assert!(self.cap > self.inner.len());
         }
 
+        assert_eq!(
+            unsafe { *self.inner.data.add(self.inner.len()) },
+            0,
+            "StringBuilder should always return a null terminated string"
+        );
+
+        let s = String { data: self.inner.data, len: self.inner.len() };
         // Prevent self's destructor from being called.
         std::mem::forget(self);
+
         s
     }
 
