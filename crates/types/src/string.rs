@@ -20,6 +20,9 @@ use crate::NonOwning;
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
+    // NOTE: strings built by nvim-oxi can never contain a null pointer as they are intended as 
+    // lua strings in neovim. however a string returned by neovim can have a null pointer so a null 
+    // check should performed on access
     pub(super) data: *mut ffi::c_char,
     pub(super) len: usize,
 }
