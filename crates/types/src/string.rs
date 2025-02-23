@@ -3,7 +3,7 @@
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
-use core::{ffi, fmt, ptr, slice};
+use core::{ffi, fmt, slice};
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
@@ -240,32 +240,30 @@ impl StringBuilder {
 
     /// Finish building the [`String`]
     #[inline]
-    pub fn finish(self) -> String {
-        let mut s = String { data: self.inner.data, len: self.inner.len() };
+    pub fn finish(mut self) -> String {
+        // when constructing the final string, the pointer it contains must always be non null and
+        // terminated with a null byte
+        if self.inner.data.is_null() {
+            // ensure we are in a valid state
+            assert!(self.inner.is_empty());
+            assert_eq!(self.cap, 0);
 
-        if s.data.is_null() {
-            debug_assert!(s.is_empty());
-            debug_assert_eq!(self.cap, 0);
-
-            // The pointer of `String` should never be null, and it must be
-            // terminated by a null byte.
-            if s.data.is_null() {
-                unsafe {
-                    let ptr = libc::malloc(1) as *mut i8;
-                    if ptr.is_null() {
-                        unable_to_alloc_memory();
-                    }
-                    ptr.write(0);
-
-                    s.data = ptr;
-                }
-            }
+            // Create a null terminated empty string
+            self.inner = String::from_bytes(&[]);
         } else {
-            debug_assert!(self.cap > self.inner.len());
+            assert!(self.cap > self.inner.len());
         }
 
+        assert_eq!(
+            unsafe { *self.inner.data.add(self.inner.len()) },
+            0,
+            "StringBuilder should always return a null terminated string"
+        );
+
+        let s = String { data: self.inner.data, len: self.inner.len() };
         // Prevent self's destructor from being called.
         std::mem::forget(self);
+
         s
     }
 
