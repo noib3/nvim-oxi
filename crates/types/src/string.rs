@@ -110,7 +110,7 @@ impl String {
     /// Creates a new, empty `String`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: ptr::null_mut(), len: 0 }
+        Self::from_bytes(&[])
     }
 
     /// Makes a non-owning version of this `String`.
@@ -139,7 +139,7 @@ impl StringBuilder {
     /// Create a new empty `StringBuilder`.
     #[inline]
     pub fn new() -> Self {
-        Self { inner: String::new(), cap: 0 }
+        Self { inner: String { data: core::ptr::null_mut(), len: 0 }, cap: 0 }
     }
 
     /// Push new bytes to the builder.
