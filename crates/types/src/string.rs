@@ -187,14 +187,14 @@ impl StringBuilder {
         //     return Self::new();
         // }
         let real_cap = cap + 1;
-        let ptr = unsafe { libc::malloc(real_cap) };
+        let ptr = unsafe { libc::malloc(real_cap) as *mut libc::c_char };
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
-        Self {
-            inner: String { len: 0, data: ptr as *mut ffi::c_char },
-            cap: real_cap,
-        }
+
+        unsafe { ptr.write(0) };
+
+        Self { inner: String { len: 0, data: ptr }, cap: real_cap }
     }
 
     /// Reserve space for `additional` more bytes.
