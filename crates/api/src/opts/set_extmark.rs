@@ -479,6 +479,13 @@ pub struct SetExtmarkOpts {
     )]
     conceal: types::String,
 
+    /// When called, lines in the range are not drawn at all (according to
+    /// `conceallevel`); the next unconcealed line is drawn instead.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(argtype = "()", inline = "{let _ = {0}; types::String::new()}")]
+    conceal_lines: types::String,
+
     #[builder(argtype = "bool")]
     spell: types::Boolean,
 
