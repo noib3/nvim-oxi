@@ -348,7 +348,7 @@ impl Window {
         choose!(err, ())
     }
 
-    /// Binding to [`nvim_win_set_hl()`][1].
+    /// Binding to [`nvim_win_set_hl_ns()`][1].
     ///
     /// Sets the highlight namespace for this window. This will the highlights
     /// defined with [`set_hl`](crate::set_hl) for the given namespace, but
@@ -364,7 +364,7 @@ impl Window {
     )]
     pub fn set_hl(&mut self, ns_id: u32) -> Result<()> {
         let mut err = nvim::Error::new();
-        unsafe { nvim_win_set_hl(self.0, ns_id.into(), &mut err) };
+        unsafe { nvim_win_set_hl_ns(self.0, ns_id.into(), &mut err) };
         choose!(err, ())
     }
 
