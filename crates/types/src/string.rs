@@ -251,7 +251,7 @@ impl StringBuilder {
             // terminated by a null byte.
             if s.data.is_null() {
                 unsafe {
-                    let ptr = libc::malloc(1) as *mut std::ffi::c_char;
+                    let ptr = libc::malloc(1) as *mut ffi::c_char;
                     if ptr.is_null() {
                         unable_to_alloc_memory();
                     }
