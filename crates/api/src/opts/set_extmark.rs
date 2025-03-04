@@ -1,6 +1,8 @@
 use types::{Array, Integer};
 
 use crate::trait_utils::StringOrListOfStrings;
+#[cfg(feature = "neovim-nightly")]
+use crate::types::VirtLinesOverflow;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
 /// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
@@ -425,6 +427,12 @@ pub struct SetExtmarkOpts {
     #[builder(argtype = "bool")]
     virt_lines_leftcol: types::Boolean,
 
+    /// Controls how to handle virtual lines wider than the window.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(argtype = "VirtLinesOverflow", inline = "{0}.into()")]
+    virt_lines_overflow: types::String,
+
     /// Whether the extmark should not be placed if the line or column value is
     /// past the end of the buffer or end of the line, respectively. Defaults
     /// to `true`.
@@ -478,6 +486,13 @@ pub struct SetExtmarkOpts {
         inline = "{0}.map(types::String::from).unwrap_or_default()"
     )]
     conceal: types::String,
+
+    /// When called, lines in the range are not drawn at all (according to
+    /// `conceallevel`); the next unconcealed line is drawn instead.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(argtype = "()", inline = "{let _ = {0}; types::String::new()}")]
+    conceal_lines: types::String,
 
     #[builder(argtype = "bool")]
     spell: types::Boolean,
