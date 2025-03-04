@@ -43,6 +43,8 @@ mod statusline_highlight_infos;
 mod statusline_infos;
 mod ui_infos;
 mod viml_ast_node;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+mod virt_lines_overflow;
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod win_text_height_infos;
 mod window_anchor;
@@ -97,6 +99,8 @@ pub use statusline_highlight_infos::*;
 pub use statusline_infos::*;
 pub use ui_infos::*;
 pub use viml_ast_node::*;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+pub use virt_lines_overflow::VirtLinesOverflow;
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub use win_text_height_infos::*;
 pub use window_anchor::*;

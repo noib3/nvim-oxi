@@ -1,6 +1,8 @@
 use types::{Array, Integer};
 
 use crate::trait_utils::StringOrListOfStrings;
+#[cfg(feature = "neovim-nightly")]
+use crate::types::VirtLinesOverflow;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
 /// Options passed to [`Buffer::set_extmark()`](crate::Buffer::set_extmark).
@@ -424,6 +426,12 @@ pub struct SetExtmarkOpts {
     /// bypassing sign and number columns.
     #[builder(argtype = "bool")]
     virt_lines_leftcol: types::Boolean,
+
+    /// Controls how to handle virtual lines wider than the window.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-nightly")]
+    #[builder(argtype = "VirtLinesOverflow", inline = "{0}.into()")]
+    virt_lines_overflow: types::String,
 
     /// Whether the extmark should not be placed if the line or column value is
     /// past the end of the buffer or end of the line, respectively. Defaults
