@@ -44,6 +44,9 @@
 - renamed `Object::into_dict_unchecked()` to
   `Object::into_dictionary_unchecked()`;
 
+- renamed `nvim_oxi::api::Window::set_hl` to `nvim_oxi::api::Window::set_hl_ns`
+  ([#220](https://github.com/noib3/nvim-oxi/pull/220))
+
 ### Removed
 
 - the `SetHighlightOptsBuilder::global_link()` method. Use
