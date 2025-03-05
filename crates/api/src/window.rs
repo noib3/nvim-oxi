@@ -356,13 +356,13 @@ impl Window {
     ///
     /// This takes precedence over the `winhighlight` option.
     ///
-    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_hl()
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_hl_ns()
     #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
     )]
-    pub fn set_hl(&mut self, ns_id: u32) -> Result<()> {
+    pub fn set_hl_ns(&mut self, ns_id: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_hl_ns(self.0, ns_id.into(), &mut err) };
         choose!(err, ())
