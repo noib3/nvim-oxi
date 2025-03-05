@@ -108,9 +108,9 @@ extern "C" {
         err: *mut Error,
     );
 
-    // https://github.com/neovim/neovim/blob/master/src/nvim/api/window.c#L456
+    // https://github.com/neovim/neovim/blob/release-0.10/src/nvim/api/window.c#L464
     #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    pub(crate) fn nvim_win_set_hl(
+    pub(crate) fn nvim_win_set_hl_ns(
         win: WinHandle,
         ns_id: Integer,
         err: *mut Error,
