@@ -284,6 +284,7 @@ fn buf_set_get_option() {
     assert!(!buf.get_option::<bool>("modified").unwrap());
 }
 
+#[cfg_attr(target_os = "windows", ignore = "Windows' paths are dumb")]
 #[nvim_oxi::test]
 fn buf_terminal_name() {
     api::command("term").unwrap();
