@@ -406,7 +406,6 @@ mod tests {
 
     fn d(value: impl Into<Object>) -> Result<Object, DeserializeError> {
         Object::deserialize(Deserializer::new(value.into()))
-            .map_err(Into::into)
     }
 
     #[test]
