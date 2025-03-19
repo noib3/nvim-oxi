@@ -86,7 +86,7 @@ impl core::fmt::Debug for Object {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let field: &dyn core::fmt::Debug = match self.ty {
-            ObjectKind::Nil => &"()",
+            ObjectKind::Nil => return f.write_str("nil"),
 
             ObjectKind::Boolean => unsafe { &self.data.boolean },
 
@@ -909,6 +909,11 @@ mod serde {
 mod tests {
     use super::*;
     use crate::conversion::FromObject;
+
+    #[test]
+    fn debug_nil() {
+        assert_eq!(format!("{:?}", Object::nil()), "nil");
+    }
 
     #[test]
     fn std_string_to_obj_and_back() {
