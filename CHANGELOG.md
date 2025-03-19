@@ -55,6 +55,10 @@
 - the argument of `SetHighlightOptsBuilder::{link,global_link}()` from `&str`
   to any type implementing `HlGroup`;
 
+- removed the `TitleHighlight` enum, turns out only its `SimpleString` variant
+  was valid, so the entire enum was replaced with an `nvim_oxi::String`
+  ([#228](https://github.com/noib3/nvim-oxi/pull/229));
+
 ## [0.5.1] - June 23 2024
 
 ### Added
