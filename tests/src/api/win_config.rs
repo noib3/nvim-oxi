@@ -87,6 +87,26 @@ fn open_win_full_config() {
     assert_eq!(config.border.unwrap(), got.border.unwrap());
 }
 
+#[cfg(feature = "neovim-0-10")] // On 0.10 and Nightly.
+#[nvim_oxi::test]
+fn open_win_get_set_footer() {
+    let buf = api::create_buf(true, true).unwrap();
+
+    let config = WindowConfig::builder()
+        .relative(WindowRelativeTo::Editor)
+        .row(10)
+        .col(10)
+        .width(10)
+        .height(10)
+        .footer(WindowTitle::SimpleString(" footer ".into()))
+        .border(WindowBorder::Rounded)
+        .build();
+
+    let window = api::open_win(&buf, true, &config).unwrap();
+
+    let _config = window.get_config().unwrap();
+}
+
 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim_oxi::test]
 fn open_split_win() {
