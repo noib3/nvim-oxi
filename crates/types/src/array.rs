@@ -56,7 +56,10 @@ impl Array {
     where
         V: Into<Object>,
     {
-        self.0.push(value.into());
+        let value = value.into();
+        if !value.is_nil() {
+            self.0.push(value);
+        }
     }
 
     /// Removes an `Object` from the `Array` and returns it.
@@ -89,15 +92,21 @@ impl DerefMut for Array {
     }
 }
 
+impl<T: Into<Object>> Extend<T> for Array {
+    #[inline]
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for value in iter {
+            self.push(value);
+        }
+    }
+}
+
 impl<T: Into<Object>> FromIterator<T> for Array {
     #[inline]
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        Self(
-            iter.into_iter()
-                .map(Into::into)
-                .filter(|obj| obj.is_some())
-                .collect(),
-        )
+        let mut array = Self::new();
+        array.extend(iter);
+        array
     }
 }
 
@@ -185,7 +194,9 @@ impl lua::Pushable for Array {
 
         lua_createtable(lstate, self.len() as _, 0);
 
-        for (idx, obj) in self.into_iter().enumerate() {
+        for (idx, obj) in
+            self.into_iter().filter(|obj| !obj.is_nil()).enumerate()
+        {
             obj.push(lstate)?;
             lua_rawseti(lstate, -2, (idx + 1) as _);
         }

@@ -90,8 +90,10 @@ impl Dictionary {
         K: Into<crate::String>,
         V: Into<Object>,
     {
-        let pair = KeyValuePair { key: key.into(), value: value.into() };
-        self.0.push(pair);
+        let value = value.into();
+        if !value.is_nil() {
+            self.0.push(KeyValuePair { key: key.into(), value });
+        }
     }
 
     /// Returns `true` if the dictionary contains no elements.
@@ -231,6 +233,19 @@ where
     }
 }
 
+impl<K, V> Extend<(K, V)> for Dictionary
+where
+    K: Into<crate::String>,
+    V: Into<Object>,
+{
+    #[inline]
+    fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
+        for (key, value) in iter {
+            self.insert(key, value);
+        }
+    }
+}
+
 impl<K, V> FromIterator<(K, V)> for Dictionary
 where
     K: Into<crate::String>,
@@ -238,16 +253,9 @@ where
 {
     #[inline]
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
-        Self(
-            iter.into_iter()
-                .filter_map(|(k, v)| {
-                    let value = v.into();
-                    value
-                        .is_some()
-                        .then(|| KeyValuePair { key: k.into(), value })
-                })
-                .collect(),
-        )
+        let mut dict = Self::new();
+        dict.extend(iter);
+        dict
     }
 }
 
@@ -407,7 +415,7 @@ impl lua::Pushable for Dictionary {
 
         lua_createtable(lstate, 0, self.len() as _);
 
-        for (key, obj) in self {
+        for (key, obj) in self.into_iter().filter(|(_, obj)| !obj.is_nil()) {
             lua_pushlstring(lstate, key.as_ptr(), key.len());
             obj.push(lstate)?;
             lua_rawset(lstate, -3);
