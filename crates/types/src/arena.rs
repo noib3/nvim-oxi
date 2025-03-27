@@ -26,19 +26,13 @@ impl Arena {
 
 /// Initializes the [`Arena`].
 ///
-/// This should be called exactly once during the lifetime of the plugin and as
-/// soon as it is loaded.
-///
-/// # Panics
-///
-/// Panics if this function was already called.
+/// This should be called as soon as the plugin is loaded.
+/// Subsequent calls will be ignored.
 #[doc(hidden)]
 #[inline]
 pub fn arena_init() {
     ARENA.with(|arena| {
-        if arena.set(Arena::new()).is_err() {
-            panic!("Arena is already initialized");
-        }
+        let _ = arena.set(Arena::new());
     });
 }
 
