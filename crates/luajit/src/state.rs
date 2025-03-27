@@ -11,7 +11,9 @@ thread_local! {
 /// NOTE: this function **must** be called before calling any other function
 /// exposed by this crate or there will be segfaults.
 pub unsafe fn init(lstate: *mut State) {
-    LUA.with(|lua| lua.set(lstate).unwrap_unchecked());
+    LUA.with(|lua| {
+        let _ = lua.set(lstate);
+    });
 }
 
 /// Executes a function with access to the Lua state.
