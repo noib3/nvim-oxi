@@ -14,8 +14,9 @@ thread_local! {
 /// exposed by this crate or there will be segfaults.
 #[doc(hidden)]
 pub unsafe fn init(lua_state: *mut State) {
-    LOOP.with(|uv_loop| uv_loop.set(ffi::luv_loop(lua_state)))
-        .unwrap_unchecked();
+    LOOP.with(|uv_loop| {
+        let _ = uv_loop.set(ffi::luv_loop(lua_state));
+    });
 }
 
 /// Executes a function with access to the libuv loop.
