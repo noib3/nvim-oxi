@@ -27,7 +27,6 @@ impl Arena {
 /// Initializes the [`Arena`].
 ///
 /// This should be called as soon as the plugin is loaded.
-/// Subsequent calls will be ignored.
 #[doc(hidden)]
 #[inline]
 pub fn arena_init() {

@@ -289,7 +289,7 @@ impl<T> Iterator for IntoIter<T> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if std::ptr::eq(self.start, self.end) {
+        if ptr::eq(self.start, self.end) {
             None
         } else {
             let current = self.start;
@@ -315,7 +315,7 @@ impl<T> ExactSizeIterator for IntoIter<T> {
 impl<T> DoubleEndedIterator for IntoIter<T> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        if std::ptr::eq(self.start, self.end) {
+        if ptr::eq(self.start, self.end) {
             None
         } else {
             self.end = unsafe { self.end.offset(-1) };
@@ -330,7 +330,7 @@ impl<T> Drop for IntoIter<T> {
     #[inline]
     fn drop(&mut self) {
         // Drop each element before freeing the original `KVec`.
-        while !std::ptr::eq(self.start, self.end) {
+        while !ptr::eq(self.start, self.end) {
             let current = self.start;
             self.start = unsafe { self.start.offset(1) };
             unsafe { ptr::drop_in_place(current) };
