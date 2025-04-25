@@ -28,7 +28,7 @@ impl core::fmt::Debug for Dictionary {
         let num_elements = self.len();
 
         for (idx, (key, value)) in self.iter().enumerate() {
-            write!(f, "{}: {:?}", key, value)?;
+            write!(f, "{key}: {value:?}")?;
 
             if idx + 1 < num_elements {
                 write!(f, ", ")?;

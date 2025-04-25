@@ -523,7 +523,7 @@ impl BuilderAttribute {
         } else if ident == "setter" {
             is_setter = true;
         } else {
-            let msg = format!("unknown attribute `{}`", ident);
+            let msg = format!("unknown attribute `{ident}`");
             return Err(Error::new_spanned(ident, msg));
         }
 
@@ -615,9 +615,8 @@ fn is_valid_combination(attrs: &[BuilderAttribute]) -> Result<()> {
             BuilderAttribute::Inline(inline) => {
                 if !inline.contains(INLINE_PLACEHOLDER) {
                     let _msg = format!(
-                        "expected `{}` in the expression of the `inline` \
-                         attribute",
-                        INLINE_PLACEHOLDER,
+                        "expected `{INLINE_PLACEHOLDER}` in the expression \
+                         of the `inline` attribute",
                     );
                     todo!();
                 }

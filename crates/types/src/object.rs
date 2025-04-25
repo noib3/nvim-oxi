@@ -105,7 +105,7 @@ impl core::fmt::Debug for Object {
 
             ObjectKind::LuaRef => {
                 let luaref = unsafe { self.data.luaref };
-                return write!(f, "Object(LuaRef({}))", luaref);
+                return write!(f, "Object(LuaRef({luaref}))");
             },
         };
 
@@ -778,7 +778,7 @@ impl Poppable for Object {
 
                 Err(lua::Error::pop_error(
                     "Object",
-                    format!("unexpected value of type {}", typename),
+                    format!("unexpected value of type {typename}"),
                 ))
             },
 

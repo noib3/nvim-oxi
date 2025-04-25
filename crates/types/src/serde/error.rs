@@ -41,12 +41,12 @@ pub enum DeserializeError {
 impl fmt::Display for DeserializeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Custom { msg } => write!(f, "{}", msg),
+            Self::Custom { msg } => write!(f, "{msg}"),
             Self::DuplicateField { field } => {
-                write!(f, "duplicate field '{}'", field)
+                write!(f, "duplicate field '{field}'")
             },
             Self::MissingField { field } => {
-                write!(f, "missing field '{}'", field)
+                write!(f, "missing field '{field}'")
             },
             Self::UnknownField { field, expected } => {
                 write!(

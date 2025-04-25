@@ -47,8 +47,7 @@ impl Error {
         Self::PopError {
             ty,
             message: Some(format!(
-                "expected a {}, found a {} instead",
-                expected, found
+                "expected a {expected}, found a {found} instead",
             )),
         }
     }
@@ -62,10 +61,7 @@ impl Error {
 
         Self::PopError {
             ty: expected,
-            message: Some(format!(
-                "expected {}, got {} instead",
-                expected, got
-            )),
+            message: Some(format!("expected {expected}, got {got} instead",)),
         }
     }
 

@@ -46,10 +46,9 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         None => quote! { ::core::option::Option::None },
     };
 
-    let maybe_ignore_err =
-        should_panic.then(|| quote!(let _ = )).unwrap_or_default();
+    let maybe_ignore_err = should_panic.then(|| quote!(let _ = ));
 
-    let maybe_semicolon = should_panic.then(|| quote!(;)).unwrap_or_default();
+    let maybe_semicolon = should_panic.then(|| quote!(;));
 
     #[cfg(feature = "test-terminator")]
     let plugin_body = match &sig.inputs.first() {

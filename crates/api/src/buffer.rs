@@ -166,7 +166,7 @@ impl Buffer {
                 types::ObjectKind::Nil => {
                     return Ret::from_object(Object::nil()).map_err(Into::into)
                 },
-                other => panic!("Unexpected object kind: {:?}", other),
+                other => panic!("Unexpected object kind: {other:?}"),
             };
 
             unsafe {
