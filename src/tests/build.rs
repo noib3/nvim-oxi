@@ -4,6 +4,8 @@ use std::path::Path;
 use std::process::Command;
 use std::{env, io};
 
+use cargo_metadata::camino::Utf8PathBuf;
+
 /// Builds the library required to run integration tests within Neovim.
 ///
 /// This function is designed to be used in the build script (`build.rs`) of a
@@ -45,6 +47,11 @@ pub fn build() -> Result<(), BuildError> {
         "cargo:rustc-env={}={}",
         manifest.profile_env(),
         compilation_opts.profile.as_str()
+    );
+    // Rerun the build script if the compiled library is removed/changed.
+    println!(
+        "cargo:rerun-if-changed=\"{}\"",
+        manifest.library_path(compilation_opts.profile.as_str()),
     );
     Ok(())
 }
@@ -193,13 +200,13 @@ impl CargoManifest {
     pub(super) fn profile_env(&self) -> String {
         format!(
             "NVIM_OXI_TEST_BUILD_PROFILE_{}",
-            self.package().name.to_ascii_uppercase().replace('-', "_")
+            self.root_package().name.to_ascii_uppercase().replace('-', "_")
         )
     }
 
     /// The path to the target directory containing the compiled test library
     /// for the crate represented by this [`CargoManifest`].
-    pub(super) fn target_dir(&self) -> impl Into<String> {
+    pub(super) fn target_dir(&self) -> Utf8PathBuf {
         self.metadata
             .target_directory
             // We have to use a different target directory to avoid a deadlock
@@ -209,11 +216,21 @@ impl CargoManifest {
             .join("nvim_oxi_tests")
             // Namespace by the package name to allow for multiple test crates
             // in the same workspace.
-            .join(&self.package().name)
+            .join(&self.root_package().name)
     }
 
-    fn package(&self) -> &cargo_metadata::Package {
-        self.metadata.root_package().expect("checked when creating the ")
+    pub(super) fn library_path(&self, profile_name: &str) -> Utf8PathBuf {
+        let library_name = format!(
+            "{prefix}{crate_name}{suffix}",
+            prefix = env::consts::DLL_PREFIX,
+            suffix = env::consts::DLL_SUFFIX,
+            crate_name = self.root_package().name.replace('-', "_"),
+        );
+        self.target_dir().join(profile_name).join(library_name)
+    }
+
+    fn root_package(&self) -> &cargo_metadata::Package {
+        self.metadata.root_package().expect("checked in `from_path()`")
     }
 }
 
@@ -221,7 +238,7 @@ impl EnabledFeatures {
     fn from_env(manifest: &CargoManifest) -> Result<Self, BuildError> {
         let mut features = Vec::new();
 
-        for feature in manifest.package().features.keys() {
+        for feature in manifest.root_package().features.keys() {
             let env = format!(
                 "CARGO_FEATURE_{}",
                 feature.to_ascii_uppercase().replace('-', "_")
@@ -252,7 +269,7 @@ impl BuildCommand {
         command
             .arg("build")
             .args(compilation_opts.profile.as_args())
-            .args(["--target-dir", manifest.target_dir().into().as_str()])
+            .args(["--target-dir", manifest.target_dir().as_str()])
             .arg("--no-default-features")
             .arg("--features")
             .arg(enabled_features.features.join(","));

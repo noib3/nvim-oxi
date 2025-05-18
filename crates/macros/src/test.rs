@@ -79,7 +79,6 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         #test_attrs
         fn #test_name() #test_ret {
             #maybe_ignore_err #nvim_oxi::tests::test_macro::test_body(
-                env!("CARGO_CRATE_NAME"),
                 env!("CARGO_MANIFEST_PATH"),
                 stringify!(#plugin_name),
                 #extra_cmd,
