@@ -84,9 +84,9 @@ pub fn test_body(
         eprintln!("{info}");
     }));
 
-    let mut cmd = run_nvim_command(manifest_path, plugin_name, extra_cmd)?;
-
-    let output = cmd.output().map_err(|err| err.to_string())?;
+    let output = run_nvim_command(manifest_path, plugin_name, extra_cmd)?
+        .output()
+        .map_err(|err| err.to_string())?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stdout = stdout.trim();
@@ -100,6 +100,7 @@ pub fn test_body(
     }
 
     let stderr = String::from_utf8_lossy(&output.stderr);
+    let stderr = stderr.trim();
 
     if stderr.is_empty() {
         let msg = output
@@ -111,8 +112,8 @@ pub fn test_body(
         return Err(msg);
     }
 
-    let Ok(failure) = Failure::from_str(&stderr) else {
-        return Err(stderr.into_owned());
+    let Ok(failure) = Failure::from_str(stderr) else {
+        return Err(stderr.to_owned());
     };
 
     match failure {
