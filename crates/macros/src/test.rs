@@ -20,11 +20,6 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         path.segments.iter().any(|segment| segment.ident == "should_panic")
     });
 
-    let test_attrs = test_attrs
-        .into_iter()
-        .map(ToTokens::into_token_stream)
-        .collect::<proc_macro2::TokenStream>();
-
     let test_name = sig.ident;
 
     let test_ret = if should_panic {
@@ -76,7 +71,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     quote! {
         #[test]
-        #test_attrs
+        #(#test_attrs)*
         fn #test_name() #test_ret {
             #maybe_ignore_err #nvim_oxi::tests::test_macro::test_body(
                 env!("CARGO_MANIFEST_PATH"),
