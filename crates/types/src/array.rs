@@ -11,6 +11,20 @@ use crate::Object;
 #[repr(transparent)]
 pub struct Array(pub(super) KVec<Object>);
 
+/// An owning iterator over the `Object`s of a [`Array`].
+#[derive(Clone)]
+pub struct ArrayIterator(kvec::IntoIter<Object>);
+
+/// The error type returned when trying to convert an [`Array`] into a tuple.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ArrayFromTupleError<T> {
+    /// Not enough elements in the array.
+    NotEnoughElements { expected_len: usize, actual_len: usize },
+    /// The tuple element at the given index couldn't be converted into the
+    /// requested type.
+    ElementFromObject { element_idx: usize, error: T },
+}
+
 impl core::fmt::Debug for Array {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -120,10 +134,6 @@ impl IntoIterator for Array {
     }
 }
 
-/// An owning iterator over the `Object`s of a [`Array`].
-#[derive(Clone)]
-pub struct ArrayIterator(kvec::IntoIter<Object>);
-
 impl Iterator for ArrayIterator {
     type Item = Object;
 
@@ -207,7 +217,7 @@ impl lua::Pushable for Array {
 
 /// Implements `From<(A, B, C, ..)>` for tuples `(A, B, C, ..)` where all the
 /// elements in the tuple are `Into<Object>`.
-macro_rules! from_tuple {
+macro_rules! array_from_tuple {
     ($($ty:ident)*) => {
         impl <$($ty: Into<Object>),*> From<($($ty,)*)> for Array {
             #[allow(non_snake_case)]
@@ -218,22 +228,90 @@ macro_rules! from_tuple {
     };
 }
 
-from_tuple!(A);
-from_tuple!(A B);
-from_tuple!(A B C);
-from_tuple!(A B C D);
-from_tuple!(A B C D E);
-from_tuple!(A B C D E F);
-from_tuple!(A B C D E F G);
-from_tuple!(A B C D E F G H);
-from_tuple!(A B C D E F G H I);
-from_tuple!(A B C D E F G H I J);
-from_tuple!(A B C D E F G H I J K);
-from_tuple!(A B C D E F G H I J K L);
-from_tuple!(A B C D E F G H I J K L M);
-from_tuple!(A B C D E F G H I J K L M N);
-from_tuple!(A B C D E F G H I J K L M N O);
-from_tuple!(A B C D E F G H I J K L M N O P);
+array_from_tuple!(A);
+array_from_tuple!(A B);
+array_from_tuple!(A B C);
+array_from_tuple!(A B C D);
+array_from_tuple!(A B C D E);
+array_from_tuple!(A B C D E F);
+array_from_tuple!(A B C D E F G);
+array_from_tuple!(A B C D E F G H);
+array_from_tuple!(A B C D E F G H I);
+array_from_tuple!(A B C D E F G H I J);
+array_from_tuple!(A B C D E F G H I J K);
+array_from_tuple!(A B C D E F G H I J K L);
+array_from_tuple!(A B C D E F G H I J K L M);
+array_from_tuple!(A B C D E F G H I J K L M N);
+array_from_tuple!(A B C D E F G H I J K L M N O);
+array_from_tuple!(A B C D E F G H I J K L M N O P);
+
+macro_rules! count {
+    () => {0i32};
+    ($x:tt $($xs:tt)*) => {1i32 + count!($($xs)*)};
+}
+
+/// Implements `TryFrom<Array>` for tuples `(A, B, C, ..)` where all the
+/// elements in the tuple are `TryFrom<Object>` with the same error.
+macro_rules! tuple_try_from_array {
+    ($($ty:ident)*) => {
+        impl<Error, $($ty,)*> TryFrom<Array> for ($($ty,)*)
+        where
+            $($ty: TryFrom<Object, Error = Error>,)*
+        {
+            type Error = ArrayFromTupleError<Error>;
+
+            #[inline]
+            #[allow(non_snake_case)]
+            fn try_from(array: Array) -> Result<Self, Self::Error> {
+                let actual_len = array.len();
+                let expected_len = count!($($ty)*) as usize;
+
+                if actual_len < expected_len {
+                    return Err(ArrayFromTupleError::NotEnoughElements {
+                        expected_len,
+                        actual_len
+                    });
+                }
+
+                let mut iter = array.into_iter();
+
+                $(
+                    let $ty = $ty::try_from(
+                        iter.next().expect("already checked len")
+                    ).map_err(|error| ArrayFromTupleError::ElementFromObject {
+                        element_idx: actual_len - iter.len(),
+                        error
+                    })?;
+                )*
+
+                Ok(($($ty,)*))
+            }
+        }
+    };
+}
+
+fn tt(_: impl TryFrom<Array>) {}
+
+fn tu() {
+    tt((16u32, 8u8));
+}
+
+tuple_try_from_array!(A);
+tuple_try_from_array!(A B);
+tuple_try_from_array!(A B C);
+tuple_try_from_array!(A B C D);
+tuple_try_from_array!(A B C D E);
+tuple_try_from_array!(A B C D E F);
+tuple_try_from_array!(A B C D E F G);
+tuple_try_from_array!(A B C D E F G H);
+tuple_try_from_array!(A B C D E F G H I);
+tuple_try_from_array!(A B C D E F G H I J);
+tuple_try_from_array!(A B C D E F G H I J K);
+tuple_try_from_array!(A B C D E F G H I J K L);
+tuple_try_from_array!(A B C D E F G H I J K L M);
+tuple_try_from_array!(A B C D E F G H I J K L M N);
+tuple_try_from_array!(A B C D E F G H I J K L M N O);
+tuple_try_from_array!(A B C D E F G H I J K L M N O P);
 
 #[cfg(test)]
 mod tests {
