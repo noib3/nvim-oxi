@@ -77,8 +77,10 @@ impl FromObject for Boolean {
     }
 }
 
-impl FromObject for Integer {
-    fn from_object(obj: Object) -> Result<Self, Error> {
+impl TryFrom<Object> for Integer {
+    type Error = Error;
+
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
         match obj.kind() {
             ObjectKind::Integer
             | ObjectKind::Buffer
@@ -165,7 +167,7 @@ impl<A, R> FromObject for Function<A, R> {
 impl<T: TryFrom<Object, Error = Error>> FromObject for T {
     #[inline]
     fn from_object(obj: Object) -> Result<Self, Error> {
-        T::try_from(obj)
+        T::try_from(obj).map_err(Into::into)
     }
 }
 
@@ -182,12 +184,15 @@ macro_rules! from_int {
 
 from_int!(i128);
 
-/// Implements `FromObject` for a type that implements `TryFrom<Integer>`.
+/// Implements `TryFrom<Object>` for a type that implements `TryFrom<Integer>`.
 macro_rules! try_from_int {
     ($integer:ty) => {
-        impl FromObject for $integer {
-            fn from_object(obj: Object) -> Result<Self, Error> {
-                Integer::from_object(obj).and_then(|n| Ok(n.try_into()?))
+        impl TryFrom<Object> for $integer {
+            type Error = Error;
+
+            fn try_from(obj: Object) -> Result<Self, Self::Error> {
+                Integer::try_from(obj)
+                    .and_then(|n| n.try_into().map_err(Into::into))
             }
         }
     };
