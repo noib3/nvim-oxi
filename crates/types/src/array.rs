@@ -287,7 +287,7 @@ macro_rules! tuple_try_from_array {
                     let $ty = $ty::try_from(
                         iter.next().expect("already checked len")
                     ).map_err(|error| ArrayFromTupleError::ElementFromObject {
-                        element_idx: actual_len - iter.len(),
+                        element_idx: actual_len - iter.len() - 1,
                         error
                     })?;
                 )*
