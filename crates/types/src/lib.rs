@@ -17,7 +17,7 @@ pub mod serde;
 mod string;
 
 pub use arena::{arena, arena_init, Arena};
-pub use array::Array;
+pub use array::{Array, ArrayFromTupleError};
 pub use dictionary::{Dictionary, KeyValuePair};
 pub use error::Error;
 pub use function::Function;
