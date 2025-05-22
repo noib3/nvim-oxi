@@ -162,6 +162,13 @@ impl<A, R> FromObject for Function<A, R> {
     }
 }
 
+impl<T: TryFrom<Object, Error = Error>> FromObject for T {
+    #[inline]
+    fn from_object(obj: Object) -> Result<Self, Error> {
+        T::try_from(obj)
+    }
+}
+
 /// Implements `FromObject` for a type that implements `From<Integer>`.
 macro_rules! from_int {
     ($integer:ty) => {
