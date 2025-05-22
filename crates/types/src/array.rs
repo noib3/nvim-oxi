@@ -16,12 +16,20 @@ pub struct Array(pub(super) KVec<Object>);
 pub struct ArrayIterator(kvec::IntoIter<Object>);
 
 /// The error type returned when trying to convert an [`Array`] into a tuple.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum ArrayFromTupleError<T> {
     /// Not enough elements in the array.
+    #[error(
+        "not enough elements in the array, expected {expected_len} but got \
+         {actual_len}"
+    )]
     NotEnoughElements { expected_len: usize, actual_len: usize },
     /// The tuple element at the given index couldn't be converted into the
     /// requested type.
+    #[error(
+        "couldn't convert tuple element at index {element_idx} into object: \
+         {error:?}"
+    )]
     ElementFromObject { element_idx: usize, error: T },
 }
 
@@ -288,12 +296,6 @@ macro_rules! tuple_try_from_array {
             }
         }
     };
-}
-
-fn tt(_: impl TryFrom<Array>) {}
-
-fn tu() {
-    tt((16u32, 8u8));
 }
 
 tuple_try_from_array!(A);

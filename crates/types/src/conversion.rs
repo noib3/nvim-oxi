@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use thiserror::Error as ThisError;
 
+use crate::array::ArrayFromTupleError;
 use crate::{
     Array,
     Boolean,
@@ -33,6 +34,10 @@ pub enum Error {
     #[cfg(feature = "serde")]
     #[error(transparent)]
     Serialize(#[from] crate::serde::SerializeError),
+
+    #[doc(hidden)]
+    #[error("{0}")]
+    Other(String),
 }
 
 /// Trait implemented for types can be obtained from an [`Object`].
@@ -185,7 +190,7 @@ macro_rules! from_int {
 from_int!(i128);
 
 /// Implements `TryFrom<Object>` for a type that implements `TryFrom<Integer>`.
-macro_rules! try_from_int {
+macro_rules! int_try_from_obj {
     ($integer:ty) => {
         impl TryFrom<Object> for $integer {
             type Error = Error;
@@ -198,16 +203,16 @@ macro_rules! try_from_int {
     };
 }
 
-try_from_int!(i8);
-try_from_int!(u8);
-try_from_int!(i16);
-try_from_int!(u16);
-try_from_int!(i32);
-try_from_int!(u32);
-try_from_int!(u64);
-try_from_int!(u128);
-try_from_int!(isize);
-try_from_int!(usize);
+int_try_from_obj!(i8);
+int_try_from_obj!(u8);
+int_try_from_obj!(i16);
+int_try_from_obj!(u16);
+int_try_from_obj!(i32);
+int_try_from_obj!(u32);
+int_try_from_obj!(u64);
+int_try_from_obj!(u128);
+int_try_from_obj!(isize);
+int_try_from_obj!(usize);
 
 impl FromObject for f32 {
     fn from_object(obj: Object) -> Result<Self, Error> {
@@ -242,6 +247,46 @@ where
             .collect()
     }
 }
+
+/// Implements `FromObject` for tuples `(A, B, C, ..)` where all the
+/// elements in the tuple are `TryFrom<Object>` with the same error.
+macro_rules! tuple_from_object {
+    ($($ty:ident)*) => {
+        impl<Err, $($ty,)*> FromObject for ($($ty,)*)
+        where
+            $($ty: TryFrom<Object, Error = Err>,)*
+            Err: Into<self::Error> + core::error::Error,
+        {
+            #[inline]
+            #[allow(non_snake_case)]
+            fn from_object(obj: Object) -> Result<Self, Error> {
+                Array::from_object(obj)?
+                    .try_into()
+                    .map_err(|err: ArrayFromTupleError<Err>| match err {
+                        ArrayFromTupleError::ElementFromObject { error, .. } => error.into(),
+                        err @ ArrayFromTupleError::NotEnoughElements { .. } => Error::Other(err.to_string()),
+                    })
+            }
+        }
+    };
+}
+
+tuple_from_object!(A);
+tuple_from_object!(A B);
+tuple_from_object!(A B C);
+tuple_from_object!(A B C D);
+tuple_from_object!(A B C D E);
+tuple_from_object!(A B C D E F);
+tuple_from_object!(A B C D E F G);
+tuple_from_object!(A B C D E F G H);
+tuple_from_object!(A B C D E F G H I);
+tuple_from_object!(A B C D E F G H I J);
+tuple_from_object!(A B C D E F G H I J K);
+tuple_from_object!(A B C D E F G H I J K L);
+tuple_from_object!(A B C D E F G H I J K L M);
+tuple_from_object!(A B C D E F G H I J K L M N);
+tuple_from_object!(A B C D E F G H I J K L M N O);
+tuple_from_object!(A B C D E F G H I J K L M N O P);
 
 impl<T> ToObject for T
 where
