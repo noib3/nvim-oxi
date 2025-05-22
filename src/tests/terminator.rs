@@ -41,10 +41,13 @@ pub struct TestTerminator {
 }
 
 impl TestTerminator {
-    /// Terminates the test and consumes the `TestTerminator`.
-    pub fn terminate<E: Display>(self, res: Result<(), TestFailure<'_, E>>) {
-        let res = res.map_err(Into::into);
-        let Ok(()) = self.lock.set(res) else { unreachable!() };
-        self.handle.send().unwrap();
+    /// Terminates the test.
+    ///
+    /// Note that this will have no effect if [`terminate`](Self::terminate)
+    /// has already been called.
+    pub fn terminate<E: Display>(&self, res: Result<(), TestFailure<'_, E>>) {
+        if let Ok(()) = self.lock.set(res.map_err(Into::into)) {
+            self.handle.send().unwrap();
+        }
     }
 }
