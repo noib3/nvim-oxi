@@ -104,12 +104,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = types::String::from(name);
     let mut err = types::Error::new();
     let obj = unsafe {
-        nvim_get_option_info(
-            name.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
+        nvim_get_option_info(name.as_nvim_str(), types::arena(), &mut err)
     };
     choose!(err, Ok(OptionInfos::from_object(obj.into())?))
 }

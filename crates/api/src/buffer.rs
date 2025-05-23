@@ -269,7 +269,6 @@ impl Buffer {
             nvim_buf_get_keymap(
                 self.0,
                 mode.as_nvim_str(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -306,7 +305,6 @@ impl Buffer {
                 start,
                 end,
                 strict_indexing,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 // The nvim_buf_get_lines() function returns no line if we use
                 // an actual lstate here.
@@ -337,7 +335,6 @@ impl Buffer {
             nvim_buf_get_mark(
                 self.0,
                 name.as_nvim_str(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -436,7 +433,6 @@ impl Buffer {
             nvim_buf_get_var(
                 self.0,
                 name.as_nvim_str(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -532,7 +528,6 @@ impl Buffer {
                 end,
                 strict_indexing,
                 rpl.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -619,7 +614,6 @@ impl Buffer {
                     .map(|line| line.into())
                     .collect::<Array>()
                     .non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )

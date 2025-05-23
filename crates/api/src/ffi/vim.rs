@@ -22,11 +22,7 @@ extern "C" {
     ) -> BufHandle;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L702
-    pub(crate) fn nvim_del_current_line(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-        err: *mut Error,
-    );
+    pub(crate) fn nvim_del_current_line(arena: *mut Arena, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1549
     pub(crate) fn nvim_del_keymap(
@@ -60,7 +56,6 @@ extern "C" {
     pub(crate) fn nvim_eval_statusline(
         str: NvimStr,
         opts: *const EvalStatuslineOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
@@ -78,15 +73,11 @@ extern "C" {
     pub(crate) fn nvim_get_color_by_name(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1392
-    pub(crate) fn nvim_get_color_map(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Dictionary;
+    pub(crate) fn nvim_get_color_map(arena: *mut Arena) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1411
     pub(crate) fn nvim_get_context(
         opts: *const GetContextOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         error: *mut Error,
     ) -> Dictionary;
@@ -96,7 +87,6 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L682
     pub(crate) fn nvim_get_current_line(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> String;
@@ -108,7 +98,6 @@ extern "C" {
     pub(crate) fn nvim_get_current_win() -> WinHandle;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L118
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_hl(
         ns_id: Integer,
         opts: *const GetHighlightOpts,
@@ -120,18 +109,13 @@ extern "C" {
     pub(crate) fn nvim_get_hl_id_by_name(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L204
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_hl_ns(
         opts: *const GetNamespaceOpts,
         err: *mut Error,
     ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/vim.c#L1497
-    pub(crate) fn nvim_get_keymap(
-        mode: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_get_keymap(mode: NvimStr, arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1999
     pub(crate) fn nvim_get_mark(
@@ -198,17 +182,13 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L849
-    pub(crate) fn nvim_list_bufs(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_bufs(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1697
     pub(crate) fn nvim_list_chans() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L557
     pub(crate) fn nvim_list_runtime_paths(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -217,16 +197,10 @@ extern "C" {
     pub(crate) fn nvim_list_tabpages() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1829
-    pub(crate) fn nvim_list_uis(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_uis(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L908
-    pub(crate) fn nvim_list_wins(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_wins(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1455
     pub(crate) fn nvim_load_context(dict: NonOwning<Dictionary>) -> Object;

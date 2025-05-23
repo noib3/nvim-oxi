@@ -22,7 +22,6 @@ pub fn cmd(infos: &CmdInfos, opts: &CmdOpts) -> Result<Option<String>> {
             LUA_INTERNAL_CALL,
             &infos.into(),
             opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -83,14 +82,7 @@ pub fn get_commands(
     opts: &GetCommandsOpts,
 ) -> Result<impl SuperIterator<CommandInfos>> {
     let mut err = nvim::Error::new();
-    let cmds = unsafe {
-        nvim_get_commands(
-            opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let cmds = unsafe { nvim_get_commands(opts, types::arena(), &mut err) };
     choose!(
         err,
         Ok({
@@ -173,13 +165,7 @@ impl Buffer {
     ) -> Result<impl SuperIterator<CommandInfos>> {
         let mut err = nvim::Error::new();
         let cmds = unsafe {
-            nvim_buf_get_commands(
-                self.0,
-                opts,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-                &mut err,
-            )
+            nvim_buf_get_commands(self.0, opts, types::arena(), &mut err)
         };
         choose!(
             err,

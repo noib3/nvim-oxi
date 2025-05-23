@@ -49,13 +49,7 @@ pub fn create_buf(is_listed: bool, is_scratch: bool) -> Result<Buffer> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_del_current_line()
 pub fn del_current_line() -> Result<()> {
     let mut err = nvim::Error::new();
-    unsafe {
-        nvim_del_current_line(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    unsafe { nvim_del_current_line(types::arena(), &mut err) };
     choose!(err, ())
 }
 
@@ -175,13 +169,7 @@ pub fn eval_statusline(
     let str = nvim::String::from(str);
     let mut err = nvim::Error::new();
     let dict = unsafe {
-        nvim_eval_statusline(
-            str.as_nvim_str(),
-            opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
+        nvim_eval_statusline(str.as_nvim_str(), opts, types::arena(), &mut err)
     };
     choose!(err, Ok(StatuslineInfos::from_object(dict.into())?))
 }
@@ -229,14 +217,9 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_map()
 pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
-    unsafe {
-        nvim_get_color_map(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    }
-    .into_iter()
-    .map(|(k, v)| (k.to_string_lossy().into(), u32::from_object(v).unwrap()))
+    unsafe { nvim_get_color_map(types::arena()) }.into_iter().map(|(k, v)| {
+        (k.to_string_lossy().into(), u32::from_object(v).unwrap())
+    })
 }
 
 /// Binding to [`nvim_get_context()`][1].
@@ -246,14 +229,7 @@ pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_context()
 pub fn get_context(opts: &GetContextOpts) -> Result<EditorContext> {
     let mut err = nvim::Error::new();
-    let ctx = unsafe {
-        nvim_get_context(
-            opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let ctx = unsafe { nvim_get_context(opts, types::arena(), &mut err) };
     choose!(err, Ok(EditorContext::from_object(ctx.into())?))
 }
 
@@ -273,13 +249,7 @@ pub fn get_current_buf() -> Buffer {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_line()
 pub fn get_current_line() -> Result<String> {
     let mut err = nvim::Error::new();
-    let s = unsafe {
-        nvim_get_current_line(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let s = unsafe { nvim_get_current_line(types::arena(), &mut err) };
     choose!(err, Ok(s.to_string_lossy().into()))
 }
 
@@ -306,11 +276,6 @@ pub fn get_current_win() -> Window {
 /// Gets all or specific highlight groups in a namespace.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn get_hl(
     ns_id: u32,
     opts: &GetHighlightOpts,
@@ -361,11 +326,6 @@ pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
 /// Gets the active highlight namespace.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_ns()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn get_hl_ns(opts: &GetNamespaceOpts) -> Result<i64> {
     let mut err = nvim::Error::new();
     let res = unsafe { nvim_get_hl_ns(opts, &mut err) };
@@ -379,13 +339,8 @@ pub fn get_hl_ns(opts: &GetNamespaceOpts) -> Result<i64> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_keymap()
 pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
-    let keymaps = unsafe {
-        nvim_get_keymap(
-            mode.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    };
+    let keymaps =
+        unsafe { nvim_get_keymap(mode.as_nvim_str(), types::arena()) };
     keymaps.into_iter().map(|obj| KeymapInfos::from_object(obj).unwrap())
 }
 
@@ -423,14 +378,7 @@ pub fn get_mark(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_mode()
 pub fn get_mode() -> Result<GotMode> {
-    unsafe {
-        nvim_get_mode(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    }
-    .try_into()
-    .map_err(Into::into)
+    unsafe { nvim_get_mode(types::arena()) }.try_into().map_err(Into::into)
 }
 
 /// Binding to [`nvim_get_proc()`][1].
@@ -440,14 +388,7 @@ pub fn get_mode() -> Result<GotMode> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc()
 pub fn get_proc(pid: u32) -> Result<ProcInfos> {
     let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_get_proc(
-            pid.into(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let obj = unsafe { nvim_get_proc(pid.into(), types::arena(), &mut err) };
     choose!(err, Ok(ProcInfos::from_object(obj)?))
 }
 
@@ -459,12 +400,7 @@ pub fn get_proc(pid: u32) -> Result<ProcInfos> {
 pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
     let mut err = nvim::Error::new();
     let procs = unsafe {
-        nvim_get_proc_children(
-            pid.into(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
+        nvim_get_proc_children(pid.into(), types::arena(), &mut err)
     };
     choose!(
         err,
@@ -487,7 +423,6 @@ pub fn get_runtime_file(
         nvim_get_runtime_file(
             name.as_nvim_str(),
             get_all,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -513,14 +448,8 @@ where
 {
     let mut err = nvim::Error::new();
     let name = nvim::String::from(name);
-    let obj = unsafe {
-        nvim_get_var(
-            name.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let obj =
+        unsafe { nvim_get_var(name.as_nvim_str(), types::arena(), &mut err) };
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
@@ -535,14 +464,8 @@ where
 {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_get_vvar(
-            name.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let obj =
+        unsafe { nvim_get_vvar(name.as_nvim_str(), types::arena(), &mut err) };
     choose!(err, Ok(Var::from_object(obj)?))
 }
 
@@ -609,12 +532,7 @@ pub fn input_mouse(
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
 /// [2]: unloaded/deleted
 pub fn list_bufs() -> impl SuperIterator<Buffer> {
-    let bufs = unsafe {
-        nvim_list_bufs(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    };
+    let bufs = unsafe { nvim_list_bufs(types::arena()) };
     bufs.into_iter().map(|obj| Buffer::from_object(obj).unwrap())
 }
 
@@ -636,13 +554,7 @@ pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()
 pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
     let mut err = nvim::Error::new();
-    let paths = unsafe {
-        nvim_list_runtime_paths(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let paths = unsafe { nvim_list_runtime_paths(types::arena(), &mut err) };
     choose!(
         err,
         Ok({
@@ -670,14 +582,9 @@ pub fn list_tabpages() -> impl SuperIterator<TabPage> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_uis()
 pub fn list_uis() -> impl SuperIterator<UiInfos> {
-    unsafe {
-        nvim_list_uis(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    }
-    .into_iter()
-    .map(|obj| UiInfos::from_object(obj).unwrap())
+    unsafe { nvim_list_uis(types::arena()) }
+        .into_iter()
+        .map(|obj| UiInfos::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_list_wins()`][1].
@@ -686,14 +593,9 @@ pub fn list_uis() -> impl SuperIterator<UiInfos> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_wins()
 pub fn list_wins() -> impl SuperIterator<Window> {
-    unsafe {
-        nvim_list_wins(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    }
-    .into_iter()
-    .map(|obj| Window::from_object(obj).unwrap())
+    unsafe { nvim_list_wins(types::arena()) }
+        .into_iter()
+        .map(|obj| Window::from_object(obj).unwrap())
 }
 
 /// Binding to [`nvim_load_context()`][1].
@@ -721,7 +623,6 @@ pub fn notify(
             msg.as_nvim_str(),
             log_level as Integer,
             opts.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -777,7 +678,6 @@ where
             data.into().as_nvim_str(),
             crlf,
             phase as Integer,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -899,7 +799,6 @@ where
     unsafe {
         nvim_set_current_line(
             line.into().as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -939,7 +838,6 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_hl(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             LUA_INTERNAL_CALL,
             ns_id as Integer,
             name.as_nvim_str(),
@@ -956,11 +854,6 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
 /// can be set for a single window, see [`Window::set_hl`].
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl_ns()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn set_hl_ns(ns_id: u32) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_hl_ns(ns_id as Integer, &mut err) };
@@ -978,11 +871,6 @@ pub fn set_hl_ns(ns_id: u32) -> Result<()> {
 /// redraw cycle.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl_ns_fast()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn set_hl_ns_fast(ns_id: u32) -> Result<()> {
     let mut err = nvim::Error::new();
     unsafe { nvim_set_hl_ns_fast(ns_id as Integer, &mut err) };

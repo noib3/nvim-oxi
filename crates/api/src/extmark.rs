@@ -31,14 +31,7 @@ pub fn create_namespace(name: &str) -> u32 {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
 pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
-    unsafe {
-        nvim_get_namespaces(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-        )
-    }
-    .into_iter()
-    .map(|(k, v)| {
+    unsafe { nvim_get_namespaces(types::arena()) }.into_iter().map(|(k, v)| {
         let k = k.to_string_lossy().into();
         let v = u32::from_object(v).expect("namespace id is positive");
         (k, v)

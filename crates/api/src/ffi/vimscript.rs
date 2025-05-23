@@ -10,7 +10,6 @@ extern "C" {
         dict: NonOwning<Object>,
         r#fn: NvimStr,
         args: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -19,7 +18,6 @@ extern "C" {
     pub(crate) fn nvim_call_function(
         r#fn: NvimStr,
         args: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -30,13 +28,11 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L151
     pub(crate) fn nvim_eval(
         expr: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vimscript.c#L53
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_exec2(
         channel_id: u64,
         src: NvimStr,
@@ -49,7 +45,6 @@ extern "C" {
         expr: NvimStr,
         flags: NvimStr,
         highlight: bool,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;

@@ -70,10 +70,7 @@ extern "C" {
     pub(crate) fn nvim_create_namespace(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/extmark.c#L75
-    pub(crate) fn nvim_get_namespaces(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Dictionary;
+    pub(crate) fn nvim_get_namespaces(arena: *mut Arena) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/extmark.c#L1052
     pub(crate) fn nvim_set_decoration_provider(

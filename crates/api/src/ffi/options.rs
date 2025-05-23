@@ -9,13 +9,11 @@ use crate::opts::*;
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/options.c#L266
     pub(crate) fn nvim_get_all_options_info(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/options.c#L305
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_option_info2(
         name: NvimStr,
         opts: *const OptionOpts,

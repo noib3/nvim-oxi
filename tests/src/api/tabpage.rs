@@ -35,7 +35,6 @@ fn tabpage_set_get_del_var() {
 }
 
 #[nvim_oxi::test]
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 fn tabpage_set_get_win() {
     let config = nvim_oxi::api::types::WindowConfig::builder()
         .relative(nvim_oxi::api::types::WindowRelativeTo::Editor)

@@ -3,7 +3,6 @@ use std::iter::FusedIterator;
 
 use luajit::{Poppable, Pushable};
 use types::{Array, Function, LuaRef, Object};
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{HlGroupId, Integer};
 
 use crate::IntoResult;
@@ -131,18 +130,12 @@ impl<A, R> StringOrFunction<A, R> for Function<A, R> {
 }
 
 /// A trait implemented by types that can be converted to a highlight group ID.
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub trait HlGroup: sealed::Sealed {
     type Error;
 
     fn to_hl_id(&self) -> Result<HlGroupId, Self::Error>;
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl HlGroup for Integer {
     type Error = core::convert::Infallible;
 
@@ -152,7 +145,6 @@ impl HlGroup for Integer {
     }
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl HlGroup for &str {
     type Error = crate::Error;
 
@@ -207,7 +199,6 @@ impl<T: StringOrInt> SetExtmarkHlGroup for Vec<T> {
     }
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 mod sealed {
     pub trait Sealed {}
 

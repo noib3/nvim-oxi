@@ -88,7 +88,6 @@ pub type OnReloadArgs = (String, Buffer);
 pub type ShouldDetach = bool;
 
 /// Options passed to [`Buffer::attach`](crate::Buffer::attach).
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct BufAttachOpts {

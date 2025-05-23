@@ -63,7 +63,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_keymap(
         buf: BufHandle,
         mode: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -75,7 +74,6 @@ extern "C" {
         start: Integer,
         end: Integer,
         strict_indexing: bool,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         lstate: *mut luajit::ffi::State,
         err: *mut Error,
@@ -85,7 +83,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_mark(
         buf: BufHandle,
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -122,7 +119,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_var(
         buf: BufHandle,
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -158,7 +154,6 @@ extern "C" {
         end: Integer,
         strict_indexing: bool,
         replacement: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );
@@ -189,7 +184,6 @@ extern "C" {
         end_row: Integer,
         end_col: Integer,
         replacement: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );

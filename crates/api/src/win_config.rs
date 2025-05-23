@@ -31,14 +31,8 @@ impl Window {
     pub fn get_config(&self) -> Result<WindowConfig> {
         let mut err = nvim::Error::new();
 
-        let out = unsafe {
-            nvim_win_get_config(
-                self.0,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-                &mut err,
-            )
-        };
+        let out =
+            unsafe { nvim_win_get_config(self.0, types::arena(), &mut err) };
 
         let out = WindowConfig::try_from(out)?;
 

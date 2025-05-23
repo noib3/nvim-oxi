@@ -5,7 +5,6 @@ use types::{
     Array,
     Object,
 };
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, Dictionary, Integer, String as NvimString};
 
 use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};

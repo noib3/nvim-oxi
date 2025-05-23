@@ -4,7 +4,6 @@
 )]
 extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/private/helpers.c#L776
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn object_to_hl_id(
         obj: types::Object,
         what: *const core::ffi::c_char,
