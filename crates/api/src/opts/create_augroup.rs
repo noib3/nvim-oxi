@@ -12,14 +12,14 @@ pub struct CreateAugroupOpts {
 }
 
 /// Options passed to [`create_augroup()`](crate::create_augroup).
-#[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+#[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct CreateAugroupOpts {
     clear: types::Object,
 }
 
-#[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+#[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
 impl CreateAugroupOpts {
     #[inline(always)]
     pub fn builder() -> CreateAugroupOptsBuilder {
@@ -27,11 +27,11 @@ impl CreateAugroupOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+#[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
 #[derive(Clone, Default)]
 pub struct CreateAugroupOptsBuilder(CreateAugroupOpts);
 
-#[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+#[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
 impl CreateAugroupOptsBuilder {
     /// Whether to clear existing commands if the group already exists.
     #[inline]

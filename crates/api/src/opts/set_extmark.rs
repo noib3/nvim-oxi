@@ -28,7 +28,7 @@ pub struct SetExtmarkOpts {
     end_col: types::Integer,
 
     /// Name of the highlight group used to highlight this mark.
-    #[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+    #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
     #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-nightly"))))]
     #[builder(
         generics = "Hl: crate::HlGroup",
