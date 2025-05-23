@@ -59,19 +59,11 @@ const LUA_INTERNAL_CALL: u64 = VIML_INTERNAL_CALL + 1;
 
 macro_rules! choose {
     ($err:expr, ()) => {
-        if $err.is_err() {
-            Err($err.into())
-        } else {
-            Ok(())
-        }
+        if $err.is_err() { Err($err.into()) } else { Ok(()) }
     };
 
     ($err:expr, $other:expr) => {
-        if $err.is_err() {
-            Err($err.into())
-        } else {
-            $other
-        }
+        if $err.is_err() { Err($err.into()) } else { $other }
     };
 }
 

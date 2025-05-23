@@ -1,7 +1,7 @@
 use types::{Array, Object};
 
-use crate::trait_utils::StringOrInt;
 use crate::Buffer;
+use crate::trait_utils::StringOrInt;
 
 /// Options passed to [`get_autocmds()`](crate::get_autocmds).
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]

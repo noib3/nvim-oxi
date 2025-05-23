@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::RangeInclusive;
 
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]

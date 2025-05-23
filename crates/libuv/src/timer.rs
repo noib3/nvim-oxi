@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::time::Duration;
 
-use crate::{ffi, Error, Handle, IntoResult};
+use crate::{Error, Handle, IntoResult, ffi};
 
 pub(crate) type Callback = Box<
     dyn FnMut(&mut TimerHandle) -> Result<(), Box<dyn StdError>> + 'static,

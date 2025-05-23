@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use types::{
-    conversion::{self, ToObject},
-    serde::Serializer,
     Dictionary,
     Object,
+    conversion::{self, ToObject},
+    serde::Serializer,
 };
 
 use super::SplitModifier;

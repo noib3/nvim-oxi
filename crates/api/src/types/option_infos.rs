@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use types::{
+    Object,
     conversion::{self, FromObject},
     serde::Deserializer,
-    Object,
 };
 
 /// Informations related to an option. Unlike in the Lua API, the `type` field

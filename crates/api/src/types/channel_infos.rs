@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use types::{
+    Object,
     conversion::{self, FromObject},
     serde::Deserializer,
-    Object,
 };
 
 use super::ClientInfos;

@@ -1,12 +1,12 @@
 use serde::{
-    de::{self, Error},
     Deserialize,
+    de::{self, Error},
 };
 use types::{
-    conversion::{self, FromObject},
-    serde::Deserializer,
     Function,
     Object,
+    conversion::{self, FromObject},
+    serde::Deserializer,
 };
 
 use super::{CommandAddr, CommandArgs, CommandNArgs, CommandRange};

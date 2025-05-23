@@ -1,5 +1,5 @@
 use mlua::prelude::LuaFunction;
-use nvim_oxi::{mlua, print, Result};
+use nvim_oxi::{Result, mlua, print};
 
 #[nvim_oxi::plugin]
 fn mlua() -> Result<()> {

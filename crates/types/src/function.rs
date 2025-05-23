@@ -4,7 +4,7 @@ use std::ffi::c_int;
 use std::fmt;
 use std::marker::PhantomData;
 
-use luajit::{self as lua, ffi, IntoResult, Poppable, Pushable};
+use luajit::{self as lua, IntoResult, Poppable, Pushable, ffi};
 
 use crate::{Error, LuaRef};
 

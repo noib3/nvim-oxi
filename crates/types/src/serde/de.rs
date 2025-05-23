@@ -105,7 +105,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                         return Err(Self::Error::invalid_value(
                             de::Unexpected::Map,
                             &"dictionary with a single key-value pair",
-                        ))
+                        ));
                     },
                 };
 
@@ -145,7 +145,7 @@ impl<'de> de::Deserializer<'de> for Deserializer {
                 return Err(Self::Error::invalid_type(
                     de::Unexpected::Other(&format!("{other:?}")),
                     &"Array",
-                ))
+                ));
             },
         };
 

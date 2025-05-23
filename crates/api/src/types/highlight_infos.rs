@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use types::{
+    Object,
     conversion::{self, FromObject},
     serde::Deserializer,
-    Object,
 };
 
 /// Attributes related to a highlight group.

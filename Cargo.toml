@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 version = "0.5.1"
-edition = "2021"
+edition = "2024"
 authors = ["Riccardo Mazzarini <me@noib3.dev>"]
 rust-version = "1.62"
 description = "Rust bindings to all things Neovim"
@@ -25,6 +25,9 @@ thiserror = "2.0"
 
 [workspace.lints.clippy]
 mixed_attributes_style = "allow"
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "allow"
 
 [package]
 name = "nvim-oxi"

@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::ffi::c_int;
 use std::mem::ManuallyDrop;
 
-use lua::{ffi::*, Poppable, Pushable};
+use lua::{Poppable, Pushable, ffi::*};
 use luajit as lua;
 
 use crate::{

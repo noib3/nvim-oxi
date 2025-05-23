@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use types::{
+    Object,
     conversion::{self, ToObject},
     serde::Serializer,
-    Object,
 };
 
 /// See `:h command-addr` for details.

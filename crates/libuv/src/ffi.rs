@@ -39,7 +39,7 @@ pub(crate) struct uv_timer_t(uv_timer_s);
 
 impl crate::ProperLayout for uv_timer_t {}
 
-extern "C" {
+unsafe extern "C" {
     // https://github.com/luvit/luv/blob/master/src/luv.c#L751
     pub(crate) fn luv_loop(
         lua_state: *mut luajit::ffi::State,

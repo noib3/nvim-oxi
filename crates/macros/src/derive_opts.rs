@@ -283,9 +283,8 @@ impl OptsField<'_> {
                     field_type = arg_type.clone();
                 },
 
-                BuilderAttribute::Generics(gen) => {
-                    let gen = gen.clone();
-                    generics = Some(quote! { #gen });
+                BuilderAttribute::Generics(gens) => {
+                    generics = Some(quote! { #gens });
                 },
 
                 BuilderAttribute::Inline(inline) => {

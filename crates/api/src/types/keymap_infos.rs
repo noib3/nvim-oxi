@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use types::{
-    conversion::{self, FromObject},
-    serde::Deserializer,
     Function,
     Object,
+    conversion::{self, FromObject},
+    serde::Deserializer,
 };
 
 use super::Mode;

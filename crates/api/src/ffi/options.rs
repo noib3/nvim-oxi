@@ -6,7 +6,7 @@ use crate::opts::*;
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
-extern "C" {
+unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/options.c#L266
     pub(crate) fn nvim_get_all_options_info(
         arena: *mut Arena,

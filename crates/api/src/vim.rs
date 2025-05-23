@@ -3,19 +3,19 @@ use std::path::{Path, PathBuf};
 use types::NvimStr;
 use types::{
     self as nvim,
-    conversion::{FromObject, ToObject},
     Array,
     Dictionary,
     Integer,
     Object,
+    conversion::{FromObject, ToObject},
 };
 
+use crate::LUA_INTERNAL_CALL;
+use crate::SuperIterator;
 use crate::choose;
 use crate::ffi::vim::*;
 use crate::opts::*;
 use crate::types::*;
-use crate::SuperIterator;
-use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, TabPage, Window};
 use crate::{Error, Result};
 
@@ -279,7 +279,9 @@ pub fn get_current_win() -> Window {
 pub fn get_hl(
     ns_id: u32,
     opts: &GetHighlightOpts,
-) -> Result<GetHlInfos<impl SuperIterator<(types::String, HighlightInfos)>>> {
+) -> Result<
+    GetHlInfos<impl SuperIterator<(types::String, HighlightInfos)> + use<>>,
+> {
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_get_hl(ns_id as Integer, opts, types::arena(), &mut err)

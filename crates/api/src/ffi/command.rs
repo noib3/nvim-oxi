@@ -8,7 +8,7 @@ pub(crate) type ParseCmdOutput = crate::types::ParseCmdOutput;
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
-extern "C" {
+unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L902
     pub(crate) fn nvim_buf_create_user_command(
         channel_id: u64,

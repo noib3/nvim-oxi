@@ -1,10 +1,10 @@
-use types::{self as nvim, conversion::FromObject, Array, Object};
+use types::{self as nvim, Array, Object, conversion::FromObject};
 
+use crate::Result;
 use crate::choose;
 use crate::ffi::vimscript::*;
 use crate::opts::ExecOpts;
 use crate::types::*;
-use crate::Result;
 
 /// Binding to [`nvim_call_dict_function()`][1].
 ///

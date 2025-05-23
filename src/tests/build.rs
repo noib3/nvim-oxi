@@ -109,9 +109,7 @@ enum BuildErrorKind {
     #[error("couldn't read manifest: {0}")]
     CouldntReadManifest(cargo_metadata::Error),
 
-    #[error(
-        "nvim_oxi::tests::build() can only be used inside a build script"
-    )]
+    #[error("nvim_oxi::tests::build() can only be used inside a build script")]
     NotInBuildScript,
 
     #[error("couldn't get the root package")]

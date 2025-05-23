@@ -1,10 +1,10 @@
 use std::fmt;
 
-use serde::{de, ser, Serialize};
+use serde::{Serialize, de, ser};
 use types::{
+    Object,
     conversion::{self, ToObject},
     serde::Serializer,
-    Object,
 };
 
 // use crate::object::{self, ToObject};

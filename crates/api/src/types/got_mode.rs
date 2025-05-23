@@ -1,11 +1,11 @@
 use core::ops::Deref;
 
 use types::{
-    conversion,
-    serde::Deserializer,
     Dictionary,
     Object,
     String as NvimString,
+    conversion,
+    serde::Deserializer,
 };
 
 #[non_exhaustive]

@@ -1,4 +1,4 @@
-use nvim_oxi::api::{self, types::*, Buffer, TabPage, Window};
+use nvim_oxi::api::{self, Buffer, TabPage, Window, types::*};
 
 #[nvim_oxi::test]
 fn win_call_nil() {

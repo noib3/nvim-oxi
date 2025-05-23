@@ -1,10 +1,10 @@
 use serde::Deserialize;
 use types::{
-    conversion::{self, FromObject},
-    serde::Deserializer,
     Array,
     Dictionary,
     Object,
+    conversion::{self, FromObject},
+    serde::Deserializer,
 };
 
 #[non_exhaustive]

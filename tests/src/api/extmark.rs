@@ -1,4 +1,4 @@
-use nvim_oxi::api::{self, opts::*, types::*, Buffer};
+use nvim_oxi::api::{self, Buffer, opts::*, types::*};
 
 #[nvim_oxi::test]
 fn add_highlight() {

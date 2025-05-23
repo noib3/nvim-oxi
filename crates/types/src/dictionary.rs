@@ -1,7 +1,7 @@
 use luajit as lua;
 
 use crate::kvec::{self, KVec};
-use crate::{conversion, NonOwning, Object, ObjectKind};
+use crate::{NonOwning, Object, ObjectKind, conversion};
 
 /// A vector of Neovim
 /// `(`[`String`](crate::String)`, `[`Object`](crate::Object)`)` pairs.

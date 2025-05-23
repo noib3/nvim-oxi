@@ -1,4 +1,5 @@
 #![allow(clippy::missing_safety_doc)]
+
 mod error;
 pub mod ffi;
 pub mod function;

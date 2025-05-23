@@ -3,12 +3,12 @@ use types::{
     conversion::{FromObject, ToObject},
 };
 
+use crate::Result;
+use crate::SuperIterator;
 use crate::choose;
 use crate::ffi::options::*;
 use crate::opts::*;
 use crate::types::*;
-use crate::Result;
-use crate::SuperIterator;
 
 /// Binding to [`nvim_get_all_options_info()`][1].
 ///

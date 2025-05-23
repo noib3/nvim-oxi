@@ -1,9 +1,9 @@
 use serde::Deserialize;
 use types::{
-    conversion::{self, FromObject, ToObject},
-    serde::Deserializer,
     Array,
     Object,
+    conversion::{self, FromObject, ToObject},
+    serde::Deserializer,
 };
 use types::{Boolean, Dictionary, Integer, String as NvimString};
 

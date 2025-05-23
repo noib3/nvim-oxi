@@ -1,5 +1,5 @@
 use std::error::Error as StdError;
-use std::ffi::{c_char, CStr, CString};
+use std::ffi::{CStr, CString, c_char};
 use std::fmt;
 
 // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L64-L67

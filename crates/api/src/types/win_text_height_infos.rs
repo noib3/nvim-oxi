@@ -1,7 +1,7 @@
 use serde::de::Deserialize;
+use types::Dictionary;
 use types::conversion::Error;
 use types::serde::Deserializer;
-use types::Dictionary;
 
 /// Infos returned by [`Window::text_height()`][crate::Window::text_height].
 #[derive(Debug, serde::Deserialize)]

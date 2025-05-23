@@ -1,9 +1,9 @@
 use core::hash::Hash;
 use std::collections::HashMap;
 
+use crate::Error;
 use crate::ffi::*;
 use crate::macros::count;
-use crate::Error;
 
 /// Trait implemented for types that can be popped off the Lua stack.
 pub trait Poppable: Sized {

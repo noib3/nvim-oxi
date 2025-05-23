@@ -1,10 +1,10 @@
 use types::conversion::{FromObject, ToObject};
 
+use crate::LUA_INTERNAL_CALL;
+use crate::Result;
 use crate::choose;
 use crate::ffi::deprecated::*;
 use crate::types::*;
-use crate::Result;
-use crate::LUA_INTERNAL_CALL;
 use crate::{Buffer, Window};
 
 /// Binding to [`nvim_exec()`][1].

@@ -159,11 +159,7 @@ impl HlGroup for &str {
                 &mut err,
             )
         };
-        if err.is_err() {
-            Err(err.into())
-        } else {
-            Ok(hl_id)
-        }
+        if err.is_err() { Err(err.into()) } else { Ok(hl_id) }
     }
 }
 

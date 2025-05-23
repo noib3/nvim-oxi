@@ -1,14 +1,14 @@
 use std::ops::RangeBounds;
 
-use types::{self as nvim, conversion::FromObject, Array, Integer};
+use types::{self as nvim, Array, Integer, conversion::FromObject};
 
+use crate::Buffer;
+use crate::SuperIterator;
 use crate::choose;
 use crate::ffi::extmark::*;
 use crate::opts::*;
 use crate::types::*;
 use crate::utils;
-use crate::Buffer;
-use crate::SuperIterator;
 use crate::{Error, Result};
 
 /// Binding to [`nvim_create_namespace()`][1].

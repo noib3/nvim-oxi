@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 use types::{
+    Object,
     conversion::{self, FromObject},
     serde::Deserializer,
-    Object,
 };
 
 use crate::Buffer;

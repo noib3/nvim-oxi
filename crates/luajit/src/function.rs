@@ -1,10 +1,10 @@
 use core::error::Error;
-use core::ffi::{c_int, CStr};
+use core::ffi::{CStr, c_int};
 use core::mem;
 use core::ptr;
 
 use crate::ffi::{self, State};
-use crate::{utils, IntoResult, Poppable, Pushable};
+use crate::{IntoResult, Poppable, Pushable, utils};
 
 /// Stores a function in the Lua registry, returning its ref.
 pub fn store<F, A, R, O>(fun: F) -> c_int

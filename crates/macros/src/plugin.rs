@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, parse_quote, ItemFn, Path, Token};
+use syn::{ItemFn, Path, Token, parse_macro_input, parse_quote};
 
 use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 
@@ -22,7 +22,7 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
     quote! {
         #entrypoint
 
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         unsafe extern "C" fn #lua_module(
             state: *mut #nvim_oxi::lua::ffi::State,
         ) -> ::core::ffi::c_int {

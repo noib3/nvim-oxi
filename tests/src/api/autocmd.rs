@@ -1,5 +1,5 @@
 use all_asserts::*;
-use nvim_oxi::api::{self, opts::*, Buffer};
+use nvim_oxi::api::{self, Buffer, opts::*};
 
 #[nvim_oxi::test]
 fn clear_autocmds_current_buf() {

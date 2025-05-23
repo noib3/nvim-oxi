@@ -1,6 +1,6 @@
 use std::error::Error as StdError;
 
-use crate::{ffi, Error, Handle, IntoResult};
+use crate::{Error, Handle, IntoResult, ffi};
 
 type Callback = Box<dyn FnMut() -> Result<(), Box<dyn StdError>> + 'static>;
 

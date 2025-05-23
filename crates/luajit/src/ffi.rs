@@ -53,7 +53,7 @@ pub type Number = c_double;
     all(target_os = "windows", target_env = "msvc"),
     link(name = "lua51", kind = "raw-dylib")
 )]
-extern "C" {
+unsafe extern "C" {
     // https://www.lua.org/manual/5.1/manual.html#lua_call
     pub fn lua_call(L: *mut State, nargs: c_int, nresults: c_int);
 
