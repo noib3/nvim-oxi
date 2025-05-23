@@ -237,7 +237,7 @@ impl TryFrom<Object> for String {
     type Error = conversion::Error;
 
     #[inline]
-    fn try_from(obj: crate::Object) -> Result<Self, Self::Error> {
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
         match obj.kind() {
             ObjectKind::String => Ok(unsafe { obj.into_string_unchecked() }),
             other => Err(conversion::Error::FromWrongType {
@@ -296,6 +296,8 @@ mod serde {
 
     use serde::de::{self, Deserialize, Deserializer, Visitor};
 
+    use super::String as NvimString;
+
     impl<'de> Deserialize<'de> for super::String {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
@@ -304,7 +306,7 @@ mod serde {
             struct StringVisitor;
 
             impl Visitor<'_> for StringVisitor {
-                type Value = crate::String;
+                type Value = NvimString;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
                     f.write_str("either a string of a byte vector")
@@ -314,14 +316,14 @@ mod serde {
                 where
                     E: de::Error,
                 {
-                    Ok(crate::String::from_bytes(b))
+                    Ok(NvimString::from_bytes(b))
                 }
 
                 fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
                 where
                     E: de::Error,
                 {
-                    Ok(crate::String::from(s))
+                    Ok(NvimString::from(s))
                 }
             }
 
