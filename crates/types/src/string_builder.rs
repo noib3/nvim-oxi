@@ -20,7 +20,7 @@ impl StringBuilder {
         Self {
             // SAFETY: even though the pointer is temporarily null, it'll
             // be set to a valid pointer by the time `finish` is called.
-            inner: unsafe { NvimString::from_raw_parts(ptr::null_mut(), 0) },
+            inner: unsafe { NvimString::from_raw_parts(ptr::null(), 0) },
             cap: 0,
         }
     }
@@ -49,7 +49,7 @@ impl StringBuilder {
 
             let new_len = self.inner.len() + bytes.len();
 
-            *self.inner.as_mut_ptr().add(new_len) = 0;
+            *(self.inner.as_ptr() as *mut ffi::c_char).add(new_len) = 0;
 
             new_len
         };
@@ -76,7 +76,7 @@ impl StringBuilder {
         }
         Self {
             inner: unsafe {
-                NvimString::from_raw_parts(ptr as *mut ffi::c_char, 0)
+                NvimString::from_raw_parts(ptr as *const ffi::c_char, 0)
             },
             cap: real_cap,
         }
@@ -110,7 +110,7 @@ impl StringBuilder {
     fn realloc(&mut self, new_capacity: NonZeroUsize) {
         let ptr = unsafe {
             libc::realloc(
-                self.inner.as_mut_ptr() as *mut ffi::c_void,
+                self.inner.as_ptr() as *mut ffi::c_void,
                 new_capacity.get(),
             )
         };
@@ -121,7 +121,7 @@ impl StringBuilder {
         }
         self.inner = unsafe {
             NvimString::from_raw_parts(
-                ptr as *mut ffi::c_char,
+                ptr as *const ffi::c_char,
                 self.inner.len(),
             )
         };
@@ -130,12 +130,9 @@ impl StringBuilder {
 
     /// Finish building the [`NvimString`]
     #[inline]
-    pub fn finish(mut self) -> NvimString {
+    pub fn finish(self) -> NvimString {
         let string = unsafe {
-            NvimString::from_raw_parts(
-                self.inner.as_mut_ptr(),
-                self.inner.len(),
-            )
+            NvimString::from_raw_parts(self.inner.as_ptr(), self.inner.len())
         };
 
         if string.as_ptr().is_null() {
@@ -216,7 +213,7 @@ impl fmt::Write for StringBuilder {
 impl Drop for StringBuilder {
     fn drop(&mut self) {
         if !self.inner.as_ptr().is_null() {
-            unsafe { libc::free(self.inner.as_mut_ptr() as *mut ffi::c_void) }
+            unsafe { libc::free(self.inner.as_ptr() as *mut ffi::c_void) }
         }
     }
 }
