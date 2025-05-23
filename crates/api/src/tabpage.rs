@@ -150,7 +150,7 @@ impl TabPage {
     /// Gets the windows in a tabpage.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_list_wins()
-    pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
+    pub fn list_wins(&self) -> Result<impl SuperIterator<Window> + use<>> {
         let mut err = nvim::Error::new();
         let list = unsafe {
             nvim_tabpage_list_wins(self.0, types::arena(), &mut err)
