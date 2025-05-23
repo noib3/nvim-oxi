@@ -201,8 +201,9 @@ impl Buffer {
         start: ExtmarkPosition,
         end: ExtmarkPosition,
         opts: &GetExtmarksOpts,
-    ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)> + use<>>
-    {
+    ) -> Result<
+        impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)> + use<>,
+    > {
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
