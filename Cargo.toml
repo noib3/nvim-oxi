@@ -3,7 +3,7 @@ members = ["crates/*", "examples/*", "tests"]
 resolver = "2"
 
 [workspace.package]
-version = "0.5.1"
+version = "0.6.0"
 edition = "2024"
 authors = ["Riccardo Mazzarini <me@noib3.dev>"]
 rust-version = "1.62"
@@ -15,11 +15,11 @@ license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
 [workspace.dependencies]
-api = { path = "./crates/api", package = "nvim-oxi-api" }
-libuv = { path = "./crates/libuv", package = "nvim-oxi-libuv" }
-luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
-macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
-types = { path = "./crates/types", package = "nvim-oxi-types" }
+api = { version = "0.6.0", package = "nvim-oxi-api" }
+libuv = { version = "0.6.0", package = "nvim-oxi-libuv" }
+luajit = { version = "0.6.0", package = "nvim-oxi-luajit" }
+macros = { version = "0.6.0", package = "nvim-oxi-macros" }
+types = { version = "0.6.0", package = "nvim-oxi-types" }
 
 thiserror = "2.0"
 

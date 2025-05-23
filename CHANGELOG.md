@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - May 23 2025
+
 ### Added
 
 - a `String::to_str()` method which returns a `&str` if the string contains
@@ -129,7 +131,8 @@
 
 ## [0.4.0] - Dec 11 2023
 
-[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/noib3/nvim-oxi/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/noib3/nvim-oxi/tree/v0.6.0
 [0.5.1]: https://github.com/noib3/nvim-oxi/tree/v0.5.1
 [0.5.0]: https://github.com/noib3/nvim-oxi/tree/v0.5.0
 [0.4.2]: https://github.com/noib3/nvim-oxi/tree/v0.4.2
