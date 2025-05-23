@@ -51,6 +51,9 @@
   of a `&str` and a `Mode`
   ([#240](https://github.com/noib3/nvim-oxi/pull/240));
 
+- `nvim_oxi::api::types::GotMode::mode` is now a value of type `ModeStr`
+  instead of a `Mode` ([#241](https://github.com/noib3/nvim-oxi/pull/241));
+
 ### Removed
 
 - the `SetHighlightOptsBuilder::global_link()` method. Use
