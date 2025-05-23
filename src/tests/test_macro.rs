@@ -75,10 +75,10 @@ pub fn test_body(
             .cloned()
             .unwrap_or_else(|| info.into());
 
-        if let Some(thread) = thread::current().name()
-            && !thread.is_empty()
-        {
-            info.thread = thread.to_owned();
+        if let Some(thread) = thread::current().name() {
+            if !thread.is_empty() {
+                info.thread = thread.to_owned();
+            }
         }
 
         eprintln!("{info}");
