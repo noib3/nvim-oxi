@@ -55,22 +55,6 @@ pub type DontSkipOnLines = bool;
 
 /// Options passed to
 /// [`set_decoration_provider()`](crate::set_decoration_provider).
-#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-#[derive(Clone, Debug, Default)]
-#[repr(C)]
-pub struct DecorationProviderOpts {
-    on_buf: Object,
-    on_end: Object,
-    on_win: Object,
-    on_line: Object,
-    on_start: Object,
-    _on_hl_def: Object,
-    _on_spell_nav: Object,
-}
-
-/// Options passed to
-/// [`set_decoration_provider()`](crate::set_decoration_provider).
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct DecorationProviderOpts {

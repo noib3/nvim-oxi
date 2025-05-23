@@ -118,7 +118,6 @@ impl TabPage {
             nvim_tabpage_get_var(
                 self.0,
                 name.as_nvim_str(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -154,12 +153,7 @@ impl TabPage {
     pub fn list_wins(&self) -> Result<impl SuperIterator<Window>> {
         let mut err = nvim::Error::new();
         let list = unsafe {
-            nvim_tabpage_list_wins(
-                self.0,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-                &mut err,
-            )
+            nvim_tabpage_list_wins(self.0, types::arena(), &mut err)
         };
         choose!(
             err,
@@ -196,11 +190,6 @@ impl TabPage {
     /// Sets the current window in the tabpage.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_tabpage_set_win()
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
     pub fn set_win(&mut self, win: &Window) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_tabpage_set_win(self.0, win.0, &mut err) };

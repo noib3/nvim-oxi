@@ -2,7 +2,6 @@ use types::{self as nvim, conversion::FromObject, Array, Object};
 
 use crate::choose;
 use crate::ffi::vimscript::*;
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use crate::opts::ExecOpts;
 use crate::types::*;
 use crate::Result;
@@ -31,7 +30,6 @@ where
             dict.non_owning(),
             func.as_nvim_str(),
             args.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -57,7 +55,6 @@ where
         nvim_call_function(
             func.as_nvim_str(),
             args.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )
@@ -88,14 +85,8 @@ where
 {
     let expr = nvim::String::from(expr);
     let mut err = nvim::Error::new();
-    let output = unsafe {
-        nvim_eval(
-            expr.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let output =
+        unsafe { nvim_eval(expr.as_nvim_str(), types::arena(), &mut err) };
     choose!(err, Ok(V::from_object(output)?))
 }
 
@@ -107,11 +98,6 @@ where
 /// Unlike [`command`] this function supports heredocs, script-scope (s:), etc.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_exec2()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn exec2(src: &str, opts: &ExecOpts) -> Result<Option<nvim::String>> {
     let src = types::String::from(src);
     let mut err = types::Error::new();
@@ -144,7 +130,6 @@ pub fn parse_expression(
             expr.as_nvim_str(),
             flags.as_nvim_str(),
             include_highlight,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
         )

@@ -61,23 +61,10 @@ fn get_extmarks() {
     assert_eq!(infos.hl_group.unwrap(), String::from("Bar"));
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     let virt_text = vec![ExtmarkVirtTextChunk {
         text: "foo".to_owned(),
         hl_groups: vec!["Foo".into(), "Bar".into()],
     }];
-
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let virt_text = vec![
-        ExtmarkVirtTextChunk {
-            text: "".to_owned(),
-            hl_groups: vec!["Foo".into()],
-        },
-        ExtmarkVirtTextChunk {
-            text: "foo".to_owned(),
-            hl_groups: vec!["Bar".into()],
-        },
-    ];
 
     assert_eq!(infos.virt_text, virt_text);
 
@@ -167,7 +154,6 @@ fn set_get_del_extmark() {
     assert_eq!(infos.hl_group.unwrap(), String::from("Bar"));
     assert_eq!(Some(ExtmarkHlMode::Combine), infos.hl_mode);
 
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     let virt_text = vec![
         ExtmarkVirtTextChunk {
             text: "foo".to_owned(),
@@ -179,22 +165,6 @@ fn set_get_del_extmark() {
         },
     ];
 
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let virt_text = vec![
-        ExtmarkVirtTextChunk {
-            text: "foo".to_owned(),
-            hl_groups: vec!["Foo".into()],
-        },
-        ExtmarkVirtTextChunk {
-            text: "".to_owned(),
-            hl_groups: vec!["Bar".into()],
-        },
-        ExtmarkVirtTextChunk {
-            text: "bar".to_owned(),
-            hl_groups: vec!["Baz".into()],
-        },
-    ];
-
     assert_eq!(infos.virt_text, virt_text);
 
     assert_eq!(Some(ExtmarkVirtTextPosition::Overlay), infos.virt_text_pos);
@@ -203,7 +173,6 @@ fn set_get_del_extmark() {
     assert_eq!(Ok(()), res);
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim_oxi::test]
 fn virt_text_pos_inline() {
     let mut buf = Buffer::current();

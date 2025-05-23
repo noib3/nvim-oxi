@@ -5,7 +5,6 @@ use types::{
     Array,
     Object,
 };
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use types::{Boolean, Dictionary, Integer, String as NvimString};
 
 use super::{CmdMagic, CmdRange, CommandAddr, CommandModifiers, CommandNArgs};
@@ -164,25 +163,6 @@ impl FromObject for CmdInfos {
     }
 }
 
-#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-#[derive(Default, Debug)]
-#[allow(non_camel_case_types)]
-#[repr(C)]
-pub(crate) struct ParseCmdOutput {
-    cmd: Object,
-    reg: Object,
-    bang: Object,
-    addr: Object,
-    mods: Object,
-    args: Object,
-    count: Object,
-    magic: Object,
-    nargs: Object,
-    range: Object,
-    nextcmd: Object,
-}
-
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[derive(Default, Debug, Clone, macros::OptsBuilder)]
 #[repr(C)]
 pub(crate) struct ParseCmdOutput {
@@ -199,7 +179,7 @@ pub(crate) struct ParseCmdOutput {
     nargs: Object,
 
     // Only on 0.10.
-    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+    #[cfg(not(feature = "neovim-nightly"))]
     addr: Object,
 
     // Only on Nightly.
@@ -207,7 +187,7 @@ pub(crate) struct ParseCmdOutput {
     addr: NvimString,
 
     // Only on 0.10.
-    #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+    #[cfg(not(feature = "neovim-nightly"))]
     nextcmd: Object,
 
     // Only on 0.10.
@@ -218,88 +198,56 @@ pub(crate) struct ParseCmdOutput {
 impl From<&CmdInfos> for ParseCmdOutput {
     #[inline]
     fn from(infos: &CmdInfos) -> Self {
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        {
-            Self {
-                cmd: infos.cmd.clone().into(),
-                reg: infos.reg.into(),
-                bang: infos.bang.into(),
-                addr: infos
-                    .addr
-                    .map(|v| v.to_object().unwrap())
-                    .unwrap_or_default(),
-                mods: infos
-                    .mods
-                    .map(|v| v.to_object().unwrap())
-                    .unwrap_or_default(),
-                args: Array::from_iter(infos.args.clone()).into(),
-                count: infos.count.into(),
-                magic: infos
-                    .magic
-                    .map(|v| v.to_object().unwrap())
-                    .unwrap_or_default(),
-                nargs: infos
-                    .nargs
-                    .map(|v| v.to_object().unwrap())
-                    .unwrap_or_default(),
-                range: infos.range.into(),
-                nextcmd: infos.nextcmd.clone().into(),
-            }
+        let mut builder = Self::builder();
+
+        if let Some(cmd) = infos.cmd.as_deref() {
+            builder.cmd(cmd.into());
         }
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        {
-            let mut builder = Self::builder();
 
-            if let Some(cmd) = infos.cmd.as_deref() {
-                builder.cmd(cmd.into());
-            }
-
-            if let Some(range) = infos.range {
-                builder.range(Array::from(range));
-            }
-
-            if let Some(count) = infos.count {
-                builder.count(count as Integer);
-            }
-
-            if let Some(reg) = infos.reg {
-                builder.reg(reg.into());
-            }
-
-            if let Some(bang) = infos.bang {
-                builder.bang(bang);
-            }
-
-            if !infos.args.is_empty() {
-                builder.args(Array::from_iter(infos.args.clone()));
-            }
-
-            if let Some(magic) = infos.magic {
-                builder.magic(Dictionary::from(magic));
-            }
-
-            if let Some(mods) = infos.mods {
-                builder.mods(Dictionary::from(mods));
-            }
-
-            if let Some(nargs) = infos.nargs {
-                builder.nargs(nargs.to_object().unwrap());
-            }
-
-            if let Some(addr) = infos.addr {
-                builder.addr(addr.as_str().into());
-            }
-
-            if let Some(nextcmd) = infos.nextcmd.as_deref() {
-                builder.nextcmd(nextcmd.into());
-            };
-
-            builder.build()
+        if let Some(range) = infos.range {
+            builder.range(Array::from(range));
         }
+
+        if let Some(count) = infos.count {
+            builder.count(count as Integer);
+        }
+
+        if let Some(reg) = infos.reg {
+            builder.reg(reg.into());
+        }
+
+        if let Some(bang) = infos.bang {
+            builder.bang(bang);
+        }
+
+        if !infos.args.is_empty() {
+            builder.args(Array::from_iter(infos.args.clone()));
+        }
+
+        if let Some(magic) = infos.magic {
+            builder.magic(Dictionary::from(magic));
+        }
+
+        if let Some(mods) = infos.mods {
+            builder.mods(Dictionary::from(mods));
+        }
+
+        if let Some(nargs) = infos.nargs {
+            builder.nargs(nargs.to_object().unwrap());
+        }
+
+        if let Some(addr) = infos.addr {
+            builder.addr(addr.as_str().into());
+        }
+
+        if let Some(nextcmd) = infos.nextcmd.as_deref() {
+            builder.nextcmd(nextcmd.into());
+        };
+
+        builder.build()
     }
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 impl TryFrom<ParseCmdOutput> for CmdInfos {
     type Error = conversion::Error;
 
@@ -331,7 +279,7 @@ impl TryFrom<ParseCmdOutput> for CmdInfos {
         }
 
         Ok(Self {
-            #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // Only on 0.10.
+            #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
             addr: utils::none_literal_is_none(Deserializer::new(addr))?,
             #[cfg(feature = "neovim-nightly")] // Only on Nightly.
             addr: utils::none_literal_is_none(Deserializer::new(addr.into()))?,
@@ -342,7 +290,7 @@ impl TryFrom<ParseCmdOutput> for CmdInfos {
             magic: deserialize(magic)?,
             mods: deserialize(mods)?,
             nargs: deserialize(nargs)?,
-            #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // Only on 0.10.
+            #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
             nextcmd: utils::empty_string_is_none(Deserializer::new(
                 nextcmd,
             ))?,

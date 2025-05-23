@@ -18,11 +18,6 @@ pub enum ExtmarkVirtTextPosition {
 
     /// Display at the specified column, and shift the buffer text to the right
     /// as needed.
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
     Inline,
 }
 
@@ -34,7 +29,6 @@ impl From<ExtmarkVirtTextPosition> for nvim::String {
             Eol => "eol",
             Overlay => "overlay",
             RightAlign => "right_align",
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             Inline => "inline",
         })
     }

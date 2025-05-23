@@ -87,14 +87,7 @@ where
 {
     let name = types::String::from(name);
     let mut err = types::Error::new();
-    let obj = unsafe {
-        nvim_get_option(
-            name.as_nvim_str(),
-            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let obj = unsafe { nvim_get_option(name.as_nvim_str(), &mut err) };
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 
@@ -111,12 +104,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let name = types::String::from(name);
     let mut err = types::Error::new();
     let obj = unsafe {
-        nvim_get_option_info(
-            name.as_nvim_str(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
+        nvim_get_option_info(name.as_nvim_str(), types::arena(), &mut err)
     };
     choose!(err, Ok(OptionInfos::from_object(obj.into())?))
 }
@@ -164,13 +152,7 @@ impl Buffer {
         let mut err = types::Error::new();
         let name = types::String::from(name);
         let obj = unsafe {
-            nvim_buf_get_option(
-                self.0,
-                name.as_nvim_str(),
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                types::arena(),
-                &mut err,
-            )
+            nvim_buf_get_option(self.0, name.as_nvim_str(), &mut err)
         };
         choose!(err, Ok(Opt::from_object(obj)?))
     }
@@ -221,13 +203,7 @@ impl Window {
         let mut err = types::Error::new();
         let name = types::String::from(name);
         let obj = unsafe {
-            nvim_win_get_option(
-                self.0,
-                name.as_nvim_str(),
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                types::arena(),
-                &mut err,
-            )
+            nvim_win_get_option(self.0, name.as_nvim_str(), &mut err)
         };
         choose!(err, Ok(Opt::from_object(obj)?))
     }

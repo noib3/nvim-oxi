@@ -21,7 +21,6 @@ pub enum CommandAddr {
 }
 
 impl CommandAddr {
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and Nightly.
     pub(crate) const fn as_str(&self) -> &'static str {
         match self {
             Self::Lines => "lines",

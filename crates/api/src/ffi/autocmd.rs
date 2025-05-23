@@ -10,7 +10,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/autocmd.c#L555
     pub(crate) fn nvim_clear_autocmds(
         opts: *const ClearAutocmdsOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );
@@ -28,7 +27,6 @@ extern "C" {
         channel_id: u64,
         event: NonOwning<Object>,
         opts: *const CreateAutocmdOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Integer;
@@ -46,7 +44,6 @@ extern "C" {
     pub(crate) fn nvim_exec_autocmds(
         event: NonOwning<Object>,
         opts: *const ExecAutocmdsOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );
@@ -54,7 +51,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/autocmd.c#L92
     pub(crate) fn nvim_get_autocmds(
         opts: *const GetAutocmdsOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;

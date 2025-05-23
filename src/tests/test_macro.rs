@@ -123,10 +123,6 @@ pub fn test_body(
 }
 
 fn exit(result: Result<(), Failure>) {
-    #[cfg(all(feature = "neovim-0-9", not(feature = "neovim-0-10")))]
-    let exec = |cmd: &str| crate::api::exec(cmd, false).unwrap();
-
-    #[cfg(feature = "neovim-0-10")]
     let exec = |cmd: &str| {
         let opts = crate::api::opts::ExecOpts::builder().output(false).build();
         crate::api::exec2(cmd, &opts).unwrap();

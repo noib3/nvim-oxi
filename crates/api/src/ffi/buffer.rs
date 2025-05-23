@@ -12,9 +12,6 @@ extern "C" {
         channel_id: u64,
         buf: BufHandle,
         send_buffer: bool,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly
         opts: *const BufAttachOpts,
         err: *mut Error,
     ) -> bool;
@@ -52,9 +49,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L1020
     pub(crate) fn nvim_buf_delete(
         buf: BufHandle,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const BufDeleteOpts,
         err: *mut Error,
     );
@@ -69,7 +63,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_keymap(
         buf: BufHandle,
         mode: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -81,7 +74,6 @@ extern "C" {
         start: Integer,
         end: Integer,
         strict_indexing: bool,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         lstate: *mut luajit::ffi::State,
         err: *mut Error,
@@ -91,7 +83,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_mark(
         buf: BufHandle,
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -118,11 +109,7 @@ extern "C" {
         start_col: Integer,
         end_row: Integer,
         end_col: Integer,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const GetTextOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         lstate: *mut luajit::ffi::State,
         err: *mut Error,
@@ -132,7 +119,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_var(
         buf: BufHandle,
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -168,7 +154,6 @@ extern "C" {
         end: Integer,
         strict_indexing: bool,
         replacement: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );
@@ -179,9 +164,6 @@ extern "C" {
         name: NvimStr,
         line: Integer,
         col: Integer,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const SetMarkOpts,
         err: *mut Error,
     ) -> bool;
@@ -202,7 +184,6 @@ extern "C" {
         end_row: Integer,
         end_col: Integer,
         replacement: NonOwning<Array>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );

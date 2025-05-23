@@ -1,6 +1,5 @@
 use nvim_oxi::api::{self, types::*, Buffer, Window};
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim_oxi::test]
 fn open_hsplit() {
     let config = WindowConfig::builder()
@@ -87,7 +86,6 @@ fn open_win_full_config() {
     assert_eq!(config.border.unwrap(), got.border.unwrap());
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and Nightly.
 #[nvim_oxi::test]
 fn open_win_get_set_footer() {
     let buf = api::create_buf(true, true).unwrap();
@@ -107,7 +105,6 @@ fn open_win_get_set_footer() {
     let _config = window.get_config().unwrap();
 }
 
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 #[nvim_oxi::test]
 fn open_split_win() {
     let buf = api::create_buf(true, true).unwrap();

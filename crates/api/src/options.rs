@@ -17,13 +17,7 @@ use crate::SuperIterator;
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_all_options_info()
 pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
     let mut err = nvim::Error::new();
-    let infos = unsafe {
-        nvim_get_all_options_info(
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
+    let infos = unsafe { nvim_get_all_options_info(types::arena(), &mut err) };
     choose!(
         err,
         Ok({
@@ -40,11 +34,6 @@ pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
 /// window.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info2()
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-#[cfg_attr(
-    docsrs,
-    doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-)]
 pub fn get_option_info2(name: &str, opts: &OptionOpts) -> Result<OptionInfos> {
     let name = types::String::from(name);
     let mut err = types::Error::new();

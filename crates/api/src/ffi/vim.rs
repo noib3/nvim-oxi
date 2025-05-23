@@ -22,11 +22,7 @@ extern "C" {
     ) -> BufHandle;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L702
-    pub(crate) fn nvim_del_current_line(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-        err: *mut Error,
-    );
+    pub(crate) fn nvim_del_current_line(arena: *mut Arena, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1549
     pub(crate) fn nvim_del_keymap(
@@ -60,7 +56,6 @@ extern "C" {
     pub(crate) fn nvim_eval_statusline(
         str: NvimStr,
         opts: *const EvalStatuslineOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
@@ -78,15 +73,11 @@ extern "C" {
     pub(crate) fn nvim_get_color_by_name(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1392
-    pub(crate) fn nvim_get_color_map(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Dictionary;
+    pub(crate) fn nvim_get_color_map(arena: *mut Arena) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1411
     pub(crate) fn nvim_get_context(
         opts: *const GetContextOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         error: *mut Error,
     ) -> Dictionary;
@@ -96,7 +87,6 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L682
     pub(crate) fn nvim_get_current_line(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> String;
@@ -108,7 +98,6 @@ extern "C" {
     pub(crate) fn nvim_get_current_win() -> WinHandle;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L118
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_hl(
         ns_id: Integer,
         opts: *const GetHighlightOpts,
@@ -120,41 +109,28 @@ extern "C" {
     pub(crate) fn nvim_get_hl_id_by_name(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L204
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_hl_ns(
         opts: *const GetNamespaceOpts,
         err: *mut Error,
     ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/vim.c#L1497
-    pub(crate) fn nvim_get_keymap(
-        mode: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_get_keymap(mode: NvimStr, arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1999
     pub(crate) fn nvim_get_mark(
         name: NvimStr,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const GetMarkOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1478
-    pub(crate) fn nvim_get_mode(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Dictionary;
+    pub(crate) fn nvim_get_mode(arena: *mut Arena) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1878
     pub(crate) fn nvim_get_proc(
         pid: Integer,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -162,7 +138,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1838
     pub(crate) fn nvim_get_proc_children(
         pid: Integer,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -171,7 +146,6 @@ extern "C" {
     pub(crate) fn nvim_get_runtime_file(
         name: NvimStr,
         all: bool,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -179,7 +153,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L714
     pub(crate) fn nvim_get_var(
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -187,7 +160,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L757
     pub(crate) fn nvim_get_vvar(
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -210,17 +182,13 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L849
-    pub(crate) fn nvim_list_bufs(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_bufs(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1697
     pub(crate) fn nvim_list_chans() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L557
     pub(crate) fn nvim_list_runtime_paths(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -229,16 +197,10 @@ extern "C" {
     pub(crate) fn nvim_list_tabpages() -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1829
-    pub(crate) fn nvim_list_uis(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_uis(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L908
-    pub(crate) fn nvim_list_wins(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-        arena: *mut Arena,
-    ) -> Array;
+    pub(crate) fn nvim_list_wins(arena: *mut Arena) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1455
     pub(crate) fn nvim_load_context(dict: NonOwning<Dictionary>) -> Object;
@@ -248,7 +210,6 @@ extern "C" {
         msg: NvimStr,
         log_level: Integer,
         opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and Nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
@@ -256,9 +217,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1060
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const OpenTermOpts,
         err: *mut Error,
     ) -> Integer;
@@ -271,7 +229,6 @@ extern "C" {
         data: NvimStr,
         crlf: bool,
         phase: Integer,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> bool;
@@ -298,9 +255,6 @@ extern "C" {
         item: Integer,
         insert: bool,
         finish: bool,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const SelectPopupMenuItemOpts,
         err: *mut Error,
     );
@@ -314,7 +268,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L692
     pub(crate) fn nvim_set_current_line(
         line: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     );
@@ -330,7 +283,6 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L172
     pub(crate) fn nvim_set_hl(
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         channel_id: u64,
         ns_id: Integer,
         name: NvimStr,
@@ -339,11 +291,9 @@ extern "C" {
     );
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L223
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_set_hl_ns(ns_id: Integer, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/vim.c#L243
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_set_hl_ns_fast(ns_id: Integer, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1537

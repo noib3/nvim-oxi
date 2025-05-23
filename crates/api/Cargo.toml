@@ -8,8 +8,7 @@ documentation.workspace = true
 license.workspace = true
 
 [features]
-neovim-0-9 = []
-neovim-0-10 = ["neovim-0-9"]
+neovim-0-10 = []
 neovim-nightly = ["neovim-0-10"]
 
 [dependencies]

@@ -23,7 +23,7 @@ pub struct ExtmarkInfos {
     #[serde(default)]
     pub hl_eol: Option<bool>,
 
-    #[cfg(not(feature = "neovim-nightly"))] // On 0.9 and 0.10.
+    #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
     #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-nightly"))))]
     #[serde(default)]
     pub hl_group: Option<String>,

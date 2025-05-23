@@ -16,9 +16,7 @@ use types::{
 
 use crate::choose;
 use crate::ffi::window::*;
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use crate::opts::WinTextHeightOpts;
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 use crate::types::WinTextHeightInfos;
 use crate::Result;
 use crate::{Buffer, IntoResult, TabPage};
@@ -108,36 +106,30 @@ impl Window {
         let fun = Function::from_fn_once(fun);
         let mut err = nvim::Error::new();
 
-        let obj = if cfg!(not(feature = "neovim-0-10")) {
-            // Only on 0.9.
-            unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) }
-        } else {
-            // On 0.10 and Nightly.
-            let ref_or_nil =
-                unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
+        let ref_or_nil =
+            unsafe { nvim_win_call(self.0, fun.lua_ref(), &mut err) };
 
-            let lua_ref = match ref_or_nil.kind() {
-                types::ObjectKind::LuaRef => unsafe {
-                    ref_or_nil.as_luaref_unchecked()
-                },
-                types::ObjectKind::Nil => {
-                    return Ret::from_object(Object::nil()).map_err(Into::into)
-                },
-                other => panic!("Unexpected object kind: {other:?}"),
-            };
-
-            unsafe {
-                lua::with_state(|lstate| {
-                    lua::ffi::lua_rawgeti(
-                        lstate,
-                        lua::ffi::LUA_REGISTRYINDEX,
-                        lua_ref,
-                    );
-                    Object::pop(lstate)
-                })
-            }
-            .map_err(crate::Error::custom)?
+        let lua_ref = match ref_or_nil.kind() {
+            types::ObjectKind::LuaRef => unsafe {
+                ref_or_nil.as_luaref_unchecked()
+            },
+            types::ObjectKind::Nil => {
+                return Ret::from_object(Object::nil()).map_err(Into::into)
+            },
+            other => panic!("Unexpected object kind: {other:?}"),
         };
+
+        let obj = unsafe {
+            lua::with_state(|lstate| {
+                lua::ffi::lua_rawgeti(
+                    lstate,
+                    lua::ffi::LUA_REGISTRYINDEX,
+                    lua_ref,
+                );
+                Object::pop(lstate)
+            })
+        }
+        .map_err(crate::Error::custom)?;
 
         choose!(err, {
             fun.remove_from_lua_registry();
@@ -187,14 +179,8 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_cursor()
     pub fn get_cursor(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe {
-            nvim_win_get_cursor(
-                self.0,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-                &mut err,
-            )
-        };
+        let arr =
+            unsafe { nvim_win_get_cursor(self.0, types::arena(), &mut err) };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -232,14 +218,8 @@ impl Window {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_position()
     pub fn get_position(&self) -> Result<(usize, usize)> {
         let mut err = nvim::Error::new();
-        let arr = unsafe {
-            nvim_win_get_position(
-                self.0,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-                &mut err,
-            )
-        };
+        let arr =
+            unsafe { nvim_win_get_position(self.0, types::arena(), &mut err) };
         choose!(err, {
             let mut iter = arr.into_iter();
             let line = usize::from_object(iter.next().unwrap())?;
@@ -274,7 +254,6 @@ impl Window {
             nvim_win_get_var(
                 self.0,
                 name.as_nvim_str(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -357,11 +336,6 @@ impl Window {
     /// This takes precedence over the `winhighlight` option.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_hl_ns()
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
     pub fn set_hl_ns(&mut self, ns_id: u32) -> Result<()> {
         let mut err = nvim::Error::new();
         unsafe { nvim_win_set_hl_ns(self.0, ns_id.into(), &mut err) };
@@ -407,11 +381,6 @@ impl Window {
     /// given window. Works for off-screen text and takes folds into account.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_text_height()
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
     pub fn text_height(
         &self,
         opts: &WinTextHeightOpts,
