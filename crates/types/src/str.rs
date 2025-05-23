@@ -54,9 +54,21 @@ impl<'a> NvimStr<'a> {
 
     /// Creates an `NvimStr` from a pointer to the underlying data and a
     /// length.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the pointer is valid for `len + 1`
+    /// elements and that the last element is a null byte.
     #[inline]
     pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
         Self { data, len, _lifetime: PhantomData }
+    }
+
+    /// Returns `true` if the [`NvimStr`] has a length of zero, not including
+    /// the final null byte.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Returns the length of the [`NvimStr`], *not* including the final null

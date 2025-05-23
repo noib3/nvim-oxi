@@ -85,6 +85,11 @@ impl String {
     }
 
     /// Creates a `String` from a pointer to the underlying data and a length.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the pointer is valid for `len + 1`
+    /// elements and that the last element is a null byte.
     #[inline]
     pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
         Self { data, len }
