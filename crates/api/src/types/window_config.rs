@@ -308,6 +308,9 @@ pub struct WindowOpts {
     noautocmd: Boolean,
     fixed: Boolean,
     hide: Boolean,
+    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[builder(skip)]
+    _cmdline_offset: Integer,
 }
 
 impl From<&WindowConfig> for WindowOpts {
