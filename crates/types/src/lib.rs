@@ -16,6 +16,7 @@ mod object;
 pub mod serde;
 mod str;
 mod string;
+mod string_builder;
 
 pub use arena::{arena, arena_init, Arena};
 pub use array::{Array, ArrayFromTupleError};
@@ -25,7 +26,8 @@ pub use function::Function;
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
 pub use str::NvimStr;
-pub use string::{String, StringBuilder};
+pub use string::String;
+pub use string_builder::StringBuilder;
 
 pub mod iter {
     //! Iterators over [`Array`](crate::Array)s and
