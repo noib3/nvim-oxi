@@ -151,6 +151,13 @@ impl PartialEq for NvimStr<'_> {
     }
 }
 
+impl PartialEq<&str> for NvimStr<'_> {
+    #[inline]
+    fn eq(&self, other: &&str) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+
 impl Eq for NvimStr<'_> {}
 
 impl PartialOrd for NvimStr<'_> {
@@ -182,5 +189,24 @@ impl<'a> From<&'a CStr> for NvimStr<'a> {
             len: cstr.to_bytes().len(),
             _lifetime: PhantomData,
         }
+    }
+}
+
+impl PartialEq<NvimStr<'_>> for &str {
+    #[inline]
+    fn eq(&self, other: &NvimStr<'_>) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_cstr() {
+        let c_str = c"Hello, World!";
+        let nvim_str = NvimStr::from(c_str);
+        assert_eq!(nvim_str, "Hello, World!");
     }
 }
