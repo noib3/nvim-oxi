@@ -3,13 +3,13 @@
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
-use core::{ffi, ptr, slice};
+use core::{ffi, slice};
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
 
-use crate::NonOwning;
 use crate::StringBuilder;
+use crate::{NonOwning, NvimStr};
 
 /// Binding to the string type used by Neovim.
 ///
@@ -20,8 +20,8 @@ use crate::StringBuilder;
 #[derive(Eq, Ord, PartialOrd)]
 #[repr(C)]
 pub struct String {
-    pub(super) data: *mut ffi::c_char,
-    pub(super) len: usize,
+    data: *mut ffi::c_char,
+    len: usize,
 }
 
 impl Default for String {
@@ -59,7 +59,19 @@ impl String {
     /// Returns a pointer to the `String`'s buffer.
     #[inline]
     pub fn as_ptr(&self) -> *const ffi::c_char {
-        self.data as _
+        self.data as *const ffi::c_char
+    }
+
+    /// Returns a pointer to the `String`'s buffer.
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut ffi::c_char {
+        self.data
+    }
+
+    /// Returns an [`NvimStr`] view of this `String`.
+    #[inline]
+    pub fn as_nvim_str(&self) -> NvimStr<'_> {
+        unsafe { NvimStr::from_raw_parts(self.as_ptr() as *mut _, self.len()) }
     }
 
     /// Creates a `String` from a byte slice by allocating `bytes.len() + 1`
@@ -70,6 +82,18 @@ impl String {
         let mut s = StringBuilder::with_capacity(bytes.len());
         s.push_bytes(bytes);
         s.finish()
+    }
+
+    /// Creates a `String` from a pointer to the underlying data and a length.
+    #[inline]
+    pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
+        Self { data, len }
+    }
+
+    /// Converts this `String` into a `'static` `NvimStr`.
+    #[inline]
+    pub fn into_nvim_str(mut self) -> NvimStr<'static> {
+        unsafe { NvimStr::from_raw_parts(self.as_mut_ptr(), self.len()) }
     }
 
     /// Returns `true` if the `String` has a length of zero.
@@ -88,7 +112,7 @@ impl String {
     /// Creates a new, empty `String`.
     #[inline]
     pub fn new() -> Self {
-        Self { data: ptr::null_mut(), len: 0 }
+        Self::from_bytes(&[])
     }
 
     /// Makes a non-owning version of this `String`.
@@ -96,6 +120,12 @@ impl String {
     #[doc(hidden)]
     pub fn non_owning(&self) -> NonOwning<'_, String> {
         NonOwning::new(Self { ..*self })
+    }
+
+    /// Forces the length of the string to be `new_len`.
+    #[inline]
+    pub unsafe fn set_len(&mut self, new_len: usize) {
+        self.len = new_len;
     }
 
     /// Yields a string slice if the [`String`]'s contents are valid UTF-8.

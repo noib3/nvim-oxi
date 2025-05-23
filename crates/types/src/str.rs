@@ -1,6 +1,8 @@
 use core::marker::PhantomData;
 use core::{ffi, slice};
 
+use crate::String as NvimString;
+
 /// TODO: docs.
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -14,7 +16,7 @@ impl<'a> NvimStr<'a> {
     /// Converts the [`NvimStr`] into a byte slice, *not* including the final
     /// null byte.
     ///
-    /// If you need a byte slice that includes the final null byte, use
+    /// If you want the final null byte to be included in the slice, use
     /// [`as_bytes_with_nul`](Self::as_bytes_with_nul) instead.
     #[inline]
     pub const fn as_bytes(&self) -> &'a [u8] {
@@ -38,10 +40,23 @@ impl<'a> NvimStr<'a> {
         }
     }
 
-    /// Returns a pointer to the [`NvimStr`]'s buffer.
+    /// Returns a raw pointer to the [`NvimStr`]'s buffer.
     #[inline]
     pub const fn as_ptr(&self) -> *const ffi::c_char {
+        self.data as *const ffi::c_char
+    }
+
+    /// Returns a raw pointer to the [`NvimStr`]'s buffer.
+    #[inline]
+    pub const fn as_mut_ptr(&mut self) -> *mut ffi::c_char {
         self.data
+    }
+
+    /// Creates an `NvimStr` from a pointer to the underlying data and a
+    /// length.
+    #[inline]
+    pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
+        Self { data, len, _lifetime: PhantomData }
     }
 
     /// Returns the length of the [`NvimStr`], *not* including the final null
@@ -49,5 +64,19 @@ impl<'a> NvimStr<'a> {
     #[inline]
     pub const fn len(&self) -> usize {
         self.len
+    }
+}
+
+impl From<NvimString> for NvimStr<'_> {
+    #[inline]
+    fn from(string: NvimString) -> Self {
+        string.into_nvim_str()
+    }
+}
+
+impl<'a> From<&'a NvimString> for NvimStr<'a> {
+    #[inline]
+    fn from(string: &'a NvimString) -> Self {
+        string.as_nvim_str()
     }
 }

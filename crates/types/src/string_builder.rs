@@ -26,8 +26,7 @@ impl StringBuilder {
     /// method may allocate extra space in the buffer.
     #[inline]
     pub fn push_bytes(&mut self, bytes: &[u8]) {
-        let slice_len = bytes.len();
-        if slice_len == 0 {
+        if bytes.is_empty() {
             return;
         }
 
@@ -40,17 +39,18 @@ impl StringBuilder {
             libc::memcpy(
                 self.inner.as_ptr().add(self.inner.len()) as *mut ffi::c_void,
                 bytes.as_ptr() as *const ffi::c_void,
-                slice_len,
+                bytes.len(),
             );
 
-            let new_len = self.inner.len() + slice_len;
+            let new_len = self.inner.len() + bytes.len();
 
-            *self.inner.data.add(new_len) = 0;
+            *self.inner.as_mut_ptr().add(new_len) = 0;
 
             new_len
         };
 
-        self.inner.len = new_len;
+        unsafe { self.inner.set_len(new_len) };
+
         debug_assert!(self.inner.len() < self.cap);
     }
 
@@ -70,7 +70,9 @@ impl StringBuilder {
             unable_to_alloc_memory();
         }
         Self {
-            inner: NvimString { len: 0, data: ptr as *mut ffi::c_char },
+            inner: unsafe {
+                NvimString::from_raw_parts(ptr as *mut ffi::c_char, 0)
+            },
             cap: real_cap,
         }
     }
@@ -103,7 +105,7 @@ impl StringBuilder {
     fn realloc(&mut self, new_capacity: NonZeroUsize) {
         let ptr = unsafe {
             libc::realloc(
-                self.inner.data as *mut ffi::c_void,
+                self.inner.as_mut_ptr() as *mut ffi::c_void,
                 new_capacity.get(),
             )
         };
@@ -112,47 +114,52 @@ impl StringBuilder {
         if ptr.is_null() {
             unable_to_alloc_memory();
         }
-        self.inner.data = ptr as *mut ffi::c_char;
+        self.inner = unsafe {
+            NvimString::from_raw_parts(
+                ptr as *mut ffi::c_char,
+                self.inner.len(),
+            )
+        };
         self.cap = new_capacity.get();
     }
 
     /// Finish building the [`NvimString`]
     #[inline]
-    pub fn finish(self) -> NvimString {
-        let mut s =
-            NvimString { data: self.inner.data, len: self.inner.len() };
+    pub fn finish(mut self) -> NvimString {
+        let string = unsafe {
+            NvimString::from_raw_parts(
+                self.inner.as_mut_ptr(),
+                self.inner.len(),
+            )
+        };
 
-        if s.data.is_null() {
-            debug_assert!(s.is_empty());
+        if string.as_ptr().is_null() {
+            debug_assert!(string.is_empty());
             debug_assert_eq!(self.cap, 0);
 
             // The pointer of `NvimString` should never be null, and it must be
             // terminated by a null byte.
-            if s.data.is_null() {
-                unsafe {
-                    let ptr = libc::malloc(1) as *mut ffi::c_char;
-                    if ptr.is_null() {
-                        unable_to_alloc_memory();
-                    }
-                    ptr.write(0);
-
-                    s.data = ptr;
+            unsafe {
+                let ptr = libc::malloc(1) as *mut ffi::c_char;
+                if ptr.is_null() {
+                    unable_to_alloc_memory();
                 }
+                ptr.write(0);
+                NvimString::from_raw_parts(ptr, 0)
             }
         } else {
             debug_assert!(self.cap > self.inner.len());
+            // Prevent self's destructor from being called.
+            std::mem::forget(self);
+            string
         }
-
-        // Prevent self's destructor from being called.
-        std::mem::forget(self);
-        s
     }
 
     /// Returns the remaining *usable* capacity, i.e. the remaining capacity
     /// minus the space reserved for the null terminator.
     #[inline(always)]
     fn remaining_capacity(&self) -> usize {
-        if self.inner.data.is_null() {
+        if self.inner.as_ptr().is_null() {
             debug_assert_eq!(self.inner.len(), 0);
             return 0;
         }
@@ -178,7 +185,7 @@ impl StringBuilder {
         if remaining >= additional {
             return None;
         }
-        if self.inner.data.is_null() {
+        if self.inner.as_ptr().is_null() {
             debug_assert_eq!(self.cap, 0);
             NonZeroUsize::new(additional + 1)
         } else {
@@ -203,8 +210,8 @@ impl fmt::Write for StringBuilder {
 
 impl Drop for StringBuilder {
     fn drop(&mut self) {
-        if !self.inner.data.is_null() {
-            unsafe { libc::free(self.inner.data as *mut ffi::c_void) }
+        if !self.inner.as_ptr().is_null() {
+            unsafe { libc::free(self.inner.as_mut_ptr() as *mut ffi::c_void) }
         }
     }
 }
@@ -228,9 +235,9 @@ mod tests {
         sb.push_bytes(s.as_bytes());
         sb.push_bytes(bytes);
 
-        assert_eq!(sb.inner.len, s.len() + bytes.len());
+        assert_eq!(sb.inner.len(), s.len() + bytes.len());
         assert_eq!(sb.cap, 32); // Allocation size
-        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0); // Null termination
+        assert_eq!(unsafe { *sb.inner.as_ptr().add(sb.inner.len()) }, 0); // Null termination
 
         let nv_str = sb.finish();
         assert_eq!(nv_str.len(), s.len() + bytes.len());
@@ -239,7 +246,7 @@ mod tests {
     #[test]
     fn with_capacity() {
         let s = StringBuilder::with_capacity(0);
-        assert!(!s.inner.data.is_null());
+        assert!(!s.inner.as_ptr().is_null());
         assert_eq!(s.cap, 1);
         assert_eq!(s.inner.len(), 0);
         s.finish();
@@ -263,15 +270,15 @@ mod tests {
         // Shouldn't change the pointer address as we have enough space.
         sb.reserve(10);
         assert_eq!(sb.cap, 16);
-        let ptr = sb.inner.data;
+        let ptr = sb.inner.as_ptr();
         sb.push_bytes(b"Hello World!");
         // We already allocated the space needed the push above shouldn't
         // change the pointer.
-        assert_eq!(sb.inner.data, ptr);
+        assert_eq!(sb.inner.as_ptr(), ptr);
         sb.push_bytes(&[b'a'; 55]);
         // We shouldn't check the pointer again as the block might be extended
         // instead of being moved to a different address.
-        assert_eq!(unsafe { *sb.inner.data.add(sb.inner.len) }, 0);
+        assert_eq!(unsafe { *sb.inner.as_ptr().add(sb.inner.len()) }, 0);
         assert_eq!(sb.cap, 128);
     }
 
@@ -280,18 +287,18 @@ mod tests {
         let mut sb = StringBuilder::new();
         sb.reserve_exact(10);
         assert_eq!(sb.cap, 11);
-        let ptr = sb.inner.data;
+        let ptr = sb.inner.as_ptr();
         sb.push_bytes(b"hi");
         assert_eq!(sb.inner.len(), 2);
 
         // The space is already allocated, pushing bytes shouldn't change the
         // ptr address.
-        assert_eq!(ptr, sb.inner.data);
+        assert_eq!(ptr, sb.inner.as_ptr());
         sb.push_bytes(b"Hello World!");
         assert_eq!(sb.cap, 16);
         assert_eq!(sb.inner.len(), 14);
-        let ptr = sb.inner.data;
+        let ptr = sb.inner.as_ptr();
         sb.push_bytes(b"c");
-        assert_eq!(sb.inner.data, ptr);
+        assert_eq!(sb.inner.as_ptr(), ptr);
     }
 }
