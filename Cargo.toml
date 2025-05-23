@@ -15,11 +15,11 @@ license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
 
 [workspace.dependencies]
-api = { version = "0.6.0", package = "nvim-oxi-api" }
-libuv = { version = "0.6.0", package = "nvim-oxi-libuv" }
-luajit = { version = "0.6.0", package = "nvim-oxi-luajit" }
-macros = { version = "0.6.0", package = "nvim-oxi-macros" }
-types = { version = "0.6.0", package = "nvim-oxi-types" }
+api = { path = "./crates/api", package = "nvim-oxi-api" }
+libuv = { path = "./crates/libuv", package = "nvim-oxi-libuv" }
+luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
+macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
+types = { path = "./crates/types", package = "nvim-oxi-types" }
 
 thiserror = "2.0"
 
