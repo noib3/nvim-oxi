@@ -59,7 +59,7 @@ fn feedkeys() {
         .unwrap()
         .collect::<Vec<_>>();
 
-    assert_eq!(lines, vec!["Hello"]);
+    assert_eq!(lines, ["Hello"]);
 }
 
 #[nvim_oxi::test]
