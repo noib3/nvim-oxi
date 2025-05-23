@@ -113,19 +113,6 @@ impl FromObject for Float {
     }
 }
 
-impl FromObject for crate::String {
-    fn from_object(obj: Object) -> Result<Self, Error> {
-        match obj.kind() {
-            ObjectKind::String => Ok(unsafe { obj.into_string_unchecked() }),
-
-            other => Err(Error::FromWrongType {
-                expected: "string",
-                actual: other.as_static(),
-            }),
-        }
-    }
-}
-
 impl FromObject for Array {
     fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {

@@ -8,8 +8,7 @@ use std::path::{Path, PathBuf};
 
 use luajit as lua;
 
-use crate::NvimStr;
-use crate::StringBuilder;
+use crate::{conversion, NvimStr, Object, ObjectKind, StringBuilder};
 
 /// Binding to the string type used by Neovim.
 ///
@@ -231,6 +230,21 @@ impl PartialEq<std::string::String> for String {
     #[inline]
     fn eq(&self, other: &std::string::String) -> bool {
         self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl TryFrom<Object> for String {
+    type Error = conversion::Error;
+
+    #[inline]
+    fn try_from(obj: crate::Object) -> Result<Self, Self::Error> {
+        match obj.kind() {
+            ObjectKind::String => Ok(unsafe { obj.into_string_unchecked() }),
+            other => Err(conversion::Error::FromWrongType {
+                expected: "string",
+                actual: other.as_static(),
+            }),
+        }
     }
 }
 
