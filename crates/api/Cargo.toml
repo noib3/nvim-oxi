@@ -9,7 +9,8 @@ license.workspace = true
 
 [features]
 neovim-0-10 = []
-neovim-nightly = ["neovim-0-10"]
+neovim-0-11 = ["neovim-0-10"]
+neovim-nightly = ["neovim-0-11"]
 
 [dependencies]
 luajit = { workspace = true }

@@ -483,7 +483,7 @@ where
 {
     unsafe {
         nvim_input(
-            #[cfg(feature = "neovim-nightly")]
+            #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
             LUA_INTERNAL_CALL,
             keys.into().as_nvim_str(),
         )

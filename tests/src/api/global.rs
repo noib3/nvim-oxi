@@ -285,7 +285,7 @@ fn set_get_del_var() {
 }
 
 // `api::{get,set}_option()` were deprecated on 0.11, so only test on 0.10.
-#[cfg(not(feature = "neovim-nightly"))]
+#[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
 #[nvim_oxi::test]
 fn set_get_option() {
     api::set_option("modified", true).unwrap();
