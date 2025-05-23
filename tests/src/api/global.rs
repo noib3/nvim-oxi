@@ -103,7 +103,7 @@ fn get_hl() {
 
 #[nvim_oxi::test]
 fn get_mode() {
-    let GotMode { blocking, mode, .. } = api::get_mode().unwrap();
+    let GotMode { blocking, mode, .. } = api::get_mode();
     assert_eq!(mode, "n");
     assert!(!blocking);
 }

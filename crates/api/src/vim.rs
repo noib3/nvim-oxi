@@ -379,8 +379,10 @@ pub fn get_mark(
 /// [`GotMode`] is `true` if Neovim is waiting for input.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_mode()
-pub fn get_mode() -> Result<GotMode> {
-    unsafe { nvim_get_mode(types::arena()) }.try_into().map_err(Into::into)
+pub fn get_mode() -> GotMode {
+    unsafe { nvim_get_mode(types::arena()) }
+        .try_into()
+        .expect("couldn't get mode")
 }
 
 /// Binding to [`nvim_get_proc()`][1].
