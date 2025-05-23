@@ -77,6 +77,18 @@ impl<'a> NvimStr<'a> {
     pub const fn len(&self) -> usize {
         self.len
     }
+
+    /// Returns the length of the [`NvimStr`], *not* including the final null
+    /// byte.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the bytes at `old_len..new_len` are
+    /// initialized.
+    #[inline]
+    pub const unsafe fn set_len(&mut self, new_len: usize) {
+        self.len = new_len;
+    }
 }
 
 impl From<NvimString> for NvimStr<'_> {

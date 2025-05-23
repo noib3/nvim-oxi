@@ -128,6 +128,10 @@ impl String {
     }
 
     /// Forces the length of the string to be `new_len`.
+    ///
+    /// # Safety
+    ///
+    /// Same as [`NvimStr::set_len`].
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
         self.len = new_len;
