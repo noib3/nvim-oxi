@@ -1,6 +1,6 @@
-use core::ffi;
 use core::fmt;
 use core::num::NonZeroUsize;
+use core::{ffi, ptr};
 
 use crate::String as NvimString;
 
@@ -17,7 +17,12 @@ impl StringBuilder {
     /// Create a new empty `StringBuilder`.
     #[inline]
     pub fn new() -> Self {
-        Self { inner: NvimString::new(), cap: 0 }
+        Self {
+            // SAFETY: even though the pointer is temporarily null, it'll
+            // be set to a valid pointer by the time `finish` is called.
+            inner: unsafe { NvimString::from_raw_parts(ptr::null_mut(), 0) },
+            cap: 0,
+        }
     }
 
     /// Push new bytes to the builder.
@@ -157,7 +162,7 @@ impl StringBuilder {
 
     /// Returns the remaining *usable* capacity, i.e. the remaining capacity
     /// minus the space reserved for the null terminator.
-    #[inline(always)]
+    #[inline]
     fn remaining_capacity(&self) -> usize {
         if self.inner.as_ptr().is_null() {
             debug_assert_eq!(self.inner.len(), 0);
