@@ -1,11 +1,16 @@
+use core::ffi::{self, CStr};
 use core::marker::PhantomData;
 use core::str::Utf8Error;
-use core::{cmp, ffi, fmt, hash, slice};
+use core::{cmp, fmt, hash, slice};
 use std::borrow::Cow;
 
 use crate::String as NvimString;
 
-/// TODO: docs.
+/// A borrowed version of [`NvimString`].
+///
+/// Values of this type can be created by calling
+/// [`as_nvim_str`](NvimString::as_nvim_str) on a [`NvimString`] or by
+/// converting a [`CStr`].
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NvimStr<'a> {
@@ -166,5 +171,16 @@ impl<'a> From<&'a NvimString> for NvimStr<'a> {
     #[inline]
     fn from(string: &'a NvimString) -> Self {
         string.as_nvim_str()
+    }
+}
+
+impl<'a> From<&'a CStr> for NvimStr<'a> {
+    #[inline]
+    fn from(cstr: &'a CStr) -> Self {
+        Self {
+            data: cstr.as_ptr(),
+            len: cstr.to_bytes().len(),
+            _lifetime: PhantomData,
+        }
     }
 }
