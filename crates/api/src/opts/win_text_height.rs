@@ -24,4 +24,13 @@ pub struct WinTextHeightOpts {
     /// to full screen lines. When omitted include the whole line.
     #[builder(argtype = "usize", inline = "{0} as types::Integer")]
     end_vcol: types::Integer,
+
+    // Don't add the height of lines below the row for which this height is
+    // reached. Useful to e.g. limit the height to the window height, avoiding
+    // unnecessary work. Or to find out how many buffer lines beyond
+    // [`start_row`](Self::start_row) take up a certain number of logical lines
+    // (returned in `end_row` and `end_vcol`).
+    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[builder(argtype = "usize", inline = "{0} as types::Integer")]
+    max_height: types::Integer,
 }
