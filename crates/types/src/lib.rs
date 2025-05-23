@@ -14,6 +14,7 @@ mod non_owning;
 mod object;
 #[cfg(feature = "serde")]
 pub mod serde;
+mod str;
 mod string;
 
 pub use arena::{arena, arena_init, Arena};
@@ -23,6 +24,7 @@ pub use error::Error;
 pub use function::Function;
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
+pub use str::NvimStr;
 pub use string::{String, StringBuilder};
 
 pub mod iter {
