@@ -256,7 +256,7 @@ impl Buffer {
     pub fn get_keymap(
         &self,
         mode: Mode,
-    ) -> Result<impl SuperIterator<KeymapInfos>> {
+    ) -> Result<impl SuperIterator<KeymapInfos> + use<>> {
         let mut err = nvim::Error::new();
         let mode = nvim::String::from(mode);
         let maps = unsafe {
@@ -286,7 +286,7 @@ impl Buffer {
         &self,
         line_range: R,
         strict_indexing: bool,
-    ) -> Result<impl SuperIterator<nvim::String>>
+    ) -> Result<impl SuperIterator<nvim::String> + use<R>>
     where
         R: RangeBounds<usize>,
     {
@@ -380,7 +380,7 @@ impl Buffer {
         start_col: usize,
         end_col: usize,
         opts: &GetTextOpts,
-    ) -> Result<impl SuperIterator<nvim::String>>
+    ) -> Result<impl SuperIterator<nvim::String> + use<R>>
     where
         R: RangeBounds<usize>,
     {

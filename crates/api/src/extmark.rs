@@ -30,7 +30,7 @@ pub fn create_namespace(name: &str) -> u32 {
 /// and ids tuples `(name, id)`.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_namespaces()
-pub fn get_namespaces() -> impl SuperIterator<(String, u32)> {
+pub fn get_namespaces() -> impl SuperIterator<(String, u32)> + use<> {
     unsafe { nvim_get_namespaces(types::arena()) }.into_iter().map(|(k, v)| {
         let k = k.to_string_lossy().into();
         let v = u32::from_object(v).expect("namespace id is positive");
@@ -201,7 +201,7 @@ impl Buffer {
         start: ExtmarkPosition,
         end: ExtmarkPosition,
         opts: &GetExtmarksOpts,
-    ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
+    ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)> + use<>>
     {
         let mut err = nvim::Error::new();
         let extmarks = unsafe {

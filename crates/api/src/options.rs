@@ -15,7 +15,7 @@ use crate::types::*;
 /// Gets the option information for all options.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_all_options_info()
-pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos>> {
+pub fn get_all_options_info() -> Result<impl SuperIterator<OptionInfos> + use<>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_all_options_info(types::arena(), &mut err) };
     choose!(

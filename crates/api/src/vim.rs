@@ -216,7 +216,7 @@ pub fn get_color_by_name(name: &str) -> Result<u32> {
 /// values (e.g. 65535).
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_map()
-pub fn get_color_map() -> impl SuperIterator<(String, u32)> {
+pub fn get_color_map() -> impl SuperIterator<(String, u32)> + use<> {
     unsafe { nvim_get_color_map(types::arena()) }.into_iter().map(|(k, v)| {
         (k.to_string_lossy().into(), u32::from_object(v).unwrap())
     })
@@ -339,7 +339,7 @@ pub fn get_hl_ns(opts: &GetNamespaceOpts) -> Result<i64> {
 /// Returns an iterator over the global mapping definitions.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_keymap()
-pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
+pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> + use<> {
     let mode = nvim::String::from(mode);
     let keymaps =
         unsafe { nvim_get_keymap(mode.as_nvim_str(), types::arena()) };
@@ -401,7 +401,7 @@ pub fn get_proc(pid: u32) -> Result<ProcInfos> {
 /// Gets the immediate children of process `pid`.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_proc_children()
-pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
+pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32> + use<>> {
     let mut err = nvim::Error::new();
     let procs = unsafe {
         nvim_get_proc_children(pid.into(), types::arena(), &mut err)
@@ -417,10 +417,10 @@ pub fn get_proc_children(pid: u32) -> Result<impl SuperIterator<u32>> {
 /// Returns an iterator over all the files matching `name` in the runtime path.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_runtime_file()
-pub fn get_runtime_file(
-    name: impl AsRef<Path>,
+pub fn get_runtime_file<T: AsRef<Path>>(
+    name: T,
     get_all: bool,
-) -> Result<impl SuperIterator<PathBuf>> {
+) -> Result<impl SuperIterator<PathBuf> + use<T>> {
     let name = nvim::String::from(name.as_ref());
     let mut err = nvim::Error::new();
     let files = unsafe {
@@ -535,7 +535,7 @@ pub fn input_mouse(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
 /// [2]: unloaded/deleted
-pub fn list_bufs() -> impl SuperIterator<Buffer> {
+pub fn list_bufs() -> impl SuperIterator<Buffer> + use<> {
     let bufs = unsafe { nvim_list_bufs(types::arena()) };
     bufs.into_iter().map(|obj| Buffer::from_object(obj).unwrap())
 }
@@ -545,7 +545,7 @@ pub fn list_bufs() -> impl SuperIterator<Buffer> {
 /// Returns an iterator over the informations about all the open channels.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_chans()
-pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
+pub fn list_chans() -> impl SuperIterator<ChannelInfos> + use<> {
     unsafe { nvim_list_chans() }
         .into_iter()
         .map(|obj| ChannelInfos::from_object(obj).unwrap())
@@ -556,7 +556,7 @@ pub fn list_chans() -> impl SuperIterator<ChannelInfos> {
 /// Gets the paths contained in https://neovim's runtimepath.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_runtime_paths()
-pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
+pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf> + use<>> {
     let mut err = nvim::Error::new();
     let paths = unsafe { nvim_list_runtime_paths(types::arena(), &mut err) };
     choose!(
@@ -574,7 +574,7 @@ pub fn list_runtime_paths() -> Result<impl SuperIterator<PathBuf>> {
 /// Gets the current list of `Tabpage`s.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_bufs()
-pub fn list_tabpages() -> impl SuperIterator<TabPage> {
+pub fn list_tabpages() -> impl SuperIterator<TabPage> + use<> {
     unsafe { nvim_list_tabpages() }
         .into_iter()
         .map(|obj| TabPage::from_object(obj).unwrap())
@@ -585,7 +585,7 @@ pub fn list_tabpages() -> impl SuperIterator<TabPage> {
 /// Returns an iterator over the informations about all the attached UIs.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_uis()
-pub fn list_uis() -> impl SuperIterator<UiInfos> {
+pub fn list_uis() -> impl SuperIterator<UiInfos> + use<> {
     unsafe { nvim_list_uis(types::arena()) }
         .into_iter()
         .map(|obj| UiInfos::from_object(obj).unwrap())
@@ -596,7 +596,7 @@ pub fn list_uis() -> impl SuperIterator<UiInfos> {
 /// Gets the current list of `Window`s.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_list_wins()
-pub fn list_wins() -> impl SuperIterator<Window> {
+pub fn list_wins() -> impl SuperIterator<Window> + use<> {
     unsafe { nvim_list_wins(types::arena()) }
         .into_iter()
         .map(|obj| Window::from_object(obj).unwrap())

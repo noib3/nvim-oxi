@@ -80,7 +80,7 @@ pub fn del_user_command(name: &str) -> Result<()> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_commands()
 pub fn get_commands(
     opts: &GetCommandsOpts,
-) -> Result<impl SuperIterator<CommandInfos>> {
+) -> Result<impl SuperIterator<CommandInfos> + use<>> {
     let mut err = nvim::Error::new();
     let cmds = unsafe { nvim_get_commands(opts, types::arena(), &mut err) };
     choose!(
@@ -162,7 +162,7 @@ impl Buffer {
     pub fn get_commands(
         &self,
         opts: &GetCommandsOpts,
-    ) -> Result<impl SuperIterator<CommandInfos>> {
+    ) -> Result<impl SuperIterator<CommandInfos> + use<>> {
         let mut err = nvim::Error::new();
         let cmds = unsafe {
             nvim_buf_get_commands(self.0, opts, types::arena(), &mut err)
