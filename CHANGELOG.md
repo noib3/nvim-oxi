@@ -4,6 +4,11 @@
 
 ## [0.6.0] - May 23 2025
 
+### Changed
+
+- `nvim_oxi::api::get_mode()` is now infallible and always returns a `GotMode`
+  ([#247](https://github.com/noib3/nvim-oxi/pull/247));
+
 ### Added
 
 - a `String::to_str()` method which returns a `&str` if the string contains
