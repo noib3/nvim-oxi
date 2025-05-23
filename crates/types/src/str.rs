@@ -22,8 +22,7 @@ impl<'a> NvimStr<'a> {
     /// [`as_bytes_with_nul`](Self::as_bytes_with_nul) instead.
     #[inline]
     pub const fn as_bytes(&self) -> &'a [u8] {
-        let bytes = self.as_bytes_with_nul();
-        unsafe { slice::from_raw_parts(bytes.as_ptr(), bytes.len() - 1) }
+        self.as_bytes_inner(false)
     }
 
     /// Converts the [`NvimStr`] into a byte slice, including the final
@@ -33,13 +32,7 @@ impl<'a> NvimStr<'a> {
     /// [`as_bytes`](Self::as_bytes) instead.
     #[inline]
     pub const fn as_bytes_with_nul(&self) -> &'a [u8] {
-        if self.data.is_null() {
-            &[]
-        } else {
-            unsafe {
-                slice::from_raw_parts(self.as_ptr() as *const u8, self.len + 1)
-            }
-        }
+        self.as_bytes_inner(false)
     }
 
     /// Returns a raw pointer to the [`NvimStr`]'s buffer.
@@ -111,6 +104,20 @@ impl<'a> NvimStr<'a> {
     #[inline]
     pub(crate) fn reborrow(&self) -> NvimStr<'_> {
         NvimStr { ..*self }
+    }
+
+    #[inline]
+    const fn as_bytes_inner(&self, with_nul: bool) -> &'a [u8] {
+        if self.data.is_null() {
+            &[]
+        } else {
+            unsafe {
+                slice::from_raw_parts(
+                    self.as_ptr() as *const u8,
+                    self.len + with_nul as usize,
+                )
+            }
+        }
     }
 }
 
