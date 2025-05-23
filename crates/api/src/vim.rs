@@ -434,15 +434,14 @@ pub fn get_mark(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_mode()
 pub fn get_mode() -> Result<GotMode> {
-    Ok(GotMode::from_object(
-        unsafe {
-            nvim_get_mode(
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                types::arena(),
-            )
-        }
-        .into(),
-    )?)
+    unsafe {
+        nvim_get_mode(
+            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
+            types::arena(),
+        )
+    }
+    .try_into()
+    .map_err(Into::into)
 }
 
 /// Binding to [`nvim_get_proc()`][1].

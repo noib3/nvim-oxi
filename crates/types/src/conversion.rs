@@ -126,21 +126,6 @@ impl FromObject for Array {
     }
 }
 
-impl FromObject for Dictionary {
-    fn from_object(obj: Object) -> Result<Self, Error> {
-        match obj.kind() {
-            ObjectKind::Dictionary => {
-                Ok(unsafe { obj.into_dictionary_unchecked() })
-            },
-
-            other => Err(Error::FromWrongType {
-                expected: "string",
-                actual: other.as_static(),
-            }),
-        }
-    }
-}
-
 impl<A, R> FromObject for Function<A, R> {
     fn from_object(obj: Object) -> Result<Self, Error> {
         match obj.kind() {

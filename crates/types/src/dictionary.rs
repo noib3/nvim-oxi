@@ -1,8 +1,7 @@
 use luajit as lua;
 
 use crate::kvec::{self, KVec};
-use crate::NonOwning;
-use crate::Object;
+use crate::{conversion, NonOwning, Object, ObjectKind};
 
 /// A vector of Neovim
 /// `(`[`String`](crate::String)`, `[`Object`](crate::Object)`)` pairs.
@@ -369,6 +368,23 @@ impl DoubleEndedIterator for DictIterMut<'_> {
 }
 
 impl core::iter::FusedIterator for DictIterMut<'_> {}
+
+impl TryFrom<Object> for Dictionary {
+    type Error = conversion::Error;
+
+    #[inline]
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
+        match obj.kind() {
+            ObjectKind::Dictionary => {
+                Ok(unsafe { obj.into_dictionary_unchecked() })
+            },
+            other => Err(conversion::Error::FromWrongType {
+                expected: "dictionary",
+                actual: other.as_static(),
+            }),
+        }
+    }
+}
 
 impl lua::Poppable for Dictionary {
     #[inline]

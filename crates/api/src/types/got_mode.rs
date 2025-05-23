@@ -1,7 +1,12 @@
 use core::ops::Deref;
 
-use serde::Deserialize;
-use types::{conversion, serde::Deserializer, Object, String as NvimString};
+use types::{
+    conversion,
+    serde::Deserializer,
+    Dictionary,
+    Object,
+    String as NvimString,
+};
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, serde::Deserialize)]
@@ -16,12 +21,13 @@ pub struct GotMode {
 #[serde(transparent)]
 pub struct ModeStr(NvimString);
 
-impl TryFrom<Object> for GotMode {
+impl TryFrom<Dictionary> for GotMode {
     type Error = conversion::Error;
 
     #[inline]
-    fn try_from(obj: Object) -> Result<Self, Self::Error> {
-        Self::deserialize(Deserializer::new(obj)).map_err(Into::into)
+    fn try_from(dict: Dictionary) -> Result<Self, Self::Error> {
+        use serde::Deserialize;
+        Self::deserialize(Deserializer::new(dict.into())).map_err(Into::into)
     }
 }
 
