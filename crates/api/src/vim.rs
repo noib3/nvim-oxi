@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use types::NvimStr;
 use types::{
     self as nvim,
     conversion::{FromObject, ToObject},
@@ -188,10 +189,12 @@ pub fn eval_statusline(
 /// Binding to [`nvim_feedkeys()`][1].
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_feedkeys()
-pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
-    let keys = nvim::String::from(keys);
-    let mode = nvim::String::from(mode);
-    unsafe { nvim_feedkeys(keys.as_nvim_str(), mode.as_nvim_str(), escape_ks) }
+pub fn feedkeys<'a>(
+    keys: impl Into<NvimStr<'a>>,
+    mode: impl Into<NvimStr<'a>>,
+    escape_ks: bool,
+) {
+    unsafe { nvim_feedkeys(keys.into(), mode.into(), escape_ks) }
 }
 
 /// Binding to [`nvim_get_chan_info()`][1].

@@ -49,6 +49,20 @@ fn eval_statusline() {
 }
 
 #[nvim_oxi::test]
+fn feedkeys() {
+    let keys = "iHllo<Esc>bi<Right>e";
+    let keys = api::replace_termcodes(keys, true, false, true);
+    api::feedkeys(&keys, c"x", false);
+
+    let lines = api::Buffer::current()
+        .get_lines(0..1, true)
+        .unwrap()
+        .collect::<Vec<_>>();
+
+    assert_eq!(lines, vec!["Hello"]);
+}
+
+#[nvim_oxi::test]
 fn get_chan_info() {
     let res = api::get_chan_info(0);
     assert!(res.is_err());
