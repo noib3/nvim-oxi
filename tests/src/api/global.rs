@@ -200,9 +200,7 @@ fn notify() {
     assert_eq!(ret, Object::nil());
 }
 
-// Fails on 0.9.5 on macOS and Windows. Not sure why.
 #[nvim_oxi::test]
-#[cfg_attr(not(any(target_os = "linux", feature = "neovim-0-10")), ignore)]
 fn notify_custom() {
     let message = "Notifier was called!";
 
@@ -216,9 +214,7 @@ fn notify_custom() {
     assert_eq!(ret, message.into());
 }
 
-// Fails on 0.9.5 on macOS and Windows. Not sure why.
 #[nvim_oxi::test]
-#[cfg_attr(not(any(target_os = "linux", feature = "neovim-0-10")), ignore)]
 fn notify_custom_err() {
     #[derive(Debug, thiserror::Error)]
     #[error("")]
@@ -289,7 +285,7 @@ fn set_get_del_var() {
 }
 
 // `api::{get,set}_option()` were deprecated on 0.11, so only test on 0.10.
-#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+#[cfg(not(feature = "neovim-nightly"))]
 #[nvim_oxi::test]
 fn set_get_option() {
     api::set_option("modified", true).unwrap();

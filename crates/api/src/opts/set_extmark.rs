@@ -214,10 +214,6 @@ pub struct SetExtmarkOpts {
     ///
     /// Defaults to `true`.
     #[builder(argtype = "bool")]
-    #[cfg_attr(
-        docsrs,
-        doc(cfg(any(feature = "neovim-0-10", feature = "neovim-nightly")))
-    )]
     undo_restore: types::Boolean,
 
     /// A URL to associate with this extmark.
