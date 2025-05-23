@@ -51,7 +51,7 @@ where
     unsafe {
         nvim_create_user_command(
             LUA_INTERNAL_CALL,
-            name.non_owning(),
+            name.as_nvim_str(),
             command.non_owning(),
             opts,
             &mut err,
@@ -69,7 +69,7 @@ where
 pub fn del_user_command(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    unsafe { nvim_del_user_command(name.non_owning(), &mut err) };
+    unsafe { nvim_del_user_command(name.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 
@@ -113,7 +113,7 @@ pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
 
     let out = unsafe {
         nvim_parse_cmd(
-            src.non_owning(),
+            src.as_nvim_str(),
             #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
             opts.non_owning(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -159,7 +159,7 @@ impl Buffer {
                 ))]
                 LUA_INTERNAL_CALL,
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 command.non_owning(),
                 opts,
                 &mut err,
@@ -179,7 +179,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         unsafe {
-            nvim_buf_del_user_command(self.0, name.non_owning(), &mut err)
+            nvim_buf_del_user_command(self.0, name.as_nvim_str(), &mut err)
         };
         choose!(err, ())
     }

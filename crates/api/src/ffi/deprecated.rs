@@ -8,7 +8,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L559
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
@@ -18,7 +18,7 @@ extern "C" {
     pub(crate) fn nvim_buf_set_option(
         channel_id: u64,
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );
@@ -26,7 +26,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L37
     pub(crate) fn nvim_exec(
         channel_id: u64,
-        src: NonOwning<String>,
+        src: NvimStr,
         output: Boolean,
         error: *mut Error,
     ) -> String;
@@ -41,7 +41,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L207
     pub(crate) fn nvim_get_hl_by_name(
-        name: NonOwning<String>,
+        name: NvimStr,
         rgb: bool,
         arena: *mut core::ffi::c_void,
         error: *mut Error,
@@ -49,7 +49,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L545
     pub(crate) fn nvim_get_option(
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
@@ -57,7 +57,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L518
     pub(crate) fn nvim_get_option_info(
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly
         arena: *mut Arena,
         err: *mut Error,
@@ -66,7 +66,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L532
     pub(crate) fn nvim_set_option(
         channel_id: u64,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );
@@ -74,7 +74,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L601
     pub(crate) fn nvim_win_get_option(
         win: WinHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         arena: *mut Arena,
         err: *mut Error,
@@ -84,7 +84,7 @@ extern "C" {
     pub(crate) fn nvim_win_set_option(
         channel_id: u64,
         win: WinHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );

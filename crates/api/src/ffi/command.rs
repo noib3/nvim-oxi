@@ -17,7 +17,7 @@ extern "C" {
     pub(crate) fn nvim_buf_create_user_command(
         channel_id: u64,
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         command: NonOwning<Object>,
         opts: *const CreateCommandOpts,
         err: *mut Error,
@@ -26,7 +26,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L925
     pub(crate) fn nvim_buf_del_user_command(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     );
 
@@ -52,17 +52,14 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L880
     pub(crate) fn nvim_create_user_command(
         channel_id: u64,
-        name: NonOwning<String>,
+        name: NvimStr,
         command: NonOwning<Object>,
         opts: *const CreateCommandOpts,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L891
-    pub(crate) fn nvim_del_user_command(
-        name: NonOwning<String>,
-        err: *mut Error,
-    );
+    pub(crate) fn nvim_del_user_command(name: NvimStr, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L1169
     pub(crate) fn nvim_get_commands(
@@ -74,7 +71,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/command.c#L99
     pub(crate) fn nvim_parse_cmd(
-        src: NonOwning<String>,
+        src: NvimStr,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
         opts: NonOwning<Dictionary>,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.

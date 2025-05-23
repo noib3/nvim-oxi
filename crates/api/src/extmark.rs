@@ -19,7 +19,7 @@ use crate::{Error, Result};
 /// [1]: https://neovim.io/doc/user/api.html#nvim_create_namespace()
 pub fn create_namespace(name: &str) -> u32 {
     let name = nvim::String::from(name);
-    unsafe { nvim_create_namespace(name.non_owning()) }
+    unsafe { nvim_create_namespace(name.as_nvim_str()) }
         .try_into()
         .expect("always positive")
 }
@@ -83,7 +83,7 @@ impl Buffer {
             nvim_buf_add_highlight(
                 self.0,
                 ns_id.into(),
-                hl_group.non_owning(),
+                hl_group.as_nvim_str(),
                 line as Integer,
                 start,
                 end,

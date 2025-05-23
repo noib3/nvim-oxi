@@ -165,7 +165,7 @@ impl Window {
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        unsafe { nvim_win_del_var(self.0, name.non_owning(), &mut err) };
+        unsafe { nvim_win_del_var(self.0, name.as_nvim_str(), &mut err) };
         choose!(err, ())
     }
 
@@ -273,7 +273,7 @@ impl Window {
         let obj = unsafe {
             nvim_win_get_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
@@ -382,7 +382,7 @@ impl Window {
         unsafe {
             nvim_win_set_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 value.to_object()?.non_owning(),
                 &mut err,
             )

@@ -29,7 +29,7 @@ where
     let res = unsafe {
         nvim_call_dict_function(
             dict.non_owning(),
-            func.non_owning(),
+            func.as_nvim_str(),
             args.non_owning(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
@@ -55,7 +55,7 @@ where
     let mut err = nvim::Error::new();
     let res = unsafe {
         nvim_call_function(
-            func.non_owning(),
+            func.as_nvim_str(),
             args.non_owning(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
@@ -73,7 +73,7 @@ where
 pub fn command(command: &str) -> Result<()> {
     let command = nvim::String::from(command);
     let mut err = nvim::Error::new();
-    unsafe { nvim_command(command.non_owning(), &mut err) };
+    unsafe { nvim_command(command.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 
@@ -90,7 +90,7 @@ where
     let mut err = nvim::Error::new();
     let output = unsafe {
         nvim_eval(
-            expr.non_owning(),
+            expr.as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
@@ -116,7 +116,7 @@ pub fn exec2(src: &str, opts: &ExecOpts) -> Result<Option<nvim::String>> {
     let src = types::String::from(src);
     let mut err = types::Error::new();
     let dict = unsafe {
-        nvim_exec2(crate::LUA_INTERNAL_CALL, src.non_owning(), opts, &mut err)
+        nvim_exec2(crate::LUA_INTERNAL_CALL, src.as_nvim_str(), opts, &mut err)
     };
     choose!(err, {
         Ok(dict
@@ -141,8 +141,8 @@ pub fn parse_expression(
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_parse_expression(
-            expr.non_owning(),
-            flags.non_owning(),
+            expr.as_nvim_str(),
+            flags.as_nvim_str(),
             include_highlight,
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),

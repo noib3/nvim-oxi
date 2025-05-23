@@ -40,7 +40,7 @@ pub fn create_augroup(name: &str, opts: &CreateAugroupOpts) -> Result<u32> {
     let id = unsafe {
         nvim_create_augroup(
             LUA_INTERNAL_CALL,
-            name.non_owning(),
+            name.as_nvim_str(),
             opts,
             &mut err,
         )
@@ -94,7 +94,7 @@ pub fn del_augroup_by_id(id: u32) -> Result<()> {
 pub fn del_augroup_by_name(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    unsafe { nvim_del_augroup_by_name(name.non_owning(), &mut err) };
+    unsafe { nvim_del_augroup_by_name(name.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 

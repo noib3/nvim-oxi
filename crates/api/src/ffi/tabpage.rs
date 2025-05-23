@@ -8,7 +8,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/tabpage.c#L87
     pub(crate) fn nvim_tabpage_del_var(
         tabpage: TabHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     );
 
@@ -21,7 +21,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/tabpage.c#L52
     pub(crate) fn nvim_tabpage_get_var(
         tabpage: TabHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
@@ -47,7 +47,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/tabpage.c#L70
     pub(crate) fn nvim_tabpage_set_var(
         tabpage: TabHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );

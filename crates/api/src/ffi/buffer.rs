@@ -30,22 +30,22 @@ extern "C" {
     pub(crate) fn nvim_buf_del_keymap(
         channel_id: u64,
         buf: BufHandle,
-        mode: NonOwning<String>,
-        lhs: NonOwning<String>,
+        mode: NvimStr,
+        lhs: NvimStr,
         err: *mut Error,
     );
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L1071
     pub(crate) fn nvim_buf_del_mark(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     ) -> bool;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L928
     pub(crate) fn nvim_buf_del_var(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     );
 
@@ -68,7 +68,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.8.3/src/nvim/api/buffer.c#L869
     pub(crate) fn nvim_buf_get_keymap(
         buf: BufHandle,
-        mode: NonOwning<String>,
+        mode: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
@@ -90,7 +90,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L1149
     pub(crate) fn nvim_buf_get_mark(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
@@ -131,7 +131,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L832
     pub(crate) fn nvim_buf_get_var(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
@@ -153,9 +153,9 @@ extern "C" {
     pub(crate) fn nvim_buf_set_keymap(
         channel_id: u64,
         buf: BufHandle,
-        mode: NonOwning<String>,
-        lhs: NonOwning<String>,
-        rhs: NonOwning<String>,
+        mode: NvimStr,
+        lhs: NvimStr,
+        rhs: NvimStr,
         opts: *const SetKeymapOpts,
         err: *mut Error,
     );
@@ -176,7 +176,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L1116
     pub(crate) fn nvim_buf_set_mark(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         line: Integer,
         col: Integer,
         #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
@@ -189,7 +189,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L963
     pub(crate) fn nvim_buf_set_name(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     );
 
@@ -210,7 +210,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L911
     pub(crate) fn nvim_buf_set_var(
         buf: BufHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );

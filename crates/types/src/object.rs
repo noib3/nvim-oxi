@@ -14,6 +14,8 @@ use crate::{
     Integer,
     LuaRef,
     NonOwning,
+    NvimStr,
+    String as NvimString,
 };
 
 // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L109-L120
@@ -70,7 +72,7 @@ union ObjectData {
     boolean: Boolean,
     integer: Integer,
     float: Float,
-    string: ManuallyDrop<crate::String>,
+    string: ManuallyDrop<NvimString>,
     array: ManuallyDrop<Array>,
     dictionary: ManuallyDrop<Dictionary>,
     luaref: LuaRef,
@@ -325,26 +327,9 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     #[cfg_attr(debug_assertions, track_caller)]
-    pub unsafe fn as_string_unchecked(&self) -> &crate::String {
+    pub unsafe fn as_nvim_str_unchecked(&self) -> NvimStr<'_> {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
-        &self.data.string
-    }
-
-    /// Returns a mutable reference to the string stored in this
-    /// [`Object`].
-    ///
-    /// This is a zero-cost method that directly accesses the underlying
-    /// value without performing any runtime checks.
-    ///
-    /// # Safety
-    ///
-    /// This `Object`'s [`ObjectKind`] must be a
-    /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
-    /// any other kind may result in undefined behavior.
-    #[cfg_attr(debug_assertions, track_caller)]
-    pub unsafe fn as_string_unchecked_mut(&mut self) -> &mut crate::String {
-        debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
-        &mut self.data.string
+        self.data.string.as_nvim_str()
     }
 
     /// Returns the string stored in this [`Object`].
@@ -358,10 +343,12 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     #[cfg_attr(debug_assertions, track_caller)]
-    pub unsafe fn into_string_unchecked(self) -> crate::String {
+    pub unsafe fn into_string_unchecked(mut self) -> NvimString {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
-        #[allow(clippy::unnecessary_struct_initialization)]
-        let string = crate::String { ..*self.data.string };
+        let string = &mut self.data.string;
+        let string = unsafe {
+            NvimString::from_raw_parts(string.as_mut_ptr(), string.len())
+        };
         core::mem::forget(self);
         string
     }
@@ -503,7 +490,7 @@ impl Clone for Object {
             | ObjectKind::Window
             | ObjectKind::TabPage => clone_copy!(self, integer),
             ObjectKind::Float => clone_copy!(self, float),
-            ObjectKind::String => clone_drop!(self, string, crate::String),
+            ObjectKind::String => clone_drop!(self, string, NvimString),
             ObjectKind::Array => clone_drop!(self, array, Array),
             ObjectKind::Dictionary => {
                 clone_drop!(self, dictionary, Dictionary)
@@ -597,7 +584,7 @@ macro_rules! from_man_drop {
     };
 }
 
-from_man_drop!(crate::String, String, string);
+from_man_drop!(NvimString, String, string);
 from_man_drop!(Array, Array, array);
 from_man_drop!(Dictionary, Dictionary, dictionary);
 
@@ -636,21 +623,21 @@ impl From<f32> for Object {
 impl From<String> for Object {
     #[inline(always)]
     fn from(s: String) -> Self {
-        crate::String::from(s.as_str()).into()
+        NvimString::from(s.as_str()).into()
     }
 }
 
 impl From<&str> for Object {
     #[inline(always)]
     fn from(s: &str) -> Self {
-        crate::String::from(s).into()
+        NvimString::from(s).into()
     }
 }
 
 impl From<char> for Object {
     #[inline(always)]
     fn from(ch: char) -> Self {
-        crate::String::from(ch).into()
+        NvimString::from(ch).into()
     }
 }
 
@@ -687,7 +674,7 @@ where
 
 impl From<Cow<'_, str>> for Object {
     fn from(moo: Cow<'_, str>) -> Self {
-        crate::String::from(moo.as_ref()).into()
+        NvimString::from(moo.as_ref()).into()
     }
 }
 
@@ -703,7 +690,7 @@ where
 
 impl<K, V> FromIterator<(K, V)> for Object
 where
-    crate::String: From<K>,
+    NvimString: From<K>,
     Object: From<V>,
 {
     #[inline(always)]
@@ -758,7 +745,7 @@ impl Poppable for Object {
                 }
             },
 
-            LUA_TSTRING => crate::String::pop(lstate).map(Into::into),
+            LUA_TSTRING => NvimString::pop(lstate).map(Into::into),
 
             LUA_TTABLE => {
                 if lua::utils::is_table_array(lstate, -1) {
@@ -793,8 +780,14 @@ mod serde {
 
     use serde::de::{self, Deserialize};
 
-    use super::Object;
-    use crate::{Array, Dictionary, Integer, LuaRef};
+    use crate::{
+        Array,
+        Dictionary,
+        Integer,
+        LuaRef,
+        Object,
+        String as NvimString,
+    };
 
     impl<'de> Deserialize<'de> for Object {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -832,7 +825,7 @@ mod serde {
                 where
                     E: de::Error,
                 {
-                    Ok(crate::String::from_bytes(b).into())
+                    Ok(NvimString::from_bytes(b).into())
                 }
 
                 fn visit_u64<E>(self, n: u64) -> Result<Self::Value, E>
@@ -874,13 +867,12 @@ mod serde {
                 where
                     A: de::MapAccess<'de>,
                 {
-                    let mut vec =
-                        Vec::<(crate::String, Object)>::with_capacity(
-                            map.size_hint().unwrap_or_default(),
-                        );
+                    let mut vec = Vec::<(NvimString, Object)>::with_capacity(
+                        map.size_hint().unwrap_or_default(),
+                    );
 
                     while let Some(pair) =
-                        map.next_entry::<crate::String, Object>()?
+                        map.next_entry::<NvimString, Object>()?
                     {
                         vec.push(pair);
                     }

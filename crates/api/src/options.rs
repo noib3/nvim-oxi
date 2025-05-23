@@ -50,7 +50,7 @@ pub fn get_option_info2(name: &str, opts: &OptionOpts) -> Result<OptionInfos> {
     let mut err = types::Error::new();
     let dict = unsafe {
         nvim_get_option_info2(
-            name.non_owning(),
+            name.as_nvim_str(),
             opts,
             types::arena(),
             &mut err,
@@ -76,7 +76,7 @@ where
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
     let obj =
-        unsafe { nvim_get_option_value(name.non_owning(), opts, &mut err) };
+        unsafe { nvim_get_option_value(name.as_nvim_str(), opts, &mut err) };
     choose!(err, Ok(Opt::from_object(obj)?))
 }
 
@@ -101,7 +101,7 @@ where
     unsafe {
         nvim_set_option_value(
             crate::LUA_INTERNAL_CALL,
-            name.non_owning(),
+            name.as_nvim_str(),
             value.to_object()?.non_owning(),
             opts,
             &mut err,

@@ -26,7 +26,7 @@ use crate::{Error, Result};
 pub fn chan_send(channel_id: u32, data: &str) -> Result<()> {
     let mut err = nvim::Error::new();
     let data = nvim::String::from(data);
-    unsafe { nvim_chan_send(channel_id.into(), data.non_owning(), &mut err) };
+    unsafe { nvim_chan_send(channel_id.into(), data.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 
@@ -71,8 +71,8 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
     unsafe {
         nvim_del_keymap(
             LUA_INTERNAL_CALL,
-            mode.non_owning(),
-            lhs.non_owning(),
+            mode.as_nvim_str(),
+            lhs.as_nvim_str(),
             &mut err,
         )
     };
@@ -89,7 +89,7 @@ pub fn del_keymap(mode: Mode, lhs: &str) -> Result<()> {
 pub fn del_mark(name: char) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    let was_deleted = unsafe { nvim_del_mark(name.non_owning(), &mut err) };
+    let was_deleted = unsafe { nvim_del_mark(name.as_nvim_str(), &mut err) };
     choose!(
         err,
         match was_deleted {
@@ -107,7 +107,7 @@ pub fn del_mark(name: char) -> Result<()> {
 pub fn del_var(name: &str) -> Result<()> {
     let name = nvim::String::from(name);
     let mut err = nvim::Error::new();
-    unsafe { nvim_del_var(name.non_owning(), &mut err) };
+    unsafe { nvim_del_var(name.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 
@@ -149,7 +149,7 @@ where
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_err_write()
 pub fn err_write(str: &str) {
-    unsafe { nvim_err_write(nvim::String::from(str).non_owning()) }
+    unsafe { nvim_err_write(nvim::String::from(str).as_nvim_str()) }
 }
 
 /// Binding to [`nvim_err_writeln()`][1].
@@ -159,7 +159,7 @@ pub fn err_write(str: &str) {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_err_writeln()
 pub fn err_writeln(str: &str) {
-    unsafe { nvim_err_writeln(nvim::String::from(str).non_owning()) }
+    unsafe { nvim_err_writeln(nvim::String::from(str).as_nvim_str()) }
 }
 
 /// Binding to [`nvim_eval_statusline()`][1].
@@ -175,7 +175,7 @@ pub fn eval_statusline(
     let mut err = nvim::Error::new();
     let dict = unsafe {
         nvim_eval_statusline(
-            str.non_owning(),
+            str.as_nvim_str(),
             opts,
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
@@ -191,7 +191,7 @@ pub fn eval_statusline(
 pub fn feedkeys(keys: &str, mode: Mode, escape_ks: bool) {
     let keys = nvim::String::from(keys);
     let mode = nvim::String::from(mode);
-    unsafe { nvim_feedkeys(keys.non_owning(), mode.non_owning(), escape_ks) }
+    unsafe { nvim_feedkeys(keys.as_nvim_str(), mode.as_nvim_str(), escape_ks) }
 }
 
 /// Binding to [`nvim_get_chan_info()`][1].
@@ -213,7 +213,7 @@ pub fn get_chan_info(channel_id: u32) -> Result<ChannelInfos> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_color_by_name()
 pub fn get_color_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
-    let color = unsafe { nvim_get_color_by_name(name.non_owning()) };
+    let color = unsafe { nvim_get_color_by_name(name.as_nvim_str()) };
     (color != -1).then(|| color.try_into().unwrap()).ok_or_else(|| {
         Error::custom(format!("{name:?} is not a valid color name"))
     })
@@ -349,7 +349,7 @@ pub fn get_hl(
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_id_by_name()
 pub fn get_hl_id_by_name(name: &str) -> Result<u32> {
     let name = nvim::String::from(name);
-    let id = unsafe { nvim_get_hl_id_by_name(name.non_owning()) };
+    let id = unsafe { nvim_get_hl_id_by_name(name.as_nvim_str()) };
     id.try_into().map_err(Into::into)
 }
 
@@ -378,7 +378,7 @@ pub fn get_keymap(mode: Mode) -> impl SuperIterator<KeymapInfos> {
     let mode = nvim::String::from(mode);
     let keymaps = unsafe {
         nvim_get_keymap(
-            mode.non_owning(),
+            mode.as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
         )
@@ -402,7 +402,7 @@ pub fn get_mark(
     let mut err = nvim::Error::new();
     let mark = unsafe {
         nvim_get_mark(
-            name.non_owning(),
+            name.as_nvim_str(),
             #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
             opts.non_owning(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -494,7 +494,7 @@ pub fn get_runtime_file(
     let mut err = nvim::Error::new();
     let files = unsafe {
         nvim_get_runtime_file(
-            name.non_owning(),
+            name.as_nvim_str(),
             get_all,
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
@@ -524,7 +524,7 @@ where
     let name = nvim::String::from(name);
     let obj = unsafe {
         nvim_get_var(
-            name.non_owning(),
+            name.as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
@@ -546,7 +546,7 @@ where
     let mut err = nvim::Error::new();
     let obj = unsafe {
         nvim_get_vvar(
-            name.non_owning(),
+            name.as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
@@ -571,7 +571,7 @@ where
         nvim_input(
             #[cfg(feature = "neovim-nightly")]
             LUA_INTERNAL_CALL,
-            keys.into().non_owning(),
+            keys.into().as_nvim_str(),
         )
     }
     .try_into()
@@ -597,9 +597,9 @@ pub fn input_mouse(
     let mut err = nvim::Error::new();
     unsafe {
         nvim_input_mouse(
-            button.non_owning(),
-            action.non_owning(),
-            modifier.non_owning(),
+            button.as_nvim_str(),
+            action.as_nvim_str(),
+            modifier.as_nvim_str(),
             grid.into(),
             row.try_into()?,
             col.try_into()?,
@@ -727,7 +727,7 @@ pub fn notify(
     let mut err = nvim::Error::new();
     let obj = unsafe {
         nvim_notify(
-            msg.non_owning(),
+            msg.as_nvim_str(),
             log_level as Integer,
             opts.non_owning(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -778,7 +778,7 @@ pub fn out_write<Msg>(str: Msg)
 where
     Msg: Into<nvim::String>,
 {
-    unsafe { nvim_out_write(str.into().non_owning()) }
+    unsafe { nvim_out_write(str.into().as_nvim_str()) }
 }
 
 /// Binding to [`nvim_paste()`][1].
@@ -794,7 +794,7 @@ where
     let mut err = nvim::Error::new();
     let go_on = unsafe {
         nvim_paste(
-            data.into().non_owning(),
+            data.into().as_nvim_str(),
             crlf,
             phase as Integer,
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
@@ -826,7 +826,7 @@ where
     unsafe {
         nvim_put(
             lines.non_owning(),
-            reg_type.non_owning(),
+            reg_type.as_nvim_str(),
             after,
             follow,
             &mut err,
@@ -852,7 +852,7 @@ where
 {
     let str = str.into();
     unsafe {
-        nvim_replace_termcodes(str.non_owning(), from_part, do_lt, special)
+        nvim_replace_termcodes(str.as_nvim_str(), from_part, do_lt, special)
     }
 }
 
@@ -907,7 +907,7 @@ where
 {
     let dir = nvim::String::from(dir.as_ref());
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_current_dir(dir.non_owning(), &mut err) };
+    unsafe { nvim_set_current_dir(dir.as_nvim_str(), &mut err) };
     choose!(err, ())
 }
 
@@ -923,7 +923,7 @@ where
     let mut err = nvim::Error::new();
     unsafe {
         nvim_set_current_line(
-            line.into().non_owning(),
+            line.into().as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
@@ -967,7 +967,7 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             LUA_INTERNAL_CALL,
             ns_id as Integer,
-            name.non_owning(),
+            name.as_nvim_str(),
             opts,
             &mut err,
         )
@@ -1033,9 +1033,9 @@ pub fn set_keymap(
     unsafe {
         nvim_set_keymap(
             LUA_INTERNAL_CALL,
-            mode.non_owning(),
-            lhs.non_owning(),
-            rhs.non_owning(),
+            mode.as_nvim_str(),
+            lhs.as_nvim_str(),
+            rhs.as_nvim_str(),
             opts,
             &mut err,
         )
@@ -1055,7 +1055,7 @@ where
     let name = nvim::String::from(name);
     let value = value.to_object()?;
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_var(name.non_owning(), value.non_owning(), &mut err) };
+    unsafe { nvim_set_var(name.as_nvim_str(), value.non_owning(), &mut err) };
     choose!(err, ())
 }
 
@@ -1071,7 +1071,7 @@ where
     let name = nvim::String::from(name);
     let value = value.to_object()?;
     let mut err = nvim::Error::new();
-    unsafe { nvim_set_vvar(name.non_owning(), value.non_owning(), &mut err) };
+    unsafe { nvim_set_vvar(name.as_nvim_str(), value.non_owning(), &mut err) };
     choose!(err, ())
 }
 
@@ -1084,6 +1084,6 @@ where
 pub fn strwidth(text: &str) -> Result<usize> {
     let text = nvim::String::from(text);
     let mut err = nvim::Error::new();
-    let width = unsafe { nvim_strwidth(text.non_owning(), &mut err) };
+    let width = unsafe { nvim_strwidth(text.as_nvim_str(), &mut err) };
     choose!(err, Ok(width.try_into().expect("always positive")))
 }
