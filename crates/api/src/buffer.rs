@@ -201,8 +201,8 @@ impl Buffer {
             nvim_buf_del_keymap(
                 LUA_INTERNAL_CALL,
                 self.0,
-                mode.non_owning(),
-                lhs.non_owning(),
+                mode.as_nvim_str(),
+                lhs.as_nvim_str(),
                 &mut err,
             )
         };
@@ -218,7 +218,7 @@ impl Buffer {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
         let was_deleted =
-            unsafe { nvim_buf_del_mark(self.0, name.non_owning(), &mut err) };
+            unsafe { nvim_buf_del_mark(self.0, name.as_nvim_str(), &mut err) };
         choose!(
             err,
             match was_deleted {
@@ -237,7 +237,7 @@ impl Buffer {
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        unsafe { nvim_buf_del_var(self.0, name.non_owning(), &mut err) };
+        unsafe { nvim_buf_del_var(self.0, name.as_nvim_str(), &mut err) };
         choose!(err, ())
     }
 
@@ -288,7 +288,7 @@ impl Buffer {
         let maps = unsafe {
             nvim_buf_get_keymap(
                 self.0,
-                mode.non_owning(),
+                mode.as_nvim_str(),
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
@@ -360,7 +360,7 @@ impl Buffer {
         let mark = unsafe {
             nvim_buf_get_mark(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
@@ -468,7 +468,7 @@ impl Buffer {
         let obj = unsafe {
             nvim_buf_get_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
@@ -527,9 +527,9 @@ impl Buffer {
             nvim_buf_set_keymap(
                 LUA_INTERNAL_CALL,
                 self.0,
-                mode.non_owning(),
-                lhs.non_owning(),
-                rhs.non_owning(),
+                mode.as_nvim_str(),
+                lhs.as_nvim_str(),
+                rhs.as_nvim_str(),
                 opts,
                 &mut err,
             )
@@ -593,7 +593,7 @@ impl Buffer {
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 line.try_into()?,
                 col.try_into()?,
                 #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
@@ -620,7 +620,7 @@ impl Buffer {
     pub fn set_name<Name: AsRef<Path>>(&mut self, name: Name) -> Result<()> {
         let name = nvim::String::from(name.as_ref());
         let mut err = nvim::Error::new();
-        unsafe { nvim_buf_set_name(self.0, name.non_owning(), &mut err) };
+        unsafe { nvim_buf_set_name(self.0, name.as_nvim_str(), &mut err) };
         choose!(err, ())
     }
 
@@ -679,7 +679,7 @@ impl Buffer {
         unsafe {
             nvim_buf_set_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 value.to_object()?.non_owning(),
                 &mut err,
             )

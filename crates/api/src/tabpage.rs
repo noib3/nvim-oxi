@@ -88,7 +88,7 @@ impl TabPage {
     pub fn del_var(&mut self, name: &str) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        unsafe { nvim_tabpage_del_var(self.0, name.non_owning(), &mut err) };
+        unsafe { nvim_tabpage_del_var(self.0, name.as_nvim_str(), &mut err) };
         choose!(err, ())
     }
 
@@ -117,7 +117,7 @@ impl TabPage {
         let obj = unsafe {
             nvim_tabpage_get_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
@@ -183,7 +183,7 @@ impl TabPage {
         unsafe {
             nvim_tabpage_set_var(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 value.to_object()?.non_owning(),
                 &mut err,
             )

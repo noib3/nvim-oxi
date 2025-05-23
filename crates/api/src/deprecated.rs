@@ -21,7 +21,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
     let src = types::String::from(src);
     let mut err = types::Error::new();
     let output = unsafe {
-        nvim_exec(LUA_INTERNAL_CALL, src.non_owning(), output, &mut err)
+        nvim_exec(LUA_INTERNAL_CALL, src.as_nvim_str(), output, &mut err)
     };
     choose!(err, {
         Ok((!output.is_empty()).then(|| output.to_string_lossy().into()))
@@ -63,7 +63,7 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
     let mut err = types::Error::new();
     let hl = unsafe {
         nvim_get_hl_by_name(
-            name.non_owning(),
+            name.as_nvim_str(),
             rgb,
             core::ptr::null_mut(),
             &mut err,
@@ -89,7 +89,7 @@ where
     let mut err = types::Error::new();
     let obj = unsafe {
         nvim_get_option(
-            name.non_owning(),
+            name.as_nvim_str(),
             #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
             types::arena(),
             &mut err,
@@ -112,7 +112,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
     let mut err = types::Error::new();
     let obj = unsafe {
         nvim_get_option_info(
-            name.non_owning(),
+            name.as_nvim_str(),
             #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             types::arena(),
             &mut err,
@@ -139,7 +139,7 @@ where
     unsafe {
         nvim_set_option(
             LUA_INTERNAL_CALL,
-            name.non_owning(),
+            name.as_nvim_str(),
             value.to_object()?.non_owning(),
             &mut err,
         )
@@ -166,7 +166,7 @@ impl Buffer {
         let obj = unsafe {
             nvim_buf_get_option(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 types::arena(),
                 &mut err,
@@ -195,7 +195,7 @@ impl Buffer {
             nvim_buf_set_option(
                 LUA_INTERNAL_CALL,
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 value.to_object()?.non_owning(),
                 &mut err,
             )
@@ -223,7 +223,7 @@ impl Window {
         let obj = unsafe {
             nvim_win_get_option(
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
                 types::arena(),
                 &mut err,
@@ -252,7 +252,7 @@ impl Window {
             nvim_win_set_option(
                 LUA_INTERNAL_CALL,
                 self.0,
-                name.non_owning(),
+                name.as_nvim_str(),
                 value.to_object()?.non_owning(),
                 &mut err,
             )

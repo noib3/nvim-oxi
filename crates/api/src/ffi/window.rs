@@ -22,7 +22,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/window.c#L268
     pub(crate) fn nvim_win_del_var(
         win: WinHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         err: *mut Error,
     );
 
@@ -69,7 +69,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/window.c#L233
     pub(crate) fn nvim_win_get_var(
         win: WinHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
@@ -119,7 +119,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/window.c#L251
     pub(crate) fn nvim_win_set_var(
         win: WinHandle,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         err: *mut Error,
     );

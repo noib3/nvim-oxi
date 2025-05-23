@@ -8,8 +8,8 @@ use std::path::{Path, PathBuf};
 
 use luajit as lua;
 
+use crate::NvimStr;
 use crate::StringBuilder;
-use crate::{NonOwning, NvimStr};
 
 /// Binding to the string type used by Neovim.
 ///
@@ -118,13 +118,6 @@ impl String {
     #[inline]
     pub fn new() -> Self {
         Self::from_bytes(&[])
-    }
-
-    /// Makes a non-owning version of this `String`.
-    #[inline]
-    #[doc(hidden)]
-    pub fn non_owning(&self) -> NonOwning<'_, String> {
-        NonOwning::new(Self { ..*self })
     }
 
     /// Forces the length of the string to be `new_len`.

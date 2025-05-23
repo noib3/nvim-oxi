@@ -18,7 +18,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/autocmd.c#L629
     pub(crate) fn nvim_create_augroup(
         channel_id: u64,
-        name: NonOwning<String>,
+        name: NvimStr,
         opts: *const CreateAugroupOpts,
         err: *mut Error,
     ) -> Integer;
@@ -37,10 +37,7 @@ extern "C" {
     pub(crate) fn nvim_del_augroup_by_id(id: Integer, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/autocmd.c#L678
-    pub(crate) fn nvim_del_augroup_by_name(
-        name: NonOwning<String>,
-        err: *mut Error,
-    );
+    pub(crate) fn nvim_del_augroup_by_name(name: NvimStr, err: *mut Error);
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/autocmd.c#L523
     pub(crate) fn nvim_del_autocmd(id: Integer, err: *mut Error);

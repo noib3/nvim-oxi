@@ -17,7 +17,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/master/src/nvim/api/options.c#L305
     #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     pub(crate) fn nvim_get_option_info2(
-        name: NonOwning<String>,
+        name: NvimStr,
         opts: *const OptionOpts,
         arena: *mut Arena,
         err: *mut Error,
@@ -25,7 +25,7 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/options.c#L152
     pub(crate) fn nvim_get_option_value(
-        name: NonOwning<String>,
+        name: NvimStr,
         opts: *const OptionOpts,
         err: *mut Error,
     ) -> Object;
@@ -33,7 +33,7 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/options.c#L217
     pub(crate) fn nvim_set_option_value(
         channel_id: u64,
-        name: NonOwning<String>,
+        name: NvimStr,
         value: NonOwning<Object>,
         opts: *const OptionOpts,
         err: *mut Error,

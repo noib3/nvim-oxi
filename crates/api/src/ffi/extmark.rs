@@ -11,7 +11,7 @@ extern "C" {
     pub(crate) fn nvim_buf_add_highlight(
         buf: BufHandle,
         ns_id: Integer,
-        hl_group: NonOwning<String>,
+        hl_group: NvimStr,
         line: Integer,
         col_start: Integer,
         col_end: Integer,
@@ -75,7 +75,7 @@ extern "C" {
     ) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/extmark.c#L57
-    pub(crate) fn nvim_create_namespace(name: NonOwning<String>) -> Integer;
+    pub(crate) fn nvim_create_namespace(name: NvimStr) -> Integer;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/extmark.c#L75
     pub(crate) fn nvim_get_namespaces(
