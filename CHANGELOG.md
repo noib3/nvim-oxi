@@ -47,6 +47,10 @@
 - renamed `nvim_oxi::api::Window::set_hl` to `nvim_oxi::api::Window::set_hl_ns`
   ([#220](https://github.com/noib3/nvim-oxi/pull/220))
 
+- `nvim_oxi::api::feedkeys()` now takes a pair of `impl Into<NvimStr>` instead
+  of a `&str` and a `Mode`
+  ([#240](https://github.com/noib3/nvim-oxi/pull/240));
+
 ### Removed
 
 - the `SetHighlightOptsBuilder::global_link()` method. Use
