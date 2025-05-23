@@ -6,19 +6,19 @@ use luajit::{self as lua, Poppable, Pushable};
 use serde::{Deserialize, Serialize};
 use types::{
     self as nvim,
-    conversion::{self, FromObject, ToObject},
     Array,
     Function,
     Integer,
     Object,
     WinHandle,
+    conversion::{self, FromObject, ToObject},
 };
 
+use crate::Result;
 use crate::choose;
 use crate::ffi::window::*;
 use crate::opts::WinTextHeightOpts;
 use crate::types::WinTextHeightInfos;
-use crate::Result;
 use crate::{Buffer, IntoResult, TabPage};
 
 /// A wrapper around a Neovim window handle.
@@ -114,7 +114,7 @@ impl Window {
                 ref_or_nil.as_luaref_unchecked()
             },
             types::ObjectKind::Nil => {
-                return Ret::from_object(Object::nil()).map_err(Into::into)
+                return Ret::from_object(Object::nil()).map_err(Into::into);
             },
             other => panic!("Unexpected object kind: {other:?}"),
         };

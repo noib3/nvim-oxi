@@ -1,8 +1,8 @@
-use serde::{ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, ser};
 use types::{
+    Object,
     conversion::{self, ToObject},
     serde::Serializer,
-    Object,
 };
 
 /// Number of arguments accepted by a command.

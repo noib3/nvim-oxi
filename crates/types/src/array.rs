@@ -2,9 +2,9 @@ use core::ops::{Deref, DerefMut};
 
 use luajit as lua;
 
-use crate::kvec::{self, KVec};
 use crate::NonOwning;
 use crate::Object;
+use crate::kvec::{self, KVec};
 
 /// A vector of Neovim [`Object`]s.
 #[derive(Clone, Default, PartialEq)]

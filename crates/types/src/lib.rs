@@ -18,7 +18,7 @@ mod str;
 mod string;
 mod string_builder;
 
-pub use arena::{arena, arena_init, Arena};
+pub use arena::{Arena, arena, arena_init};
 pub use array::{Array, ArrayFromTupleError};
 pub use dictionary::{Dictionary, KeyValuePair};
 pub use error::Error;

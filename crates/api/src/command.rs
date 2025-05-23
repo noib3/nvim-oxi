@@ -1,13 +1,13 @@
 use types::{self as nvim, conversion::FromObject};
 
 use super::opts::*;
+use crate::Buffer;
+use crate::LUA_INTERNAL_CALL;
+use crate::Result;
 use crate::choose;
 use crate::ffi::command::*;
 use crate::trait_utils::{StringOrFunction, SuperIterator};
 use crate::types::*;
-use crate::Buffer;
-use crate::Result;
-use crate::LUA_INTERNAL_CALL;
 
 /// Binding to [`nvim_cmd()`][1].
 ///

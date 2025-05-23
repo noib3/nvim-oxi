@@ -1,9 +1,9 @@
 use types as nvim;
 
+use crate::Result;
 use crate::choose;
 use crate::ffi::win_config::*;
 use crate::types::*;
-use crate::Result;
 use crate::{Buffer, Window};
 
 /// Binding to [`nvim_open_win()`][1].

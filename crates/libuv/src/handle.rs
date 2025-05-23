@@ -2,7 +2,7 @@ use std::alloc::{self, Layout};
 use std::ffi::c_void;
 use std::marker::PhantomData;
 
-use crate::{ffi, Error, Result};
+use crate::{Error, Result, ffi};
 
 /// TODO: docs
 pub(crate) trait ProperLayout: Sized {}

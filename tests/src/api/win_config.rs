@@ -1,4 +1,4 @@
-use nvim_oxi::api::{self, types::*, Buffer, Window};
+use nvim_oxi::api::{self, Buffer, Window, types::*};
 
 #[nvim_oxi::test]
 fn open_hsplit() {

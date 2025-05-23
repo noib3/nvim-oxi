@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use all_asserts::*;
-use nvim_oxi::api::{self, opts::*, types::*, Buffer, Window};
+use nvim_oxi::api::{self, Buffer, Window, opts::*, types::*};
 use nvim_oxi::mlua::{Error as LuaError, IntoLuaMulti, Lua, Table};
 use nvim_oxi::{Dictionary, Object};
 

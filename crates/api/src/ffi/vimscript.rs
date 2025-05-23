@@ -4,7 +4,7 @@ use types::*;
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
-extern "C" {
+unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vimscript.c#L278
     pub(crate) fn nvim_call_dict_function(
         dict: NonOwning<Object>,

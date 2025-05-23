@@ -1,8 +1,8 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, AttrStyle, ItemFn, LitStr, Meta, Token};
+use syn::{AttrStyle, ItemFn, LitStr, Meta, Token, parse_macro_input};
 
 use crate::common::{DuplicateError, Keyed, KeyedAttribute};
 use crate::plugin::NvimOxi;

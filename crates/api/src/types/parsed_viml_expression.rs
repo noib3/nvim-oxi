@@ -4,11 +4,11 @@ use std::collections::BTreeSet;
 
 use serde::Deserialize;
 use types::{
-    conversion::{self, FromObject},
-    serde::Deserializer,
     Float,
     Integer,
     Object,
+    conversion::{self, FromObject},
+    serde::Deserializer,
 };
 
 use super::viml_ast_node::*;

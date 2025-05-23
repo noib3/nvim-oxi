@@ -1,17 +1,17 @@
 use serde::Deserialize;
 use types::{
-    conversion::{self, FromObject},
-    serde::Deserializer,
     Array,
     Float,
     Integer,
     Object,
+    conversion::{self, FromObject},
+    serde::Deserializer,
 };
 use types::{Boolean, String as NvimString, WinHandle};
 
 use super::{WindowAnchor, WindowBorder, WindowRelativeTo, WindowStyle};
-use crate::serde_utils as utils;
 use crate::Window;
+use crate::serde_utils as utils;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Default, PartialEq, Deserialize)]

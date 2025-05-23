@@ -1,9 +1,9 @@
 use serde::Serialize;
 use types::{
-    conversion::{self, ToObject},
-    serde::Serializer,
     Function,
     Object,
+    conversion::{self, ToObject},
+    serde::Serializer,
 };
 
 /// See `:h command-complete` for details.

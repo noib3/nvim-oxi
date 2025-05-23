@@ -1,6 +1,6 @@
-use crate::types::AutocmdCallbackArgs;
 use crate::Buffer;
 use crate::StringOrInt;
+use crate::types::AutocmdCallbackArgs;
 
 pub type ShouldDeleteAutocmd = bool;
 

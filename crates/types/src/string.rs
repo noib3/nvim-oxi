@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use luajit as lua;
 
-use crate::{conversion, NvimStr, Object, ObjectKind, StringBuilder};
+use crate::{NvimStr, Object, ObjectKind, StringBuilder, conversion};
 
 /// Binding to the string type used by Neovim.
 ///

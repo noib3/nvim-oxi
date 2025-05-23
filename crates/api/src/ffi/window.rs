@@ -4,7 +4,7 @@ use types::*;
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
 )]
-extern "C" {
+unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/window.c#L428
     pub(crate) fn nvim_win_call(
         win: WinHandle,

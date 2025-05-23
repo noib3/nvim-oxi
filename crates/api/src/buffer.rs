@@ -8,21 +8,21 @@ use luajit::{self as lua, Poppable, Pushable};
 use serde::{Deserialize, Serialize};
 use types::{
     self as nvim,
-    conversion::{self, FromObject, ToObject},
     Array,
     BufHandle,
     Function,
     Integer,
     Object,
+    conversion::{self, FromObject, ToObject},
 };
 
+use crate::LUA_INTERNAL_CALL;
+use crate::SuperIterator;
 use crate::choose;
 use crate::ffi::buffer::*;
 use crate::opts::*;
 use crate::types::{KeymapInfos, Mode};
 use crate::utils;
-use crate::SuperIterator;
-use crate::LUA_INTERNAL_CALL;
 use crate::{Error, IntoResult, Result};
 
 /// A wrapper around a Neovim buffer handle.
@@ -153,7 +153,7 @@ impl Buffer {
                 ref_or_nil.as_luaref_unchecked()
             },
             types::ObjectKind::Nil => {
-                return Ret::from_object(Object::nil()).map_err(Into::into)
+                return Ret::from_object(Object::nil()).map_err(Into::into);
             },
             other => panic!("Unexpected object kind: {other:?}"),
         };

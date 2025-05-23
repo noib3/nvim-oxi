@@ -3,7 +3,7 @@ use std::ops;
 use std::rc::Rc;
 
 use all_asserts::*;
-use nvim_oxi::api::{self, opts::*, types::*, Buffer};
+use nvim_oxi::api::{self, Buffer, opts::*, types::*};
 
 #[nvim_oxi::test]
 fn buf_attach() {

@@ -175,13 +175,13 @@ impl<'de> de::Deserialize<'de> for WindowBorder {
                             other,
                             &"border styles returned by Neovim always \
                               contain 8 items",
-                        ))
+                        ));
                     },
 
                     None => {
                         return Err(de::Error::custom(
                             "couldn't determine array length",
-                        ))
+                        ));
                     },
                 };
 

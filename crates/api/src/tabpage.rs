@@ -5,16 +5,16 @@ use luajit::{self as lua, Poppable, Pushable};
 use serde::{Deserialize, Serialize};
 use types::{
     self as nvim,
-    conversion::{self, FromObject, ToObject},
     Object,
     TabHandle,
+    conversion::{self, FromObject, ToObject},
 };
 
-use crate::choose;
-use crate::ffi::tabpage::*;
 use crate::Result;
 use crate::SuperIterator;
 use crate::Window;
+use crate::choose;
+use crate::ffi::tabpage::*;
 
 /// A wrapper around a Neovim tab handle.
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]

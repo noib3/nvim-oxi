@@ -1,6 +1,6 @@
 use std::fmt;
 
-use serde::{de, Deserialize};
+use serde::{Deserialize, de};
 use types::{Array, Object};
 
 #[non_exhaustive]
@@ -74,13 +74,13 @@ impl<'de> Deserialize<'de> for WindowBorderChar {
                             &"border character in array form expected to \
                               contain 2 elements representing character and \
                               highlight group respectively",
-                        ))
+                        ));
                     },
 
                     None => {
                         return Err(de::Error::custom(
                             "couldn't determine array length",
-                        ))
+                        ));
                     },
                 }
 

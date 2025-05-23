@@ -1,5 +1,5 @@
-use nvim_oxi::api::{self, opts::*, types::*, Window};
-use nvim_oxi::{print, Dictionary, Function};
+use nvim_oxi::api::{self, Window, opts::*, types::*};
+use nvim_oxi::{Dictionary, Function, print};
 
 #[nvim_oxi::plugin]
 fn api() -> nvim_oxi::Result<Dictionary> {

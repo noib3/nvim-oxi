@@ -50,10 +50,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: cargo clippy --features neovim-nightly -- -D warnings
+      - run: cargo clippy --all-features --workspace --tests -- -D warnings
 
   docs:
     name: docs

@@ -1,4 +1,4 @@
-use serde::{ser, Serialize};
+use serde::{Serialize, ser};
 use types::{conversion::FromObject, serde::Serializer};
 
 #[non_exhaustive]

@@ -1,8 +1,8 @@
 use serde::ser::{self, Error};
 
 use super::SerializeError;
-use crate::conversion::FromObject;
 use crate::Object;
+use crate::conversion::FromObject;
 
 /// A struct for serializing Rust values into Neovim `Object`s.
 #[non_exhaustive]

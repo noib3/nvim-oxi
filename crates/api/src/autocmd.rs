@@ -1,12 +1,12 @@
-use types::{self as nvim, conversion::FromObject, Array, Integer, Object};
+use types::{self as nvim, Array, Integer, Object, conversion::FromObject};
 
+use super::LUA_INTERNAL_CALL;
 use super::ffi::autocmd::*;
 use super::opts::*;
 use super::types::*;
-use super::LUA_INTERNAL_CALL;
-use crate::choose;
 use crate::Result;
 use crate::SuperIterator;
+use crate::choose;
 
 /// Binding to [`nvim_clear_autocmds()`][1].
 ///
@@ -128,7 +128,7 @@ where
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_autocmds()
 pub fn get_autocmds(
     opts: &GetAutocmdsOpts,
-) -> Result<impl SuperIterator<AutocmdInfos>> {
+) -> Result<impl SuperIterator<AutocmdInfos> + use<>> {
     let mut err = nvim::Error::new();
     let infos = unsafe { nvim_get_autocmds(opts, types::arena(), &mut err) };
     choose!(

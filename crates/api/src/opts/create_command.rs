@@ -1,5 +1,6 @@
 use types::conversion::ToObject;
 
+use crate::Buffer;
 use crate::types::{
     CommandAddr,
     CommandArgs,
@@ -7,7 +8,6 @@ use crate::types::{
     CommandNArgs,
     CommandRange,
 };
-use crate::Buffer;
 
 /// Options passed to [`create_user_command`](crate::create_user_command) and
 /// [`Buffer::create_user_command()`](crate::Buffer::create_user_command).
