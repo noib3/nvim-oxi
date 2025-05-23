@@ -166,7 +166,8 @@ extern "C" {
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L360
     pub(crate) fn nvim_input(
-        #[cfg(feature = "neovim-nightly")] channel_id: u64,
+        #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
+        channel_id: u64,
         keys: NvimStr,
     ) -> Integer;
 

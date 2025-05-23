@@ -23,13 +23,13 @@ pub struct ExtmarkInfos {
     #[serde(default)]
     pub hl_eol: Option<bool>,
 
-    #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-nightly"))))]
+    #[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
+    #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-0-11"))))]
     #[serde(default)]
     pub hl_group: Option<String>,
 
-    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
+    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
     #[serde(default)]
     pub hl_group: Option<super::OneOrMore<String>>,
 

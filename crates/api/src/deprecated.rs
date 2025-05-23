@@ -14,7 +14,7 @@ use crate::{Buffer, Window};
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_exec()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `exec2` instead")
 )]
 pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
@@ -36,7 +36,7 @@ pub fn exec(src: &str, output: bool) -> Result<Option<String>> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_current_win()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `get_hl` instead")
 )]
 pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
@@ -55,7 +55,7 @@ pub fn get_hl_by_id(hl_id: u32, rgb: bool) -> Result<HighlightInfos> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_hl_by_name()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `get_hl` instead")
 )]
 pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
@@ -78,7 +78,7 @@ pub fn get_hl_by_name(name: &str, rgb: bool) -> Result<HighlightInfos> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `get_option_value` instead")
 )]
 pub fn get_option<Opt>(name: &str) -> Result<Opt>
@@ -97,7 +97,7 @@ where
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_get_option_info()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `get_option_info2` instead")
 )]
 pub fn get_option_info(name: &str) -> Result<OptionInfos> {
@@ -115,7 +115,7 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_option()
 #[cfg_attr(
-    feature = "neovim-nightly",
+    feature = "neovim-0-11", // On 0.11 and Nightly.
     deprecated(since = "0.5.0", note = "use `set_option_value` instead")
 )]
 pub fn set_option<Opt>(name: &str, value: Opt) -> Result<()>
@@ -142,7 +142,7 @@ impl Buffer {
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_option()
     #[cfg_attr(
-        feature = "neovim-nightly",
+        feature = "neovim-0-11", // On 0.11 and Nightly.
         deprecated(since = "0.5.0", note = "use `get_option_value` instead")
     )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
@@ -164,7 +164,7 @@ impl Buffer {
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_set_option()
     #[cfg_attr(
-        feature = "neovim-nightly",
+        feature = "neovim-0-11", // On 0.11 and Nightly.
         deprecated(since = "0.5.0", note = "use `set_option_value` instead")
     )]
     pub fn set_option<V>(&mut self, name: &str, value: V) -> Result<()>
@@ -193,7 +193,7 @@ impl Window {
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_get_option()
     #[cfg_attr(
-        feature = "neovim-nightly",
+        feature = "neovim-0-11", // On 0.11 and Nightly.
         deprecated(since = "0.5.0", note = "use `get_option_value` instead")
     )]
     pub fn get_option<Opt>(&self, name: &str) -> Result<Opt>
@@ -215,7 +215,7 @@ impl Window {
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_win_set_option()
     #[cfg_attr(
-        feature = "neovim-nightly",
+        feature = "neovim-0-11", // On 0.11 and Nightly.
         deprecated(since = "0.5.0", note = "use `set_option_value` instead")
     )]
     pub fn set_option<Opt>(&mut self, name: &str, value: Opt) -> Result<()>

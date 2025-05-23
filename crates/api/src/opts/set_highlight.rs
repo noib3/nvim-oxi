@@ -76,7 +76,7 @@ pub struct SetHighlightOpts {
     #[builder(skip)]
     sp: Object,
 
-    #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
+    #[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
     #[builder(
         generics = "Hl: crate::HlGroup",
         argtype = "Hl",
@@ -84,7 +84,7 @@ pub struct SetHighlightOpts {
     )]
     link: Object,
 
-    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[builder(
         generics = "Hl: crate::HlGroup",
         argtype = "Hl",
@@ -92,11 +92,11 @@ pub struct SetHighlightOpts {
     )]
     link: types::HlGroupId,
 
-    #[cfg(not(feature = "neovim-nightly"))] // Only on 0.10.
+    #[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
     #[builder(skip)]
     global_link: Object,
 
-    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[builder(skip)]
     global_link: types::HlGroupId,
 
