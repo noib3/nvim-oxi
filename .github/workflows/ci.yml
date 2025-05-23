@@ -53,7 +53,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
-      - run: cargo clippy --features neovim-nightly -- -D warnings
+      - run: cargo clippy --all-features --workspace --tests -- -D warnings
 
   docs:
     name: docs
