@@ -16,7 +16,7 @@ use crate::StringBuilder;
 /// Unlike Rust's `String`, this type is not guaranteed to contain valid UTF-8
 /// byte sequences, it can contain null bytes, and it is null-terminated.
 //
-// https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L79-L82
+// https://github.com/neovim/neovim/blob/v0.11.0/src/nvim/api/private/defs.h#L80-L83
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
 pub struct String {
@@ -33,12 +33,6 @@ impl String {
     #[inline]
     pub fn as_ptr(&self) -> *const ffi::c_char {
         self.inner.as_ptr()
-    }
-
-    /// Returns a pointer to the `String`'s buffer.
-    #[inline]
-    pub fn as_mut_ptr(&mut self) -> *mut ffi::c_char {
-        self.inner.as_mut_ptr()
     }
 
     /// Returns an [`NvimStr`] view of this `String`.
@@ -64,7 +58,10 @@ impl String {
     /// The caller must ensure that the pointer is valid for `len + 1`
     /// elements and that the last element is a null byte.
     #[inline]
-    pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
+    pub unsafe fn from_raw_parts(
+        data: *const ffi::c_char,
+        len: usize,
+    ) -> Self {
         Self { inner: NvimStr::from_raw_parts(data, len) }
     }
 

@@ -9,7 +9,7 @@ use crate::String as NvimString;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct NvimStr<'a> {
-    data: *mut ffi::c_char,
+    data: *const ffi::c_char,
     len: usize,
     _lifetime: PhantomData<&'a ()>,
 }
@@ -41,12 +41,6 @@ impl<'a> NvimStr<'a> {
         self.data as *const ffi::c_char
     }
 
-    /// Returns a raw pointer to the [`NvimStr`]'s buffer.
-    #[inline]
-    pub const fn as_mut_ptr(&mut self) -> *mut ffi::c_char {
-        self.data
-    }
-
     /// Creates an `NvimStr` from a pointer to the underlying data and a
     /// length.
     ///
@@ -55,7 +49,10 @@ impl<'a> NvimStr<'a> {
     /// The caller must ensure that the pointer is valid for `len + 1`
     /// elements and that the last element is a null byte.
     #[inline]
-    pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
+    pub unsafe fn from_raw_parts(
+        data: *const ffi::c_char,
+        len: usize,
+    ) -> Self {
         Self { data, len, _lifetime: PhantomData }
     }
 

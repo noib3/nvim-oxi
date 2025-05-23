@@ -343,11 +343,11 @@ impl Object {
     /// [`String`][ObjectKind::String]. Calling this method on an `Object` with
     /// any other kind may result in undefined behavior.
     #[cfg_attr(debug_assertions, track_caller)]
-    pub unsafe fn into_string_unchecked(mut self) -> NvimString {
+    pub unsafe fn into_string_unchecked(self) -> NvimString {
         debug_assert!(self.ty == ObjectKind::String, "{:?}", self.ty);
-        let string = &mut self.data.string;
+        let string = &self.data.string;
         let string = unsafe {
-            NvimString::from_raw_parts(string.as_mut_ptr(), string.len())
+            NvimString::from_raw_parts(string.as_ptr(), string.len())
         };
         core::mem::forget(self);
         string
