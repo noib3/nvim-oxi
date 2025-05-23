@@ -107,28 +107,12 @@ pub fn get_commands(
 /// [1]: https://neovim.io/doc/user/api.html#nvim_parse_cmd()
 pub fn parse_cmd(src: &str, opts: &ParseCmdOpts) -> Result<CmdInfos> {
     let src = nvim::String::from(src);
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let opts = nvim::Dictionary::from(opts);
     let mut err = nvim::Error::new();
 
     let out = unsafe {
-        nvim_parse_cmd(
-            src.as_nvim_str(),
-            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-            opts.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
-    };
-
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let out = CmdInfos::from_object(out.into())?;
-
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-    let out = CmdInfos::try_from(out)?;
+        nvim_parse_cmd(src.as_nvim_str(), opts, types::arena(), &mut err)
+    }
+    .try_into()?;
 
     choose!(err, Ok(out))
 }
@@ -153,10 +137,6 @@ impl Buffer {
         let command = command.to_object();
         unsafe {
             nvim_buf_create_user_command(
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
                 LUA_INTERNAL_CALL,
                 self.0,
                 name.as_nvim_str(),

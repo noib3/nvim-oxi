@@ -400,20 +400,9 @@ pub fn get_mark(
     opts: &GetMarkOpts,
 ) -> Result<(usize, usize, Buffer, String)> {
     let name = nvim::String::from(name);
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     let mark = unsafe {
-        nvim_get_mark(
-            name.as_nvim_str(),
-            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-            opts.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            opts,
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            types::arena(),
-            &mut err,
-        )
+        nvim_get_mark(name.as_nvim_str(), opts, types::arena(), &mut err)
     };
     choose!(err, {
         let mut iter = mark.into_iter();
@@ -748,19 +737,8 @@ pub fn notify(
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_open_term()
 pub fn open_term(buffer: &Buffer, opts: &OpenTermOpts) -> Result<u32> {
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
-    let channel_id = unsafe {
-        nvim_open_term(
-            buffer.0,
-            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-            opts.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-            opts,
-            &mut err,
-        )
-    };
+    let channel_id = unsafe { nvim_open_term(buffer.0, opts, &mut err) };
     choose!(
         err,
         match channel_id {
@@ -869,17 +847,12 @@ pub fn select_popupmenu_item(
     finish: bool,
     opts: &SelectPopupMenuItemOpts,
 ) -> Result<()> {
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    let opts = Dictionary::from(opts);
     let mut err = nvim::Error::new();
     unsafe {
         nvim_select_popupmenu_item(
             item.try_into()?,
             insert,
             finish,
-            #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-            opts.non_owning(),
-            #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
             opts,
             &mut err,
         )

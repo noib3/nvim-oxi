@@ -40,11 +40,7 @@ extern "C" {
         buf: BufHandle,
         ns_id: Integer,
         id: Integer,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const GetExtmarkByIdOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;
@@ -55,11 +51,7 @@ extern "C" {
         ns_id: Integer,
         start: Object,
         end: Object,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        opts: NonOwning<Dictionary>,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         opts: *const GetExtmarksOpts,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> Array;

@@ -9,8 +9,6 @@ extern "C" {
     pub(crate) fn nvim_buf_get_option(
         buf: BufHandle,
         name: NvimStr,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 
@@ -48,17 +46,11 @@ extern "C" {
     ) -> Dictionary;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L545
-    pub(crate) fn nvim_get_option(
-        name: NvimStr,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        arena: *mut Arena,
-        err: *mut Error,
-    ) -> Object;
+    pub(crate) fn nvim_get_option(name: NvimStr, err: *mut Error) -> Object;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L518
     pub(crate) fn nvim_get_option_info(
         name: NvimStr,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly
         arena: *mut Arena,
         err: *mut Error,
     ) -> Dictionary;
@@ -75,8 +67,6 @@ extern "C" {
     pub(crate) fn nvim_win_get_option(
         win: WinHandle,
         name: NvimStr,
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        arena: *mut Arena,
         err: *mut Error,
     ) -> Object;
 

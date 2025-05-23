@@ -2,10 +2,6 @@ use types::*;
 
 use crate::types::WindowOpts;
 
-#[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-pub(crate) type WinGetConfigOutput = Dictionary;
-
-#[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
 pub(crate) type WinGetConfigOutput = WindowOpts;
 
 #[cfg_attr(
@@ -24,7 +20,6 @@ extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/win_config.c#L240
     pub(crate) fn nvim_win_get_config(
         window: WinHandle,
-        #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
         arena: *mut Arena,
         err: *mut Error,
     ) -> WinGetConfigOutput;

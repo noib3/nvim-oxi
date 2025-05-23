@@ -111,17 +111,11 @@ impl Buffer {
     ) -> Result<()> {
         let mut err = nvim::Error::new();
 
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
-
         let has_attached = unsafe {
             nvim_buf_attach(
                 LUA_INTERNAL_CALL,
                 self.0,
                 send_buffer,
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
                 &mut err,
             )
@@ -249,21 +243,7 @@ impl Buffer {
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_delete()
     pub fn delete(self, opts: &BufDeleteOpts) -> Result<()> {
         let mut err = nvim::Error::new();
-
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
-
-        unsafe {
-            nvim_buf_delete(
-                self.0,
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
-                opts,
-                &mut err,
-            )
-        };
-
+        unsafe { nvim_buf_delete(self.0, opts, &mut err) };
         choose!(err, ())
     }
 
@@ -328,10 +308,6 @@ impl Buffer {
                 strict_indexing,
                 #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
                 // The nvim_buf_get_lines() function returns no line if we use
                 // an actual lstate here.
                 core::ptr::null_mut(),
@@ -418,8 +394,6 @@ impl Buffer {
         R: RangeBounds<usize>,
     {
         let mut err = nvim::Error::new();
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
         let (start, end) = utils::range_to_limits(line_range);
         let lines = unsafe {
             nvim_buf_get_text(
@@ -429,17 +403,10 @@ impl Buffer {
                 start_col.try_into()?,
                 end,
                 end_col.try_into()?,
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
-                #[cfg(any(
-                    feature = "neovim-0-9",
-                    feature = "neovim-nightly"
-                ))]
-                // The nvim_buf_get_text() function returns no line if we use an actual lstate here
+                // The nvim_buf_get_text() function returns no line if we use
+                // an actual lstate here
                 std::ptr::null_mut(),
                 &mut err,
             )
@@ -588,17 +555,12 @@ impl Buffer {
     ) -> Result<()> {
         let mut err = nvim::Error::new();
         let name = nvim::String::from(name);
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
         let mark_was_set = unsafe {
             nvim_buf_set_mark(
                 self.0,
                 name.as_nvim_str(),
                 line.try_into()?,
                 col.try_into()?,
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
                 &mut err,
             )

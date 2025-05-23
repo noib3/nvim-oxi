@@ -163,19 +163,13 @@ impl Buffer {
         extmark_id: u32,
         opts: &GetExtmarkByIdOpts,
     ) -> Result<(usize, usize, Option<ExtmarkInfos>)> {
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let tuple = unsafe {
             nvim_buf_get_extmark_by_id(
                 self.0,
                 ns_id as Integer,
                 extmark_id as Integer,
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )
@@ -216,8 +210,6 @@ impl Buffer {
         opts: &GetExtmarksOpts,
     ) -> Result<impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)>>
     {
-        #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-        let opts = types::Dictionary::from(opts);
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
@@ -225,11 +217,7 @@ impl Buffer {
                 ns_id as Integer,
                 start.into(),
                 end.into(),
-                #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-                opts.non_owning(),
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 opts,
-                #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
                 types::arena(),
                 &mut err,
             )

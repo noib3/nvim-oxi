@@ -63,9 +63,6 @@ fn parse_cmd_basic() {
     assert_eq!(Some(false), infos.bang);
     assert_eq!(Some("echo".into()), infos.cmd);
 
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    assert_eq!(None, infos.count);
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     assert_eq!(Some(0), infos.count);
 
     let magic = infos.magic.unwrap();
@@ -91,11 +88,6 @@ fn parse_cmd_basic() {
 
     assert_eq!(Some(CommandNArgs::Any), infos.nargs);
     assert_eq!(None, infos.nextcmd);
-
-    #[cfg(not(feature = "neovim-0-10"))] // 0nly on 0.9.
-    assert_eq!(None, infos.range);
-
-    #[cfg(feature = "neovim-0-10")] // On 0.10 and nightly.
     assert_eq!(Some(CmdRange::None), infos.range);
 }
 
