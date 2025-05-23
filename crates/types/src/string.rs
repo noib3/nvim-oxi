@@ -3,7 +3,7 @@
 use alloc::borrow::Cow;
 use alloc::string::String as StdString;
 use core::str::{self, Utf8Error};
-use core::{ffi, slice};
+use core::{ffi, fmt};
 use std::path::{Path, PathBuf};
 
 use luajit as lua;
@@ -17,61 +17,34 @@ use crate::StringBuilder;
 /// byte sequences, it can contain null bytes, and it is null-terminated.
 //
 // https://github.com/neovim/neovim/blob/v0.9.0/src/nvim/api/private/defs.h#L79-L82
-#[derive(Eq, Ord, PartialOrd)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
 pub struct String {
-    data: *mut ffi::c_char,
-    len: usize,
-}
-
-impl Default for String {
-    #[inline]
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl core::fmt::Debug for String {
-    #[inline]
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.to_string_lossy().as_ref().fmt(f)
-    }
-}
-
-impl core::fmt::Display for String {
-    #[inline]
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.to_string_lossy().as_ref().fmt(f)
-    }
+    inner: NvimStr<'static>,
 }
 
 impl String {
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
-        if self.data.is_null() {
-            &[]
-        } else {
-            assert!(self.len() <= isize::MAX as usize);
-            unsafe { slice::from_raw_parts(self.data as *const u8, self.len) }
-        }
+        self.inner.as_bytes()
     }
 
     /// Returns a pointer to the `String`'s buffer.
     #[inline]
     pub fn as_ptr(&self) -> *const ffi::c_char {
-        self.data as *const ffi::c_char
+        self.inner.as_ptr()
     }
 
     /// Returns a pointer to the `String`'s buffer.
     #[inline]
     pub fn as_mut_ptr(&mut self) -> *mut ffi::c_char {
-        self.data
+        self.inner.as_mut_ptr()
     }
 
     /// Returns an [`NvimStr`] view of this `String`.
     #[inline]
     pub fn as_nvim_str(&self) -> NvimStr<'_> {
-        unsafe { NvimStr::from_raw_parts(self.as_ptr() as *mut _, self.len()) }
+        self.inner.reborrow()
     }
 
     /// Creates a `String` from a byte slice by allocating `bytes.len() + 1`
@@ -92,13 +65,7 @@ impl String {
     /// elements and that the last element is a null byte.
     #[inline]
     pub unsafe fn from_raw_parts(data: *mut ffi::c_char, len: usize) -> Self {
-        Self { data, len }
-    }
-
-    /// Converts this `String` into a `'static` `NvimStr`.
-    #[inline]
-    pub fn into_nvim_str(mut self) -> NvimStr<'static> {
-        unsafe { NvimStr::from_raw_parts(self.as_mut_ptr(), self.len()) }
+        Self { inner: NvimStr::from_raw_parts(data, len) }
     }
 
     /// Returns `true` if the `String` has a length of zero.
@@ -111,7 +78,7 @@ impl String {
     /// byte.
     #[inline]
     pub fn len(&self) -> usize {
-        self.len
+        self.inner.len()
     }
 
     /// Creates a new, empty `String`.
@@ -127,13 +94,13 @@ impl String {
     /// Same as [`NvimStr::set_len`].
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
-        self.len = new_len;
+        self.inner.set_len(new_len);
     }
 
     /// Yields a string slice if the [`String`]'s contents are valid UTF-8.
     #[inline]
     pub fn to_str(&self) -> Result<&str, Utf8Error> {
-        str::from_utf8(self.as_bytes())
+        self.inner.to_str()
     }
 
     /// Converts the `String` into Rust's `std::string::String`. If it already
@@ -141,7 +108,28 @@ impl String {
     /// the `String` is copied and all invalid sequences are replaced with `�`.
     #[inline]
     pub fn to_string_lossy(&self) -> Cow<'_, str> {
-        std::string::String::from_utf8_lossy(self.as_bytes())
+        self.inner.to_string_lossy()
+    }
+}
+
+impl Default for String {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Debug for String {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.inner, f)
+    }
+}
+
+impl fmt::Display for String {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.inner, f)
     }
 }
 
@@ -214,13 +202,6 @@ impl From<String> for PathBuf {
     }
 }
 
-impl PartialEq<Self> for String {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.as_bytes() == other.as_bytes()
-    }
-}
-
 impl PartialEq<str> for String {
     #[inline]
     fn eq(&self, other: &str) -> bool {
@@ -253,13 +234,6 @@ impl PartialEq<std::string::String> for String {
     #[inline]
     fn eq(&self, other: &std::string::String) -> bool {
         self.as_bytes() == other.as_bytes()
-    }
-}
-
-impl core::hash::Hash for String {
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.as_bytes().hash(state);
-        self.len.hash(state);
     }
 }
 
@@ -359,7 +333,7 @@ mod tests {
     fn empty_from_bytes() {
         let s = String::from_bytes(b"");
         assert_eq!(s.len(), 0);
-        assert!(!s.data.is_null());
+        assert!(!s.as_ptr().is_null());
     }
 
     #[test]

@@ -1,5 +1,7 @@
 use core::marker::PhantomData;
-use core::{ffi, slice};
+use core::str::Utf8Error;
+use core::{cmp, ffi, fmt, hash, slice};
+use std::borrow::Cow;
 
 use crate::String as NvimString;
 
@@ -89,12 +91,70 @@ impl<'a> NvimStr<'a> {
     pub const unsafe fn set_len(&mut self, new_len: usize) {
         self.len = new_len;
     }
+
+    /// Yields a string slice if the [`NvimStr`]'s contents are valid UTF-8.
+    #[inline]
+    pub fn to_str(&self) -> Result<&str, Utf8Error> {
+        str::from_utf8(self.as_bytes())
+    }
+
+    /// Converts the [`NvimStr`] into a [`String`].
+    ///
+    /// If it already holds a valid UTF-8 byte sequence no allocation is made.
+    /// If it doesn't, the contents of the [`NvimStr`] are is copied and all
+    /// invalid sequences are replaced with `�`.
+    #[inline]
+    pub fn to_string_lossy(&self) -> Cow<'_, str> {
+        std::string::String::from_utf8_lossy(self.as_bytes())
+    }
+
+    #[inline]
+    pub(crate) fn reborrow(&self) -> NvimStr<'_> {
+        NvimStr { ..*self }
+    }
 }
 
-impl From<NvimString> for NvimStr<'_> {
+impl fmt::Debug for NvimStr<'_> {
     #[inline]
-    fn from(string: NvimString) -> Self {
-        string.into_nvim_str()
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&*self.to_string_lossy(), f)
+    }
+}
+
+impl fmt::Display for NvimStr<'_> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&*self.to_string_lossy(), f)
+    }
+}
+
+impl hash::Hash for NvimStr<'_> {
+    #[inline]
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.as_bytes_with_nul().hash(state);
+    }
+}
+
+impl PartialEq for NvimStr<'_> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == cmp::Ordering::Equal
+    }
+}
+
+impl Eq for NvimStr<'_> {}
+
+impl PartialOrd for NvimStr<'_> {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for NvimStr<'_> {
+    #[inline]
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.as_bytes_with_nul().cmp(other.as_bytes_with_nul())
     }
 }
 
