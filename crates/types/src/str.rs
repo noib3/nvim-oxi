@@ -90,7 +90,7 @@ impl<'a> NvimStr<'a> {
     /// Yields a string slice if the [`NvimStr`]'s contents are valid UTF-8.
     #[inline]
     pub fn to_str(&self) -> Result<&str, Utf8Error> {
-        str::from_utf8(self.as_bytes())
+        std::str::from_utf8(self.as_bytes())
     }
 
     /// Converts the [`NvimStr`] into a [`String`].
