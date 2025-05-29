@@ -26,7 +26,6 @@ jobs:
             features: "--features neovim-nightly"
 
     runs-on: ${{ matrix.os }}
-    needs: get-msrv
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +47,6 @@ jobs:
   clippy:
     name: clippy
     runs-on: ubuntu-latest
-    needs: get-msrv
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/install-rust-msrv.yml
