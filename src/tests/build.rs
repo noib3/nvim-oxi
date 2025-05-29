@@ -214,7 +214,7 @@ impl CargoManifest {
             .join("nvim_oxi_tests")
             // Namespace by the package name to allow for multiple test crates
             // in the same workspace.
-            .join(&self.root_package().name)
+            .join(&*self.root_package().name)
     }
 
     pub(super) fn library_path(&self, profile_name: &str) -> Utf8PathBuf {
