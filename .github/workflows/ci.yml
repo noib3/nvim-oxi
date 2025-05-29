@@ -11,6 +11,17 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
+  get-msrv:
+    runs-on: ubuntu-latest
+    outputs:
+      msrv: ${{ steps.msrv.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get MSRV from Cargo.toml
+        id: msrv
+        run: |
+          MSRV=$(cargo metadata --no-deps --format-version 1 | jq -r '.workspace_default_members[0] as $root | .packages[] | select(.id == $root) | .rust_version')
+          echo "version=$MSRV" >> $GITHUB_OUTPUT
   test:
     strategy:
       fail-fast: false
@@ -26,6 +37,7 @@ jobs:
             features: "--features neovim-nightly"
 
     runs-on: ${{ matrix.os }}
+    needs: get-msrv
 
     steps:
       - uses: actions/checkout@v4
@@ -40,18 +52,22 @@ jobs:
       - name: Install libluajit (macOS)
         if: runner.os == 'macOS'
         run: brew install luajit
-      - name: Install latest stable `rustc`
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ needs.get-msrv.outputs.msrv }}
       - name: Run tests
         run: cargo test --workspace ${{ matrix.features }}
 
   clippy:
     name: clippy
     runs-on: ubuntu-latest
+    needs: get-msrv
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: ${{ needs.get-msrv.outputs.msrv }}
           components: clippy
       - run: cargo clippy --all-features --workspace --tests -- -D warnings
 
