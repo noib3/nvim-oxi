@@ -1,7 +1,7 @@
 use core::ffi::{self, CStr};
 use core::marker::PhantomData;
 use core::str::Utf8Error;
-use core::{cmp, fmt, hash, slice};
+use core::{cmp, fmt, hash, slice, str};
 use std::borrow::Cow;
 
 use crate::String as NvimString;

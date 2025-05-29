@@ -1,0 +1,30 @@
+name: "Install MSRV"
+
+description: "Install Rust toolchain using MSRV read from Cargo.toml"
+
+inputs:
+  components:
+    description: "Rust components to install (comma-separated)"
+    required: false
+    default: ""
+
+outputs:
+  rust-version:
+    description: "The Rust version installed"
+    value: ${{ steps.get_msrv.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get MSRV
+      id: get_msrv
+      shell: bash
+      run: |
+        MSRV=$(cargo metadata --no-deps --format-version 1 | jq -r '.workspace_default_members[0] as $root | .packages[] | select(.id == $root) | .rust_version')
+        echo "version=$MSRV" >> $GITHUB_OUTPUT
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ steps.get_msrv.outputs.version }}
+        components: ${{ inputs.components }}

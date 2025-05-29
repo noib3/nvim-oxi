@@ -6,10 +6,8 @@ resolver = "2"
 version = "0.6.0"
 edition = "2024"
 authors = ["Riccardo Mazzarini <me@noib3.dev>"]
-rust-version = "1.62"
-description = "Rust bindings to all things Neovim"
+rust-version = "1.85.0"
 documentation = "https://docs.rs/nvim-oxi"
-readme = "./README.md"
 repository = "https://github.com/noib3/nvim-oxi"
 license = "MIT"
 keywords = ["bindings", "neovim", "nvim"]
@@ -31,14 +29,16 @@ unsafe_op_in_unsafe_fn = "allow"
 
 [package]
 name = "nvim-oxi"
-description.workspace = true
+description = "Rust bindings to all things Neovim"
+readme = "./README.md"
 version.workspace = true
 edition.workspace = true
-repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
 documentation.workspace = true
+repository.workspace = true
 license.workspace = true
 keywords.workspace = true
-readme.workspace = true
 
 [package.metadata.docs.rs]
 features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
@@ -63,7 +63,7 @@ types = { workspace = true, features = ["serde"] }
 libuv = { workspace = true, optional = true }
 
 thiserror = { workspace = true }
-cargo_metadata = { version = "0.19", optional = true }
+cargo_metadata = { version = "0.20", optional = true }
 mlua = { version = "0.10", features = ["luajit"], optional = true }
 
 [dev-dependencies]

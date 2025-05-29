@@ -3,9 +3,12 @@ name = "nvim-oxi-luajit"
 description = "Rust bindings to LuaJIT for nvim-oxi"
 version.workspace = true
 edition.workspace = true
-repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
 documentation.workspace = true
+repository.workspace = true
 license.workspace = true
+keywords.workspace = true
 
 [dependencies]
 thiserror = { workspace = true }
