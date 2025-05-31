@@ -42,7 +42,7 @@ keywords.workspace = true
 
 [package.metadata.docs.rs]
 default-features = false
-features = ["__docrs", "neovim-nightly", "libuv", "mlua", "test"]
+features = ["__docsrs", "neovim-nightly", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
