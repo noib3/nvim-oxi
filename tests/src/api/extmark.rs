@@ -133,6 +133,7 @@ fn set_decoration_provider() {
     let res = api::set_decoration_provider(id, &opts);
     assert_eq!(Ok(()), res);
 
+    api::Buffer::current().set_lines(0..0, true, ["foo"]).unwrap();
     api::command("redraw!").expect("redraw failed");
 
     assert!(on_start_called.get());
