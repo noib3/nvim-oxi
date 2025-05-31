@@ -3,19 +3,30 @@ use types::LuaRef;
 use crate::ToFunction;
 use crate::{Buffer, Window};
 
+/// Arguments passed to the function registered to
+/// [`on_start`](DecorationProviderOptsBuilder::on_start).
+pub type OnStartArgs = (
+    String, // the string literal "start"
+    u32,    // changedtick
+);
+
 // NOTE: docs say a third argument of changedtick is passed. I don't see it.
 /// Arguments passed to the function registered to
 /// [`on_buf`](DecorationProviderOptsBuilder::on_buf).
 pub type OnBufArgs = (
     String, // the string literal "buf"
     Buffer, // buffer
+    u32,    // changedtick
 );
 
 /// Arguments passed to the function registered to
-/// [`on_end`](DecorationProviderOptsBuilder::on_end).
-pub type OnEndArgs = (
-    String, // the string literal "end"
-    u32,    // changedtick
+/// [`on_win`](DecorationProviderOptsBuilder::on_win).
+pub type OnWinArgs = (
+    String, // the string literal "win"
+    Window, // window
+    Buffer, // buffer
+    u32,    // topline
+    u32,    // botline
 );
 
 /// Arguments passed to the function registered to
@@ -28,21 +39,10 @@ pub type OnLineArgs = (
 );
 
 /// Arguments passed to the function registered to
-/// [`on_start`](DecorationProviderOptsBuilder::on_start).
-pub type OnStartArgs = (
-    String, // the string literal "start"
+/// [`on_end`](DecorationProviderOptsBuilder::on_end).
+pub type OnEndArgs = (
+    String, // the string literal "end"
     u32,    // changedtick
-    u32, /* `type`, undocumented? (https://github.com/neovim/neovim/blob/master/src/nvim/decoration_provider.c#L68) */
-);
-
-/// Arguments passed to the function registered to
-/// [`on_win`](DecorationProviderOptsBuilder::on_win).
-pub type OnWinArgs = (
-    String, // the string literal "win"
-    Window, // window
-    Buffer, // buffer
-    u32,    // topline
-    u32,    // botline guess
 );
 
 /// The `on_start` callback can return `false` to disable the provider until
