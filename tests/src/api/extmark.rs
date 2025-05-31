@@ -1,3 +1,6 @@
+use core::cell::Cell;
+use std::rc::Rc;
+
 use nvim_oxi::api::{self, Buffer, opts::*, types::*};
 
 #[nvim_oxi::test]
@@ -86,35 +89,57 @@ fn get_namespaces() {
 fn set_decoration_provider() {
     let id = api::create_namespace("Foo");
 
+    let on_start_called = Rc::new(Cell::new(false));
+    let on_buf_called = Rc::new(Cell::new(false));
+    let on_win_called = Rc::new(Cell::new(false));
+    let on_line_called = Rc::new(Cell::new(false));
+    let on_end_called = Rc::new(Cell::new(false));
+
     let opts = DecorationProviderOpts::builder()
-        .on_start(|args| {
-            nvim_oxi::print!("{args:?}");
-            true
+        .on_start({
+            let on_start_called = on_start_called.clone();
+            move |_| {
+                on_start_called.set(true);
+                true
+            }
         })
-        .on_buf(|args| {
-            nvim_oxi::print!("{args:?}");
+        .on_buf({
+            let on_buf_called = on_buf_called.clone();
+            move |_| {
+                on_buf_called.set(true);
+            }
         })
-        .on_win(|args| {
-            nvim_oxi::print!("{args:?}");
-            true
+        .on_win({
+            let on_win_called = on_win_called.clone();
+            move |args| {
+                on_win_called.set(true);
+                true
+            }
         })
-        .on_line(|args| {
-            nvim_oxi::print!("{args:?}");
+        .on_line({
+            let on_line_called = on_line_called.clone();
+            move |args| {
+                on_line_called.set(true);
+            }
         })
-        .on_end(|args| {
-            nvim_oxi::print!("{args:?}");
+        .on_end({
+            let on_end_called = on_end_called.clone();
+            move |args| {
+                on_end_called.set(true);
+            }
         })
         .build();
 
     let res = api::set_decoration_provider(id, &opts);
     assert_eq!(Ok(()), res);
 
-    // TODO: I don't think the callbacks are getting triggered. If they were
-    // `print!`'s output would be written to stdout, causing `test_all` to
-    // fail.
+    api::command("redraw!").expect("redraw failed");
 
-    let bytes_written = api::input("ifoo<Esc>");
-    assert!(bytes_written.is_ok(), "{bytes_written:?}");
+    assert!(on_start_called.get());
+    assert!(on_buf_called.get());
+    assert!(on_win_called.get());
+    assert!(on_line_called.get());
+    assert!(on_end_called.get());
 }
 
 #[nvim_oxi::test]
