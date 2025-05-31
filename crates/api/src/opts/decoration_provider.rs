@@ -1,4 +1,4 @@
-use types::Object;
+use types::{LuaRef, Object};
 
 use crate::ToFunction;
 use crate::{Buffer, Window};
@@ -55,77 +55,49 @@ pub type DontSkipOnLines = bool;
 
 /// Options passed to
 /// [`set_decoration_provider()`](crate::set_decoration_provider).
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct DecorationProviderOpts {
-    on_start: Object,
+    #[builder(mask)]
+    mask: u64,
+
+    #[builder(
+        generics = "F: ToFunction<OnStartArgs, DontSkipRedrawCycle>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_start: LuaRef,
+
+    #[builder(
+        generics = "F: ToFunction<OnBufArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
     on_buf: Object,
+
+    #[builder(
+        generics = "F: ToFunction<OnWinArgs, DontSkipOnLines>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
     on_win: Object,
+
+    #[builder(
+        generics = "F: ToFunction<OnLineArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
     on_line: Object,
+
+    #[builder(
+        generics = "F: ToFunction<OnEndArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
     on_end: Object,
-    _on_hl_def: Object,
-    _on_spell_nav: Object,
-}
 
-impl DecorationProviderOpts {
-    #[inline(always)]
-    /// Creates a new [`DecorationProviderOptsBuilder`].
-    pub fn builder() -> DecorationProviderOptsBuilder {
-        DecorationProviderOptsBuilder::default()
-    }
-}
-
-#[derive(Clone, Default)]
-pub struct DecorationProviderOptsBuilder(DecorationProviderOpts);
-
-impl DecorationProviderOptsBuilder {
-    #[inline]
-    pub fn on_buf<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnBufArgs, ()>,
-    {
-        self.0.on_buf = Object::from_luaref(fun.into_luaref());
-        self
-    }
-
-    #[inline]
-    pub fn on_end<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnEndArgs, ()>,
-    {
-        self.0.on_end = Object::from_luaref(fun.into_luaref());
-        self
-    }
-
-    #[inline]
-    pub fn on_line<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnLineArgs, ()>,
-    {
-        self.0.on_line = Object::from_luaref(fun.into_luaref());
-        self
-    }
-
-    #[inline]
-    pub fn on_start<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
-    {
-        self.0.on_start = Object::from_luaref(fun.into_luaref());
-        self
-    }
-
-    #[inline]
-    pub fn on_win<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnWinArgs, DontSkipOnLines>,
-    {
-        self.0.on_win = Object::from_luaref(fun.into_luaref());
-        self
-    }
-
-    #[inline]
-    pub fn build(&mut self) -> DecorationProviderOpts {
-        std::mem::take(&mut self.0)
-    }
+    #[builder(skip)]
+    _on_hl_def: LuaRef,
+    #[builder(skip)]
+    _on_spell_nav: LuaRef,
 }

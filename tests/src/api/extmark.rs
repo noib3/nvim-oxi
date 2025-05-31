@@ -111,20 +111,20 @@ fn set_decoration_provider() {
         })
         .on_win({
             let on_win_called = on_win_called.clone();
-            move |args| {
+            move |_| {
                 on_win_called.set(true);
                 true
             }
         })
         .on_line({
             let on_line_called = on_line_called.clone();
-            move |args| {
+            move |_| {
                 on_line_called.set(true);
             }
         })
         .on_end({
             let on_end_called = on_end_called.clone();
-            move |args| {
+            move |_| {
                 on_end_called.set(true);
             }
         })
