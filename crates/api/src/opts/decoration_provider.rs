@@ -1,4 +1,4 @@
-use types::{LuaRef, Object};
+use types::LuaRef;
 
 use crate::ToFunction;
 use crate::{Buffer, Window};
@@ -73,28 +73,28 @@ pub struct DecorationProviderOpts {
         argtype = "F",
         inline = "{0}.into_luaref()"
     )]
-    on_buf: Object,
+    on_buf: LuaRef,
 
     #[builder(
         generics = "F: ToFunction<OnWinArgs, DontSkipOnLines>",
         argtype = "F",
         inline = "{0}.into_luaref()"
     )]
-    on_win: Object,
+    on_win: LuaRef,
 
     #[builder(
         generics = "F: ToFunction<OnLineArgs, ()>",
         argtype = "F",
         inline = "{0}.into_luaref()"
     )]
-    on_line: Object,
+    on_line: LuaRef,
 
     #[builder(
         generics = "F: ToFunction<OnEndArgs, ()>",
         argtype = "F",
         inline = "{0}.into_luaref()"
     )]
-    on_end: Object,
+    on_end: LuaRef,
 
     #[builder(skip)]
     _on_hl_def: LuaRef,
