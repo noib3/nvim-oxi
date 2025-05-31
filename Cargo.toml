@@ -41,19 +41,23 @@ license.workspace = true
 keywords.workspace = true
 
 [package.metadata.docs.rs]
-features = ["neovim-nightly", "libuv", "mlua", "test", "__vendored_luajit"]
+default-features = false
+features = ["__docsrs", "neovim-nightly", "libuv", "mlua", "test"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
+default = ["__no_docsrs"]
 neovim-0-10 = ["api/neovim-0-10"]
 neovim-0-11 = ["api/neovim-0-10", "api/neovim-0-11"]
 neovim-nightly = ["neovim-0-11", "api/neovim-nightly"]
+
+__docsrs = ["mlua?/vendored"]
+__no_docsrs = ["mlua?/module"]
 
 libuv = ["dep:libuv"]
 mlua = ["dep:mlua"]
 test = ["macros/test", "dep:cargo_metadata"]
 test-terminator = ["test", "libuv", "macros/test-terminator"]
-__vendored_luajit = ["mlua/vendored"]
 
 [dependencies]
 api = { workspace = true }

@@ -29,18 +29,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/install-msrv
+      - name: Install MSRV
+        uses: ./.github/actions/install-msrv
       - name: Install Neovim ${{ matrix.neovim }}
         uses: rhysd/action-setup-vim@v1
         with:
             neovim: true
             version: ${{ matrix.neovim }}
-      - name: Install libluajit (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libluajit-5.1-dev
-      - name: Install libluajit (macOS)
-        if: runner.os == 'macOS'
-        run: brew install luajit
       - name: Run tests
         run: cargo test --workspace ${{ matrix.features }}
 
@@ -49,10 +44,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/install-msrv
+      - name: Install MSRV with Clippy
+        uses: ./.github/actions/install-msrv
         with:
           components: clippy
-      - run: cargo clippy --all-features --workspace --tests -- -D warnings
+      - run: >
+          cargo clippy
+          --features neovim-nightly,libuv,mlua,test,test-terminator
+          --workspace
+          --tests
+          -- -D warnings
 
   docs:
     name: docs
@@ -60,7 +61,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
-      - run: RUSTFLAGS="-D warnings" RUSTDOCFLAGS="--cfg docsrs" cargo doc --features neovim-nightly
+      - run: >
+          RUSTFLAGS="-D warnings"
+          RUSTDOCFLAGS="--cfg docsrs"
+          cargo doc --features neovim-nightly
 
   format:
     name: format

@@ -20,8 +20,9 @@ thiserror = { workspace = true }
 [target.'cfg(not(any(target_os = "windows", target_env = "msvc")))'.dependencies]
 nvim-oxi = { path = "..", features = ["libuv", "mlua", "test"] }
 
+# Enabling libuv will cause the build to fail on Windows.
 [target.'cfg(any(target_os = "windows", target_env = "msvc"))'.dependencies]
-nvim-oxi = { path = "..", features = ["mlua", "test", "__vendored_luajit"] }
+nvim-oxi = { path = "..", features = ["mlua", "test"] }
 
 [build-dependencies]
 nvim-oxi = { path = "..", features = ["test"] }
