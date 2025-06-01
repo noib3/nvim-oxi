@@ -9,6 +9,12 @@
 - `nvim_oxi::api::get_mode()` is now infallible and always returns a `GotMode`
   ([#247](https://github.com/noib3/nvim-oxi/pull/247));
 
+### Fixed
+
+- fixed the definition of `DecorationProviderOpts`, which was causing
+  the callbacks registered to `set_decoration_provider()` to panic on all
+  Neovim versions ([#253](https://github.com/noib3/nvim-oxi/pull/253));
+
 ### Added
 
 - a `String::to_str()` method which returns a `&str` if the string contains

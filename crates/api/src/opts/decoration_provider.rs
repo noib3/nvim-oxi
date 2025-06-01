@@ -1,7 +1,14 @@
-use types::Object;
+use types::LuaRef;
 
 use crate::ToFunction;
 use crate::{Buffer, Window};
+
+/// Arguments passed to the function registered to
+/// [`on_start`](DecorationProviderOptsBuilder::on_start).
+pub type OnStartArgs = (
+    String, // the string literal "start"
+    u32,    // changedtick
+);
 
 // NOTE: docs say a third argument of changedtick is passed. I don't see it.
 /// Arguments passed to the function registered to
@@ -9,13 +16,17 @@ use crate::{Buffer, Window};
 pub type OnBufArgs = (
     String, // the string literal "buf"
     Buffer, // buffer
+    u32,    // changedtick
 );
 
 /// Arguments passed to the function registered to
-/// [`on_end`](DecorationProviderOptsBuilder::on_end).
-pub type OnEndArgs = (
-    String, // the string literal "end"
-    u32,    // changedtick
+/// [`on_win`](DecorationProviderOptsBuilder::on_win).
+pub type OnWinArgs = (
+    String, // the string literal "win"
+    Window, // window
+    Buffer, // buffer
+    u32,    // toprow
+    u32,    // botrow
 );
 
 /// Arguments passed to the function registered to
@@ -28,21 +39,10 @@ pub type OnLineArgs = (
 );
 
 /// Arguments passed to the function registered to
-/// [`on_start`](DecorationProviderOptsBuilder::on_start).
-pub type OnStartArgs = (
-    String, // the string literal "start"
+/// [`on_end`](DecorationProviderOptsBuilder::on_end).
+pub type OnEndArgs = (
+    String, // the string literal "end"
     u32,    // changedtick
-    u32, /* `type`, undocumented? (https://github.com/neovim/neovim/blob/master/src/nvim/decoration_provider.c#L68) */
-);
-
-/// Arguments passed to the function registered to
-/// [`on_win`](DecorationProviderOptsBuilder::on_win).
-pub type OnWinArgs = (
-    String, // the string literal "win"
-    Window, // window
-    Buffer, // buffer
-    u32,    // topline
-    u32,    // botline guess
 );
 
 /// The `on_start` callback can return `false` to disable the provider until
@@ -55,77 +55,54 @@ pub type DontSkipOnLines = bool;
 
 /// Options passed to
 /// [`set_decoration_provider()`](crate::set_decoration_provider).
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct DecorationProviderOpts {
-    on_start: Object,
-    on_buf: Object,
-    on_win: Object,
-    on_line: Object,
-    on_end: Object,
-    _on_hl_def: Object,
-    _on_spell_nav: Object,
-}
+    #[builder(mask)]
+    mask: u64,
 
-impl DecorationProviderOpts {
-    #[inline(always)]
-    /// Creates a new [`DecorationProviderOptsBuilder`].
-    pub fn builder() -> DecorationProviderOptsBuilder {
-        DecorationProviderOptsBuilder::default()
-    }
-}
+    #[builder(
+        generics = "F: ToFunction<OnStartArgs, DontSkipRedrawCycle>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_start: LuaRef,
 
-#[derive(Clone, Default)]
-pub struct DecorationProviderOptsBuilder(DecorationProviderOpts);
+    #[builder(
+        generics = "F: ToFunction<OnBufArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_buf: LuaRef,
 
-impl DecorationProviderOptsBuilder {
-    #[inline]
-    pub fn on_buf<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnBufArgs, ()>,
-    {
-        self.0.on_buf = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    #[builder(
+        generics = "F: ToFunction<OnWinArgs, DontSkipOnLines>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_win: LuaRef,
 
-    #[inline]
-    pub fn on_end<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnEndArgs, ()>,
-    {
-        self.0.on_end = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    #[builder(
+        generics = "F: ToFunction<OnLineArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_line: LuaRef,
 
-    #[inline]
-    pub fn on_line<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnLineArgs, ()>,
-    {
-        self.0.on_line = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    #[builder(
+        generics = "F: ToFunction<OnEndArgs, ()>",
+        argtype = "F",
+        inline = "{0}.into_luaref()"
+    )]
+    on_end: LuaRef,
 
-    #[inline]
-    pub fn on_start<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnStartArgs, DontSkipRedrawCycle>,
-    {
-        self.0.on_start = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    #[builder(skip)]
+    _on_hl_def: LuaRef,
 
-    #[inline]
-    pub fn on_win<F>(&mut self, fun: F) -> &mut Self
-    where
-        F: ToFunction<OnWinArgs, DontSkipOnLines>,
-    {
-        self.0.on_win = Object::from_luaref(fun.into_luaref());
-        self
-    }
+    #[builder(skip)]
+    _on_spell_nav: LuaRef,
 
-    #[inline]
-    pub fn build(&mut self) -> DecorationProviderOpts {
-        std::mem::take(&mut self.0)
-    }
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
+    #[builder(skip)]
+    _on_conceal_line: LuaRef,
 }
