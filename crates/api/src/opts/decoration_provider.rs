@@ -25,8 +25,8 @@ pub type OnWinArgs = (
     String, // the string literal "win"
     Window, // window
     Buffer, // buffer
-    u32,    // topline
-    u32,    // botline
+    u32,    // toprow
+    u32,    // botrow
 );
 
 /// Arguments passed to the function registered to
@@ -98,6 +98,11 @@ pub struct DecorationProviderOpts {
 
     #[builder(skip)]
     _on_hl_def: LuaRef,
+
     #[builder(skip)]
     _on_spell_nav: LuaRef,
+
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
+    #[builder(skip)]
+    _on_conceal_line: LuaRef,
 }
