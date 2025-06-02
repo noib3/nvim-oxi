@@ -24,13 +24,10 @@ where
 {
     let panic_info: Arc<OnceLock<PanicInfo>> = Arc::default();
 
-    let prev_hook = panic::take_hook();
-
     panic::set_hook({
         let panic_info = panic_info.clone();
         Box::new(move |info| {
             let _ = panic_info.set(info.into());
-            prev_hook(info);
         })
     });
 
@@ -81,11 +78,7 @@ pub fn test_body(
 
     // Re-emit stdout exactly as received.
     if !stdout.is_empty() {
-        let mut this_stdout = io::stdout();
-        this_stdout
-            .write_all(&stdout)
-            .and_then(|_| this_stdout.flush())
-            .expect("couldn't write to stdout");
+        print!("{}", String::from_utf8_lossy(&stdout));
     }
 
     // Extract the test result from stderr.
@@ -100,11 +93,7 @@ pub fn test_body(
 
     // Re-emit the rest of stderr.
     if !stderr.is_empty() {
-        let mut this_stderr = io::stderr();
-        this_stderr
-            .write_all(&stderr)
-            .and_then(|_| this_stderr.flush())
-            .expect("couldn't write to stderr");
+        eprint!("{}", String::from_utf8_lossy(&stderr));
     }
 
     match test_result {

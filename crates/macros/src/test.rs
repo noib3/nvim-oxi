@@ -26,7 +26,7 @@ pub fn test(attrs: TokenStream, item: TokenStream) -> TokenStream {
         quote!()
     } else {
         quote! {
-            -> ::core::result::Result<(), ::std::string::String>
+            -> ::core::result::Result<(), impl ::core::fmt::Debug>
         }
     };
 
