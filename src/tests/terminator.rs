@@ -49,7 +49,7 @@ impl TestTerminator {
         &self,
         result: Result<(), TestFailure<'_, E>>,
     ) {
-        if let Ok(()) = self.result.set(result.map_err(Into::into)) {
+        if let Ok(()) = self.result.set(result.into()) {
             self.handle.send().unwrap();
         }
     }
