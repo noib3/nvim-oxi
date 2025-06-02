@@ -1,4 +1,4 @@
-use core::fmt::Display;
+use core::fmt;
 use std::panic::PanicHookInfo;
 use std::sync::{Arc, OnceLock};
 
@@ -36,8 +36,8 @@ pub enum TestFailure<'a, E> {
 /// `terminate`, the test will run forever.
 #[cfg_attr(docsrs, doc(cfg(feature = "test-terminator")))]
 pub struct TestTerminator {
-    pub(super) lock: Arc<OnceLock<Result<(), super::test_macro::Failure>>>,
     pub(super) handle: crate::libuv::AsyncHandle,
+    pub(super) result: Arc<OnceLock<super::test_macro::TestResult>>,
 }
 
 impl TestTerminator {
@@ -45,8 +45,11 @@ impl TestTerminator {
     ///
     /// Note that this will have no effect if [`terminate`](Self::terminate)
     /// has already been called.
-    pub fn terminate<E: Display>(&self, res: Result<(), TestFailure<'_, E>>) {
-        if let Ok(()) = self.lock.set(res.map_err(Into::into)) {
+    pub fn terminate<E: fmt::Debug>(
+        &self,
+        result: Result<(), TestFailure<'_, E>>,
+    ) {
+        if let Ok(()) = self.result.set(result.map_err(Into::into)) {
             self.handle.send().unwrap();
         }
     }
