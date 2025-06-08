@@ -9,6 +9,9 @@
 - `nvim_oxi::api::get_mode()` is now infallible and always returns a `GotMode`
   ([#247](https://github.com/noib3/nvim-oxi/pull/247));
 
+- `nvim_oxi::api::KeymapInfos::buffer` is now an `Option<Buffer>` instead of
+  a `bool` ([#255](https://github.com/noib3/nvim-oxi/pull/255));
+
 ### Fixed
 
 - fixed the definition of `DecorationProviderOpts`, which was causing

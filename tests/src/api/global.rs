@@ -254,6 +254,7 @@ fn set_get_del_keymap() {
 
     let keymaps = api::get_keymap(Mode::Insert).collect::<Vec<_>>();
     assert_le!(1, keymaps.len());
+    assert!(keymaps.iter().all(|keymap| keymap.buffer.is_none()));
 
     let res = api::del_keymap(Mode::Insert, "a");
     assert_eq!(Ok(()), res);
