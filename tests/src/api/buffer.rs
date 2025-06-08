@@ -158,7 +158,7 @@ fn buf_set_get_del_keymap() {
 
     let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();
     assert_eq!(1, keymaps.len());
-    // assert_eq!(keymaps[0].buffer, Some(buf.clone()));
+    assert!(keymaps.iter().all(|keymap| keymap.buffer == Some(buf.clone())));
 
     let res = buf.del_keymap(Mode::Insert, "a");
     assert_eq!(Ok(()), res);
@@ -182,7 +182,7 @@ fn buf_set_get_keymap_with_bufnr_more_than_one() {
 
     let keymaps = buf.get_keymap(Mode::Insert).unwrap().collect::<Vec<_>>();
     assert_eq!(1, keymaps.len());
-    // assert_eq!(keymaps[0].buffer, Some(buf.clone()));
+    assert!(keymaps.iter().all(|keymap| keymap.buffer == Some(buf.clone())));
 }
 
 #[nvim_oxi::test]
@@ -202,7 +202,7 @@ fn buf_set_get_del_nvo_keymap() {
         .unwrap()
         .collect::<Vec<_>>();
     assert_le!(1, keymaps.len());
-    // assert_eq!(keymaps[0].buffer, Some(buf.clone()));
+    assert!(keymaps.iter().all(|keymap| keymap.buffer == Some(buf.clone())));
 
     let res = buf.del_keymap(Mode::NormalVisualOperator, "a");
     assert_eq!(Ok(()), res);

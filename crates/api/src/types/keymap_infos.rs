@@ -7,14 +7,16 @@ use types::{
 };
 
 use super::Mode;
-use crate::serde_utils as utils;
+use crate::{Buffer, serde_utils as utils};
 
 #[non_exhaustive]
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
 pub struct KeymapInfos {
-    /// Whether the mapping is local to a specific buffer.
-    #[serde(deserialize_with = "utils::bool_from_int")]
-    pub buffer: bool,
+    /// When the [`KeymapInfos`] are returned from [`Buffer::get_keymap()`],
+    /// this will contain the [`Buffer`] it was called on. `None` when returned
+    /// from [`get_keymap()`](crate::get_keymap).
+    #[serde(deserialize_with = "utils::zero_is_none")]
+    pub buffer: Option<Buffer>,
 
     /// Optional callback triggered by the keymap.
     pub callback: Option<Function<(), ()>>,
