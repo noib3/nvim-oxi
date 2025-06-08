@@ -5,7 +5,7 @@
 [![Docs]](https://docs.rs/nvim-oxi)
 
 [Latest version]: https://img.shields.io/crates/v/nvim-oxi.svg
-[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/ci.yml/badge.svg
+[CI]: https://github.com/noib3/nvim-oxi/actions/workflows/ci.yaml/badge.svg
 [Docs]: https://docs.rs/nvim-oxi/badge.svg
 
 nvim-oxi provides safe and idiomatic Rust bindings to the rich API exposed by
