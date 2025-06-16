@@ -12,6 +12,11 @@
 - `nvim_oxi::api::KeymapInfos::buffer` is now an `Option<Buffer>` instead of
   a `bool` ([#255](https://github.com/noib3/nvim-oxi/pull/255));
 
+- `nvim_oxi::api::Buffer::get_extmarks()` now takes an
+  `impl Into<GetExtmarksNamespaceId>` as its first argument instead of a `u32`.
+  Because `GetExtmarksNamespaceId` implements `From<u32>`, this should be an
+  API-compatible change ([#256](https://github.com/noib3/nvim-oxi/pull/256));
+
 ### Fixed
 
 - fixed the definition of `DecorationProviderOpts`, which was causing
