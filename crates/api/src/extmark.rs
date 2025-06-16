@@ -195,20 +195,20 @@ impl Buffer {
     /// was set to `true`.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_extmarks()
-    pub fn get_extmarks(
+    pub fn get_extmarks<NsId: Into<GetExtmarksNamespaceId>>(
         &self,
-        ns_id: u32,
+        ns_id: NsId,
         start: ExtmarkPosition,
         end: ExtmarkPosition,
         opts: &GetExtmarksOpts,
     ) -> Result<
-        impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)> + use<>,
+        impl SuperIterator<(u32, usize, usize, Option<ExtmarkInfos>)> + use<NsId>,
     > {
         let mut err = nvim::Error::new();
         let extmarks = unsafe {
             nvim_buf_get_extmarks(
                 self.0,
-                ns_id as Integer,
+                ns_id.into().into(),
                 start.into(),
                 end.into(),
                 opts,
