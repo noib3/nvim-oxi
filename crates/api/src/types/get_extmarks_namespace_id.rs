@@ -3,7 +3,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum GetExtmarksNamespaceId {
     /// Get extmarks from all namespaces.
-    Any,
+    All,
 
     /// Only get extmarks registered on the namespace with this ID.
     Specific(u32),
@@ -20,7 +20,7 @@ impl From<GetExtmarksNamespaceId> for types::Integer {
     #[inline]
     fn from(namespace_id: GetExtmarksNamespaceId) -> Self {
         match namespace_id {
-            GetExtmarksNamespaceId::Any => -1,
+            GetExtmarksNamespaceId::All => -1,
             GetExtmarksNamespaceId::Specific(id) => id as Self,
         }
     }
