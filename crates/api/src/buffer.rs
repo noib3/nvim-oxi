@@ -347,10 +347,9 @@ impl Buffer {
     /// Returns the full filepath of the buffer.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_name()
-    pub fn get_name(&self) -> Result<PathBuf> {
+    pub fn get_name(&self) -> Result<nvim::String> {
         let mut err = nvim::Error::new();
-        let name =
-            unsafe { nvim_buf_get_name(self.0, types::arena(), &mut err) };
+        let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
         choose!(err, Ok(name.into()))
     }
 

@@ -13,7 +13,7 @@ use crate::{NvimStr, Object, ObjectKind, StringBuilder, conversion};
 /// Binding to the string type used by Neovim.
 ///
 /// Unlike Rust's `String`, this type is not guaranteed to contain valid UTF-8
-/// byte sequences, it can contain null bytes, and it is null-terminated.
+/// byte sequences, it can contain null bytes, and is null-terminated.
 //
 // https://github.com/neovim/neovim/blob/v0.11.0/src/nvim/api/private/defs.h#L80-L83
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -143,6 +143,13 @@ impl Drop for String {
         //
         // TODO: we're leaking memory here if the pointer points to allocated
         // memory.
+    }
+}
+
+impl From<NvimStr<'_>> for String {
+    #[inline]
+    fn from(s: NvimStr) -> Self {
+        Self::from_bytes(s.as_bytes())
     }
 }
 

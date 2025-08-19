@@ -88,11 +88,10 @@ unsafe extern "C" {
     ) -> Array;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L945
-    pub(crate) fn nvim_buf_get_name(
+    pub(crate) fn nvim_buf_get_name<'a>(
         buf: BufHandle,
-        arena: *mut Arena,
         err: *mut Error,
-    ) -> String;
+    ) -> NvimStr<'a>;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/buffer.c#L806
     pub(crate) fn nvim_buf_get_offset(
