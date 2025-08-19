@@ -210,14 +210,6 @@ impl fmt::Write for StringBuilder {
     }
 }
 
-impl Drop for StringBuilder {
-    fn drop(&mut self) {
-        if !self.inner.as_ptr().is_null() {
-            unsafe { libc::free(self.inner.as_ptr() as *mut ffi::c_void) }
-        }
-    }
-}
-
 #[cold]
 #[inline(never)]
 fn unable_to_alloc_memory() {
