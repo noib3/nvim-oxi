@@ -290,17 +290,10 @@ fn buf_set_get_del_var() {
 #[nvim_oxi::test]
 fn buf_set_get_name() {
     let mut buf = api::create_buf(true, false).unwrap();
-
-    assert_eq!("", buf.get_name().unwrap().display().to_string());
-
-    assert_eq!(Ok(()), buf.set_name("foo"));
-
-    assert_eq!(
-        "foo",
-        buf.get_name().unwrap().file_name().unwrap().to_string_lossy()
-    );
-
-    assert_eq!(Ok(()), buf.set_name(""));
+    assert_eq!(buf.get_name().unwrap(), "");
+    buf.set_name("foo").unwrap();
+    assert!(buf.get_name().unwrap().to_string_lossy().ends_with("foo"));
+    buf.set_name("").unwrap();
 }
 
 #[nvim_oxi::test]

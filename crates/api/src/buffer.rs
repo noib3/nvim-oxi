@@ -1,7 +1,7 @@
 use core::ops::RangeBounds;
 use std::error::Error as StdError;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::result::Result as StdResult;
 
 use luajit::{self as lua, Poppable, Pushable};
