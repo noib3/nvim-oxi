@@ -131,6 +131,13 @@ fn buf_get_lines_range_bounds() {
 }
 
 #[nvim_oxi::test]
+fn buf_get_name_invalid_buf() {
+    let buf = Buffer::from(42);
+    let err = buf.get_name().unwrap_err();
+    assert!(matches!(err, api::Error::Nvim(_)));
+}
+
+#[nvim_oxi::test]
 fn buf_loaded_n_valid() {
     let buf = Buffer::current();
     assert!(buf.is_loaded());
@@ -283,17 +290,10 @@ fn buf_set_get_del_var() {
 #[nvim_oxi::test]
 fn buf_set_get_name() {
     let mut buf = api::create_buf(true, false).unwrap();
-
-    assert_eq!("", buf.get_name().unwrap().display().to_string());
-
-    assert_eq!(Ok(()), buf.set_name("foo"));
-
-    assert_eq!(
-        "foo",
-        buf.get_name().unwrap().file_name().unwrap().to_string_lossy()
-    );
-
-    assert_eq!(Ok(()), buf.set_name(""));
+    assert_eq!(buf.get_name().unwrap(), "");
+    buf.set_name("foo").unwrap();
+    assert!(buf.get_name().unwrap().to_string_lossy().ends_with("foo"));
+    buf.set_name("").unwrap();
 }
 
 #[nvim_oxi::test]
@@ -317,10 +317,7 @@ fn buf_terminal_name() {
     let term_name_lua =
         api::exec("lua =vim.api.nvim_buf_get_name(0)", true).unwrap().unwrap();
 
-    assert_eq!(
-        term_name_oxi.display().to_string(),
-        term_name_lua.trim_matches('"')
-    );
+    assert_eq!(term_name_oxi, term_name_lua.trim_matches('"'));
 }
 
 enum Range<T> {

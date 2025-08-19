@@ -1,7 +1,7 @@
 use core::ops::RangeBounds;
 use std::error::Error as StdError;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::result::Result as StdResult;
 
 use luajit::{self as lua, Poppable, Pushable};
@@ -74,7 +74,7 @@ impl Poppable for Buffer {
     unsafe fn pop(
         lstate: *mut lua::ffi::State,
     ) -> std::result::Result<Self, lua::Error> {
-        BufHandle::pop(lstate).map(Into::into)
+        unsafe { BufHandle::pop(lstate) }.map(Into::into)
     }
 }
 
@@ -83,7 +83,7 @@ impl Pushable for Buffer {
         self,
         lstate: *mut lua::ffi::State,
     ) -> std::result::Result<std::ffi::c_int, lua::Error> {
-        self.0.push(lstate)
+        unsafe { self.0.push(lstate) }
     }
 }
 
@@ -347,10 +347,9 @@ impl Buffer {
     /// Returns the full filepath of the buffer.
     ///
     /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_get_name()
-    pub fn get_name(&self) -> Result<PathBuf> {
+    pub fn get_name(&self) -> Result<nvim::String> {
         let mut err = nvim::Error::new();
-        let name =
-            unsafe { nvim_buf_get_name(self.0, types::arena(), &mut err) };
+        let name = unsafe { nvim_buf_get_name(self.0, &mut err) };
         choose!(err, Ok(name.into()))
     }
 

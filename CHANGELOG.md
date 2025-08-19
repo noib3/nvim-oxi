@@ -17,6 +17,10 @@
   Because `GetExtmarksNamespaceId` implements `From<u32>`, this should be an
   API-compatible change ([#256](https://github.com/noib3/nvim-oxi/pull/256));
 
+- `nvim_oxi::api::Buffer::get_name()` now returns a `Result<nvim_oxi::String>`
+  instead of a `Result<PathBuf>`
+  ([#262](https://github.com/noib3/nvim-oxi/pull/262));
+
 ### Fixed
 
 - fixed the definition of `DecorationProviderOpts`, which was causing
