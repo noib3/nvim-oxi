@@ -131,6 +131,13 @@ fn buf_get_lines_range_bounds() {
 }
 
 #[nvim_oxi::test]
+fn buf_get_name_invalid_buf() {
+    let buf = Buffer::from(42);
+    let err = buf.get_name().unwrap_err();
+    assert!(matches!(err, api::Error::Nvim(_)));
+}
+
+#[nvim_oxi::test]
 fn buf_loaded_n_valid() {
     let buf = Buffer::current();
     assert!(buf.is_loaded());
