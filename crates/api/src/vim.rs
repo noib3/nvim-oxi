@@ -855,7 +855,7 @@ pub fn set_hl(ns_id: u32, name: &str, opts: &SetHighlightOpts) -> Result<()> {
 /// Binding to [`nvim_set_hl_ns()`][1].
 ///
 /// Set the active namespace for the highlights defined with [`set_hl`]. This
-/// can be set for a single window, see [`Window::set_hl`].
+/// can be set for a single window, see [`Window::set_hl_ns`].
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_set_hl_ns()
 pub fn set_hl_ns(ns_id: u32) -> Result<()> {
