@@ -16,11 +16,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        neovim: [v0.10.4, v0.11.1, Nightly]
+        neovim: [v0.10.4, v0.11.3, Nightly]
         include:
           - neovim: v0.10.4
             features: "--features neovim-0-10"
-          - neovim: v0.11.1
+          - neovim: v0.11.3
             features: "--features neovim-0-11"
           - neovim: Nightly
             features: "--features neovim-nightly"
