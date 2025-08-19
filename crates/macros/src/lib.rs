@@ -141,7 +141,6 @@ pub fn plugin(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// If the given string spans multiple lines, it will be joined into a single
 /// line using `;` as the separator.
-/// ```
 #[cfg(feature = "test")]
 #[proc_macro_attribute]
 pub fn test(attr: TokenStream, item: TokenStream) -> TokenStream {

@@ -27,6 +27,10 @@ mixed_attributes_style = "allow"
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "allow"
 
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+private_intra_doc_links = "deny"
+
 [package]
 name = "nvim-oxi"
 description = "Rust bindings to all things Neovim"
