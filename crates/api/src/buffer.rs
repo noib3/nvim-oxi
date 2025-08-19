@@ -74,7 +74,7 @@ impl Poppable for Buffer {
     unsafe fn pop(
         lstate: *mut lua::ffi::State,
     ) -> std::result::Result<Self, lua::Error> {
-        BufHandle::pop(lstate).map(Into::into)
+        unsafe { BufHandle::pop(lstate) }.map(Into::into)
     }
 }
 
@@ -83,7 +83,7 @@ impl Pushable for Buffer {
         self,
         lstate: *mut lua::ffi::State,
     ) -> std::result::Result<std::ffi::c_int, lua::Error> {
-        self.0.push(lstate)
+        unsafe { self.0.push(lstate) }
     }
 }
 
