@@ -317,10 +317,7 @@ fn buf_terminal_name() {
     let term_name_lua =
         api::exec("lua =vim.api.nvim_buf_get_name(0)", true).unwrap().unwrap();
 
-    assert_eq!(
-        term_name_oxi.display().to_string(),
-        term_name_lua.trim_matches('"')
-    );
+    assert_eq!(term_name_oxi, term_name_lua.trim_matches('"'));
 }
 
 enum Range<T> {
