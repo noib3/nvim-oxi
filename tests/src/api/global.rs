@@ -130,6 +130,7 @@ fn get_runtime_file() {
 }
 
 #[nvim_oxi::test]
+#[cfg_attr(feature = "neovim-0-11", ignore = "deprecated in 0.11")]
 fn hl_foreground() {
     let foreground = "#FF0000";
     let opts = SetHighlightOpts::builder()
@@ -144,6 +145,7 @@ fn hl_foreground() {
 }
 
 #[nvim_oxi::test]
+#[cfg_attr(feature = "neovim-0-11", ignore = "deprecated in 0.11")]
 fn hl_link() {
     let base_fg = "#579dd6";
     let base_opts = SetHighlightOpts::builder().foreground(base_fg).build();
