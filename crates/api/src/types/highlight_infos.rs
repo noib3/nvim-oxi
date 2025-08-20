@@ -10,6 +10,7 @@ use types::{
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Default)]
 pub struct HighlightInfos {
     pub altfont: Option<bool>,
+    #[serde(rename = "bg")]
     pub background: Option<u32>,
     pub bg_indexed: Option<bool>,
     pub blend: Option<u32>,
@@ -18,9 +19,11 @@ pub struct HighlightInfos {
     pub fallback: Option<bool>,
     pub fg_indexed: Option<bool>,
     pub force: Option<bool>,
+    #[serde(rename = "fg")]
     pub foreground: Option<u32>,
     pub italic: Option<bool>,
     pub reverse: Option<bool>,
+    #[serde(rename = "sp")]
     pub special: Option<u32>,
     pub standout: Option<bool>,
     pub strikethrough: Option<bool>,

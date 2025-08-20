@@ -1,6 +1,7 @@
 use types::Object;
 use types::{Boolean, Integer, String as NvimString};
 
+// https://github.com/neovim/neovim/blob/v0.11.3/src/nvim/api/keysets_defs.h#L164-L196
 #[derive(Clone, Debug, Default, PartialEq, macros::OptsBuilder)]
 #[repr(C)]
 pub struct SetHighlightOpts {

@@ -98,7 +98,9 @@ fn get_hl() {
 
     let opts = GetHighlightOpts::builder().name("Normal").build();
     let infos = api::get_hl(0, &opts).unwrap();
-    let GetHlInfos::Single(_) = infos else { panic!("expected a single") };
+    let GetHlInfos::Single(infos) = infos else { panic!("expected a single") };
+    assert!(infos.foreground.is_some());
+    assert!(infos.background.is_some());
 }
 
 #[nvim_oxi::test]
