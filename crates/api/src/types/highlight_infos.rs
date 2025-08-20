@@ -10,6 +10,8 @@ use types::{
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Default)]
 pub struct HighlightInfos {
     pub altfont: Option<bool>,
+    #[cfg_attr(not(feature = "neovim-0-11"), serde(alias = "bg"))]
+    #[cfg_attr(feature = "neovim-0-11", serde(rename = "bg"))]
     pub background: Option<u32>,
     pub bg_indexed: Option<bool>,
     pub blend: Option<u32>,
@@ -18,9 +20,13 @@ pub struct HighlightInfos {
     pub fallback: Option<bool>,
     pub fg_indexed: Option<bool>,
     pub force: Option<bool>,
+    #[cfg_attr(not(feature = "neovim-0-11"), serde(alias = "fg"))]
+    #[cfg_attr(feature = "neovim-0-11", serde(rename = "fg"))]
     pub foreground: Option<u32>,
     pub italic: Option<bool>,
     pub reverse: Option<bool>,
+    #[cfg_attr(not(feature = "neovim-0-11"), serde(alias = "sp"))]
+    #[cfg_attr(feature = "neovim-0-11", serde(rename = "sp"))]
     pub special: Option<u32>,
     pub standout: Option<bool>,
     pub strikethrough: Option<bool>,

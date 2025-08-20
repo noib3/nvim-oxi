@@ -98,7 +98,9 @@ fn get_hl() {
 
     let opts = GetHighlightOpts::builder().name("Normal").build();
     let infos = api::get_hl(0, &opts).unwrap();
-    let GetHlInfos::Single(_) = infos else { panic!("expected a single") };
+    let GetHlInfos::Single(infos) = infos else { panic!("expected a single") };
+    assert!(infos.foreground.is_some());
+    assert!(infos.background.is_some());
 }
 
 #[nvim_oxi::test]
@@ -128,6 +130,7 @@ fn get_runtime_file() {
 }
 
 #[nvim_oxi::test]
+#[cfg_attr(feature = "neovim-0-11", ignore = "deprecated in 0.11")]
 fn hl_foreground() {
     let foreground = "#FF0000";
     let opts = SetHighlightOpts::builder()
@@ -142,6 +145,7 @@ fn hl_foreground() {
 }
 
 #[nvim_oxi::test]
+#[cfg_attr(feature = "neovim-0-11", ignore = "deprecated in 0.11")]
 fn hl_link() {
     let base_fg = "#579dd6";
     let base_opts = SetHighlightOpts::builder().foreground(base_fg).build();
