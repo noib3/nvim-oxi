@@ -26,15 +26,15 @@ pub struct EvalStatuslineOpts {
     #[builder(argtype = "bool")]
     highlights: types::Boolean,
 
-    /// Evaluate the tabline instead of the statusline. When `true` the
-    /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
-    #[builder(argtype = "bool")]
-    use_tabline: types::Boolean,
-
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
     #[builder(argtype = "bool")]
     use_winbar: types::Boolean,
+
+    /// Evaluate the tabline instead of the statusline. When `true` the
+    /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
+    #[builder(argtype = "bool")]
+    use_tabline: types::Boolean,
 
     // Evaluate the statuscolumn for this line number instead of the
     // statusline.
