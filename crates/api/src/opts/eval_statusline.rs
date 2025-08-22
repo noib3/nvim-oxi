@@ -3,6 +3,8 @@ use types::Object;
 use crate::Window;
 
 /// Options passed to [`eval_statusline()`](crate::eval_statusline).
+//
+// https://github.com/neovim/neovim/blob/v0.11.3/src/nvim/api/keysets_defs.h#L145-L154
 #[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct EvalStatuslineOpts {
