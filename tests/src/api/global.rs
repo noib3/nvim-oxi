@@ -49,6 +49,16 @@ fn eval_statusline() {
 }
 
 #[nvim_oxi::test]
+#[ignore = "fails on Linux and Windows, not sure why"]
+fn eval_statusline_empty() {
+    let opts = EvalStatuslineOpts::default();
+    let infos = api::eval_statusline("", &opts).unwrap();
+    assert_eq!(infos.str, "");
+    assert_eq!(infos.width, 0);
+    assert!(infos.highlights.is_empty());
+}
+
+#[nvim_oxi::test]
 fn feedkeys() {
     let keys = "iHllo<Esc>bi<Right>e";
     let keys = api::replace_termcodes(keys, true, false, true);

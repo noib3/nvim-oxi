@@ -52,7 +52,7 @@ unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L837
     pub(crate) fn nvim_err_writeln(str: NvimStr);
 
-    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L2114
+    // https://github.com/neovim/neovim/blob/v0.11.3/src/nvim/api/vim.c#L1987
     pub(crate) fn nvim_eval_statusline(
         str: NvimStr,
         opts: *const EvalStatuslineOpts,
