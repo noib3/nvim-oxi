@@ -21,6 +21,10 @@
   instead of a `Result<PathBuf>`
   ([#262](https://github.com/noib3/nvim-oxi/pull/262));
 
+- The `buffer` method on `nvim_oxi::api::opts::OptionOpts` builder has been
+  renamed to `buf` to make it consistent with upstream's naming
+  ([#268](https://github.com/noib3/nvim-oxi/pull/268));
+
 ### Fixed
 
 - fixed the definition of `DecorationProviderOpts`, which was causing
