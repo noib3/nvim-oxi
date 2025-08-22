@@ -38,6 +38,6 @@ pub struct EvalStatuslineOpts {
 
     // Evaluate the statuscolumn for this line number instead of the
     // statusline.
-    #[builder(argtype = "bool")]
-    use_statuscol_lnum: types::Boolean,
+    #[builder(argtype = "u32", inline = "{0}.into()")]
+    use_statuscol_lnum: types::Integer,
 }
