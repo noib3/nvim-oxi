@@ -1,90 +1,43 @@
-use types::Object;
-
 use crate::Window;
 
 /// Options passed to [`eval_statusline()`](crate::eval_statusline).
 //
 // https://github.com/neovim/neovim/blob/v0.11.3/src/nvim/api/keysets_defs.h#L145-L154
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct EvalStatuslineOpts {
-    winid: Object,
-    maxwidth: Object,
-    fillchar: Object,
-    highlights: Object,
-    use_tabline: Object,
-    use_winbar: Object,
-    use_statuscol_lnum: Object,
-}
+    #[builder(mask)]
+    mask: u64,
 
-impl EvalStatuslineOpts {
-    #[inline(always)]
-    /// Creates a new [`EvalStatuslineOptsBuilder`].
-    pub fn builder() -> EvalStatuslineOptsBuilder {
-        EvalStatuslineOptsBuilder::default()
-    }
-}
-
-#[derive(Clone, Default)]
-pub struct EvalStatuslineOptsBuilder(EvalStatuslineOpts);
-
-impl EvalStatuslineOptsBuilder {
-    /// Character used to fill blank spaces in the statusline.
-    #[inline]
-    pub fn fillchar(&mut self, fillchar: char) -> &mut Self {
-        self.0.fillchar = fillchar.into();
-        self
-    }
-
-    /// Return statuline informations from
-    /// [`eval_statusline()`](crate::eval_statusline).
-    #[inline]
-    pub fn highlights(&mut self, highlights: bool) -> &mut Self {
-        self.0.highlights = highlights.into();
-        self
-    }
+    /// Window to use as context for the statusline.
+    #[builder(method = "window", argtype = "Window", inline = "{0}.0")]
+    winid: types::WinHandle,
 
     /// Maximum width for the statusline.
-    #[inline]
-    pub fn maxwidth(&mut self, maxwidth: u32) -> &mut Self {
-        self.0.maxwidth = maxwidth.into();
-        self
-    }
+    #[builder(argtype = "u32", inline = "{0}.into()")]
+    maxwidth: types::Integer,
 
-    #[inline]
-    pub fn use_statuscol_lnum(
-        &mut self,
-        use_statuscol_lnum: bool,
-    ) -> &mut Self {
-        self.0.use_statuscol_lnum = use_statuscol_lnum.into();
-        self
-    }
+    /// Character used to fill blank spaces in the statusline.
+    #[builder(argtype = "char", inline = "{0}.into()")]
+    fillchar: types::String,
+
+    /// Whether to return statuline informations from
+    /// [`eval_statusline()`](crate::eval_statusline).
+    #[builder(argtype = "bool")]
+    highlights: types::Boolean,
 
     /// Evaluate the tabline instead of the statusline. When `true` the
     /// [`window`](EvalStatuslineOptsBuilder::window) field is ignored.
-    #[inline]
-    pub fn use_tabline(&mut self, use_tabline: bool) -> &mut Self {
-        self.0.use_tabline = use_tabline.into();
-        self
-    }
+    #[builder(argtype = "bool")]
+    use_tabline: types::Boolean,
 
     /// Evaluate the winbar instead of the statusline. Mutually exclusive with
     /// [`use_tabline`](EvalStatuslineOptsBuilder::use_tabline).
-    #[inline]
-    pub fn use_winbar(&mut self, use_winbar: bool) -> &mut Self {
-        self.0.use_winbar = use_winbar.into();
-        self
-    }
+    #[builder(argtype = "bool")]
+    use_winbar: types::Boolean,
 
-    /// Window to use as context for the statusline.
-    #[inline]
-    pub fn window(&mut self, window: Window) -> &mut Self {
-        self.0.winid = window.into();
-        self
-    }
-
-    #[inline]
-    pub fn build(&mut self) -> EvalStatuslineOpts {
-        std::mem::take(&mut self.0)
-    }
+    // Evaluate the statuscolumn for this line number instead of the
+    // statusline.
+    #[builder(argtype = "bool")]
+    use_statuscol_lnum: types::Boolean,
 }
