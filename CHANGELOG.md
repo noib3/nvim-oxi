@@ -23,7 +23,7 @@
 
 - The `buffer` method on `nvim_oxi::api::opts::OptionOpts` builder has been
   renamed to `buf` to make it consistent with upstream's naming
-  ([#247](https://github.com/noib3/nvim-oxi/pull/247));
+  ([#268](https://github.com/noib3/nvim-oxi/pull/268));
 
 ### Fixed
 
