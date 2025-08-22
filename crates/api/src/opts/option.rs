@@ -3,7 +3,7 @@ use types::conversion::FromObject;
 
 use crate::{Buffer, Window};
 
-/// Options passed to
+/// Options passed to [`get_option_value()`](crate::get_option_value) and
 /// [`set_option_value()`](crate::set_option_value).
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
@@ -17,7 +17,7 @@ pub struct OptionOpts {
     #[builder(argtype = "Window", inline = "{0}.0")]
     win: types::WinHandle,
 
-    #[builder(method = "buffer", argtype = "Buffer", inline = "{0}.0")]
+    #[builder(argtype = "Buffer", inline = "{0}.0")]
     buf: types::BufHandle,
 
     #[builder(
