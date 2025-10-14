@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use all_asserts::*;
+use nvim_oxi::Dictionary;
 use nvim_oxi::api::{self, Buffer, Window, opts::*, types::*};
 use nvim_oxi::mlua::{Error as LuaError, IntoLuaMulti, Lua, Table};
-use nvim_oxi::{Dictionary, Object};
 
 #[nvim_oxi::test]
 fn chan_send_fail() {
@@ -227,11 +227,13 @@ fn list_wins() {
     );
 }
 
+// `nvim_notify()` was deprecated on 0.11, so only test on 0.10.
+#[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
 #[nvim_oxi::test]
 fn notify() {
     let opts = Dictionary::new();
     let ret = api::notify("", LogLevel::Error, &opts).unwrap();
-    assert_eq!(ret, Object::nil());
+    assert_eq!(ret, nvim_oxi::Object::nil());
 }
 
 #[nvim_oxi::test]
