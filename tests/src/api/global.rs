@@ -42,6 +42,26 @@ fn echo() {
 }
 
 #[nvim_oxi::test]
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+fn echo_update_message_id() {
+    let message_id = api::echo(
+        [("Hello ", None), ("World", Some("WarningMsg"))],
+        true,
+        &Default::default(),
+    )
+    .unwrap();
+
+    let new_message_id = api::echo(
+        [("Goodbye ", None), ("World", Some("WarningMsg"))],
+        true,
+        &EchoOpts::builder().id(message_id).build(),
+    )
+    .unwrap();
+
+    assert_eq!(message_id, new_message_id);
+}
+
+#[nvim_oxi::test]
 fn eval_statusline() {
     let opts = EvalStatuslineOpts::builder().highlights(true).build();
     let res = api::eval_statusline("foo", &opts);
