@@ -54,7 +54,7 @@ fn echo_update_message_id() {
     let new_message_id = api::echo(
         [("Goodbye ", None), ("World", Some("WarningMsg"))],
         true,
-        &EchoOpts::builder().id(message_id).build(),
+        &EchoOpts::builder().id(message_id.clone()).build(),
     )
     .unwrap();
 
