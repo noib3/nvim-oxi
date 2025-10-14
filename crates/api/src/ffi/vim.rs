@@ -2,6 +2,14 @@ use types::*;
 
 use crate::opts::*;
 
+// On 0.10 and 0.11.
+#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+type NvimEchoOutput = ();
+
+// Only on Nightly.
+#[cfg(feature = "neovim-nightly")]
+type NvimEchoOutput = Object;
+
 #[cfg_attr(
     all(target_os = "windows", target_env = "msvc"),
     link(name = "nvim.exe", kind = "raw-dylib", modifiers = "+verbatim")
@@ -44,7 +52,7 @@ unsafe extern "C" {
         history: bool,
         opts: *const EchoOpts,
         err: *mut Error,
-    );
+    ) -> NvimEchoOutput;
 
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L826
     pub(crate) fn nvim_err_write(str: NvimStr);

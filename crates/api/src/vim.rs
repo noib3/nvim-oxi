@@ -111,6 +111,11 @@ pub fn del_var(name: &str) -> Result<()> {
 /// Echoes a message to the Neovim message area.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly"))))
+)]
+#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // On 0.10 and 0.11.
 pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,
@@ -134,6 +139,57 @@ where
     let mut err = nvim::Error::new();
     unsafe { nvim_echo(chunks.non_owning(), history, opts, &mut err) };
     choose!(err, ())
+}
+
+/// Binding to [`nvim_echo()`][1].
+///
+/// Echoes a message to the Neovim message area.
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+pub fn echo<HlGroup, Text, Chunks>(
+    chunks: Chunks,
+    history: bool,
+    opts: &EchoOpts,
+) -> Result<crate::types::EchoMessageId>
+where
+    Chunks: IntoIterator<Item = (Text, Option<HlGroup>)>,
+    Text: Into<nvim::String>,
+    HlGroup: Into<nvim::String>,
+{
+    let chunks = chunks
+        .into_iter()
+        .map(|(text, hlgroup)| {
+            Array::from_iter([
+                Object::from(text.into()),
+                Object::from(hlgroup.map(Into::into)),
+            ])
+        })
+        .collect::<Array>();
+
+    let mut err = nvim::Error::new();
+
+    let message_id =
+        unsafe { nvim_echo(chunks.non_owning(), history, opts, &mut err) };
+
+    if err.is_err() {
+        return Err(err.into());
+    }
+
+    Ok(match message_id.kind() {
+        types::ObjectKind::Integer => {
+            crate::types::EchoMessageId::Int(unsafe {
+                message_id.as_integer_unchecked()
+            })
+        },
+        types::ObjectKind::String => {
+            crate::types::EchoMessageId::String(unsafe {
+                message_id.into_string_unchecked()
+            })
+        },
+        other => panic!("Unexpected object kind: {other:?}"),
+    })
 }
 
 /// Binding to [`nvim_err_write()`][1].
