@@ -35,6 +35,8 @@ mod option_infos;
 mod parsed_viml_expression;
 mod paste_phase;
 mod proc_infos;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+mod progress_message_status;
 mod register_type;
 mod split_direction;
 mod split_modifier;
@@ -88,6 +90,8 @@ pub use option_infos::*;
 pub use parsed_viml_expression::*;
 pub use paste_phase::*;
 pub use proc_infos::*;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+pub use progress_message_status::ProgressMessageStatus;
 pub use register_type::*;
 pub use split_direction::*;
 pub use split_modifier::*;
