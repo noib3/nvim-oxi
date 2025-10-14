@@ -6,7 +6,7 @@ use crate::opts::*;
 #[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
 type NvimEchoOutput = ();
 
-// On Nightly.
+// Only on Nightly.
 #[cfg(feature = "neovim-nightly")]
 type NvimEchoOutput = Object;
 

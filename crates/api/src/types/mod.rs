@@ -15,6 +15,8 @@ mod command_modifiers;
 mod command_nargs;
 mod command_range;
 mod context_type;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+mod echo_message_id;
 mod editor_context;
 mod extmark_hl_mode;
 mod extmark_infos;
@@ -70,6 +72,8 @@ pub use command_modifiers::*;
 pub use command_nargs::*;
 pub use command_range::*;
 pub use context_type::*;
+#[cfg(feature = "neovim-nightly")] // On Nightly.
+pub use echo_message_id::EchoMessageId;
 pub use editor_context::*;
 pub use extmark_hl_mode::*;
 pub use extmark_infos::*;

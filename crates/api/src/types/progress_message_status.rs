@@ -18,10 +18,10 @@ impl ProgressMessageStatus {
     #[inline]
     pub(crate) fn as_str(self) -> &'static str {
         match self {
-            ProgressMessageStatus::Success => "success",
-            ProgressMessageStatus::Running => "running",
-            ProgressMessageStatus::Failed => "failed",
-            ProgressMessageStatus::Cancel => "cancel",
+            Self::Success => "success",
+            Self::Running => "running",
+            Self::Failed => "failed",
+            Self::Cancel => "cancel",
         }
     }
 }
