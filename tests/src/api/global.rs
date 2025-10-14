@@ -233,7 +233,7 @@ fn list_wins() {
 fn notify() {
     let opts = Dictionary::new();
     let ret = api::notify("", LogLevel::Error, &opts).unwrap();
-    assert_eq!(ret, Object::nil());
+    assert_eq!(ret, nvim_oxi::Object::nil());
 }
 
 #[nvim_oxi::test]
