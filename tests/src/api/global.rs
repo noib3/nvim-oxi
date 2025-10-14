@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use all_asserts::*;
+use nvim_oxi::Dictionary;
 use nvim_oxi::api::{self, Buffer, Window, opts::*, types::*};
 use nvim_oxi::mlua::{Error as LuaError, IntoLuaMulti, Lua, Table};
-use nvim_oxi::{Dictionary, Object};
 
 #[nvim_oxi::test]
 fn chan_send_fail() {
