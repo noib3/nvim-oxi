@@ -38,7 +38,7 @@ pub struct SetExtmarkOpts {
     hl_group: types::HlGroupId,
 
     /// Name of the highlight group used to highlight this mark.
-    #[cfg(feature = "neovim-0-11")] // Only on Nightly.
+    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
     #[builder(
         generics = "Hl: crate::SetExtmarkHlGroup",
@@ -226,6 +226,10 @@ pub struct SetExtmarkOpts {
     // This was an experimental option in Neovim 0.10 but has been removed from
     // the public API on nightly, even though it's still included in the opts.
     scoped: types::Boolean,
+
+    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[builder(skip)]
+    _subpriority: types::Integer,
 }
 
 #[inline]
