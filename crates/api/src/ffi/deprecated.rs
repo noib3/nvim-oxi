@@ -55,6 +55,15 @@ unsafe extern "C" {
         err: *mut Error,
     ) -> Dictionary;
 
+    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L527
+    pub(crate) fn nvim_notify(
+        msg: NvimStr,
+        log_level: Integer,
+        opts: NonOwning<Dictionary>,
+        arena: *mut Arena,
+        err: *mut Error,
+    ) -> Object;
+
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/deprecated.c#L532
     pub(crate) fn nvim_set_option(
         channel_id: u64,

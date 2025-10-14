@@ -1,4 +1,5 @@
 use types::conversion::{FromObject, ToObject};
+use types::{Dictionary, Integer, Object};
 
 use crate::LUA_INTERNAL_CALL;
 use crate::Result;
@@ -107,6 +108,32 @@ pub fn get_option_info(name: &str) -> Result<OptionInfos> {
         nvim_get_option_info(name.as_nvim_str(), types::arena(), &mut err)
     };
     choose!(err, Ok(OptionInfos::from_object(obj.into())?))
+}
+
+/// Binding to [`nvim_notify()`][1].
+///
+/// [1]: https://neovim.io/doc/user/api.html#nvim_notify()
+#[cfg_attr(
+    feature = "neovim-0-11", // On 0.11 and Nightly.
+    deprecated(since = "0.6.0", note = "use `echo` instead")
+)]
+pub fn notify(
+    msg: &str,
+    log_level: LogLevel,
+    opts: &Dictionary,
+) -> Result<Object> {
+    let msg = types::String::from(msg);
+    let mut err = types::Error::new();
+    let obj = unsafe {
+        nvim_notify(
+            msg.as_nvim_str(),
+            log_level as Integer,
+            opts.non_owning(),
+            types::arena(),
+            &mut err,
+        )
+    };
+    choose!(err, Ok(obj))
 }
 
 /// Binding to [`nvim_set_option()`][1].

@@ -668,28 +668,6 @@ pub fn load_context(ctx: EditorContext) {
     let _ = unsafe { nvim_load_context(ctx.non_owning()) };
 }
 
-/// Binding to [`nvim_notify()`][1].
-///
-/// [1]: https://neovim.io/doc/user/api.html#nvim_notify()
-pub fn notify(
-    msg: &str,
-    log_level: LogLevel,
-    opts: &Dictionary,
-) -> Result<Object> {
-    let msg = nvim::String::from(msg);
-    let mut err = nvim::Error::new();
-    let obj = unsafe {
-        nvim_notify(
-            msg.as_nvim_str(),
-            log_level as Integer,
-            opts.non_owning(),
-            types::arena(),
-            &mut err,
-        )
-    };
-    choose!(err, Ok(obj))
-}
-
 /// Binding to [`nvim_open_term()`][1].
 ///
 /// Opens a terminal instance in a buffer. Returns the id of a channel that can

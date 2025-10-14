@@ -227,6 +227,8 @@ fn list_wins() {
     );
 }
 
+// `nvim_notify()` was deprecated on 0.11, so only test on 0.10.
+#[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
 #[nvim_oxi::test]
 fn notify() {
     let opts = Dictionary::new();

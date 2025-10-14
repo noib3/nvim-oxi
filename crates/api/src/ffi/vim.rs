@@ -214,15 +214,6 @@ unsafe extern "C" {
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1455
     pub(crate) fn nvim_load_context(dict: NonOwning<Dictionary>) -> Object;
 
-    // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L527
-    pub(crate) fn nvim_notify(
-        msg: NvimStr,
-        log_level: Integer,
-        opts: NonOwning<Dictionary>,
-        arena: *mut Arena,
-        err: *mut Error,
-    ) -> Object;
-
     // https://github.com/neovim/neovim/blob/v0.10.0/src/nvim/api/vim.c#L1060
     pub(crate) fn nvim_open_term(
         buf: BufHandle,
