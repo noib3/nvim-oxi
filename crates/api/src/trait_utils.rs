@@ -180,6 +180,14 @@ impl SetExtmarkHlGroup for Integer {
 }
 
 #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
+impl SetExtmarkHlGroup for u32 {
+    #[inline]
+    fn into_object(self) -> Object {
+        SetExtmarkHlGroup::into_object(Integer::from(self))
+    }
+}
+
+#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 impl SetExtmarkHlGroup for &str {
     #[inline]
     fn into_object(self) -> Object {
