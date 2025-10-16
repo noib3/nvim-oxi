@@ -175,13 +175,13 @@ fn set_extmark_via_group_id() {
     let normal_chunk = virt_text_chunks.next().unwrap();
     assert_eq!(
         normal_chunk.hl_groups,
-        [StringOrInt::Int(normal_group_id.into())]
+        [StringOrInt::String("Normal".to_owned())]
     );
 
     let visual_chunk = virt_text_chunks.next().unwrap();
     assert_eq!(
         visual_chunk.hl_groups,
-        [StringOrInt::Int(visual_group_id.into())]
+        [StringOrInt::String("Visual".to_owned())]
     );
 
     assert_eq!(virt_text_chunks.next(), None);
