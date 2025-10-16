@@ -1,6 +1,6 @@
 use types::{Array, Integer};
 
-use crate::trait_utils::StringOrListOfStrings;
+use crate::SetExtmarkHlGroup;
 #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 use crate::types::VirtLinesOverflow;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
@@ -41,7 +41,7 @@ pub struct SetExtmarkOpts {
     #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
     #[builder(
-        generics = "Hl: crate::SetExtmarkHlGroup",
+        generics = "Hl: SetExtmarkHlGroup",
         argtype = "Hl",
         inline = r#"{0}.into_object()"#
     )]
@@ -54,7 +54,7 @@ pub struct SetExtmarkOpts {
     /// be a string or an integer, the latter obtained using
     /// [`get_hl_id_by_name()`](crate::get_hl_id_by_name).
     #[builder(
-        generics = r#"Text: Into<types::String>, Hl: StringOrListOfStrings, Chunks: IntoIterator<Item = (Text, Hl)>"#,
+        generics = r#"Text: Into<types::String>, Hl: SetExtmarkHlGroup, Chunks: IntoIterator<Item = (Text, Hl)>"#,
         argtype = "Chunks",
         setter = "set_virt_text"
     )]
@@ -118,7 +118,7 @@ pub struct SetExtmarkOpts {
 
     /// Virtual lines to add next to the mark.
     #[builder(
-        generics = r#"Text: Into<types::String>, Hl: StringOrListOfStrings, Chunks: IntoIterator<Item = (Text, Hl)>, Lines: IntoIterator<Item = Chunks>"#,
+        generics = r#"Text: Into<types::String>, Hl: SetExtmarkHlGroup, Chunks: IntoIterator<Item = (Text, Hl)>, Lines: IntoIterator<Item = Chunks>"#,
         argtype = "Lines",
         setter = "set_virt_lines"
     )]
@@ -240,13 +240,13 @@ fn set_virt_lines<Text, Hl, Chunks, Lines>(
     Lines: IntoIterator<Item = Chunks>,
     Chunks: IntoIterator<Item = (Text, Hl)>,
     Text: Into<types::String>,
-    Hl: StringOrListOfStrings,
+    Hl: SetExtmarkHlGroup,
 {
     *field = virt_lines
         .into_iter()
         .map(|chunks| {
-            Array::from_iter(chunks.into_iter().map(|(txt, hl)| {
-                Array::from_iter([txt.into().into(), hl.to_object()])
+            Array::from_iter(chunks.into_iter().map(|(text, hl)| {
+                Array::from_iter([text.into().into(), hl.into_object()])
             }))
         })
         .collect::<Array>();
@@ -257,10 +257,12 @@ fn set_virt_text<Text, Hl, Chunks>(field: &mut Array, virt_text: Chunks)
 where
     Chunks: IntoIterator<Item = (Text, Hl)>,
     Text: Into<types::String>,
-    Hl: StringOrListOfStrings,
+    Hl: SetExtmarkHlGroup,
 {
     *field = virt_text
         .into_iter()
-        .map(|(txt, hl)| Array::from_iter([txt.into().into(), hl.to_object()]))
+        .map(|(text, hl)| {
+            Array::from_iter([text.into().into(), hl.into_object()])
+        })
         .collect::<Array>();
 }
