@@ -54,8 +54,8 @@ pub struct SetExtmarkOpts {
     /// be a string or an integer, the latter obtained using
     /// [`get_hl_id_by_name()`](crate::get_hl_id_by_name).
     #[builder(
-        generics = r#"Txt: Into<types::String>, Hl: StringOrListOfStrings, Cnk: IntoIterator<Item = (Txt, Hl)>"#,
-        argtype = "Cnk",
+        generics = r#"Text: Into<types::String>, Hl: StringOrListOfStrings, Chunks: IntoIterator<Item = (Text, Hl)>"#,
+        argtype = "Chunks",
         setter = "set_virt_text"
     )]
     virt_text: types::Array,
@@ -118,8 +118,8 @@ pub struct SetExtmarkOpts {
 
     /// Virtual lines to add next to the mark.
     #[builder(
-        generics = r#"Txt: Into<types::String>, Hl: StringOrListOfStrings, Cnk: IntoIterator<Item = (Txt, Hl)>, ChunkyCnk: IntoIterator<Item = Cnk>"#,
-        argtype = "ChunkyCnk",
+        generics = r#"Text: Into<types::String>, Hl: StringOrListOfStrings, Chunks: IntoIterator<Item = (Text, Hl)>, Lines: IntoIterator<Item = Chunks>"#,
+        argtype = "Lines",
         setter = "set_virt_lines"
     )]
     virt_lines: types::Array,
@@ -233,19 +233,19 @@ pub struct SetExtmarkOpts {
 }
 
 #[inline]
-fn set_virt_lines<Txt, Hl, Cnk, ChunkyCnk>(
+fn set_virt_lines<Text, Hl, Chunks, Lines>(
     field: &mut Array,
-    virt_lines: ChunkyCnk,
+    virt_lines: Lines,
 ) where
-    ChunkyCnk: IntoIterator<Item = Cnk>,
-    Cnk: IntoIterator<Item = (Txt, Hl)>,
-    Txt: Into<types::String>,
+    Lines: IntoIterator<Item = Chunks>,
+    Chunks: IntoIterator<Item = (Text, Hl)>,
+    Text: Into<types::String>,
     Hl: StringOrListOfStrings,
 {
     *field = virt_lines
         .into_iter()
-        .map(|chnky| {
-            Array::from_iter(chnky.into_iter().map(|(txt, hl)| {
+        .map(|chunks| {
+            Array::from_iter(chunks.into_iter().map(|(txt, hl)| {
                 Array::from_iter([txt.into().into(), hl.to_object()])
             }))
         })
@@ -253,10 +253,10 @@ fn set_virt_lines<Txt, Hl, Cnk, ChunkyCnk>(
 }
 
 #[inline]
-fn set_virt_text<Txt, Hl, Cnk>(field: &mut Array, virt_text: Cnk)
+fn set_virt_text<Text, Hl, Chunks>(field: &mut Array, virt_text: Chunks)
 where
-    Cnk: IntoIterator<Item = (Txt, Hl)>,
-    Txt: Into<types::String>,
+    Chunks: IntoIterator<Item = (Text, Hl)>,
+    Text: Into<types::String>,
     Hl: StringOrListOfStrings,
 {
     *field = virt_text
