@@ -144,6 +144,44 @@ fn set_decoration_provider() {
 }
 
 #[nvim_oxi::test]
+fn set_extmark_via_group_id() {
+    let mut buf = Buffer::current();
+
+    let ns_id = api::create_namespace("test");
+
+    let normal_group_id = api::get_hl_id_by_name("Normal").unwrap();
+    let visual_group_id = api::get_hl_id_by_name("Visual").unwrap();
+
+    let opts = SetExtmarkOpts::builder()
+        .virt_text([
+            ("This is normal..", normal_group_id),
+            ("..and this is visual", visual_group_id),
+        ])
+        .virt_text_pos(ExtmarkVirtTextPosition::Overlay)
+        .build();
+
+    let extmark_id = buf.set_extmark(ns_id, 0, 0, &opts).unwrap();
+
+    let opts = GetExtmarkByIdOpts::builder().details(true).build();
+
+    let Ok((_, _, Some(infos))) =
+        buf.get_extmark_by_id(ns_id, extmark_id, &opts)
+    else {
+        unreachable!()
+    };
+
+    let mut virt_text_chunks = infos.virt_text.into_iter();
+
+    let normal_chunk = virt_text_chunks.next().unwrap();
+    assert_eq!(normal_chunk.hl_groups, [StringOrInt::Int(normal_group_id)]);
+
+    let visual_chunk = virt_text_chunks.next().unwrap();
+    assert_eq!(visual_chunk.hl_groups, [StringOrInt::Int(visual_group_id)]);
+
+    assert_eq!(virt_text_chunks.next(), None);
+}
+
+#[nvim_oxi::test]
 fn set_get_del_extmark() {
     let mut buf = Buffer::current();
     let ns_id = api::create_namespace("Foo");
