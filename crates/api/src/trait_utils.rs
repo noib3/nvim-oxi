@@ -163,15 +163,13 @@ impl HlGroup for &str {
     }
 }
 
-/// A trait implemented by types that can be passed to
-/// [`SetExtmarkOptsBuilder::hl_group`](crate::opts::SetExtmarkOptsBuilder::hl_group).
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
+/// A trait implemented by types that can be used to specify the highlight
+/// group in various methods on the
+/// [`SetExtmarkOptsBuilder`](crate::opts::SetExtmarkOptsBuilder).
 pub trait SetExtmarkHlGroup {
     fn into_object(self) -> Object;
 }
 
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 impl SetExtmarkHlGroup for Integer {
     #[inline]
     fn into_object(self) -> Object {
@@ -179,7 +177,6 @@ impl SetExtmarkHlGroup for Integer {
     }
 }
 
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 impl SetExtmarkHlGroup for u32 {
     #[inline]
     fn into_object(self) -> Object {
@@ -187,7 +184,6 @@ impl SetExtmarkHlGroup for u32 {
     }
 }
 
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 impl SetExtmarkHlGroup for &str {
     #[inline]
     fn into_object(self) -> Object {
@@ -195,7 +191,6 @@ impl SetExtmarkHlGroup for &str {
     }
 }
 
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 impl<T: StringOrInt> SetExtmarkHlGroup for Vec<T> {
     #[inline]
     fn into_object(self) -> Object {
