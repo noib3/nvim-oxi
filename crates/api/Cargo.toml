@@ -14,6 +14,7 @@ keywords.workspace = true
 neovim-0-10 = []
 neovim-0-11 = ["neovim-0-10"]
 neovim-nightly = ["neovim-0-11"]
+mlua = ["dep:mlua"]
 
 [dependencies]
 luajit = { workspace = true }
@@ -22,6 +23,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
 thiserror = { workspace = true }
 types = { workspace = true, features = ["serde"] }
+
+mlua = { workspace = true, optional = true }
 
 [lints]
 workspace = true
