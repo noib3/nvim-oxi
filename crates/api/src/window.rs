@@ -78,6 +78,20 @@ impl Pushable for Window {
     }
 }
 
+#[cfg(feature = "mlua")]
+impl mlua::IntoLua for Window {
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        self.handle().into_lua(lua)
+    }
+}
+
+#[cfg(feature = "mlua")]
+impl mlua::FromLua for Window {
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        WinHandle::from_lua(value, lua).map(Into::into)
+    }
+}
+
 impl Window {
     /// Shorthand for [`get_current_win`](crate::get_current_win).
     #[inline(always)]
