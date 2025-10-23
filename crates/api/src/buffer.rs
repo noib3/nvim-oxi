@@ -108,7 +108,7 @@ impl Buffer {
         crate::get_current_buf()
     }
 
-    /// Retrieve buffer's underlying id/handle
+    /// Returns the buffer's underlying handle.
     #[inline(always)]
     pub fn handle(&self) -> i32 {
         self.0

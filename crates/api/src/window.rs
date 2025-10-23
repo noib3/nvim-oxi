@@ -99,7 +99,7 @@ impl Window {
         crate::get_current_win()
     }
 
-    /// Retrieve window's underlying id/handle
+    /// Returns the window's underlying handle.
     #[inline(always)]
     pub fn handle(&self) -> i32 {
         self.0
