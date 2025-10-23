@@ -10,10 +10,20 @@ repository.workspace = true
 license.workspace = true
 keywords.workspace = true
 
+[package.metadata.docs.rs]
+default-features = false
+features = ["__docsrs", "neovim-nightly", "mlua"]
+rustdoc-args = ["--cfg", "docsrs"]
+
 [features]
+default = ["__no_docsrs"]
 neovim-0-10 = []
 neovim-0-11 = ["neovim-0-10"]
 neovim-nightly = ["neovim-0-11"]
+mlua = ["dep:mlua"]
+
+__docsrs = ["mlua?/vendored"]
+__no_docsrs = ["mlua?/module"]
 
 [dependencies]
 luajit = { workspace = true }
@@ -22,6 +32,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"
 thiserror = { workspace = true }
 types = { workspace = true, features = ["serde"] }
+
+mlua = { workspace = true, optional = true }
 
 [lints]
 workspace = true

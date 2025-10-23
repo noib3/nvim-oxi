@@ -87,6 +87,20 @@ impl Pushable for Buffer {
     }
 }
 
+#[cfg(feature = "mlua")]
+impl mlua::IntoLua for Buffer {
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        self.handle().into_lua(lua)
+    }
+}
+
+#[cfg(feature = "mlua")]
+impl mlua::FromLua for Buffer {
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        BufHandle::from_lua(value, lua).map(Into::into)
+    }
+}
+
 impl Buffer {
     /// Shorthand for [`get_current_buf`](crate::get_current_buf).
     #[inline(always)]
@@ -94,7 +108,7 @@ impl Buffer {
         crate::get_current_buf()
     }
 
-    /// Retrieve buffer's underlying id/handle
+    /// Returns the buffer's underlying handle.
     #[inline(always)]
     pub fn handle(&self) -> i32 {
         self.0

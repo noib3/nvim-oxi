@@ -67,6 +67,20 @@ impl FromObject for TabPage {
     }
 }
 
+#[cfg(feature = "mlua")]
+impl mlua::IntoLua for TabPage {
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        self.handle().into_lua(lua)
+    }
+}
+
+#[cfg(feature = "mlua")]
+impl mlua::FromLua for TabPage {
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        TabHandle::from_lua(value, lua).map(Into::into)
+    }
+}
+
 impl TabPage {
     /// Shorthand for [`get_current_tabpage`](crate::get_current_tabpage).
     #[inline(always)]
@@ -74,7 +88,7 @@ impl TabPage {
         crate::get_current_tabpage()
     }
 
-    /// Retrieve tabpage's underlying id/handle
+    /// Returns the tabpage's underlying handle.
     #[inline(always)]
     pub fn handle(&self) -> i32 {
         self.0
