@@ -50,7 +50,7 @@ pub fn build() -> Result<(), BuildError> {
     );
     // Rerun the build script if the compiled library is removed/changed.
     println!(
-        "cargo:rerun-if-changed=\"{}\"",
+        "cargo:rerun-if-changed={}",
         manifest.library_path(compilation_opts.profile.as_str()),
     );
     Ok(())
