@@ -18,7 +18,7 @@ where
     type Callback =
         Box<dyn Fn(*mut State) -> Result<c_int, crate::Error> + 'static>;
 
-    unsafe extern "C" fn c_fun(lstate: *mut State) -> c_int {
+    unsafe extern "C-unwind" fn c_fun(lstate: *mut State) -> c_int {
         let fun = {
             let idx = ffi::lua_upvalueindex(1);
             let upv = ffi::lua_touserdata(lstate, idx) as *mut Callback;
