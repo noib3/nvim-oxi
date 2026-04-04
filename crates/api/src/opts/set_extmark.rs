@@ -227,7 +227,7 @@ pub struct SetExtmarkOpts {
     // the public API on nightly, even though it's still included in the opts.
     scoped: types::Boolean,
 
-    #[cfg(feature = "neovim-nightly")] // Only on Nightly.
+    #[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
     #[builder(skip)]
     _subpriority: types::Integer,
 }

@@ -15,7 +15,7 @@ mod command_modifiers;
 mod command_nargs;
 mod command_range;
 mod context_type;
-#[cfg(feature = "neovim-nightly")] // On Nightly.
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 mod echo_message_id;
 mod editor_context;
 mod extmark_hl_mode;
@@ -37,7 +37,7 @@ mod option_infos;
 mod parsed_viml_expression;
 mod paste_phase;
 mod proc_infos;
-#[cfg(feature = "neovim-nightly")] // On Nightly.
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 mod progress_message_status;
 mod register_type;
 mod split_direction;
@@ -72,7 +72,7 @@ pub use command_modifiers::*;
 pub use command_nargs::*;
 pub use command_range::*;
 pub use context_type::*;
-#[cfg(feature = "neovim-nightly")] // On Nightly.
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 pub use echo_message_id::EchoMessageId;
 pub use editor_context::*;
 pub use extmark_hl_mode::*;
@@ -94,7 +94,7 @@ pub use option_infos::*;
 pub use parsed_viml_expression::*;
 pub use paste_phase::*;
 pub use proc_infos::*;
-#[cfg(feature = "neovim-nightly")] // On Nightly.
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 pub use progress_message_status::ProgressMessageStatus;
 pub use register_type::*;
 pub use split_direction::*;

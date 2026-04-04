@@ -113,9 +113,9 @@ pub fn del_var(name: &str) -> Result<()> {
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
 #[cfg_attr(
     docsrs,
-    doc(cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly"))))
+    doc(cfg(all(feature = "neovim-0-10", not(feature = "neovim-0-12"))))
 )]
-#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))] // On 0.10 and 0.11.
+#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-0-12")))] // On 0.10 and 0.11.
 pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,
@@ -146,8 +146,8 @@ where
 /// Echoes a message to the Neovim message area.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
-#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-12")))]
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,

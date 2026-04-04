@@ -3,11 +3,11 @@ use types::*;
 use crate::opts::*;
 
 // On 0.10 and 0.11.
-#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-nightly")))]
+#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-0-12")))]
 type NvimEchoOutput = ();
 
-// Only on Nightly.
-#[cfg(feature = "neovim-nightly")]
+// On 0.12 and Nightly.
+#[cfg(feature = "neovim-0-12")]
 type NvimEchoOutput = Object;
 
 #[cfg_attr(
