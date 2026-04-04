@@ -50,7 +50,7 @@ pub struct SetExtmarkOpts {
     /// Virtual text to link to this mark. Every `(text, highlights)` tuple
     /// represents a text chunk with a specified highlight. The highlights
     /// specified in `highlights` will be combined together, with the highest
-    /// priority highlight beign applied last. Each highlight group can either
+    /// priority highlight being applied last. Each highlight group can either
     /// be a string or an integer, the latter obtained using
     /// [`get_hl_id_by_name()`](crate::get_hl_id_by_name).
     #[builder(
