@@ -42,7 +42,7 @@ fn echo() {
 }
 
 #[nvim_oxi::test]
-#[cfg(feature = "neovim-nightly")] // Only on Nightly.
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
 fn echo_update_message_id() {
     let message_id = api::echo(
         [("Hello ", None), ("World", Some("WarningMsg"))],

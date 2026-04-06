@@ -1,5 +1,5 @@
 /// The message ID returned by [`echo()`](crate::echo).
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-nightly")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-12")))]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EchoMessageId {
     String(types::String),
