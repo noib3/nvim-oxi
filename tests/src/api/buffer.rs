@@ -297,14 +297,15 @@ fn buf_set_get_name() {
 }
 
 #[nvim_oxi::test]
-fn buf_set_get_option() {
-    let mut buf = Buffer::current();
+fn buf_set_get_option_value() {
+    let buf = Buffer::current();
+    let opts = OptionOpts::builder().buf(buf.clone()).build();
 
-    buf.set_option("modified", true).unwrap();
-    assert!(buf.get_option::<bool>("modified").unwrap());
+    api::set_option_value("modified", true, &opts).unwrap();
+    assert!(api::get_option_value::<bool>("modified", &opts).unwrap());
 
-    buf.set_option("modified", false).unwrap();
-    assert!(!buf.get_option::<bool>("modified").unwrap());
+    api::set_option_value("modified", false, &opts).unwrap();
+    assert!(!api::get_option_value::<bool>("modified", &opts).unwrap());
 }
 
 #[cfg_attr(target_os = "windows", ignore = "Windows' paths are dumb")]
@@ -314,10 +315,17 @@ fn buf_terminal_name() {
 
     let term_name_oxi = Buffer::current().get_name().unwrap();
 
-    let term_name_lua =
-        api::exec("lua =vim.api.nvim_buf_get_name(0)", true).unwrap().unwrap();
+    let term_name_lua = api::exec2(
+        "lua =vim.api.nvim_buf_get_name(0)",
+        &ExecOpts::builder().output(true).build(),
+    )
+    .unwrap()
+    .unwrap();
 
-    assert_eq!(term_name_oxi, term_name_lua.trim_matches('"'));
+    assert_eq!(
+        term_name_oxi,
+        term_name_lua.to_string_lossy().trim_matches('"')
+    );
 }
 
 enum Range<T> {

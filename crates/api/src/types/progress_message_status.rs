@@ -1,4 +1,4 @@
-#[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-12")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-12")))] // On 0.12 and Nightly
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ProgressMessageStatus {
     /// The progress item completed successfully.

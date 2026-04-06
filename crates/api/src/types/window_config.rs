@@ -53,8 +53,6 @@ pub struct WindowConfig {
 
     pub hide: Option<bool>,
 
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[serde(default)]
     pub mouse: bool,
 
@@ -294,8 +292,6 @@ pub struct WindowOpts {
     bufpos: Array,
     external: Boolean,
     focusable: Boolean,
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     mouse: Boolean,
     vertical: Boolean,
     zindex: Integer,
@@ -308,7 +304,7 @@ pub struct WindowOpts {
     noautocmd: Boolean,
     fixed: Boolean,
     hide: Boolean,
-    #[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+    #[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
     #[builder(skip)]
     _cmdline_offset: Integer,
 }
@@ -364,7 +360,6 @@ impl From<&WindowConfig> for WindowOpts {
             builder.focusable(focusable);
         }
 
-        #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
         builder.mouse(config.mouse);
 
         if let Some(vertical) = config.vertical {
@@ -432,7 +427,6 @@ impl TryFrom<WindowOpts> for WindowConfig {
             footer_pos,
             height,
             hide,
-            #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
             mouse,
             noautocmd,
             relative,
@@ -506,7 +500,6 @@ impl TryFrom<WindowOpts> for WindowConfig {
             ))?,
             height: deserialize(height)?,
             hide: deserialize(hide)?,
-            #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
             mouse,
             noautocmd: deserialize(noautocmd)?,
             relative,

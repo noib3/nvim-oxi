@@ -102,7 +102,6 @@ pub struct DecorationProviderOpts {
     #[builder(skip)]
     _on_spell_nav: LuaRef,
 
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[builder(skip)]
     _on_conceal_line: LuaRef,
 }

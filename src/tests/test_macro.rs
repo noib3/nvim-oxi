@@ -114,10 +114,10 @@ pub fn test_body(
                     .cloned()
                     .unwrap_or_else(|| info.into());
 
-                if let Some(thread) = thread::current().name() {
-                    if !thread.is_empty() {
-                        info.thread = thread.to_owned();
-                    }
+                if let Some(thread) = thread::current().name()
+                    && !thread.is_empty()
+                {
+                    info.thread = thread.to_owned();
                 }
 
                 eprintln!("\n{info}");
@@ -255,7 +255,7 @@ impl<T: fmt::Debug> From<Result<Result<(), T>, PanicInfo>> for TestResult {
     fn from(result: Result<Result<(), T>, PanicInfo>) -> Self {
         match result {
             Ok(Ok(())) => Self::Passed,
-            Ok(Err(err)) => Self::Errored(format!("{:?}", err)),
+            Ok(Err(err)) => Self::Errored(format!("{err:?}")),
             Err(panic_info) => Self::Panicked(panic_info),
         }
     }
@@ -271,7 +271,7 @@ impl<T: fmt::Debug> From<Result<(), super::terminator::TestFailure<'_, T>>>
         match result {
             Ok(()) => Self::Passed,
             Err(super::terminator::TestFailure::Error(err)) => {
-                Self::Errored(format!("{:?}", err))
+                Self::Errored(format!("{err:?}"))
             },
             Err(super::terminator::TestFailure::Panic(infos)) => {
                 Self::Panicked(infos.into())

@@ -30,7 +30,7 @@ pub struct WinTextHeightOpts {
     // unnecessary work. Or to find out how many buffer lines beyond
     // [`start_row`](Self::start_row) take up a certain number of logical lines
     // (returned in `end_row` and `end_vcol`).
-    #[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+    #[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
     #[builder(argtype = "usize", inline = "{0} as types::Integer")]
     max_height: types::Integer,
 }

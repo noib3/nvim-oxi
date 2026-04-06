@@ -35,6 +35,10 @@ mod window;
 pub use autocmd::*;
 pub use buffer::*;
 pub use command::*;
+#[allow(
+    unused_imports,
+    reason = "emits warning if there are no deprecated functions"
+)]
 pub use deprecated::*;
 pub use error::Error;
 use error::Result;

@@ -1,4 +1,4 @@
-use nvim_oxi::api::{self, Buffer, TabPage, Window, types::*};
+use nvim_oxi::api::{self, Buffer, TabPage, Window, opts::*, types::*};
 
 #[nvim_oxi::test]
 fn win_call_nil() {
@@ -108,14 +108,15 @@ fn set_get_cursor() {
 }
 
 #[nvim_oxi::test]
-fn win_set_get_option() {
-    let mut win = Window::current();
+fn win_set_get_option_value() {
+    let win = Window::current();
+    let opts = OptionOpts::builder().win(win.clone()).build();
 
-    win.set_option("spell", true).unwrap();
-    assert!(win.get_option::<bool>("spell").unwrap());
+    api::set_option_value("spell", true, &opts).unwrap();
+    assert!(api::get_option_value::<bool>("spell", &opts).unwrap());
 
-    win.set_option("spell", false).unwrap();
-    assert!(!win.get_option::<bool>("spell").unwrap());
+    api::set_option_value("spell", false, &opts).unwrap();
+    assert!(!api::get_option_value::<bool>("spell", &opts).unwrap());
 }
 
 #[nvim_oxi::test]

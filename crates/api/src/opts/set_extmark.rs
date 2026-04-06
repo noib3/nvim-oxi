@@ -1,7 +1,6 @@
 use types::{Array, Integer};
 
 use crate::SetExtmarkHlGroup;
-#[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
 use crate::types::VirtLinesOverflow;
 use crate::types::{ExtmarkHlMode, ExtmarkVirtTextPosition};
 
@@ -28,18 +27,6 @@ pub struct SetExtmarkOpts {
     end_col: types::Integer,
 
     /// Name of the highlight group used to highlight this mark.
-    #[cfg(not(feature = "neovim-0-11"))] // Only on 0.10.
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-0-11"))))]
-    #[builder(
-        generics = "Hl: crate::HlGroup",
-        argtype = "Hl",
-        inline = r#"{ let Ok(hl_id) = {0}.to_hl_id() else { return self; }; hl_id }"#
-    )]
-    hl_group: types::HlGroupId,
-
-    /// Name of the highlight group used to highlight this mark.
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
     #[builder(
         generics = "Hl: SetExtmarkHlGroup",
         argtype = "Hl",
@@ -135,8 +122,6 @@ pub struct SetExtmarkOpts {
     virt_lines_leftcol: types::Boolean,
 
     /// Controls how to handle virtual lines wider than the window.
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[builder(argtype = "VirtLinesOverflow", inline = "{0}.into()")]
     virt_lines_overflow: types::String,
 
@@ -196,8 +181,6 @@ pub struct SetExtmarkOpts {
 
     /// When called, lines in the range are not drawn at all (according to
     /// `conceallevel`); the next unconcealed line is drawn instead.
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
-    #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
     #[builder(argtype = "()", inline = "{let _ = {0}; types::String::new()}")]
     conceal_lines: types::String,
 
@@ -227,7 +210,7 @@ pub struct SetExtmarkOpts {
     // the public API on nightly, even though it's still included in the opts.
     scoped: types::Boolean,
 
-    #[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+    #[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
     #[builder(skip)]
     _subpriority: types::Integer,
 }

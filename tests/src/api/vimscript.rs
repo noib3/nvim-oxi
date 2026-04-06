@@ -43,15 +43,6 @@ fn eval() {
 }
 
 #[nvim_oxi::test]
-fn exec() {
-    let no_op = api::exec(":", true);
-    assert_eq!(Ok(None), no_op);
-
-    let add = api::exec(":echo 1 + 1", true);
-    assert_eq!(Ok(Some("2".into())), add);
-}
-
-#[nvim_oxi::test]
 fn parse_cmd_basic() {
     let res = api::parse_cmd("echo 'foo'", &Default::default());
     assert!(res.is_ok(), "{res:?}");
