@@ -278,6 +278,7 @@ impl FromObject for WindowConfig {
 
 #[derive(Clone, Default, Debug, macros::OptsBuilder)]
 #[repr(C)]
+#[cfg(not(feature = "neovim-0-12"))] // On 0.11 Only
 pub struct WindowOpts {
     #[builder(mask)]
     mask: u64,
@@ -304,7 +305,37 @@ pub struct WindowOpts {
     noautocmd: Boolean,
     fixed: Boolean,
     hide: Boolean,
-    #[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
+}
+
+#[derive(Clone, Default, Debug, macros::OptsBuilder)]
+#[repr(C)]
+#[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
+pub struct WindowOpts {
+    #[builder(mask)]
+    mask: u64,
+    external: Boolean,
+    fixed: Boolean,
+    focusable: Boolean,
+    footer: Object,
+    footer_pos: NvimString,
+    hide: Boolean,
+    height: Integer,
+    mouse: Boolean,
+    relative: NvimString,
+    row: Float,
+    style: NvimString,
+    noautocmd: Boolean,
+    vertical: Boolean,
+    win: WinHandle,
+    width: Integer,
+    zindex: Integer,
+    anchor: NvimString,
+    border: Object,
+    bufpos: Array,
+    col: Float,
+    split: NvimString,
+    title: Object,
+    title_pos: NvimString,
     #[builder(skip)]
     _cmdline_offset: Integer,
 }
@@ -457,8 +488,10 @@ impl TryFrom<WindowOpts> for WindowConfig {
         enum WindowRelative {
             Editor,
             Win,
+            Laststatus,
             Cursor,
             Mouse,
+            Tabline,
         }
 
         let relative = match utils::empty_string_is_none(Deserializer::new(
@@ -470,8 +503,12 @@ impl TryFrom<WindowOpts> for WindowConfig {
                     let win = deserialize(win)?;
                     Some(WindowRelativeTo::Window(win))
                 },
+                WindowRelative::Laststatus => {
+                    Some(WindowRelativeTo::Laststatus)
+                },
                 WindowRelative::Cursor => Some(WindowRelativeTo::Cursor),
                 WindowRelative::Mouse => Some(WindowRelativeTo::Mouse),
+                WindowRelative::Tabline => Some(WindowRelativeTo::Tabline),
             },
             None => None,
         };
