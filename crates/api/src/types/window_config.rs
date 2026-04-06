@@ -278,7 +278,7 @@ impl FromObject for WindowConfig {
 
 #[derive(Clone, Default, Debug, macros::OptsBuilder)]
 #[repr(C)]
-#[cfg(not(feature = "neovim-0-12"))] // On 0.11 Only
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11
 pub struct WindowOpts {
     #[builder(mask)]
     mask: u64,
