@@ -111,11 +111,8 @@ pub fn del_var(name: &str) -> Result<()> {
 /// Echoes a message to the Neovim message area.
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
-#[cfg_attr(
-    docsrs,
-    doc(cfg(all(feature = "neovim-0-10", not(feature = "neovim-0-12"))))
-)]
-#[cfg(all(feature = "neovim-0-10", not(feature = "neovim-0-12")))] // On 0.10 and 0.11.
+#[cfg_attr(docsrs, doc(cfg(not(feature = "neovim-0-12"))))]
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11.
 pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,
@@ -147,7 +144,7 @@ where
 ///
 /// [1]: https://neovim.io/doc/user/api.html#nvim_echo()
 #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-12")))]
-#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+#[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
 pub fn echo<HlGroup, Text, Chunks>(
     chunks: Chunks,
     history: bool,
@@ -541,15 +538,9 @@ pub fn input<Input>(keys: Input) -> Result<usize>
 where
     Input: Into<nvim::String>,
 {
-    unsafe {
-        nvim_input(
-            #[cfg(feature = "neovim-0-11")] // On 0.11 and Nightly.
-            LUA_INTERNAL_CALL,
-            keys.into().as_nvim_str(),
-        )
-    }
-    .try_into()
-    .map_err(From::from)
+    unsafe { nvim_input(LUA_INTERNAL_CALL, keys.into().as_nvim_str()) }
+        .try_into()
+        .map_err(From::from)
 }
 
 /// Binding to [`nvim_input_mouse()`][1].

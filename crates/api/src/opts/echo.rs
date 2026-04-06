@@ -1,10 +1,10 @@
-#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+#[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
 use crate::StringOrInt;
-#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+#[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
 use crate::types::ProgressMessageStatus;
 
 /// Options passed to [`echo()`](crate::echo).
-#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+#[cfg(feature = "neovim-0-12")] // On 0.12 and Nightly.
 #[derive(Clone, Debug, Default, macros::OptsBuilder)]
 #[repr(C)]
 pub struct EchoOpts {
@@ -62,15 +62,14 @@ pub struct EchoOpts {
 
 /// Options passed to [`echo()`](crate::echo).
 #[derive(Clone, Debug, Default)]
-#[cfg(not(feature = "neovim-0-12"))] // On 0.10 and 0.11
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11
 #[repr(C)]
 pub struct EchoOpts {
-    #[cfg(feature = "neovim-0-11")] // Only on 0.11.
     err: bool,
     verbose: bool,
 }
 
-#[cfg(not(feature = "neovim-0-12"))] // On 0.10 and 0.11
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11
 impl EchoOpts {
     #[inline(always)]
     pub fn builder() -> EchoOptsBuilder {
@@ -78,14 +77,12 @@ impl EchoOpts {
     }
 }
 
-#[cfg(not(feature = "neovim-0-12"))] // On 0.10 and 0.11
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11
 #[derive(Clone, Default)]
 pub struct EchoOptsBuilder(EchoOpts);
 
-#[cfg(not(feature = "neovim-0-12"))] // On 0.10 and 0.11
+#[cfg(not(feature = "neovim-0-12"))] // Only on 0.11
 impl EchoOptsBuilder {
-    #[cfg_attr(docsrs, doc(cfg(feature = "neovim-0-11")))]
-    #[cfg(feature = "neovim-0-11")] // Only on 0.11.
     #[inline]
     pub fn err(&mut self, err: bool) -> &mut Self {
         self.0.err = err;

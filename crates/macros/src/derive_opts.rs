@@ -280,7 +280,7 @@ impl OptsField<'_> {
         for attr in &self.attrs {
             match &attr {
                 BuilderAttribute::ArgType(arg_type) => {
-                    field_type = arg_type.clone();
+                    field_type = *arg_type.clone();
                 },
 
                 BuilderAttribute::Generics(gens) => {
@@ -437,7 +437,7 @@ enum BuilderAttribute {
     /// The `builder(argtype = "<type>")` attribute.
     ///
     /// TODO: docs
-    ArgType(Type),
+    ArgType(Box<Type>),
 
     /// The `builder(generics = "<generics>")` attribute.
     ///

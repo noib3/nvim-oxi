@@ -1,6 +1,3 @@
-// Suppress warnings when testing deprecated functions.
-#![allow(deprecated)]
-
 mod api;
 mod r#macro;
 
