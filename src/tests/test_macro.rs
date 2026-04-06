@@ -255,7 +255,7 @@ impl<T: fmt::Debug> From<Result<Result<(), T>, PanicInfo>> for TestResult {
     fn from(result: Result<Result<(), T>, PanicInfo>) -> Self {
         match result {
             Ok(Ok(())) => Self::Passed,
-            Ok(Err(err)) => Self::Errored(format!("{:?}", err)),
+            Ok(Err(err)) => Self::Errored(format!("{err:?}")),
             Err(panic_info) => Self::Panicked(panic_info),
         }
     }
@@ -271,7 +271,7 @@ impl<T: fmt::Debug> From<Result<(), super::terminator::TestFailure<'_, T>>>
         match result {
             Ok(()) => Self::Passed,
             Err(super::terminator::TestFailure::Error(err)) => {
-                Self::Errored(format!("{:?}", err))
+                Self::Errored(format!("{err:?}"))
             },
             Err(super::terminator::TestFailure::Panic(infos)) => {
                 Self::Panicked(infos.into())
