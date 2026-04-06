@@ -488,8 +488,10 @@ impl TryFrom<WindowOpts> for WindowConfig {
         enum WindowRelative {
             Editor,
             Win,
+            Laststatus,
             Cursor,
             Mouse,
+            Tabline,
         }
 
         let relative = match utils::empty_string_is_none(Deserializer::new(
@@ -501,8 +503,12 @@ impl TryFrom<WindowOpts> for WindowConfig {
                     let win = deserialize(win)?;
                     Some(WindowRelativeTo::Window(win))
                 },
+                WindowRelative::Laststatus => {
+                    Some(WindowRelativeTo::Laststatus)
+                },
                 WindowRelative::Cursor => Some(WindowRelativeTo::Cursor),
                 WindowRelative::Mouse => Some(WindowRelativeTo::Mouse),
+                WindowRelative::Tabline => Some(WindowRelativeTo::Tabline),
             },
             None => None,
         };
