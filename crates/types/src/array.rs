@@ -204,10 +204,7 @@ impl lua::Poppable for Array {
 
 impl lua::Pushable for Array {
     #[inline]
-    unsafe fn push(
-        self,
-        lstate: *mut lua::ffi::State,
-    ) -> Result<core::ffi::c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut lua::ffi::State) -> core::ffi::c_int {
         use lua::ffi::*;
 
         lua_createtable(lstate, self.len() as _, 0);
@@ -215,11 +212,11 @@ impl lua::Pushable for Array {
         for (idx, obj) in
             self.into_iter().filter(|obj| !obj.is_nil()).enumerate()
         {
-            obj.push(lstate)?;
+            obj.push(lstate);
             lua_rawseti(lstate, -2, (idx + 1) as _);
         }
 
-        Ok(1)
+        1
     }
 }
 

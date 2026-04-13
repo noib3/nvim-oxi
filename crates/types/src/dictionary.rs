@@ -423,21 +423,18 @@ impl lua::Poppable for Dictionary {
 
 impl lua::Pushable for Dictionary {
     #[inline]
-    unsafe fn push(
-        self,
-        lstate: *mut lua::ffi::State,
-    ) -> Result<core::ffi::c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut lua::ffi::State) -> core::ffi::c_int {
         use lua::ffi::*;
 
         lua_createtable(lstate, 0, self.len() as _);
 
         for (key, obj) in self.into_iter().filter(|(_, obj)| !obj.is_nil()) {
             lua_pushlstring(lstate, key.as_ptr(), key.len());
-            obj.push(lstate)?;
+            obj.push(lstate);
             lua_rawset(lstate, -3);
         }
 
-        Ok(1)
+        1
     }
 }
 

@@ -4,6 +4,7 @@ use core::mem;
 use core::ptr;
 
 use crate::ffi::{self, State};
+use crate::utils::push_error;
 use crate::{IntoResult, Poppable, Pushable, utils};
 
 /// Stores a function in the Lua registry, returning its ref.
@@ -25,7 +26,7 @@ where
             &**upv
         };
 
-        fun(lstate).unwrap_or_else(|err| utils::push_error(&err, lstate))
+        fun(lstate).unwrap_or_else(|err| push_error(&err, lstate))
     }
 
     unsafe {
@@ -35,7 +36,7 @@ where
                 let ret = fun(args)
                     .into_result()
                     .map_err(crate::Error::push_error_from_err::<R, _>)?;
-                ret.push(lstate)
+                Ok(ret.push(lstate))
             };
 
             let ud = ffi::lua_newuserdata(lstate, mem::size_of::<Callback>());
@@ -56,7 +57,7 @@ where
     unsafe {
         crate::with_state(move |lstate| {
             ffi::lua_rawgeti(lstate, ffi::LUA_REGISTRYINDEX, lua_ref);
-            let nargs = args.push(lstate)?;
+            let nargs = args.push(lstate);
 
             match ffi::lua_pcall(lstate, nargs, -1, 0 /* <- errorfunc */) {
                 ffi::LUA_OK => R::pop(lstate),

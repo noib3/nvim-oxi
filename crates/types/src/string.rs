@@ -257,12 +257,9 @@ impl TryFrom<Object> for String {
 
 impl lua::Pushable for String {
     #[inline]
-    unsafe fn push(
-        self,
-        lstate: *mut lua::ffi::State,
-    ) -> Result<ffi::c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut lua::ffi::State) -> ffi::c_int {
         lua::ffi::lua_pushlstring(lstate, self.as_ptr(), self.len());
-        Ok(1)
+        1
     }
 }
 

@@ -19,9 +19,6 @@ where
         #[cfg(feature = "libuv")]
         libuv::init(lua_state);
 
-        match body().push(lua_state) {
-            Ok(num_pushed) => num_pushed,
-            Err(lua_err) => luajit::utils::push_error(&lua_err, lua_state),
-        }
+        body().push(lua_state)
     }
 }

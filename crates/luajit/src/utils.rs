@@ -75,11 +75,11 @@ pub unsafe fn debug_stack(lstate: *mut State) {
 pub unsafe fn push_error<E: core::fmt::Display + ?Sized>(
     err: &E,
     lstate: *mut State,
-) -> ! {
-    let msg = err.to_string();
-    ffi::lua_pushlstring(lstate, msg.as_ptr() as *const _, msg.len());
-    drop(msg);
-    ffi::lua_error(lstate);
+) -> c_int {
+    //TODO Print error message to nvim, need crate a ffi crate
+    // let msg = err.to_string();
+    ffi::lua_pushnil(lstate);
+    1
 }
 
 pub fn type_name(ty: c_int) -> &'static str {

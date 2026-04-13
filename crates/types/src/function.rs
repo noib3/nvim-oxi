@@ -62,12 +62,9 @@ impl<A, R> Poppable for Function<A, R> {
 }
 
 impl<A, R> Pushable for Function<A, R> {
-    unsafe fn push(
-        self,
-        state: *mut lua::ffi::State,
-    ) -> Result<c_int, lua::Error> {
+    unsafe fn push(self, state: *mut lua::ffi::State) -> c_int {
         ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, self.lua_ref);
-        Ok(1)
+        1
     }
 }
 

@@ -700,7 +700,7 @@ where
 }
 
 impl Pushable for Object {
-    unsafe fn push(self, lstate: *mut State) -> Result<c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut State) -> c_int {
         match self.kind() {
             ObjectKind::Nil => ().push(lstate),
             ObjectKind::Boolean => self.as_boolean_unchecked().push(lstate),

@@ -53,10 +53,7 @@ impl Poppable for TabPage {
 }
 
 impl Pushable for TabPage {
-    unsafe fn push(
-        self,
-        lstate: *mut lua::ffi::State,
-    ) -> std::result::Result<std::ffi::c_int, lua::Error> {
+    unsafe fn push(self, lstate: *mut lua::ffi::State) -> std::ffi::c_int {
         self.0.push(lstate)
     }
 }
