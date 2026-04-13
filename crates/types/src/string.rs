@@ -138,11 +138,9 @@ impl Clone for String {
 
 impl Drop for String {
     fn drop(&mut self) {
-        // There's no way to know if the pointer we get from Neovim
-        // points to some `malloc`ed memory or to a static/borrowed string.
-        //
-        // TODO: we're leaking memory here if the pointer points to allocated
-        // memory.
+        if !self.as_ptr().is_null() {
+            unsafe { libc::free(self.as_ptr() as *mut ffi::c_void) }
+        }
     }
 }
 
