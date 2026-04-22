@@ -21,6 +21,7 @@ neovim-0-11 = []
 neovim-0-12 = ["neovim-0-11"]
 neovim-nightly = ["neovim-0-12"]
 mlua = ["dep:mlua"]
+oximlua = ["dep:mlua", "dep:oximlua"]
 
 __docsrs = ["mlua?/vendored"]
 __no_docsrs = ["mlua?/module"]
@@ -34,6 +35,7 @@ thiserror = { workspace = true }
 types = { workspace = true, features = ["serde"] }
 
 mlua = { workspace = true, optional = true }
+oximlua = { workspace = true, optional = true }
 
 [lints]
 workspace = true

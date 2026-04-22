@@ -10,9 +10,15 @@ repository.workspace = true
 license.workspace = true
 keywords.workspace = true
 
+[features]
+oximlua = ["dep:mlua", "dep:oximlua"]
+
 [dependencies]
 luajit = { workspace = true }
 thiserror = { workspace = true }
+
+mlua = { workspace = true, optional = true }
+oximlua = { workspace = true, optional = true }
 
 [lints]
 workspace = true

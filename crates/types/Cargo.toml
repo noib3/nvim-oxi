@@ -12,12 +12,16 @@ keywords.workspace = true
 
 [features]
 serde = ["dep:serde"]
+oximlua = ["dep:mlua", "dep:oximlua"]
 
 [dependencies]
 libc = "0.2"
 luajit = { workspace = true }
 serde = { version = "1.0", optional = true }
 thiserror = { workspace = true }
+
+mlua = { workspace = true, optional = true }
+oximlua = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0", features = ["derive"] }

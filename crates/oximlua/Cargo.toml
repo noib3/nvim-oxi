@@ -1,0 +1,17 @@
+[package]
+name = "nvim-oxi-mlua-adapter"
+description = "mlua adapter for nvim-oxi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+mlua = { workspace = true }
+
+[lints]
+workspace = true
