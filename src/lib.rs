@@ -43,7 +43,7 @@ pub mod lua {
     pub use luajit::*;
 }
 
-#[cfg(feature = "mlua")]
+#[cfg(all(feature = "mlua", not(feature = "oximlua")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "mlua")))]
 pub mod mlua {
     //! Integrations with the [mlua] Rust crate providing safe Lua bindings.
@@ -80,6 +80,15 @@ pub mod mlua {
             })
         }
     }
+}
+
+#[cfg(all(feature = "oximlua", not(feature = "mlua")))]
+pub mod oximlua {
+    //! Integrations to work alongside the [mlua] Rust crate.
+    //!
+    //! [mlua]: https://github.com/khvzak/mlua
+
+    pub use oximlua::*;
 }
 
 pub use error::{Error, Result};

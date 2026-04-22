@@ -17,6 +17,7 @@ api = { path = "./crates/api", package = "nvim-oxi-api" }
 libuv = { path = "./crates/libuv", package = "nvim-oxi-libuv" }
 luajit = { path = "./crates/luajit", package = "nvim-oxi-luajit" }
 macros = { path = "./crates/macros", package = "nvim-oxi-macros" }
+oximlua = { path = "./crates/oximlua", package = "nvim-oxi-mlua-adapter" }
 types = { path = "./crates/types", package = "nvim-oxi-types" }
 
 cargo_metadata = { version = "0.23" }
@@ -62,6 +63,7 @@ __no_docsrs = ["mlua?/module"]
 
 libuv = ["dep:libuv"]
 mlua = ["api/mlua", "dep:mlua"]
+oximlua = ["dep:mlua", "dep:oximlua"]
 test = ["macros/test", "dep:cargo_metadata"]
 test-terminator = ["test", "libuv", "macros/test-terminator"]
 
@@ -71,6 +73,7 @@ luajit = { workspace = true }
 macros = { workspace = true, features = ["plugin"] }
 types = { workspace = true, features = ["serde"] }
 libuv = { workspace = true, optional = true }
+oximlua = { workspace = true, optional = true }
 
 cargo_metadata = { workspace = true, optional = true }
 mlua = { workspace = true, optional = true }
