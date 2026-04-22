@@ -10,6 +10,8 @@ use types::{
 };
 
 use super::{CommandAddr, CommandArgs, CommandNArgs, CommandRange};
+#[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+use crate::types::CommandComplete;
 
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
@@ -26,7 +28,10 @@ pub struct CommandInfos {
     /// Callback triggered by the command.
     pub callback: Option<Function<CommandArgs, ()>>,
 
-    /// Command complletion strategy.
+    /// Command completion strategy.
+    #[cfg(feature = "neovim-0-12")] // on 0.12 and Nightly.
+    pub complete: Option<CommandComplete>,
+    #[cfg(not(feature = "neovim-0-12"))] // On 0.11 Only
     pub complete: Option<String>,
 
     /// TODO: docs
