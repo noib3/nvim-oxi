@@ -44,6 +44,10 @@ pub struct GetAutocmdsOpts {
 
     /// Get the autocommands local to a specific `Buffer`. Cannot be used
     /// together with `patterns`.
+    #[cfg(feature = "neovim-0-12")] // On 0.12 and above.
+    #[builder(argtype = "Buffer", inline = "{0}.into()")]
+    buf: Object,
+    #[cfg(not(feature = "neovim-0-12"))] // On 0.11 and bellow.
     #[builder(argtype = "Buffer", inline = "{0}.into()")]
     buffer: Object,
 }

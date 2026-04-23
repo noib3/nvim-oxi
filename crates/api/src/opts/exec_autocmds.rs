@@ -10,6 +10,10 @@ pub struct ExecAutocmdsOpts {
 
     /// A specific [`Buffer`] for buffer-local autocommands. Cannot be used
     /// together with [`patterns`](ExecAutocmdsOptsBuilder::patterns).
+    #[cfg(feature = "neovim-0-12")] // On 0.11 and bellow.
+    #[builder(argtype = "Buffer", inline = "{0}.0")]
+    buf: types::BufHandle,
+    #[cfg(not(feature = "neovim-0-12"))] // On 0.12 and above.
     #[builder(argtype = "Buffer", inline = "{0}.0")]
     buffer: types::BufHandle,
 
