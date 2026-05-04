@@ -1,6 +1,7 @@
 pub(crate) mod core;
 mod into_result;
 mod macros;
+pub mod utils;
 mod wrap_fn;
 
 pub use crate::core::*;
