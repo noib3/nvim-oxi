@@ -4,7 +4,12 @@ use std::fmt;
 use std::path::Path;
 use std::result::Result as StdResult;
 
+#[cfg(not(feature = "oximlua"))]
 use luajit::{self as lua, Poppable, Pushable};
+#[cfg(feature = "oximlua")]
+use mlua::FromLuaMulti;
+#[cfg(feature = "oximlua")]
+use oximlua as olua;
 use serde::{Deserialize, Serialize};
 use types::{
     self as nvim,
@@ -145,6 +150,7 @@ impl Buffer {
         )
     }
 
+    #[cfg(not(feature = "oximlua"))]
     /// Binding to [`nvim_buf_call()`][1].
     ///
     /// Calls a function with this buffer as the temporary current buffer.
@@ -188,6 +194,47 @@ impl Buffer {
         choose!(err, {
             fun.remove_from_lua_registry();
             Ok(Ret::from_object(obj)?)
+        })
+    }
+
+    #[cfg(feature = "oximlua")]
+    /// Binding to [`nvim_buf_call()`][1].
+    ///
+    /// Calls a function with this buffer as the temporary current buffer.
+    ///
+    /// [1]: https://neovim.io/doc/user/api.html#nvim_buf_call()
+    pub fn call<F, Res, Ret>(&self, fun: F) -> Result<Ret>
+    where
+        F: FnOnce(()) -> Res + 'static,
+        Res: IntoResult<Ret>,
+        // Res::Error: StdError + 'static,
+        Ret: FromLuaMulti,
+    {
+        use mlua::ExternalError;
+
+        let lua = olua::get_lua();
+        let fun = Function::from_fn_once(fun);
+        let mut err = nvim::Error::new();
+
+        let ref_or_nil =
+            unsafe { nvim_buf_call(self.0, fun.lua_ref(), &mut err) };
+
+        let lua_ref = match ref_or_nil.kind() {
+            types::ObjectKind::LuaRef => unsafe {
+                ref_or_nil.as_luaref_unchecked()
+            },
+            types::ObjectKind::Nil => {
+                return Ret::from_lua_multi(mlua::Value::Nil.into(), &lua)
+                    .into_result()?;
+            },
+            other => panic!("Unexpected object kind: {other:?}"),
+        };
+
+        let value = oximlua::get_registry_value(lua_ref)?;
+
+        choose!(err.into_lua_err(), {
+            fun.drop();
+            Ok(Ret::from_lua_multi(value.into(), &lua).into_result()?)
         })
     }
 
