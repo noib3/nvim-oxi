@@ -7,7 +7,10 @@ mod array;
 pub mod conversion;
 mod dictionary;
 mod error;
+#[cfg(not(feature = "oximlua"))]
 mod function;
+#[cfg(feature = "oximlua")]
+mod function_oximlua;
 mod kvec;
 mod macros;
 mod non_owning;
@@ -22,7 +25,10 @@ pub use arena::{Arena, arena, arena_init};
 pub use array::{Array, ArrayFromTupleError};
 pub use dictionary::{Dictionary, KeyValuePair};
 pub use error::Error;
+#[cfg(not(feature = "oximlua"))]
 pub use function::Function;
+#[cfg(feature = "oximlua")]
+pub use function_oximlua::Function;
 pub use non_owning::NonOwning;
 pub use object::{Object, ObjectKind};
 pub use str::NvimStr;
