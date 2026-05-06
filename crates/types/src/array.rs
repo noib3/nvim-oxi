@@ -1,6 +1,13 @@
 use core::ops::{Deref, DerefMut};
 
+#[cfg(not(feature = "oximlua"))]
 use luajit as lua;
+#[cfg(feature = "oximlua")]
+use mlua::FromLua;
+#[cfg(feature = "oximlua")]
+use mlua::IntoLua;
+#[cfg(feature = "oximlua")]
+use oximlua as olua;
 
 use crate::NonOwning;
 use crate::Object;
@@ -96,6 +103,20 @@ impl Array {
     pub fn swap_remove(&mut self, index: usize) -> Object {
         self.0.swap_remove(index)
     }
+
+    #[cfg(feature = "oximlua")]
+    pub unsafe fn try_from_table_unchecked(
+        table: mlua::Table,
+    ) -> mlua::Result<Self> {
+        let mut kvec = KVec::with_capacity(table.len()?.into());
+
+        let lua = olua::get_lua();
+        for item in table.sequence_values() {
+            kvec.push(Object::from_lua(item?, &lua)?);
+        }
+
+        Ok(Self(kvec))
+    }
 }
 
 impl Deref for Array {
@@ -172,6 +193,7 @@ impl DoubleEndedIterator for ArrayIterator {
 
 impl core::iter::FusedIterator for ArrayIterator {}
 
+#[cfg(not(feature = "oximlua"))]
 impl lua::Poppable for Array {
     #[inline]
     unsafe fn pop(lstate: *mut lua::ffi::State) -> Result<Self, lua::Error> {
@@ -202,6 +224,42 @@ impl lua::Poppable for Array {
     }
 }
 
+#[cfg(feature = "oximlua")]
+impl TryFrom<mlua::Table> for Array {
+    type Error = mlua::Error;
+
+    fn try_from(value: mlua::Table) -> Result<Self, Self::Error> {
+        if !olua::utils::is_table_array(value) {
+            return Err(mlua::Error::FromLuaConversionError {
+                from: std::any::type_name_of_val(&value),
+                to: std::any::type_name::<Self>().to_string(),
+                message: Some(format!(
+                    "expected Array got Dictionary {value:#?}"
+                )),
+            });
+        }
+
+        unsafe { Self::try_from_table_unchecked(value) }
+    }
+}
+
+#[cfg(feature = "oximlua")]
+impl mlua::FromLua for Array {
+    #[inline]
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        let mlua::Value::Table(table) = value else {
+            return Err(mlua::Error::FromLuaConversionError {
+                from: std::any::type_name_of_val(&value),
+                to: std::any::type_name::<Self>().to_string(),
+                message: Some(format!("unexpected value {value:#?}")),
+            });
+        };
+
+        Self::try_from(table)
+    }
+}
+
+#[cfg(not(feature = "oximlua"))]
 impl lua::Pushable for Array {
     #[inline]
     unsafe fn push(
@@ -220,6 +278,30 @@ impl lua::Pushable for Array {
         }
 
         Ok(1)
+    }
+}
+
+#[cfg(feature = "oximlua")]
+impl TryFrom<Array> for mlua::Table {
+    type Error = mlua::Error;
+
+    fn try_from(value: Array) -> Result<Self, Self::Error> {
+        let lua = olua::get_lua();
+        lua.create_table_from(
+            value
+                .into_iter()
+                .filter(|obj| !obj.is_nil())
+                .map(|obj| obj.into_lua(&lua))
+                .enumerate(),
+        )
+    }
+}
+
+#[cfg(feature = "oximlua")]
+impl mlua::IntoLua for Array {
+    #[inline]
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        mlua::Table::try_from(self).into()
     }
 }
 
