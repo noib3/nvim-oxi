@@ -1,6 +1,7 @@
 use std::error::Error as StdError;
 use std::iter::FusedIterator;
 
+#[cfg(not(feature = "oximlua"))]
 use luajit::{Poppable, Pushable};
 use types::{Array, Function, LuaRef, Object};
 use types::{HlGroupId, Integer};
