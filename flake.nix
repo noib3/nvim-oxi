@@ -1,72 +1,76 @@
 {
-  description = "nvim-oxi";
+  description = "nvim-oxi's development shell";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-neovim-0-11.url =
-      "github:NixOS/nixpkgs/832efc09b4caf6b4569fbf9dc01bec3082a00611";
-
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
-
-    neovim-nightly-overlay = {
+    neovim-0-11 = {
       url = "github:nix-community/neovim-nightly-overlay/master";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.neovim-src.follows = "neovim-src-0-11";
     };
+
+    neovim-0-12 = {
+      url = "github:nix-community/neovim-nightly-overlay/master";
+      inputs.neovim-src.follows = "neovim-src-0-12";
+    };
+
+    neovim-nightly = {
+      url = "github:nix-community/neovim-nightly-overlay/master";
+      inputs.neovim-src.follows = "neovim-src-nightly";
+    };
+
+    neovim-src-0-11 = {
+      url = "github:neovim/neovim/v0.11.7";
+      flake = false;
+    };
+
+    neovim-src-0-12 = {
+      url = "github:neovim/neovim/v0.12.2";
+      flake = false;
+    };
+
+    neovim-src-nightly = {
+      url = "github:neovim/neovim";
+      flake = false;
+    };
+
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
     inputs:
-    with inputs;
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        inherit (nixpkgs.lib) lists;
-
-        mkPkgs =
-          { nixpkgs, nightly }:
-          import nixpkgs {
-            inherit system;
-            overlays = lists.optionals nightly [
-              neovim-nightly-overlay.overlays.default
-            ];
-          };
-
-        mkShell =
-          { nixpkgs, nightly }:
-          (
-            let
-              pkgs = mkPkgs { inherit nixpkgs nightly; };
-            in
+    let
+      forEachSystem =
+        f:
+        inputs.nixpkgs.lib.genAttrs [
+          "aarch64-darwin"
+          "aarch64-linux"
+          "x86_64-linux"
+        ] (system: f system inputs.nixpkgs.legacyPackages.${system});
+    in
+    {
+      devShells = forEachSystem (
+        system: pkgs:
+        let
+          mkShell =
+            neovim-overlay:
             pkgs.mkShell {
-              buildInputs = lists.optionals pkgs.stdenv.isDarwin [ pkgs.libiconv ];
-
-              packages = with pkgs; [
-                gcc
-                luajit
-                neovim
-                pkg-config
+              buildInputs = inputs.nixpkgs.lib.optionals pkgs.stdenv.isDarwin [
+                pkgs.libiconv
               ];
-            }
-          );
-      in
-      {
-        devShells = {
+
+              packages = [
+                pkgs.gcc
+                pkgs.luajit
+                neovim-overlay.packages.${system}.neovim
+                pkgs.pkg-config
+              ];
+            };
+        in
+        {
           default = inputs.self.devShells.${system}.neovim-0-12;
-          neovim-0-11 = mkShell {
-            nixpkgs = nixpkgs-neovim-0-11;
-            nightly = false;
-          };
-          neovim-0-12 = mkShell {
-            inherit nixpkgs;
-            nightly = false;
-          };
-          nightly = mkShell {
-            inherit nixpkgs;
-            nightly = true;
-          };
-        };
-      }
-    );
+          neovim-0-11 = mkShell inputs.neovim-0-11;
+          neovim-0-12 = mkShell inputs.neovim-0-12;
+          neovim-nightly = mkShell inputs.neovim-nightly;
+        }
+      );
+    };
 }
