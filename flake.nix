@@ -2,11 +2,6 @@
   description = "nvim-oxi's development shell";
 
   inputs = {
-    neovim-0-11 = {
-      url = "github:nix-community/neovim-nightly-overlay/master";
-      inputs.neovim-src.follows = "neovim-src-0-11";
-    };
-
     neovim-0-12 = {
       url = "github:nix-community/neovim-nightly-overlay/master";
       inputs.neovim-src.follows = "neovim-src-0-12";
@@ -15,11 +10,6 @@
     neovim-nightly = {
       url = "github:nix-community/neovim-nightly-overlay/master";
       inputs.neovim-src.follows = "neovim-src-nightly";
-    };
-
-    neovim-src-0-11 = {
-      url = "github:neovim/neovim/v0.11.7";
-      flake = false;
     };
 
     neovim-src-0-12 = {
@@ -51,7 +41,7 @@
         system: pkgs:
         let
           mkShell =
-            neovim-overlay:
+            neovim:
             pkgs.mkShell {
               buildInputs = inputs.nixpkgs.lib.optionals pkgs.stdenv.isDarwin [
                 pkgs.libiconv
@@ -60,16 +50,19 @@
               packages = [
                 pkgs.gcc
                 pkgs.luajit
-                neovim-overlay.packages.${system}.neovim
+                neovim
                 pkgs.pkg-config
               ];
             };
         in
         {
           default = inputs.self.devShells.${system}.neovim-0-12;
-          neovim-0-11 = mkShell inputs.neovim-0-11;
-          neovim-0-12 = mkShell inputs.neovim-0-12;
-          neovim-nightly = mkShell inputs.neovim-nightly;
+          neovim-0-12 = mkShell (
+            inputs.neovim-0-12.packages.${system}.neovim.override {
+              tree-sitter = pkgs.tree-sitter;
+            }
+          );
+          neovim-nightly = mkShell inputs.neovim-nightly.packages.${system}.neovim;
         }
       );
     };
