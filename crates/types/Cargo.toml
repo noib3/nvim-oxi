@@ -14,13 +14,13 @@ keywords.workspace = true
 serde = ["dep:serde"]
 
 [dependencies]
-libc = "0.2"
+libc = { workspace = true }
 luajit = { workspace = true }
-serde = { version = "1.0", optional = true }
+serde = { workspace = true, optional = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-serde = { version = "1.0", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true
