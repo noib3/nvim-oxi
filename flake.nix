@@ -3,6 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-neovim-0-11.url =
+      "github:NixOS/nixpkgs/832efc09b4caf6b4569fbf9dc01bec3082a00611";
 
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -23,23 +25,22 @@
         inherit (nixpkgs.lib) lists;
 
         mkPkgs =
-          isNightly:
-          (import nixpkgs {
+          { nixpkgs, nightly }:
+          import nixpkgs {
             inherit system;
-            overlays = lists.optionals isNightly [
+            overlays = lists.optionals nightly [
               neovim-nightly-overlay.overlays.default
             ];
-          });
+          };
 
         mkShell =
-          { nightly }:
+          { nixpkgs, nightly }:
           (
             let
-              pkgs = mkPkgs nightly;
-              inherit (pkgs) lib stdenv;
+              pkgs = mkPkgs { inherit nixpkgs nightly; };
             in
             pkgs.mkShell {
-              buildInputs = lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
+              buildInputs = lists.optionals pkgs.stdenv.isDarwin [ pkgs.libiconv ];
 
               packages = with pkgs; [
                 gcc
@@ -52,8 +53,19 @@
       in
       {
         devShells = {
-          default = mkShell { nightly = false; };
-          nightly = mkShell { nightly = true; };
+          default = inputs.self.devShells.${system}.neovim-0-12;
+          neovim-0-11 = mkShell {
+            nixpkgs = nixpkgs-neovim-0-11;
+            nightly = false;
+          };
+          neovim-0-12 = mkShell {
+            inherit nixpkgs;
+            nightly = false;
+          };
+          nightly = mkShell {
+            inherit nixpkgs;
+            nightly = true;
+          };
         };
       }
     );
