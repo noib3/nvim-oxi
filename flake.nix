@@ -1,60 +1,69 @@
 {
-  description = "nvim-oxi";
+  description = "nvim-oxi's development shell";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
-
-    neovim-nightly-overlay = {
+    neovim-0-12 = {
       url = "github:nix-community/neovim-nightly-overlay/master";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.neovim-src.follows = "neovim-src-0-12";
     };
+
+    neovim-nightly = {
+      url = "github:nix-community/neovim-nightly-overlay/master";
+      inputs.neovim-src.follows = "neovim-src-nightly";
+    };
+
+    neovim-src-0-12 = {
+      url = "github:neovim/neovim/v0.12.2";
+      flake = false;
+    };
+
+    neovim-src-nightly = {
+      url = "github:neovim/neovim";
+      flake = false;
+    };
+
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
     inputs:
-    with inputs;
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        inherit (nixpkgs.lib) lists;
-
-        mkPkgs =
-          isNightly:
-          (import nixpkgs {
-            inherit system;
-            overlays = lists.optionals isNightly [
-              neovim-nightly-overlay.overlays.default
-            ];
-          });
-
-        mkShell =
-          { nightly }:
-          (
-            let
-              pkgs = mkPkgs nightly;
-              inherit (pkgs) lib stdenv;
-            in
+    let
+      forEachSystem =
+        f:
+        inputs.nixpkgs.lib.genAttrs [
+          "aarch64-darwin"
+          "aarch64-linux"
+          "x86_64-linux"
+        ] (system: f system inputs.nixpkgs.legacyPackages.${system});
+    in
+    {
+      devShells = forEachSystem (
+        system: pkgs:
+        let
+          mkShell =
+            neovim:
             pkgs.mkShell {
-              buildInputs = lists.optionals stdenv.isDarwin [ pkgs.libiconv ];
-
-              packages = with pkgs; [
-                gcc
-                luajit
-                neovim
-                pkg-config
+              buildInputs = inputs.nixpkgs.lib.optionals pkgs.stdenv.isDarwin [
+                pkgs.libiconv
               ];
+
+              packages = [
+                pkgs.gcc
+                pkgs.luajit
+                neovim
+                pkgs.pkg-config
+              ];
+            };
+        in
+        {
+          default = inputs.self.devShells.${system}.neovim-0-12;
+          neovim-0-12 = mkShell (
+            inputs.neovim-0-12.packages.${system}.neovim.override {
+              tree-sitter = pkgs.tree-sitter;
             }
           );
-      in
-      {
-        devShells = {
-          default = mkShell { nightly = false; };
-          nightly = mkShell { nightly = true; };
-        };
-      }
-    );
+          neovim-nightly = mkShell inputs.neovim-nightly.packages.${system}.neovim;
+        }
+      );
+    };
 }
